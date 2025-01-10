@@ -146,6 +146,7 @@ const MainLayout = () => {
             alignItems: 'center',
             position: 'fixed',
             width: '100vw',
+            zIndex: 100,
           }}
         >
           <div className="px-9 bg-slate-400 mr-10" onClick={() => navigate('/')}>
