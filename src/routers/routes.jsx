@@ -1,12 +1,20 @@
 import { createBrowserRouter } from "react-router-dom";
 import Loadable from "./Loadable";
 import MainLayout from "../components/layout/MainLayout";
+
 const Home = Loadable({ loader: () => import("../pages/Home") });
+const Login = Loadable({ loader: () => import("../pages/Authen/Login") });
+const Contract = Loadable({ loader: () => import("../pages/Contract/ContractManagement") });
 const MaintenancePage = Loadable({ loader: () => import("../components/layout/MaintenancePage") });
+
 export const router = createBrowserRouter([
     {
         path: "/",
         element: Home,
+    },
+    {
+        path: "/login",
+        element: Login,
     },
     {
         path: "/",
@@ -16,6 +24,11 @@ export const router = createBrowserRouter([
                 index: true,
                 element: Home,
             },
+            {
+                path: "contract",
+                element: Contract,
+            }
+
             // {
             //     path: "/",
             //     element: <AuthGuard />,
