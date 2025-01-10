@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { Breadcrumb, Layout, Menu, theme } from "antd";
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
 import React, { useState } from "react";
@@ -14,135 +14,160 @@ import { BsClipboard2DataFill } from "react-icons/bs"
 import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
 const { Content, Sider } = Layout;
-////////////////////////////////////////
-
-const subnav = ['1', '2', '3'].map((key) => ({
-  key,
-  label: `nav ${key}`,
-}));
-
-
-const nav = [
-  {
-    icon: MdDashboard, label: 'Danh mục', children: [
-      { icon: FaUserTie, label: 'Khách hàng' },
-      {
-        icon: FaFileContract, label: 'Hợp đồng', children: [
-          { icon: MdOutlineClass, label: 'Loại hợp đồng' },
-          { icon: BsClipboard2DataFill, label: 'Trạng thái`' }, 
-          { icon: FaHistory, label: 'Đã hủy / Tái Ký' },
-          { icon: BsTrash3Fill, label: 'Đã xóa' },
-        ]
-      },
-      {
-        icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
-          { icon: MdOutlineClass, label: 'Loại hợp đồng' },
-          { icon: BsClipboard2DataFill, label: 'Trạng thái`' },
-          { icon: FaHistory, label: 'Hủy / Tái Ký' },
-          { icon: BsTrash3Fill, label: 'Đã xóa' },
-        ]
-      },
-    ]
-  },
-  {
-    icon: SiAuth0, label: 'Phân quyền', children: [
-      { icon: MdDashboard, label: 'Danh mục', children: [] },
-      { icon: SiAuth0, label: 'Phân quyền', children: [] },
-      { icon: IoMdSettings, label: 'Cấu hình', children: [] },
-    ]
-  },
-  {
-    icon: IoMdSettings, label: 'Cấu hình', children: [
-      { icon: MdDashboard, label: 'Danh mục', children: [] },
-      { icon: SiAuth0, label: 'Phân quyền', children: [] },
-      { icon: IoMdSettings, label: 'Cấu hình', children: [] },
-    ]
-  },
-].map((item, index) => {
-  const key = String(index + 1);
-  return {
-    key: `sub${key}`,
-    icon: React.createElement(item.icon),
-    label: item.label,
-    children: item.children.map((childItem, childIndex) => {
-      const subKey = `${key}-${childIndex + 1}`;
-      return {
-        icon: React.createElement(childItem.icon),
-        key: `subnav${subKey}`,
-        label: childItem.label,
-        children: childItem.children && childItem.children.length > 0 ? childItem.children.map((grandchildItem, grandchildIndex) => {
-          const subgrandKey = `${key}-${childIndex + 1}-${grandchildIndex + 1}`;
-          return {
-            icon: React.createElement(grandchildItem.icon),
-            key: `subgrandKey${subgrandKey}`,
-            label: grandchildItem.label
-          }
-        }) : null,
-      };
-    }),
-  };
-});
-
-////////////////////////////////////////
 
 
 const MainLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
+
+  const subnav = ['1', '2', '3'].map((key) => ({
+    key,
+    label: `nav ${key}`,
+  }));
+
+  const router = {
+    '1': '/',
+    'client': '/client',
+    'contract': '/contract',
+    '4': '/combo',
+  }
+
+  const nav = [
+    {
+      icon: MdDashboard, key: "all", label: 'Danh mục', children: [
+        { icon: FaUserTie, label: 'Khách hàng', key: "client" },
+        {
+          icon: FaFileContract, label: 'Hợp đồng', children: [
+            { icon: MdOutlineClass, label: 'Loại hợp đồng', key: "contract" },
+            { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
+            { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
+            { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
+          ]
+        },
+        {
+          icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
+            { icon: MdOutlineClass, label: 'Loại hợp đồng', key: "contractType1" },
+            { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractType2" },
+            { icon: FaHistory, label: 'Hủy / Tái Ký', key: "contractType3" },
+            { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractType4" },
+          ]
+        },
+      ]
+    },
+    {
+      icon: SiAuth0, key: "right", label: 'Phân quyền', children: [
+        { icon: MdDashboard, label: 'Danh mục', key: "author" },
+        { icon: SiAuth0, label: 'Phân quyền', key: "author1" },
+        { icon: IoMdSettings, label: 'Cấu hình', key: "author2" },
+      ]
+    },
+    {
+      icon: IoMdSettings, label: 'Cấu hình', key: "setting", children: [
+        { icon: MdDashboard, label: 'Danh mục', key: "setting1" },
+        { icon: SiAuth0, label: 'Phân quyền', key: "setting2" },
+        { icon: IoMdSettings, label: 'Cấu hình', key: "setting3" },
+      ]
+    },
+  ].map((item, index) => {
+    return {
+      key: item.key,
+      icon: React.createElement(item.icon),
+      label: item.label,
+      children: item.children.map((childItem, childIndex) => {
+        return {
+          icon: React.createElement(childItem.icon),
+          key: childItem.key,
+          label: childItem.label,
+          path: childItem.path,
+          children: childItem.children && childItem.children.length > 0 ? childItem.children.map((grandchildItem, grandchildIndex) => {
+            return {
+              icon: React.createElement(grandchildItem.icon),
+              key: grandchildItem.key,
+              label: grandchildItem.label,
+              path: grandchildItem.path,
+            }
+          }) : null,
+        };
+      }),
+    };
+  });
+
+  const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(true);
+
+
   const {
     token: { colorBgContainer, borderRadiusLG, ...other },
   } = theme.useToken();
+
+  const handleMenuClick = (e) => {
+    console.log(e)
+    const path = router[e.key];
+    if (path) {
+      navigate(path);
+    }
+  };
+
   return (
     <Layout>
-      <Header
+      <Sider
+        theme="dark"
+        collapsed={collapsed}
+        onMouseEnter={() => setCollapsed(false)}
+        onMouseLeave={() => setCollapsed(true)}
+        width={'fit-content'}
         style={{
-          display: 'flex',
-          alignItems: 'center',
+          background: colorBgContainer,
+          overflow: 'auto',
+          height: '100vh',
+          position: 'fixed',
+          bottom: '0px',
+          scrollbarGutter: 'stable',
+          scrollbarWidth: 'thin',
+          insetInlineStart: 0,
+          zIndex: '1000'
         }}
       >
-        <div className="px-9 bg-slate-400 mr-10" >
-          Logo
-        </div>
         <Menu
-          theme="dark"
-          mode="horizontal"
-          defaultSelectedKeys={['2']}
-          items={subnav}
+          mode="inline"
           style={{
-            flex: 1,
-            minWidth: 0,
+            height: '100%',
+            borderRight: 0,
           }}
+          items={nav}
+          onClick={handleMenuClick}
         />
-      </Header>
+      </Sider>
+      <Layout style={{
+        marginInlineStart: 80,
+      }}>
 
-      <Layout>
-
-        <Sider
-          theme="dark"
-          collapsed={collapsed}
-          onMouseEnter={() => setCollapsed(false)}
-          onMouseLeave={() => setCollapsed(true)}
-          width={'fit-content'}
+        <Header
           style={{
-            background: colorBgContainer,
+            display: 'flex',
+            alignItems: 'center',
+            position: 'fixed',
+            width: '100vw',
           }}
         >
+          <div className="px-9 bg-slate-400 mr-10" onClick={() => navigate('/')}>
+            Logo
+          </div>
           <Menu
-            mode="inline"
-            defaultSelectedKeys={['1']}
-            defaultOpenKeys={['sub1']}
+            theme="dark"
+            mode="horizontal"
+            defaultSelectedKeys={['2']}
+            items={subnav}
             style={{
-              height: '100%',
-              borderRight: 0,
+              flex: 1,
+              minWidth: 0,
             }}
-            items={nav}
           />
-        </Sider>
-
+        </Header>
         {/* Nội dung  */}
 
         <Layout
           style={{
             padding: '0 24px 24px',
+            marginTop: '60px'
           }}
         >
 
