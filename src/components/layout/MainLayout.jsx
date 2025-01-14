@@ -13,6 +13,7 @@ import { FaHistory } from "react-icons/fa";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
+import { AiFillIdcard } from "react-icons/ai";
 const { Content, Sider } = Layout;
 
 
@@ -28,6 +29,7 @@ const MainLayout = () => {
     'dash': '/dashboard',
     'client': '/partner',
     'contract': '/contract',
+    'setting1':'/bsinformation',
     '4': '/combo',
   }
 
@@ -63,7 +65,7 @@ const MainLayout = () => {
     },
     {
       icon: IoMdSettings, label: 'Cấu hình', key: "setting", children: [
-        { icon: MdDashboard, label: 'Danh mục', key: "setting1" },
+        { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
         { icon: SiAuth0, label: 'Phân quyền', key: "setting2" },
         { icon: IoMdSettings, label: 'Cấu hình', key: "setting3" },
       ]
@@ -173,7 +175,7 @@ const MainLayout = () => {
             marginTop: '60px'
           }}
         >
-
+{/* 
           <Breadcrumb
             items={[
               {
@@ -189,15 +191,17 @@ const MainLayout = () => {
             style={{
               margin: '16px 0',
             }}
-          />
+          /> */}
 
           <Content
             style={{
               padding: 24,
-              margin: 0,
+              margin: 0 ,
+              marginTop:20,
               minHeight: 280,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
+              boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
             }}
           >
             <Outlet />

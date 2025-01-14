@@ -26,6 +26,9 @@ module.exports = {
           },
         },
       },
+      fontFamily: {
+        sans: ['Roboto', 'sans-serif'],
+      },
     },
   },
   plugins: [addVariablesForColors],

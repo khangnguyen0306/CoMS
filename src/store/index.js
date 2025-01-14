@@ -1,14 +1,13 @@
-
-
 import { authApi } from "../services/AuthAPI";
-import AuthReducer from "../slices/Auth.slice";
+import { bussinessAPI } from "../services/BsAPI";
+import AuthReducer from "../slices/auth.slice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import sessionStorage from 'redux-persist/lib/storage/session'
 
 const persistConfig = {
   key: 'root',
-  storage: sessionStorage, 
+  storage: sessionStorage,
   whitelist: ['user', 'token'],
 };
 
@@ -19,11 +18,13 @@ export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
     auth: AuthPerisReducer,
+    [bussinessAPI.reducerPath]: bussinessAPI.reducer,
+    bsInfo: bussinessAPI
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       authApi.middleware,
-
+      bussinessAPI.middleware,
     ),
 });
 
