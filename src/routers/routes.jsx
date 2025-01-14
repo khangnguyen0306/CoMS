@@ -6,6 +6,7 @@ const Home = Loadable({ loader: () => import("../pages/Home") });
 const Login = Loadable({ loader: () => import("../pages/Authen/Login") });
 const Contract = Loadable({ loader: () => import("../pages/Contract/ContractManagement") });
 const MaintenancePage = Loadable({ loader: () => import("../components/layout/MaintenancePage") });
+const BussinessInfor = Loadable({ loader: () => import("../pages/BussinessInfor/BussinessInfor") });
 
 export const router = createBrowserRouter([
     {
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
             {
                 path: "contract",
                 element: Contract,
+            },
+            {
+                path: "bsinformation",
+                element: BussinessInfor,
             }
 
             // {

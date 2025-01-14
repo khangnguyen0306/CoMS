@@ -1,22 +1,14 @@
-import {  Spin } from "antd";
+import { Skeleton } from "antd";
 import { lazy, Suspense } from "react";
 
 const Loadable = ({ loader }) => {
   const Component = lazy(loader);
 
+
   return (
     <Suspense
       fallback={
-        <Spin
-          size="large"
-          style={{
-            height: "100%",
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        />
+        <Skeleton active />
       }
     >
       <Component />
