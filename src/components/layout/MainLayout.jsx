@@ -26,7 +26,8 @@ const MainLayout = () => {
 
   const router = {
     '1': '/',
-    'client': '/client',
+    'dash': '/dashboard',
+    'client': '/partner',
     'contract': '/contract',
     'setting1':'/bsinformation',
     '4': '/combo',
@@ -35,6 +36,7 @@ const MainLayout = () => {
   const nav = [
     {
       icon: MdDashboard, key: "all", label: 'Danh mục', children: [
+        { icon: MdDashboard, label: 'Dashboard', key: "dash", default: true },
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [

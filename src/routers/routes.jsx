@@ -3,6 +3,10 @@ import Loadable from "./Loadable";
 import MainLayout from "../components/layout/MainLayout";
 
 const Home = Loadable({ loader: () => import("../pages/Home") });
+const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
+const Partner = Loadable({ loader: () => import("../pages/Partner/ManagePartner") });
+const DetailPartner = Loadable({ loader: () => import("../pages/Partner/DetailParrtner") });
+const Profile = Loadable({ loader: () => import("../pages/Profile/Profile") });
 const Login = Loadable({ loader: () => import("../pages/Authen/Login") });
 const Contract = Loadable({ loader: () => import("../pages/Contract/ContractManagement") });
 const MaintenancePage = Loadable({ loader: () => import("../components/layout/MaintenancePage") });
@@ -32,7 +36,23 @@ export const router = createBrowserRouter([
             {
                 path: "bsinformation",
                 element: BussinessInfor,
-            }
+            },
+            {
+                path: "dashboard",
+                element: Dashboard,
+            },
+            {
+                path: "profile",
+                element: Profile,
+            },
+            {
+                path: "partner",
+                element: Partner,
+            },
+            {
+                path: "partner/:id",
+                element: DetailPartner,
+            },
 
             // {
             //     path: "/",
