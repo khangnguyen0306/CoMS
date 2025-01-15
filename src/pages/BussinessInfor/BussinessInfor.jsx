@@ -1,4 +1,4 @@
-import { Form, Input, Button, Skeleton, Row, Col } from 'antd';
+import { Form, Input, Button, Skeleton, Row, Col, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { FaEdit } from 'react-icons/fa';
@@ -38,6 +38,7 @@ const BussinessInfor = () => {
 
     const handleSave = (values) => {
         {/* thêm api nha bây */}
+        message.success('Thông tin đã được cập nhật thành công!');
         console.log('Saved values:', values);
         setIsEditing(false);
 
