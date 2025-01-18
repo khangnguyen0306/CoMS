@@ -30,6 +30,7 @@ const MainLayout = () => {
     'client': '/partner',
     'contract': '/contract',
     'setting1':'/bsinformation',
+    'templateCreate':'/createtemplate',
     '4': '/combo',
   }
 
@@ -48,8 +49,8 @@ const MainLayout = () => {
         },
         {
           icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
-            { icon: MdOutlineClass, label: 'Loại hợp đồng', key: "contractType1" },
-            { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractType2" },
+            { icon: MdOutlineClass, label: 'Template hợp đồng', key: "contractType1" },
+            { icon: BsClipboard2DataFill, label: 'Tạo Template', key: "templateCreate" },
             { icon: FaHistory, label: 'Hủy / Tái Ký', key: "contractType3" },
             { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractType4" },
           ]

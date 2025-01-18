@@ -11,6 +11,7 @@ const Login = Loadable({ loader: () => import("../pages/Authen/Login") });
 const Contract = Loadable({ loader: () => import("../pages/Contract/ContractManagement") });
 const MaintenancePage = Loadable({ loader: () => import("../components/layout/MaintenancePage") });
 const BussinessInfor = Loadable({ loader: () => import("../pages/BussinessInfor/BussinessInfor") });
+const Template = Loadable({ loader: () => import("../pages/template/Template") });
 
 export const router = createBrowserRouter([
     {
@@ -52,6 +53,10 @@ export const router = createBrowserRouter([
             {
                 path: "partner/:id",
                 element: DetailPartner,
+            },
+            {
+                path: "createtemplate",
+                element: Template,
             },
 
             // {
