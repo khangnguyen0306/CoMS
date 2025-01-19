@@ -1,6 +1,7 @@
 import { authApi } from "../services/AuthAPI";
 import { bussinessAPI } from "../services/BsAPI";
 import { partnerAPI } from "../services/PartnerAPI";
+import { taskAPI } from "../services/TaskAPI";
 import AuthReducer from "../slices/auth.slice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
@@ -22,13 +23,16 @@ export const store = configureStore({
     [bussinessAPI.reducerPath]: bussinessAPI.reducer,
     bsInfo: bussinessAPI,
     [partnerAPI.reducerPath]: partnerAPI.reducer,
-    partner: partnerAPI
+    partner: partnerAPI,
+    [taskAPI.reducerPath]: taskAPI.reducer,
+    partner: taskAPI,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       authApi.middleware,
       bussinessAPI.middleware,
       partnerAPI.middleware,
+      taskAPI.middleware
     ),
 });
 

@@ -6,6 +6,8 @@ const Home = Loadable({ loader: () => import("../pages/Home") });
 const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
 const Partner = Loadable({ loader: () => import("../pages/Partner/ManagePartner") });
 const DetailPartner = Loadable({ loader: () => import("../pages/Partner/DetailParrtner") });
+const Task = Loadable({ loader: () => import("../pages/Task/ManageTask") });
+const DetailTask = Loadable({ loader: () => import("../pages/Task/DetailTask") });
 const Profile = Loadable({ loader: () => import("../pages/Profile/Profile") });
 const Login = Loadable({ loader: () => import("../pages/Authen/Login") });
 const Contract = Loadable({ loader: () => import("../pages/Contract/ContractManagement") });
@@ -52,6 +54,14 @@ export const router = createBrowserRouter([
             {
                 path: "partner/:id",
                 element: DetailPartner,
+            },
+            {
+                path: "task",
+                element: Task,
+            },
+            {
+                path: "task/:id",
+                element: DetailTask,
             },
 
             // {

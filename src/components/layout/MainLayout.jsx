@@ -27,9 +27,10 @@ const MainLayout = () => {
   const router = {
     '1': '/',
     'dash': '/dashboard',
+    'task': '/task',
     'client': '/partner',
     'contract': '/contract',
-    'setting1':'/bsinformation',
+    'setting1': '/bsinformation',
     '4': '/combo',
   }
 
@@ -38,6 +39,7 @@ const MainLayout = () => {
       icon: MdDashboard, key: "all", label: 'Danh mục', children: [
         { icon: MdDashboard, label: 'Dashboard', key: "dash", default: true },
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
+        { icon: FaUserTie, label: 'Task', key: "task" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Loại hợp đồng', key: "contract" },
@@ -175,7 +177,7 @@ const MainLayout = () => {
             marginTop: '60px'
           }}
         >
-{/* 
+          {/* 
           <Breadcrumb
             items={[
               {
@@ -196,8 +198,8 @@ const MainLayout = () => {
           <Content
             style={{
               padding: 24,
-              margin: 0 ,
-              marginTop:20,
+              margin: 0,
+              marginTop: 20,
               minHeight: 280,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,

@@ -1,105 +1,98 @@
-import React, { useRef, useState } from "react";
-import { Row, Col, Card, Statistic, Table, Button, Input, Space, Tag, Typography, Modal, List, Menu, Dropdown } from "antd";
-import { SearchOutlined, EyeOutlined, HistoryOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from "react";
+import { Row, Col, Card, Statistic, Table, Button, Input, Space, Tag, Typography, List, Dropdown } from "antd";
+import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
+import { useGetPartnerListQuery } from '../../services/PartnerAPI';
 
 const { Link } = Typography;
 const { Search } = Input;
 
 const ManagePartner = () => {
     const navigate = useNavigate();
+    const { data: partnerData, isLoading: isFetching, error: fetchError } = useGetPartnerListQuery();
+    const [viewHistory, setViewHistory] = useState([]);
     const [searchText, setSearchText] = useState("");
-    const [searchHistory, setSearchHistory] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-    const [tableData, setTableData] = useState([
-        {
-            key: '1',
-            partnerCode: 'P001',
-            partnerName: 'Nguyễn Văn A',
-            partnerType: 'Nhà cung cấp',
-            company: 'Công ty TNHH ABC',
-            position: 'Giám đốc',
-            age: 45,
-            phone: '0901234567',
-            email: 'nguyenvana@abc.com',
-            totalContracts: 20,
-            activeContracts: 8,
-            contractValue: 500000000,
-            createdAt: '2024-01-10'
-        },
-        {
-            key: '2',
-            partnerCode: 'P002',
-            partnerName: 'Trần Thị B',
-            partnerType: 'Khách hàng',
-            company: 'Công ty CP XYZ',
-            position: 'Trưởng phòng',
-            age: 35,
-            phone: '0912345678',
-            email: 'tranthib@xyz.com',
-            totalContracts: 10,
-            activeContracts: 2,
-            contractValue: 180000000,
-        },
-        {
-            key: '3',
-            partnerCode: 'P003',
-            partnerName: 'Lê Văn C',
-            partnerType: 'Nhà cung cấp',
-            company: 'Công ty TNHH DEF',
-            position: 'Nhân viên kinh doanh',
-            age: 28,
-            phone: '0987654321',
-            email: 'levanc@def.com',
-            totalContracts: 12,
-            activeContracts: 6,
-            contractValue: 17000000,
-        },
-        {
-            key: '4',
-            partnerCode: 'P004',
-            partnerName: 'Phạm Thị D',
-            partnerType: 'Khách hàng',
-            company: 'Công ty CP GHI',
-            position: 'Phó giám đốc',
-            age: 40,
-            phone: '0923456789',
-            email: 'phamthid@ghi.com',
-            totalContracts: 18,
-            activeContracts: 3,
-            contractValue: 900000000,
-        },
-    ]);
+
+
+
+
+    const handleDeleteItem = (key) => {
+        const currentHistory = getViewHistory();
+        const updatedHistory = currentHistory.filter(item => item.key !== key);
+        localStorage.setItem('viewHistory', JSON.stringify(updatedHistory));
+        setViewHistory(updatedHistory);
+    };
+
+    // Lấy danh sách viewHistory khi component được mount
+    useEffect(() => {
+        // Hàm đồng bộ viewHistory với partnerData
+        const syncViewHistoryWithAPI = () => {
+            const initialHistory = getViewHistory();
+            if (partnerData) {
+                // Lọc ra những item có trong partnerData
+                const validHistory = initialHistory.filter((item) =>
+                    partnerData.some((partner) => partner.key === item.key)
+                );
+                // Nếu có sự thay đổi, cập nhật lại localStorage và state
+                if (validHistory.length !== initialHistory.length) {
+                    localStorage.setItem('viewHistory', JSON.stringify(validHistory));
+                }
+                setViewHistory(validHistory);
+            }
+        };
+
+        // Đồng bộ hóa khi partnerData thay đổi
+        syncViewHistoryWithAPI();
+    }, [partnerData]);
+
+    //lấy viewHistory từ localStorage
+    const getViewHistory = () => {
+        return JSON.parse(localStorage.getItem('viewHistory')) || [];
+    };
+
+    //thêm viewHistory vào localStorage
+    const addViewHistory = (record) => {
+        const minimalRecord = {
+            key: record.key,
+            partnerName: record.partnerName,
+            email: record.email,
+            img: record.img,
+        };
+        const currentHistory = getViewHistory();
+
+        // Kiểm tra nếu item chưa có trong danh sách viewHistory
+        if (!currentHistory.find((item) => item.key === minimalRecord.key)) {
+            // Thêm mới vào đầu danh sách
+            const updatedHistory = [minimalRecord, ...currentHistory];
+
+            // Giới hạn số lượng lịch sử là 10
+            const limitedHistory = updatedHistory.slice(0, 10);
+
+            // Lưu vào localStorage và cập nhật state
+            localStorage.setItem('viewHistory', JSON.stringify(limitedHistory));
+            setViewHistory(limitedHistory);
+        }
+    };
+
 
     const navigateToDetail = (record) => {
+        addViewHistory(record);
         navigate(`/partner/${record.key}`, { state: record });
     };
 
-    // Hàm thêm từ khóa vào lịch sử
-    const addSearchHistory = (keyword) => {
-        if (!keyword) return;
-
-        setSearchHistory((prev) => {
-            const updatedHistory = [{ keyword, timestamp: new Date().toISOString() }, ...prev];
-            if (updatedHistory.length > 10) updatedHistory.pop(); // Giới hạn tối đa 10 mục
-            return updatedHistory;
-        });
-    };
-
-    // Hàm xử lý tìm kiếm
     const handleSearch = debounce((value) => {
         if (value) {
-            const filtered = tableData.filter(
+            const filtered = partnerData.filter(
                 (item) =>
                     item.partnerName.toLowerCase().includes(value.toLowerCase()) ||
-                    item.company.toLowerCase().includes(value.toLowerCase()) ||
+                    item.spokesmanName.toLowerCase().includes(value.toLowerCase()) ||
                     item.email.toLowerCase().includes(value.toLowerCase())
             );
             setFilteredData(filtered);
-            addSearchHistory(value); // Thêm từ khóa vào lịch sử
         } else {
-            setFilteredData(tableData); // Hiển thị toàn bộ dữ liệu nếu không nhập
+            setFilteredData([]); // Reset to empty filtered data
         }
     }, 300);
 
@@ -122,11 +115,12 @@ const ManagePartner = () => {
                     {text}
                 </Link>
             ),
-            width: '150px',
+            width: '200px',
         },
         {
             title: 'Loại Partner',
             dataIndex: 'partnerType',
+            width: '150px',
             filters: [
                 { text: 'Nhà cung cấp', value: 'Nhà cung cấp' },
                 { text: 'Khách hàng', value: 'Khách hàng' },
@@ -139,87 +133,102 @@ const ManagePartner = () => {
             ),
         },
         {
-            title: "Công ty",
-            dataIndex: "company",
-            sorter: (a, b) => a.company.localeCompare(b.company),
+            title: 'Người đại diện',
+            dataIndex: 'spokesmanName',
+            sorter: (a, b) => a.spokesmanName.localeCompare(b.spokesmanName),
+            width: '170px',
+        },
+        {
+            title: 'Điện thoại',
+            dataIndex: 'phone',
+            width: '150px',
+        },
+        {
+            title: 'Email',
+            dataIndex: 'email',
             width: '200px',
         },
         {
-            title: "Chức vụ",
-            dataIndex: "position",
-            filters: [
-                { text: 'Giám đốc', value: 'Giám đốc' },
-                { text: 'Trưởng phòng', value: 'Trưởng phòng' },
-                { text: 'Nhân viên', value: 'Nhân viên' },
-            ],
-            onFilter: (value, record) => record.position === value,
+            title: 'Địa chỉ',
+            dataIndex: 'address',
+            sorter: (a, b) => (a.address || '').localeCompare(b.address || ''),
+            width: '200px',
         },
         {
-            title: "Tuổi",
-            dataIndex: "age",
-            sorter: (a, b) => a.age - b.age,
-            filters: [
-                { text: '< 30', value: 'under30' },
-                { text: '30-50', value: 'middle' },
-                { text: '> 50', value: 'over50' },
-            ],
-            onFilter: (value, record) => {
-                if (value === 'under30') return record.age < 30;
-                if (value === 'middle') return record.age >= 30 && record.age <= 50;
-                return record.age > 50;
-            },
+            title: 'Ngân hàng',
+            dataIndex: 'Banking',
+            render: (banking) =>
+                banking
+                    ? `${banking.bankName || 'Không rõ'} - ${banking.accountNumber || 'Không rõ'}`
+                    : 'Không có thông tin',
+            width: '250px',
         },
-        {
-            title: "Điện thoại",
-            dataIndex: "phone",
-        },
-        {
-            title: "Email",
-            dataIndex: "email",
-        },
-        {
-            title: 'Ngày tạo',
-            dataIndex: 'createdAt',
-            sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-            render: (date) => new Date(date).toLocaleDateString('vi-VN'),
-        },
+
         {
             title: 'Thao tác',
-            fixed: 'right',
             width: '100px',
             render: (_, record) => (
                 <Space className="flex justify-center">
                     <Button
                         icon={<EyeOutlined />}
-                        onClick={() => navigateToDetail(record)}
+                        onClick={() => {
+                            addViewHistory(record);
+                            navigateToDetail(record);
+                        }}
                     />
                 </Space>
             ),
         },
     ];
 
+
+
     return (
         <div>
             <div className="text-lg font-bold text-blue-700 mb-4">Manage Partner</div>
 
-            {/* Search section */}
             <div className="mb-4 flex items-center gap-2">
                 <Dropdown
                     trigger={["click"]}
                     overlay={
                         <List
-                            dataSource={searchHistory}
+                            dataSource={viewHistory}
                             renderItem={(item) => (
                                 <List.Item
+                                    style={{ cursor: 'pointer', border: '1.5px solid #89c4d9', borderRadius: '5px', marginBottom: '8px' }}
                                     onClick={() => {
-                                        setSearchText(item.keyword);
-                                        handleSearch(item.keyword);
+                                        setSearchText(item.partnerName);
+                                        handleSearch(item.partnerName);
                                     }}
                                 >
-                                    <Space>
-                                        <SearchOutlined />
-                                        <span>{item.keyword}</span>
+                                    <Space style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+                                        <img
+                                            src={item.img || 'https://faceinch.vn/upload/elfinder/%E1%BA%A2nh/chup-chan-dung-5.jpg'}
+                                            alt={item.partnerName}
+                                            style={{ width: 30, height: 30, borderRadius: '50%' }}
+                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontWeight: 'bold' }}>{item.partnerName}</span>
+                                            <span style={{ fontSize: '12px', color: 'gray' }}>{item.email}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <span
+                                                style={{
+                                                    color: 'red',
+                                                    cursor: 'pointer',
+                                                    fontSize: '16px',
+                                                }}
+                                                onClick={(e) => {
+                                                    handleDeleteItem(item.key);
+                                                    e.stopPropagation();
+                                                }}
+                                            >
+                                                ✕
+                                            </span>
+                                        </div>
                                     </Space>
+
+
                                 </List.Item>
                             )}
                             style={{
@@ -234,27 +243,22 @@ const ManagePartner = () => {
                 >
                     <Search
                         value={searchText}
-                        placeholder="Tìm kiếm theo tên, công ty, email..."
+                        placeholder="Tìm kiếm theo tên, công ty, email"
                         allowClear
                         enterButton
                         onChange={(e) => setSearchText(e.target.value)}
                         onSearch={(value) => {
                             handleSearch(value);
-                            setSearchText(value);
                         }}
-                        style={{ width: 300 }}
+                        style={{ width: 350 }}
                     />
-
-
                 </Dropdown>
-
             </div>
 
             <Table
                 columns={columns}
-                dataSource={filteredData.length > 0 ? filteredData : tableData}
+                dataSource={filteredData.length > 0 ? filteredData : partnerData}
                 bordered
-                scroll={{ x: 1500 }}
                 pagination={{
                     pageSize: 10,
                     showSizeChanger: true,
@@ -268,28 +272,31 @@ const ManagePartner = () => {
                                 style={{
                                     borderColor: '#89c4d9',
                                     borderStyle: 'solid',
-                                    borderWidth: '1px',
+                                    borderWidth: '1px'
                                 }}
                             />
-                        ),
+                        )
                     },
                     header: {
                         cell: (props) => (
                             <th
                                 {...props}
                                 style={{
-                                    backgroundColor: '#cdf2ff',
-                                    color: '#005580',
+                                    backgroundColor: props.className?.includes('special-header')
+                                        ? '#8dd4ff '
+                                        : '#cdf2ff',
+                                    color: props.className?.includes('special-header')
+                                        ? '#004d80'
+                                        : '#005580',
                                     borderColor: '#89c4d9',
                                     borderStyle: 'solid',
-                                    borderWidth: '1px',
+                                    borderWidth: '1px'
                                 }}
                             />
-                        ),
-                    },
+                        )
+                    }
                 }}
             />
-
 
         </div>
     );
