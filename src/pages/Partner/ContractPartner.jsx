@@ -98,7 +98,8 @@ const ContractPartner = ({ partnerId }) => {
                             headerBg:'#c7eaf7',
                             headerSortActiveBg:"#44b1ff",
                             headerFilterHoverBg:"#44b1ff",
-                            headerSortHoverBg:"#44b1ff"
+                            headerSortHoverBg:"#44b1ff",
+                            headerColor:"#005580"
                         },
                     },
                 }}

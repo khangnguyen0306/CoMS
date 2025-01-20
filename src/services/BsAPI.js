@@ -30,6 +30,7 @@ export const bussinessAPI = createApi({
                 url: `/078762be-3ce3-441a-be11-58af5f7a8e8c`,
                 method: "GET",
             }),
+            keepUnusedDataFor: 60 * 5,
             providesTags: (result, error, bsInformation) => [{ type: "DoctorList", id: bsInformation }],
         }),
 

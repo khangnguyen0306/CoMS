@@ -122,7 +122,6 @@ const PartnerDetail = () => {
                     token: { fontFamily: "Roboto, sans-serif" }
                 }}
             >
-
                 <Tabs
                     defaultActiveKey="1"
                     type="card"
@@ -414,7 +413,6 @@ const PartnerDetail = () => {
                                             </Descriptions.Item>
                                         </Descriptions>
                                     )}
-
                                 </Card>
                             ),
                         },
@@ -430,36 +428,6 @@ const PartnerDetail = () => {
                     ]}
                 />
             </ConfigProvider>
-            {/* <Row gutter={16} className="mt-6">
-                    <Col span={8} >
-                        <Card style={{ borderColor: '#919191', borderWidth: 2 }}>
-                            <Statistic
-                                title={<span style={{ color: '#313131', fontWeight: 'bold' }}>Tổng số hợp đồng</span>}
-                                value={partner.totalContracts}
-                                prefix={<FileTextOutlined />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col span={8}>
-                        <Card style={{ borderColor: '#919191', borderWidth: 2 }}>
-                            <Statistic
-                                title={<span style={{ color: '#313131', fontWeight: 'bold' }}>Hợp đồng còn hiệu lực</span>}
-                                value={partner.activeContracts}
-                                valueStyle={{ color: '#3f8600' }}
-                            />
-                        </Card>
-                    </Col>
-                    <Col span={8}>
-                        <Card style={{ borderColor: '#919191', borderWidth: 2 }}>
-                            <Statistic
-                                title={<span style={{ color: '#313131', fontWeight: 'bold' }}>Tổng giá trị hợp đồng</span>}
-                                value={partner.contractValue}
-                                formatter={(value) => formatCurrency(value)}
-                                precision={0}
-                            />
-                        </Card>
-                    </Col>
-                </Row> */}
         </div>
     );
 };
