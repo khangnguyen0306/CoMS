@@ -7,7 +7,9 @@ import RichTextEditor, {
 import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
 import { FaDeleteLeft } from "react-icons/fa6";
-
+import { GrNext } from "react-icons/gr";
+import { GrPrevious } from "react-icons/gr";
+import { BsSave2Fill } from "react-icons/bs";
 const extensions = [
     BaseKit.configure({
     }),
@@ -134,6 +136,66 @@ const Template = () => {
     // Xử lý thay đổi checkbox
     const handleCheckboxChange = (checkedValues) => {
         setSelectedOtherTypeTerms(checkedValues);
+        const newFields = {};
+        checkedValues.forEach((value) => {
+            if (value === "legalBasis") {
+                newFields.legalBasis = {
+                    legalBasisCommon: [],
+                    legalBasisA: [],
+                    legalBasisB: [],
+                };
+            }
+            if (value === "additional") {
+                newFields.additional = {
+                    additionalCommon: [],
+                    additionalA: [],
+                    additionalB: [],
+                };
+            }
+            if (value === "RightsAndObligations") {
+                newFields.RightsAndObligations = {
+                    rightsCommon: [],
+                    rightsA: [],
+                    rightsB: [],
+                };
+            }
+            if (value === "warrantyAndMaintenance") {
+                newFields.warrantyAndMaintenance = {
+                    warrantyCommon: [],
+                    warrantyA: [],
+                    warrantyB: [],
+                };
+            }
+            if (value === "breachAndDamages") {
+                newFields.breachAndDamages = {
+                    breachCommon: [],
+                    breachA: [],
+                    breachB: [],
+                };
+            }
+            if (value === "TerminationOfContract") {
+                newFields.TerminationOfContract = {
+                    terminationCommon: [],
+                    terminationA: [],
+                    terminationB: [],
+                };
+            }
+            if (value === "DisputeResolutionClause") {
+                newFields.DisputeResolutionClause = {
+                    disputeCommon: [],
+                    disputeA: [],
+                    disputeB: [],
+                };
+            }
+            if (value === "PrivacyPolicy") {
+                newFields.PrivacyPolicy = {
+                    privacyCommon: [],
+                    privacyA: [],
+                    privacyB: [],
+                };
+            }
+        });
+        form.setFieldsValue({ ...form.getFieldsValue(), ...newFields });
     };
 
     const optionsMap = {
@@ -151,7 +213,7 @@ const Template = () => {
                 value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004"
             },
         ],
-        additionalTerms: [
+        additional: [
             { label: "Bổ sung chung", value: "additionalCommon" },
             { label: "Bổ sung riêng bên A", value: "additionalA" },
             { label: "Bổ sung riêng bên B", value: "additionalB" },
@@ -216,11 +278,46 @@ const Template = () => {
 
     const handleRemoveTerm = (termToRemove) => {
         const updatedTerms = selectedGeneralTerms.filter(term => term !== termToRemove);
-        console.log(updatedTerms)
         form.setFieldsValue({ generalTerms: updatedTerms });
         setSelectedGeneralTerms(updatedTerms);
         // handleSelectChange(updatedTerms);
     };
+
+    const handleChildSelectChange = (key, newValues) => {
+        const currentValues = form.getFieldValue(key.split(',')[0]) || {};
+        const updatedValues = {
+            ...currentValues,
+            [key]: newValues,
+        };
+        form.setFieldsValue({ [key.split(',')[0]]: updatedValues });
+    };
+
+    const displayLabels = {
+        'legalBasisCommon': "Căn phứ pháp lý chung",
+        'legalBasisA': "Căn cứ pháp lý chỉ riêng bên A",
+        'legalBasisB': "Căn cứ pháp lý chỉ riêng bên B",
+        'additionalCommon': "Bổ sung chung",
+        'additionalA': "Bổ sung riêng bên A",
+        'additionalB': "Bổ sung riêng bên B",
+        'specialCommon': "Đặc biệt chung",
+        'specialA': "Đặc biệt riêng bên A",
+        'specialB': "Đặc biệt riêng bên B",
+        'warrantyAndMaintenanceCommon': "Điền khoản bảo hành và bảo trì chung",
+        'warrantyAndMaintenanceA': "Điều khoản bảo hành và bảo trì riêng bên A",
+        'warrantyAndMaintenanceB': "Điều khoản bảo hành và bảo trì riêng bên B",
+        'breachAndDamagesCommon': "Điều khoản pháp lý chung",
+        'breachAndDamagesA': "Điều khoản pháp lý riêng bên A",
+        'breachAndDamagesB': "Điều khoản pháp lý riêng bên B",
+        'terminationOfContractCommon': "Điều khoản chấm dứt hợp đồng chung",
+        'terminationOfContractA': "Điều khoản chấm dứt hợp đồng riêng bên A",
+        'terminationOfContractB': "Điều khoản chấm dứt hợp đồng riêng bên B",
+        'disputeResolutionClauseCommon': "Điều khoản giải quyết tranh chấp chung",
+        'disputeResolutionClauseA': "Điều khoản giải quyết tranh chấp riêng bên A",
+        'disputeResolutionClauseB': "Điều khoản giải quyết tranh chấp riêng bên B",
+        'privacyPolicyCommon': "Điều khoản chính sách bảo mật chung",
+        'privacyPolicyA': "Điều khoản chính sách bảo mật riêng bên A",
+        'privacyPolicyB': "Điều khoản chính sách bảo mật riêng bên B",
+    }
 
     console.log(form.getFieldsValue())
     // Steps content
@@ -249,6 +346,8 @@ const Template = () => {
                                 Collapse: {
                                     headerBg: '#27a2f0',
                                     colorTextHeading: '#ffffff',
+                                    motionDurationMid: '0.15s',
+                                    motionDurationSlow: '0.15s',
                                 },
                             },
                         }}
@@ -372,19 +471,25 @@ const Template = () => {
                                                 { label: "Thanh toán nhiều đợt", value: "multiple" }
                                             ]} />
                                         </Form.Item>
+
                                         <Form.Item
                                             // label="Tự động thêm VAT"
                                             name="autoAddVAT"
                                             valuePropName="checked"
+                                            initialValue={isVATChecked}
                                         >
                                             <div className="flex items-center">
-                                                <Switch className="mr-4" onChange={(checked) => {
-                                                    form.setFieldsValue({ checkedVAT: checked });
-                                                    setIsVATChecked(checked);
-                                                }} />
+                                                <Switch className="mr-4"
+                                                    onChange={(checked) => {
+                                                        form.setFieldsValue({ autoAddVAT: checked });
+                                                        setIsVATChecked(checked);
+                                                    }}
+                                                    checked={form.getFieldValue('autoAddVAT')}
+                                                />
                                                 <p className="text-sm">Tự động thêm VAT</p>
                                             </div>
                                         </Form.Item>
+
                                         {isVATChecked && (
                                             <Form.Item
                                                 label="Phần trăm VAT"
@@ -393,7 +498,7 @@ const Template = () => {
                                             >
                                                 <Input
                                                     type="number"
-                                                    className="w-[10%]"
+                                                    className="w-[100px]"
                                                     placeholder="Nhập phần trăm VAT"
                                                     addonAfter="%"
                                                     max={100}
@@ -429,9 +534,13 @@ const Template = () => {
                                             noStyle
                                         >
                                             <div className="flex items-center">
-                                                <Switch className="mr-4" />
+                                                <Switch
+                                                    className="mr-4"
+                                                    onChange={(checked) => {
+                                                        form.setFieldsValue({ autoRenew: checked });
+                                                    }}
+                                                    checked={form.getFieldValue('autoRenew')} />
                                                 <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
-
                                             </div>
                                         </Form.Item>
                                     </div>
@@ -459,7 +568,7 @@ const Template = () => {
                                                 options={[
                                                     { label: "Điều khoản chung", value: "generalTermsOptions" },
                                                     { label: "Căn cứ pháp lý", value: "legalBasis" },
-                                                    { label: "Điều khoản bổ sung", value: "additionalTerms" },
+                                                    { label: "Điều khoản bổ sung", value: "additional" },
                                                     { label: "Điều khoản đặc biệt", value: "specialConditions" },
                                                 ]}
                                                 className=" w-2/6 "
@@ -500,7 +609,7 @@ const Template = () => {
                                             <ul className="mt-2 flex flex-col gap-3 ">
                                                 {selectedGeneralTerms.map((term, index) => (
                                                     <li key={term} className="flex justify-between p-2 items-center border-b-2 border-e-slate-100">
-                                                        {index + 1}. {term}
+                                                        <p className="w-[90%]"> {index + 1}. {term}</p>
                                                         <Button
                                                             type="primary"
                                                             danger
@@ -526,7 +635,7 @@ const Template = () => {
                                                 className="flex flex-col ml-4 gap-4"
                                                 options={[
                                                     { label: "Căn cứ pháp lý", value: "legalBasis" },
-                                                    { label: "Điều khoản bổ sung", value: "additionalTerms" },
+                                                    { label: "Điều khoản bổ sung", value: "additional" },
                                                     { label: "Quyền và nghĩa vụ các bên", value: "RightsAndObligations" },
                                                     { label: "Điền khoản bảo hành và bảo trì", value: "warrantyAndMaintenance" },
                                                     { label: "Điều khoản về vi phạm và bồi thường thiệt hại", value: "breachAndDamages" },
@@ -545,32 +654,38 @@ const Template = () => {
                                                     {["legalBasisCommon", "legalBasisA", "legalBasisB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.legalBasis[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['legalBasis', key]}
                                                         >
                                                             <Select
-                                                            labelInValue
+                                                                showSearch
+                                                                labelInValue
                                                                 mode="multiple"
                                                                 placeholder={`Chọn ${optionsMap.legalBasis[index].label}`}
                                                                 options={optionsMap['legalBasis']}
+                                                                onChange={(newValues) => handleChildSelectChange('legalBasis', newValues)}
                                                             >
                                                             </Select>
                                                         </Form.Item>
                                                     ))}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("additionalTerms") && (
+                                            {selectedOtherTypeTerms.includes("additional") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">Điều khoản bổ sung</h4>
                                                     {["additionalCommon", "additionalA", "additionalB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.additionalTerms[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['additional', key]}
                                                         >
                                                             <Select
-                                                                placeholder={`Chọn ${optionsMap.additionalTerms[index].label}`}
-                                                                options={optionsMap['additionalTerms']}
+                                                                showSearch
+                                                                labelInValue
+                                                                mode="multiple"
+                                                                placeholder={displayLabels[key]}
+                                                                options={optionsMap['additional']}
+                                                                onChange={(newValues) => handleChildSelectChange(`additional`, newValues)}
                                                             >
 
                                                             </Select>
@@ -584,12 +699,16 @@ const Template = () => {
                                                     {["specialCommon", "specialA", "specialB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.specialConditions[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['RightsAndObligations', key]}
                                                         >
                                                             <Select
-                                                                placeholder={`Chọn ${optionsMap.specialConditions[index].label}`}
+                                                                showSearch
+                                                                labelInValue
+                                                                mode="multiple"
+                                                                placeholder={displayLabels[key]}
                                                                 options={optionsMap['RightsAndObligations']}
+                                                                onChange={(newValues) => handleChildSelectChange(`RightsAndObligations`, newValues)}
                                                             >
 
                                                             </Select>
@@ -600,15 +719,19 @@ const Template = () => {
                                             {selectedOtherTypeTerms.includes("warrantyAndMaintenance") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">Điền khoản bảo hành và bảo trì</h4>
-                                                    {["specialCommon", "specialA", "specialB"].map((key, index) => (
+                                                    {["warrantyAndMaintenanceCommon", "warrantyAndMaintenanceA", "warrantyAndMaintenanceB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.specialConditions[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['warrantyAndMaintenance', key]}
                                                         >
                                                             <Select
-                                                                placeholder={`Chọn ${optionsMap.specialConditions[index].label}`}
+                                                                showSearch
+                                                                labelInValue
+                                                                mode="multiple"
+                                                                placeholder={displayLabels[key]}
                                                                 options={optionsMap['warrantyAndMaintenance']}
+                                                                onChange={(newValues) => handleChildSelectChange(`warrantyAndMaintenance`, newValues)}
                                                             >
 
                                                             </Select>
@@ -619,15 +742,19 @@ const Template = () => {
                                             {selectedOtherTypeTerms.includes("breachAndDamages") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">Điều khoản về vi phạm và bồi thường thiệt hại</h4>
-                                                    {["specialCommon", "specialA", "specialB"].map((key, index) => (
+                                                    {["breachAndDamagesCommon", "breachAndDamagesA", "breachAndDamagesB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.specialConditions[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['breachAndDamages', key]}
                                                         >
                                                             <Select
-                                                                placeholder={`Chọn ${optionsMap.specialConditions[index].label}`}
+                                                                showSearch
+                                                                labelInValue
+                                                                mode="multiple"
+                                                                placeholder={displayLabels[key]}
                                                                 options={optionsMap['breachAndDamages']}
+                                                                onChange={(newValues) => handleChildSelectChange(`breachAndDamages`, newValues)}
                                                             >
 
                                                             </Select>
@@ -638,15 +765,19 @@ const Template = () => {
                                             {selectedOtherTypeTerms.includes("TerminationOfContract") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">Điều khoản về chấm dứt hợp đồng</h4>
-                                                    {["specialCommon", "specialA", "specialB"].map((key, index) => (
+                                                    {["TerminationOfContractCommon", "TerminationOfContractA", "TerminationOfContractB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.specialConditions[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['TerminationOfContract', key]}
                                                         >
                                                             <Select
-                                                                placeholder={`Chọn ${optionsMap.specialConditions[index].label}`}
+                                                                showSearch
+                                                                labelInValue
+                                                                mode="multiple"
+                                                                placeholder={displayLabels[key]}
                                                                 options={optionsMap['TerminationOfContract']}
+                                                                onChange={(newValues) => handleChildSelectChange(`TerminationOfContract`, newValues)}
                                                             >
                                                             </Select>
                                                         </Form.Item>
@@ -656,15 +787,19 @@ const Template = () => {
                                             {selectedOtherTypeTerms.includes("DisputeResolutionClause") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">Điều khoản về Giải quyết tranh chấp</h4>
-                                                    {["specialCommon", "specialA", "specialB"].map((key, index) => (
+                                                    {["DisputeResolutionClauseCommon", "DisputeResolutionClauseA", "DisputeResolutionClauseB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.specialConditions[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['DisputeResolutionClause', key]}
                                                         >
                                                             <Select
-                                                                placeholder={`Chọn ${optionsMap.specialConditions[index].label}`}
+                                                                showSearch
+                                                                labelInValue
+                                                                mode="multiple"
+                                                                placeholder={displayLabels[key]}
                                                                 options={optionsMap['DisputeResolutionClause']}
+                                                                onChange={(newValues) => handleChildSelectChange(`DisputeResolutionClause`, newValues)}
                                                             >
                                                             </Select>
                                                         </Form.Item>
@@ -674,15 +809,19 @@ const Template = () => {
                                             {selectedOtherTypeTerms.includes("PrivacyPolicy") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">Điều khoản bảo mật</h4>
-                                                    {["specialCommon", "specialA", "specialB"].map((key, index) => (
+                                                    {["PrivacyPolicyCommon", "PrivacyPolicyA", "PrivacyPolicyB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
-                                                            label={`Chọn ${optionsMap.specialConditions[index].label}`}
-                                                            name={key}
+                                                            label={displayLabels[key]}
+                                                            name={['PrivacyPolicy', key]}
                                                         >
                                                             <Select
-                                                                placeholder={`Chọn ${optionsMap.specialConditions[index].label}`}
+                                                                showSearch
+                                                                labelInValue
+                                                                mode="multiple"
+                                                                placeholder={displayLabels[key]}
                                                                 options={optionsMap['PrivacyPolicy']}
+                                                                onChange={(newValues) => handleChildSelectChange(`PrivacyPolicy`, newValues)}
                                                             >
                                                             </Select>
                                                         </Form.Item>
@@ -707,6 +846,7 @@ const Template = () => {
                                                 filterOption={(input, option) =>
                                                     option.label.toLowerCase().includes(input.toLowerCase())
                                                 }
+                                                onChange={handleSelectChange}
                                             />
                                         </Form.Item>
                                         <Form.Item
@@ -726,6 +866,7 @@ const Template = () => {
                                                 filterOption={(input, option) =>
                                                     option.label.toLowerCase().includes(input.toLowerCase())
                                                 }
+                                                onChange={handleSelectChange}
                                             />
                                         </Form.Item>
                                     </div>
@@ -755,10 +896,6 @@ const Template = () => {
                             ]}
                         />
                     </ConfigProvider>
-
-
-
-
                 </Form>
             ),
         },
@@ -775,9 +912,6 @@ const Template = () => {
                         <p className="mt-2">(<b> Số:</b> {contractNumber} )</p>
                     </div>
                     <div className="p-4 rounded-md flex flex-col gap-4">
-
-
-
                         <div className="flex flex-col gap-2 " md={10} sm={24} >
                             <p className="font-bold text-lg "><u>Bên cung cấp (Bên A)</u></p>
                             <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
@@ -850,12 +984,12 @@ const Template = () => {
             <div className="mb-6">{steps[currentStep].content}</div>
             <div className="flex justify-end">
                 {currentStep > 0 && (
-                    <Button onClick={prev} className="mr-2">
+                    <Button onClick={prev} className="mr-2" icon={<GrPrevious />} iconPosition="start">
                         Quay lại
                     </Button>
                 )}
                 {currentStep < steps.length - 1 && (
-                    <Button type="primary" onClick={next}>
+                    <Button type="primary" onClick={next} icon={<GrNext />} iconPosition="end">
                         Tiếp theo
                     </Button>
                 )}
@@ -863,6 +997,8 @@ const Template = () => {
                     <Button
                         type="primary"
                         onClick={() => message.success("Lưu template thành công!")}
+                        icon={<BsSave2Fill />}
+                        iconPosition="end"
                     >
                         Lưu Template
                     </Button>
