@@ -19,7 +19,7 @@ export const partnerAPI = createApi({
     endpoints: (builder) => ({
 
         getContractByPartner: builder.query({
-            query: (partnerId) => `bdd31516-c781-4309-ab26-29fdc1d20316`,
+            query: (partnerId) => `c89214ba-a149-4840-a892-5edb1c5f0b70`,
             providesTags: (result) =>
                 result
                     ? result.map(({ id }) => ({ type: "Contract", id }))
