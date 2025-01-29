@@ -122,27 +122,27 @@ const ManagePartner = () => {
                     {text}
                 </Link>
             ),
-            width: '150px',
+            // width: '150px',
         },
-        {
-            title: 'Loại Partner',
-            dataIndex: 'partnerType',
-            filters: [
-                { text: 'Nhà cung cấp', value: 'Nhà cung cấp' },
-                { text: 'Khách hàng', value: 'Khách hàng' },
-            ],
-            onFilter: (value, record) => record.partnerType === value,
-            render: (type) => (
-                <Tag color={type === 'Nhà cung cấp' ? 'blue' : 'green'}>
-                    {type}
-                </Tag>
-            ),
-        },
+        // {
+        //     title: 'Loại Partner',
+        //     dataIndex: 'partnerType',
+        //     filters: [
+        //         { text: 'Nhà cung cấp', value: 'Nhà cung cấp' },
+        //         { text: 'Khách hàng', value: 'Khách hàng' },
+        //     ],
+        //     onFilter: (value, record) => record.partnerType === value,
+        //     render: (type) => (
+        //         <Tag color={type === 'Nhà cung cấp' ? 'blue' : 'green'}>
+        //             {type}
+        //         </Tag>
+        //     ),
+        // },
         {
             title: "Công ty",
             dataIndex: "company",
             sorter: (a, b) => a.company.localeCompare(b.company),
-            width: '200px',
+            // width: '200px',
         },
         {
             title: "Chức vụ",
@@ -154,21 +154,21 @@ const ManagePartner = () => {
             ],
             onFilter: (value, record) => record.position === value,
         },
-        {
-            title: "Tuổi",
-            dataIndex: "age",
-            sorter: (a, b) => a.age - b.age,
-            filters: [
-                { text: '< 30', value: 'under30' },
-                { text: '30-50', value: 'middle' },
-                { text: '> 50', value: 'over50' },
-            ],
-            onFilter: (value, record) => {
-                if (value === 'under30') return record.age < 30;
-                if (value === 'middle') return record.age >= 30 && record.age <= 50;
-                return record.age > 50;
-            },
-        },
+        // {
+        //     title: "Tuổi",
+        //     dataIndex: "age",
+        //     sorter: (a, b) => a.age - b.age,
+        //     filters: [
+        //         { text: '< 30', value: 'under30' },
+        //         { text: '30-50', value: 'middle' },
+        //         { text: '> 50', value: 'over50' },
+        //     ],
+        //     onFilter: (value, record) => {
+        //         if (value === 'under30') return record.age < 30;
+        //         if (value === 'middle') return record.age >= 30 && record.age <= 50;
+        //         return record.age > 50;
+        //     },
+        // },
         {
             title: "Điện thoại",
             dataIndex: "phone",
@@ -254,7 +254,7 @@ const ManagePartner = () => {
                 columns={columns}
                 dataSource={filteredData.length > 0 ? filteredData : tableData}
                 bordered
-                scroll={{ x: 1500 }}
+                // scroll={{ x: 1500 }}
                 pagination={{
                     pageSize: 10,
                     showSizeChanger: true,

@@ -61,6 +61,7 @@ const extensions = [
 ];
 
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
+import TextArea from "antd/es/input/TextArea";
 const { Step } = Steps;
 
 const Template = () => {
@@ -73,6 +74,7 @@ const Template = () => {
     const [content, setContent] = useState('');
     const [isVATChecked, setIsVATChecked] = useState(false);
     const [selectedGeneralTerms, setSelectedGeneralTerms] = useState([]);
+    const [selectedlegalBasis, setSelectedlegalBasis] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("generalTermsOptions"); // New state for selected category
 
     function debounce(func, wait) {
@@ -89,12 +91,13 @@ const Template = () => {
     }, 100), []);
 
 
-    useEffect(() => {
-        const getInitials = (name) => name.toUpperCase().split(' ').map(word => word[0]).join('');
-        const currentDate = new Date();
-        const formattedDate = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}`;
-        setContractNumber(`${getInitials(templateName)}-${formattedDate}`);
-    }, [templateName]);
+    // useEffect(() => {
+    //     const getInitials = (name) => name.toUpperCase().split(' ').map(word => word[0]).join('');
+    //     const currentDate = new Date();
+    //     // Cập nhật định dạng ngày để bao gồm giờ, phút và giây
+    //     const formattedDate = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}${currentDate.getHours()}${currentDate.getMinutes()}${currentDate.getSeconds()}`;
+    //     setContractNumber(`${getInitials(templateName)}-${formattedDate}`);
+    // }, [templateName]);
 
     // Move to next step
     const next = () => {
@@ -121,15 +124,15 @@ const Template = () => {
         const newTitle = e.target.value;
         form.setFieldsValue({ contractTitle: newTitle });
         setTemplateName(e.target.value)
-        updateContractNumber(newTitle);
+        // updateContractNumber(newTitle);
     };
 
     // Hàm cập nhật số hợp đồng dựa trên tên tiêu đề mới
-    const updateContractNumber = (newTitle) => {
-        const getInitials = (name) => name.toUpperCase().split(' ').map(word => word[0]).join('');
-        const formattedDate = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}`;
-        setContractNumber(`${getInitials(newTitle)}${formattedDate}`);
-    };
+    // const updateContractNumber = (newTitle) => {
+    //     const getInitials = (name) => name.toUpperCase().split(' ').map(word => word[0]).join('');
+    //     const formattedDate = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}`;
+    //     setContractNumber(`${getInitials(newTitle)}${formattedDate}`);
+    // };
 
     const [selectedOtherTypeTerms, setSelectedOtherTypeTerms] = useState([]);
 
@@ -138,13 +141,13 @@ const Template = () => {
         setSelectedOtherTypeTerms(checkedValues);
         const newFields = {};
         checkedValues.forEach((value) => {
-            if (value === "legalBasis") {
-                newFields.legalBasis = {
-                    legalBasisCommon: [],
-                    legalBasisA: [],
-                    legalBasisB: [],
-                };
-            }
+            // if (value === "legalBasis") {
+            //     newFields.legalBasis = {
+            //         legalBasisCommon: [],
+            //         legalBasisA: [],
+            //         legalBasisB: [],
+            //     };
+            // }
             if (value === "additional") {
                 newFields.additional = {
                     additionalCommon: [],
@@ -282,6 +285,23 @@ const Template = () => {
         setSelectedGeneralTerms(updatedTerms);
         // handleSelectChange(updatedTerms);
     };
+    useEffect(() => {
+        const initialTerms = form.getFieldValue('legalBasis') || [];
+        setSelectedlegalBasis(initialTerms);
+    }, []);
+
+
+    const handleSelectlegalBasisChange = (newValues) => {
+        form.setFieldsValue({ legalBasis: newValues });
+        setSelectedlegalBasis(newValues);
+    };
+
+    const handleRemovelegalBasisTerm = (termToRemove) => {
+        const updatedTerms = selectedlegalBasis.filter(term => term !== termToRemove);
+        form.setFieldsValue({ legalBasis: updatedTerms });
+        setSelectedlegalBasis(updatedTerms);
+        // handleSelectChange(updatedTerms);
+    };
 
     const handleChildSelectChange = (key, newValues) => {
         const currentValues = form.getFieldValue(key.split(',')[0]) || {};
@@ -293,9 +313,9 @@ const Template = () => {
     };
 
     const displayLabels = {
-        'legalBasisCommon': "Căn phứ pháp lý chung",
-        'legalBasisA': "Căn cứ pháp lý chỉ riêng bên A",
-        'legalBasisB': "Căn cứ pháp lý chỉ riêng bên B",
+        // 'legalBasisCommon': "Căn phứ pháp lý chung",
+        // 'legalBasisA': "Căn cứ pháp lý chỉ riêng bên A",
+        // 'legalBasisB': "Căn cứ pháp lý chỉ riêng bên B",
         'additionalCommon': "Bổ sung chung",
         'additionalA': "Bổ sung riêng bên A",
         'additionalB': "Bổ sung riêng bên B",
@@ -358,9 +378,9 @@ const Template = () => {
                             items={[
                                 {
                                     key: '1',
-                                    label: <p className="font-bold"> Thông tin chung</p>,
+                                    label: <p className="font-bold"> THÔNG TIN CHUNG</p>,
                                     children: <div>
-                                        <h3 className="font-bold text-[19px]">1. Tiêu đề hợp đồng</h3>
+                                        <h3 className="font-bold text-[19px]">1. TIÊU ĐỀ HỢP ĐỒNG</h3>
                                         <div className="ml-6 mt-3">
                                             {/* <Form.Item
                                                 label="Số hợp đồng "
@@ -391,12 +411,12 @@ const Template = () => {
                                             <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                             <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
                                             <p>-------------------</p>
-                                            <p className="text-right mr-[10%]">Ngày {currentDate.getDate()} Tháng {currentDate.getMonth() + 1} Năm {currentDate.getFullYear()}</p>
+                                            <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm .......</p>
                                             <p className="text-2xl font-bold mt-3">{templateName.toUpperCase()}</p>
-                                            <p className="mt-1"><b>Số:</b> {contractNumber}</p>
+                                            <p className="mt-3"><b>Số:</b> Tên HD viết tắt / ngày tháng năm</p>
                                         </div>
 
-                                        <h3 className="font-bold text-[19px] my-6">2. Thông tin các bên tham gia</h3>
+                                        <h3 className="font-bold text-[19px] my-6">2. THÔNG TIN CÁC BÊN THAM GIA</h3>
 
                                         <Form.Item
                                             // label="Thông tin bên ta"
@@ -408,7 +428,7 @@ const Template = () => {
 
                                         <Row gutter={16} className="bg-[#f5f5f5] shadow-md p-4 rounded-md gap-7" justify={"center"}>
                                             <Col className="flex flex-col gap-2 " md={10} sm={24} >
-                                                <p className="font-bold text-lg "><u>Bên cung cấp (Bên A)</u></p>
+                                                <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
                                                 <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
                                                 <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
                                                 <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
@@ -426,6 +446,41 @@ const Template = () => {
                                                 <p className="text-sm"><b>Email:</b> .............................................</p>
                                             </Col>
                                         </Row>
+                                        <h3 className="font-bold text-[19px] my-6">3. CĂN CỨ PHÁP LÝ</h3>
+                                        <Form.Item
+                                            label={"Căn phứ pháp lý"}
+                                            name='legalBasis'
+                                            rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
+                                        >
+                                            <Select
+                                                showSearch
+                                                labelInValue
+                                                mode="multiple"
+                                                placeholder={`Chọn căn cứ pháp lý`}
+                                                options={optionsMap['legalBasis']}
+                                                onChange={handleSelectlegalBasisChange}
+                                            >
+                                            </Select>
+                                        </Form.Item>
+                                        <div className="mt-4 shadow-md ml-2 mb-3 bg-[#f5f5f5] p-4 rounded-md max-h-[400px] overflow-y-auto">
+                                            <h4 className="font-bold">Căn cứ pháp lý đã chọn:</h4>
+                                            <ul className="mt-2 flex flex-col gap-3 ">
+                                                {selectedlegalBasis.map((term, index) => (
+                                                    <li key={term} className="flex justify-between p-2 items-center border-b-2 border-e-slate-100 hover:bg-[#d1d1d1]">
+                                                        <p className="w-[90%]"> {index + 1}. {term.key}</p>
+                                                        <Button
+                                                            type="primary"
+                                                            danger
+                                                            size="small"
+                                                            onClick={() => handleRemovelegalBasisTerm(term)}
+                                                            icon={<FaDeleteLeft />}
+                                                        >
+                                                            Xóa
+                                                        </Button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     </div>
                                 },
                             ]}
@@ -435,9 +490,9 @@ const Template = () => {
                             items={[
                                 {
                                     key: '2',
-                                    label: <p className="font-bold"> Nội dung chính</p>,
+                                    label: <p className="font-bold"> NỘI DUNG CHÍNH</p>,
                                     children: <div>
-                                        <h3 className="font-bold text-[19px]">3. Nội dung hợp đồng</h3>
+                                        <h3 className="font-bold text-[19px]">3. NỘI DUNG HỢP ĐỒNG</h3>
                                         <Form.Item
                                             label="Soạn thảo nội dung hợp đồng "
                                             name="contractContent"
@@ -460,8 +515,8 @@ const Template = () => {
                                             <h4 className="font-bold text-lg">Xem trước nội dung hợp đồng:</h4>
                                             <div className="p-2 " dangerouslySetInnerHTML={{ __html: content }} />
                                         </div>
-                                        <h3 className="font-bold text-[19px] mt-9 mb-3">4. Giá trị hợp đồng và phương thức thanh toán</h3>
-                                        <Form.Item
+                                        <h3 className="font-bold text-[19px] mt-9 mb-3">4. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
+                                        {/* <Form.Item
                                             label="Phương thức thanh toán"
                                             name="paymentMethod"
                                             rules={[{ required: true, message: "Vui lòng chọn phương thức thanh toán!" }]}
@@ -470,7 +525,7 @@ const Template = () => {
                                                 { label: "Thanh toán 1 đợt", value: "one-time" },
                                                 { label: "Thanh toán nhiều đợt", value: "multiple" }
                                             ]} />
-                                        </Form.Item>
+                                        </Form.Item> */}
 
                                         <Form.Item
                                             // label="Tự động thêm VAT"
@@ -515,8 +570,8 @@ const Template = () => {
                                             </Form.Item>
                                         )}
 
-                                        <h3 className="font-bold text-[19px] mt-6 mb-3">5. Thời gian hiệu lực</h3>
-                                        <Form.Item
+                                        <h3 className="font-bold text-[19px] mt-6 mb-3">5. THỜI GIAN HIỆU LỰC</h3>
+                                        {/* <Form.Item
                                             label="Thời gian hiệu lực"
                                             name="effectiveTime"
                                             rules={[{ required: true, message: "Vui lòng chọn thời gian hiệu lực!" }]}
@@ -525,7 +580,7 @@ const Template = () => {
                                                 { label: "Mốc bắt đầu và kết thúc", value: "fixed-dates" },
                                                 { label: "Các mốc cụ thể", value: "specific-milestones" }
                                             ]} />
-                                        </Form.Item>
+                                        </Form.Item> */}
 
                                         <Form.Item
                                             label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
@@ -553,7 +608,7 @@ const Template = () => {
                             items={[
                                 {
                                     key: '3',
-                                    label: <p className="font-bold"> Điều khoản và các cam kết </p>,
+                                    label: <p className="font-bold"> ĐIỀU KHOẢN VÀ CAM KẾT </p>,
                                     children: <div>
                                         <h3 className="font-bold text-[19px]">6. Điều khoản</h3>
                                         <div className=" ml-2 my-3 ">
@@ -567,7 +622,7 @@ const Template = () => {
                                                 defaultValue={'generalTermsOptions'}
                                                 options={[
                                                     { label: "Điều khoản chung", value: "generalTermsOptions" },
-                                                    { label: "Căn cứ pháp lý", value: "legalBasis" },
+                                                    // { label: "Căn cứ pháp lý", value: "legalBasis" },
                                                     { label: "Điều khoản bổ sung", value: "additional" },
                                                     { label: "Điều khoản đặc biệt", value: "specialConditions" },
                                                 ]}
@@ -608,7 +663,7 @@ const Template = () => {
                                             <h4 className="font-bold">Điều khoản chung đã chọn:</h4>
                                             <ul className="mt-2 flex flex-col gap-3 ">
                                                 {selectedGeneralTerms.map((term, index) => (
-                                                    <li key={term} className="flex justify-between p-2 items-center border-b-2 border-e-slate-100">
+                                                    <li key={index + term} className="flex justify-between p-2 items-center border-b-2 border-e-slate-100 hover:bg-[#d1d1d1]">
                                                         <p className="w-[90%]"> {index + 1}. {term}</p>
                                                         <Button
                                                             type="primary"
@@ -634,21 +689,21 @@ const Template = () => {
                                             <Checkbox.Group
                                                 className="flex flex-col ml-4 gap-4"
                                                 options={[
-                                                    { label: "Căn cứ pháp lý", value: "legalBasis" },
-                                                    { label: "Điều khoản bổ sung", value: "additional" },
-                                                    { label: "Quyền và nghĩa vụ các bên", value: "RightsAndObligations" },
-                                                    { label: "Điền khoản bảo hành và bảo trì", value: "warrantyAndMaintenance" },
-                                                    { label: "Điều khoản về vi phạm và bồi thường thiệt hại", value: "breachAndDamages" },
-                                                    { label: "Điều khoản về chấm dứt hợp đồng", value: "TerminationOfContract" },
-                                                    { label: "Điều khoản về Giải quyết tranh chấp", value: "DisputeResolutionClause" },
-                                                    { label: "Điều khoản bảo mật", value: "PrivacyPolicy" },
+                                                    // { label: "Căn cứ pháp lý", value: "legalBasis" },
+                                                    { label: "ĐIỀU KHOẢN BỔ SUNG", value: "additional" },
+                                                    { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: "RightsAndObligations" },
+                                                    { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: "warrantyAndMaintenance" },
+                                                    { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: "breachAndDamages" },
+                                                    { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: "TerminationOfContract" },
+                                                    { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: "DisputeResolutionClause" },
+                                                    { label: "ĐIỀU KHOẢN BẢO MẬT", value: "PrivacyPolicy" },
                                                 ]}
                                                 onChange={handleCheckboxChange}
                                             />
                                         </Form.Item>
 
                                         <div className="flex flex-col">
-                                            {selectedOtherTypeTerms.includes("legalBasis") && (
+                                            {/* {selectedOtherTypeTerms.includes("legalBasis") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold mb-2">Căn cứ pháp lý</h4>
                                                     {["legalBasisCommon", "legalBasisA", "legalBasisB"].map((key, index) => (
@@ -669,10 +724,10 @@ const Template = () => {
                                                         </Form.Item>
                                                     ))}
                                                 </div>
-                                            )}
+                                            )} */}
                                             {selectedOtherTypeTerms.includes("additional") && (
                                                 <div className="mt-4">
-                                                    <h4 className="font-bold">Điều khoản bổ sung</h4>
+                                                    <h4 className="font-bold">ĐIỀU KHOẢN BỔ SUNG</h4>
                                                     {["additionalCommon", "additionalA", "additionalB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
@@ -695,7 +750,7 @@ const Template = () => {
                                             )}
                                             {selectedOtherTypeTerms.includes("RightsAndObligations") && (
                                                 <div className="mt-4">
-                                                    <h4 className="font-bold">Quyền và nghĩa vụ các bên</h4>
+                                                    <h4 className="font-bold">QUYỀN VÀ NGHĨA VỤ CÁC BÊN</h4>
                                                     {["specialCommon", "specialA", "specialB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
@@ -718,7 +773,7 @@ const Template = () => {
                                             )}
                                             {selectedOtherTypeTerms.includes("warrantyAndMaintenance") && (
                                                 <div className="mt-4">
-                                                    <h4 className="font-bold">Điền khoản bảo hành và bảo trì</h4>
+                                                    <h4 className="font-bold">ĐIỀU KHOẢN BẢO HÀNH VÀ BẢO TRÌ</h4>
                                                     {["warrantyAndMaintenanceCommon", "warrantyAndMaintenanceA", "warrantyAndMaintenanceB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
@@ -741,7 +796,7 @@ const Template = () => {
                                             )}
                                             {selectedOtherTypeTerms.includes("breachAndDamages") && (
                                                 <div className="mt-4">
-                                                    <h4 className="font-bold">Điều khoản về vi phạm và bồi thường thiệt hại</h4>
+                                                    <h4 className="font-bold">ĐIỀU KHOẢN VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI</h4>
                                                     {["breachAndDamagesCommon", "breachAndDamagesA", "breachAndDamagesB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
@@ -764,7 +819,7 @@ const Template = () => {
                                             )}
                                             {selectedOtherTypeTerms.includes("TerminationOfContract") && (
                                                 <div className="mt-4">
-                                                    <h4 className="font-bold">Điều khoản về chấm dứt hợp đồng</h4>
+                                                    <h4 className="font-bold">ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG</h4>
                                                     {["TerminationOfContractCommon", "TerminationOfContractA", "TerminationOfContractB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
@@ -786,7 +841,7 @@ const Template = () => {
                                             )}
                                             {selectedOtherTypeTerms.includes("DisputeResolutionClause") && (
                                                 <div className="mt-4">
-                                                    <h4 className="font-bold">Điều khoản về Giải quyết tranh chấp</h4>
+                                                    <h4 className="font-bold">ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP</h4>
                                                     {["DisputeResolutionClauseCommon", "DisputeResolutionClauseA", "DisputeResolutionClauseB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
@@ -808,7 +863,7 @@ const Template = () => {
                                             )}
                                             {selectedOtherTypeTerms.includes("PrivacyPolicy") && (
                                                 <div className="mt-4">
-                                                    <h4 className="font-bold">Điều khoản bảo mật</h4>
+                                                    <h4 className="font-bold">ĐIỀU KHOẢN BẢO MẬT</h4>
                                                     {["PrivacyPolicyCommon", "PrivacyPolicyA", "PrivacyPolicyB"].map((key, index) => (
                                                         <Form.Item
                                                             key={index}
@@ -832,41 +887,29 @@ const Template = () => {
                                         <Form.Item
                                             label={
                                                 <div className="ml-2 my-3">
-                                                    <p className="font-bold text-[16px]"> Điều khoản đặc biệt bên A</p>
+                                                    <p className="font-bold text-[16px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p>
                                                     <p className="">Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên A) </p>
                                                 </div>
                                             }
                                             name="specialTermsA"
-                                        // rules={[{ required: true, message: "Vui lòng chọn điều khoản đặc biệt bên A!" }]}
+                                        // rules={[{ required: true, message: "Vui lòng chọn điều khoản đặc biệt bên A!" }]} // Changed to optional
                                         >
-                                            <Select
-                                                showSearch
-                                                placeholder="Chọn điều khoản bên A"
-                                                options={optionsMap['specialConditions']}
-                                                filterOption={(input, option) =>
-                                                    option.label.toLowerCase().includes(input.toLowerCase())
-                                                }
-                                                onChange={handleSelectChange}
+                                            <TextArea rows={4}
+                                                placeholder="Nhập điều khoản bên A"
                                             />
                                         </Form.Item>
                                         <Form.Item
                                             label={
                                                 <div className="ml-2 my-3">
-                                                    <p className="font-bold text-[16px]"> Điều khoản đặc biệt bên B</p>
+                                                    <p className="font-bold text-[16px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN B</p>
                                                     <p className="">Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên B) </p>
                                                 </div>
                                             }
                                             name="specialTermsB"
-                                        // rules={[{ required: fa, message: "Vui lòng chọn điều khoản đặc biệt bên B!" }]}
+                                        // rules={[{ required: true, message: "Vui lòng chọn điều khoản đặc biệt bên B!" }]} // Changed to optional
                                         >
-                                            <Select
-                                                showSearch
-                                                placeholder="Chọn điều khoản bên B"
-                                                options={optionsMap['specialConditions']}
-                                                filterOption={(input, option) =>
-                                                    option.label.toLowerCase().includes(input.toLowerCase())
-                                                }
-                                                onChange={handleSelectChange}
+                                            <TextArea rows={4}
+                                                placeholder="Nhập điều khoản bên B"
                                             />
                                         </Form.Item>
                                     </div>
@@ -880,8 +923,8 @@ const Template = () => {
                                     key: '4',
                                     label: <p className="font-bold"> Nội dung khác </p>,
                                     children: <div>
-                                        <h3 className="font-bold text-[19px] mb-3">7. Chữ ký và con dấu</h3>
-                                        <p className="text-sm ml-2">Tích hợp sử dụng chữ ký số vào hợp đồng </p>
+                                        {/* <h3 className="font-bold text-[19px] mb-3">7. Chữ ký và con dấu</h3>
+                                        <p className="text-sm ml-2">Tích hợp sử dụng chữ ký số vào hợp đồng </p> */}
                                         <p className="font-bold text-[19px] my-4">8. Phụ lục</p>
                                         <Form.Item
                                             name="appendixEnabled"
@@ -890,6 +933,14 @@ const Template = () => {
                                             className="ml-2"
                                         >
                                             <Checkbox>Cho phép tạo phụ lục khi hợp đồng có hiệu lực</Checkbox>
+                                        </Form.Item>
+                                        <Form.Item
+                                            name="transferEnabled"
+                                            valuePropName="checked"
+                                            initialValue={false}
+                                            className="ml-2"
+                                        >
+                                            <Checkbox>Cho phép chuyển nhượng hợp đồng</Checkbox>
                                         </Form.Item>
                                     </div>
                                 }
@@ -907,13 +958,16 @@ const Template = () => {
                         <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                         <p className="font-bold text-[16px] mt-1"> Độc lập - Tự do - Hạnh phúc</p>
                         <p>-------------------</p>
-                        <p className="text-right mr-[10%]">Ngày {currentDate.getDate()} Tháng {currentDate.getMonth() + 1} Năm {currentDate.getFullYear()}</p>
+                        <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm ......</p>
                         <p className="text-2xl font-bold mt-3">{templateName.toUpperCase()}</p>
-                        <p className="mt-2">(<b> Số:</b> {contractNumber} )</p>
+                        <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
+                    </div>
+                    <div className=" px-4 pt-[100px] flex flex-col gap-2">
+                        {form.getFieldValue("legalBasis") ? form.getFieldValue("legalBasis").map(term => <p><i>- {term.value}</i></p>) : null}
                     </div>
                     <div className="p-4 rounded-md flex flex-col gap-4">
                         <div className="flex flex-col gap-2 " md={10} sm={24} >
-                            <p className="font-bold text-lg "><u>Bên cung cấp (Bên A)</u></p>
+                            <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
                             <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
                             <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
                             <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
@@ -933,37 +987,198 @@ const Template = () => {
 
                         <p>Sau khi bàn bạc và thống nhất chúng tôi cùng thỏa thuận ký kết bản hợp đồng với nội dung và các điều khoản sau: </p>
 
-                        <p className="font-bold text-lg ">Nội dung hợp đồng</p>
+                        <p className="font-bold text-lg "><u>NỘI DUNG HỢP ĐỒNG</u></p>
 
                         <div className="ml-1" dangerouslySetInnerHTML={{ __html: form.getFieldValue("contractContent") || "Chưa nhập" }} />
 
-                    </div>
+                        <div className="mt-4">
+                            <h4 className="font-bold text-lg placeholder:"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
+                            <div>
+                                {form.getFieldValue("autoAddVAT") && <p className="mt-3">- Tự động thêm thuế VAT khi tạo hợp đồng ({form.getFieldValue("vatPercentage")}%)</p>}
+                                {form.getFieldValue("autoRenew") && <p className="mt-3">- Tự động gia hạn khi hợp đồng hết hạn nếu không có bất kỳ phản hồi nào </p>}
+                                {form.getFieldValue("appendixEnabled") && <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực </p>}
+                                
+                            </div>
+                        </div>
+                        <div className="mt-4">
+                            <h4 className="font-bold text-lg placeholder:"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
+                            <div className="ml-5 mt-3 flex flex-col gap-3">
+                                {form.getFieldValue("generalTerms") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản chung:</h5>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("generalTerms")?.map((term, index) => (
+                                                <li className="ml-2" key={term}>{index + 1}. {term}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("RightsAndObligations") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Quyền và nghĩa vụ các bên:</h5>
+                                        <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chung</h4>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("RightsAndObligations").specialCommon?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                        {form.getFieldValue("RightsAndObligations").specialA && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên A</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("RightsAndObligations").specialA?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("RightsAndObligations").specialB && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên B</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("RightsAndObligations").specialB?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("DisputeResolutionClause") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản giải quyết tranh chấp:</h5>
+                                        <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chung</h4>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseCommon?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                        {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseA && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên A</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseA?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseB && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên B</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseB?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("additional") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản Bổ sung:</h5>
+                                        <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chung</h4>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("additional").additionalCommon?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                        {form.getFieldValue("additional").additionalA && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên A</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("additional").additionalA?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("additional").additionalB && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên B</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("additional").additionalB?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("breachAndDamages") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản pháp lý:</h5>
+                                        <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chung</h4>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("breachAndDamages").breachAndDamagesCommon?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                        {form.getFieldValue("breachAndDamages").breachAndDamagesA && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên A</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("breachAndDamages").breachAndDamagesA?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("breachAndDamages").breachAndDamagesB && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên B</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("breachAndDamages").breachAndDamagesB?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("TerminationOfContract") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản chấm dứt hợp đồng:</h5>
+                                        <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chung</h4>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("TerminationOfContract").TerminationOfContractCommon?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                        {form.getFieldValue("TerminationOfContract").TerminationOfContractA && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên A</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("TerminationOfContract").TerminationOfContractA?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("TerminationOfContract").TerminationOfContractB && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên B</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("TerminationOfContract").TerminationOfContractB?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("warrantyAndMaintenance") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản bảo hành và bảo trì:</h5>
+                                        <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chung</h4>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceCommon?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                        {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceA && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên A</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceA?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceB && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên B</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceB?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("PrivacyPolicy") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản chính sách bảo mật:</h5>
+                                        <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chung</h4>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("PrivacyPolicy").PrivacyPolicyCommon?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                        {form.getFieldValue("PrivacyPolicy").PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("PrivacyPolicy").PrivacyPolicyA?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("PrivacyPolicy").PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>}
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("PrivacyPolicy").PrivacyPolicyB?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
 
-                    <h3 className="font-bold mb-4">Tên Template: {form.getFieldValue("templateName")}</h3>
-                    <h4 className="font-bold">1. Tiêu đề hợp đồng:</h4>
-                    <p>{form.getFieldValue("contractTitle") || "Chưa nhập"}</p>
-                    <p>Số hợp đồng: {contractNumber}</p>
-                    <p>Ngày ký kết: {form.getFieldValue("signDate") ? form.getFieldValue("signDate").format("DD/MM/YYYY") : "Chưa chọn"}</p>
-                    <h4 className="font-bold">2. Thông tin bên ta:</h4>
-                    <p>{form.getFieldValue("partyInfo")}</p>
-                    <h4 className="font-bold">3. Nội dung hợp đồng:</h4>
-                    <p>{form.getFieldValue("contractContent") || "Chưa nhập"}</p>
-                    <h4 className="font-bold">4. Giá trị hợp đồng và phương thức thanh toán:</h4>
-                    <ul>
-                        {/* {form.getFieldValue("paymentMethod")?.length
-                            ? form.getFieldValue("paymentMethod").map((method) => (
-                                <li key={method}>
-                                    {method === "one-time" ? "Thanh toán 1 đợt" : "Thanh toán nhiều đợt"}
-                                </li>
-                            ))
-                            : "Chưa chọn"} */}
-                    </ul>
-                    <h4 className="font-bold">5. Thời gian hiệu lực:</h4>
-                    {/* <p>
-                        {form.getFieldValue("effectiveTime")?.includes("fixed-dates")
-                            ? `Từ ngày ${form.getFieldValue("effectiveDates")[0]?.startDate?.format("DD/MM/YYYY") || "Chưa chọn"} đến ngày ${form.getFieldValue("effectiveDates")[0]?.endDate?.format("DD/MM/YYYY") || "Chưa chọn"}`
-                            : "Chưa chọn"}
-                    </p> */}
+                        </div>
+
+                    </div>
                 </div>
             ),
         },
