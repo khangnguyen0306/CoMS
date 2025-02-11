@@ -6,6 +6,8 @@ const Home = Loadable({ loader: () => import("../pages/Home") });
 const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
 const Partner = Loadable({ loader: () => import("../pages/Partner/ManagePartner") });
 const DetailPartner = Loadable({ loader: () => import("../pages/Partner/DetailParrtner") });
+const Task = Loadable({ loader: () => import("../pages/Task_Manager/ManageTask") });
+const DetailTask = Loadable({ loader: () => import("../pages/Task_Manager/DetailTask") });
 const Profile = Loadable({ loader: () => import("../pages/Profile/Profile") });
 const Login = Loadable({ loader: () => import("../pages/Authen/Login") });
 const Contract = Loadable({ loader: () => import("../pages/Contract/ContractManagement") });
@@ -57,6 +59,14 @@ export const router = createBrowserRouter([
                 element: DetailPartner,
             },
             {
+                path: "task",
+                element: Task,
+            },
+            {
+                path: "task/:id",
+                element: DetailTask,
+            },
+            {
                 path: "createtemplate",
                 element: CreateTemplate,
             },
@@ -68,7 +78,6 @@ export const router = createBrowserRouter([
                 path: "deletedtemplate",
                 element: DeletedTemplate,
             },
-
             // {
             //     path: "/",
             //     element: <AuthGuard />,

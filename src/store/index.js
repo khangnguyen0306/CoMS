@@ -3,6 +3,7 @@ import { bussinessAPI } from "../services/BsAPI";
 import { partnerAPI } from "../services/PartnerAPI";
 import { ContractAPI } from "../services/ContractAPI";
 import { TemplateAPI } from "../services/TemplateAPI";
+import { taskAPI } from "../services/TaskAPI";
 import AuthReducer from "../slices/auth.slice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
@@ -28,7 +29,9 @@ export const store = configureStore({
     [ContractAPI.reducerPath]: ContractAPI.reducer,
     contract: ContractAPI,
     [TemplateAPI.reducerPath]: TemplateAPI.reducer,
-    template: TemplateAPI
+    template: TemplateAPI,
+    [taskAPI.reducerPath]: taskAPI.reducer,
+    partner: taskAPI,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -37,6 +40,8 @@ export const store = configureStore({
       partnerAPI.middleware,
       ContractAPI.middleware,
       TemplateAPI.middleware,
+      taskAPI.middleware
+
     ),
 });
 
