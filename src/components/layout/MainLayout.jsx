@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Breadcrumb, Layout, Menu, theme } from "antd";
+import { Breadcrumb, Button, Image, Layout, Menu, notification, theme } from "antd";
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
@@ -14,16 +14,16 @@ import { BsClipboard2DataFill } from "react-icons/bs"
 import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
 import { AiFillIdcard } from "react-icons/ai";
+import LOGO from './../../assets/Image/letter-c.svg'
+import { logOut } from "../../slices/auth.slice";
+import { useDispatch } from "react-redux";
 const { Content, Sider } = Layout;
 
 
 const MainLayout = () => {
-
-  const subnav = ['1', '2', '3'].map((key) => ({
-    key,
-    label: `nav ${key}`,
-  }));
-
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(true);
   const router = {
     '1': '/',
     'dash': '/dashboard',
@@ -32,6 +32,8 @@ const MainLayout = () => {
     'contract': '/contract',
     'setting1': '/bsinformation',
     'templateCreate': '/createtemplate',
+    'manageTemplate': '/managetemplate',
+    'deletedtemplate': '/deletedtemplate',
     '4': '/combo',
   }
 
@@ -51,10 +53,10 @@ const MainLayout = () => {
         },
         {
           icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
-            { icon: MdOutlineClass, label: 'Template hợp đồng', key: "contractType1" },
+            { icon: MdOutlineClass, label: 'Template hợp đồng', key: "manageTemplate" },
             { icon: BsClipboard2DataFill, label: 'Tạo Template', key: "templateCreate" },
             { icon: FaHistory, label: 'Hủy / Tái Ký', key: "contractType3" },
-            { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractType4" },
+            { icon: BsTrash3Fill, label: 'Đã xóa', key: "deletedtemplate" },
           ]
         },
       ]
@@ -97,8 +99,7 @@ const MainLayout = () => {
     };
   });
 
-  const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(true);
+
 
 
   const {
@@ -113,6 +114,15 @@ const MainLayout = () => {
     }
   };
 
+  const handleLogout = useCallback(() => {
+    dispatch(logOut());
+    notification.success({
+      message: "Logout successfully",
+      description: "See you again!",
+      duration: 1.5
+    });
+    navigate("/login");
+  }, [dispatch, navigate]);
   return (
     <Layout>
       <Sider
@@ -151,25 +161,43 @@ const MainLayout = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             position: 'fixed',
             width: '100vw',
             zIndex: 100,
+            backgroundColor: '#1f1f1f',
+            padding: '0 20px',
           }}
         >
-          <div className="px-9 bg-slate-400 mr-10" onClick={() => navigate('/')}>
-            Logo
+          <div className="flex items-center">
+            <Image
+              preview={false}
+              src={LOGO}
+              height={60}
+              width={60}
+              className="cursor-pointer p-2"
+              onClick={() => navigate('/')}
+              alt="Logo"
+            />
+            <p className="ml-2 text-white">Quản lý hợp đồng CoMS</p>
           </div>
-          <Menu
-            theme="dark"
-            mode="horizontal"
-            defaultSelectedKeys={['2']}
-            items={subnav}
-            style={{
-              flex: 1,
-              minWidth: 0,
-            }}
-          />
+          <div>
+            <Button
+              type="primary"
+              size='large'
+              onClick={handleLogout}
+              className='bg-gradient-to-r
+                      mr-[80px]
+                    from-blue-500 to-cyan-400 text-white 
+                    font-medium rounded-full py-3 px-6 transition-transform duration-800
+                     hover:from-cyan-400 hover:to-blue-500 hover:scale-105 hover:shadow-cyan-200 hover:shadow-lg'
+            >
+              Đăng xuất
+            </Button>
+          </div>
         </Header>
+
+
         {/* Nội dung  */}
 
         <Layout

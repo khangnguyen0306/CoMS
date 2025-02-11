@@ -1,6 +1,8 @@
 import { authApi } from "../services/AuthAPI";
 import { bussinessAPI } from "../services/BsAPI";
 import { partnerAPI } from "../services/PartnerAPI";
+import { ContractAPI } from "../services/ContractAPI";
+import { TemplateAPI } from "../services/TemplateAPI";
 import { taskAPI } from "../services/TaskAPI";
 import AuthReducer from "../slices/auth.slice";
 import { configureStore } from "@reduxjs/toolkit";
@@ -24,6 +26,10 @@ export const store = configureStore({
     bsInfo: bussinessAPI,
     [partnerAPI.reducerPath]: partnerAPI.reducer,
     partner: partnerAPI,
+    [ContractAPI.reducerPath]: ContractAPI.reducer,
+    contract: ContractAPI,
+    [TemplateAPI.reducerPath]: TemplateAPI.reducer,
+    template: TemplateAPI,
     [taskAPI.reducerPath]: taskAPI.reducer,
     partner: taskAPI,
   },
@@ -32,7 +38,10 @@ export const store = configureStore({
       authApi.middleware,
       bussinessAPI.middleware,
       partnerAPI.middleware,
+      ContractAPI.middleware,
+      TemplateAPI.middleware,
       taskAPI.middleware
+
     ),
 });
 
