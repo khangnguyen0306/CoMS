@@ -13,6 +13,9 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+      backgroundImage: {
+        'custom-gradient': 'linear-gradient(to right,#52b788, #3a86ff)',
+      },
       animation: {
         aurora: "aurora 60s linear infinite",
       },

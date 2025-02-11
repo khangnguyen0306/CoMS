@@ -1,6 +1,8 @@
 import { authApi } from "../services/AuthAPI";
 import { bussinessAPI } from "../services/BsAPI";
 import { partnerAPI } from "../services/PartnerAPI";
+import { ContractAPI } from "../services/ContractAPI";
+import { TemplateAPI } from "../services/TemplateAPI";
 import AuthReducer from "../slices/auth.slice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
@@ -22,13 +24,19 @@ export const store = configureStore({
     [bussinessAPI.reducerPath]: bussinessAPI.reducer,
     bsInfo: bussinessAPI,
     [partnerAPI.reducerPath]: partnerAPI.reducer,
-    partner: partnerAPI
+    partner: partnerAPI,
+    [ContractAPI.reducerPath]: ContractAPI.reducer,
+    contract: ContractAPI,
+    [TemplateAPI.reducerPath]: TemplateAPI.reducer,
+    template: TemplateAPI
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       authApi.middleware,
       bussinessAPI.middleware,
       partnerAPI.middleware,
+      ContractAPI.middleware,
+      TemplateAPI.middleware,
     ),
 });
 

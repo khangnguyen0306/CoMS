@@ -228,8 +228,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -243,8 +243,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -258,8 +258,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -273,8 +273,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -288,8 +288,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -303,8 +303,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -318,8 +318,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -333,8 +333,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -351,8 +351,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -370,8 +370,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -387,8 +387,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
@@ -403,8 +403,8 @@ const PartnerDetail = () => {
                                                 }}
                                                 styles={{
                                                     label: {
-                                                        backgroundColor: '#cdf2ff',
-                                                        color: '#005580',
+                                                        backgroundColor: '#2196f3',
+                                                        color: '#fff',
                                                         fontWeight: 'bold',
                                                     },
                                                 }}
