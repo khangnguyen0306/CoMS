@@ -278,8 +278,8 @@ const ManagePartner = () => {
                             <th
                                 {...props}
                                 style={{
-                                    backgroundColor: '#cdf2ff',
-                                    color: '#005580',
+                                    backgroundColor: '#2196f3',
+                                    color: '#fff',
                                     borderColor: '#89c4d9',
                                     borderStyle: 'solid',
                                     borderWidth: '1px',

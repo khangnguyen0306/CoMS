@@ -25,6 +25,13 @@ export const TemplateAPI = createApi({
                     ? result.map(({ id }) => ({ type: "Template", id }))
                     : [{ type: "Template", id: id }],
         }),
+        getAllDeletedTemplate: builder.query({
+            query: () => `69dee311-5125-4bac-bc6d-aabed7f3d593`,
+            providesTags: (result) =>
+                result
+                    ? result.map(({ id }) => ({ type: "Template", id }))
+                    : [{ type: "Template", id: id }],
+        }),
 
         getTemplateDataDetail: builder.query({
             query: (templateId) => ({               // chua gan ID
@@ -65,6 +72,7 @@ export const TemplateAPI = createApi({
 
 export const {
     useGetAllTemplateQuery,
-    useGetTemplateDataDetailQuery
+    useGetTemplateDataDetailQuery,
+    useGetAllDeletedTemplateQuery
     // useGetContractByPartnerQuery
 } = TemplateAPI;

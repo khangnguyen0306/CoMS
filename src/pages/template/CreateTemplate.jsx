@@ -79,6 +79,10 @@ const CreateTemplate = () => {
     const [selectedCategory, setSelectedCategory] = useState("generalTermsOptions"); // New state for selected category
     const [isAppendixEnabled, setIsAppendixEnabled] = useState(false);
     const [isTransferEnabled, setIsTransferEnabled] = useState(false);
+    const [isDateLateChecked, setIsDateLateChecked] = useState(false);
+    const [isViolate, setIsisViolate] = useState(false);
+    const [isAutoRenew, setIsAutoRenew] = useState(false);
+    const [isSuspend, setIsSuspend] = useState(false);
     const [newType, setNewType] = useState("");
     const inputRef = useRef(null);
     function debounce(func, wait) {
@@ -143,66 +147,63 @@ const CreateTemplate = () => {
     // Xử lý thay đổi checkbox
     const handleCheckboxChange = (checkedValues) => {
         setSelectedOtherTypeTerms(checkedValues);
+        const currentFields = form.getFieldsValue(); // Lấy các giá trị hiện tại của form
         const newFields = {};
-        checkedValues.forEach((value) => {
-            // if (value === "legalBasis") {
-            //     newFields.legalBasis = {
-            //         legalBasisCommon: [],
-            //         legalBasisA: [],
-            //         legalBasisB: [],
-            //     };
-            // }
-            if (value === "additional") {
-                newFields.additional = {
-                    additionalCommon: [],
-                    additionalA: [],
-                    additionalB: [],
-                };
-            }
-            if (value === "RightsAndObligations") {
-                newFields.RightsAndObligations = {
-                    rightsCommon: [],
-                    rightsA: [],
-                    rightsB: [],
-                };
-            }
-            if (value === "warrantyAndMaintenance") {
-                newFields.warrantyAndMaintenance = {
-                    warrantyCommon: [],
-                    warrantyA: [],
-                    warrantyB: [],
-                };
-            }
-            if (value === "breachAndDamages") {
-                newFields.breachAndDamages = {
-                    breachCommon: [],
-                    breachA: [],
-                    breachB: [],
-                };
-            }
-            if (value === "TerminationOfContract") {
-                newFields.TerminationOfContract = {
-                    terminationCommon: [],
-                    terminationA: [],
-                    terminationB: [],
-                };
-            }
-            if (value === "DisputeResolutionClause") {
-                newFields.DisputeResolutionClause = {
-                    disputeCommon: [],
-                    disputeA: [],
-                    disputeB: [],
-                };
-            }
-            if (value === "PrivacyPolicy") {
-                newFields.PrivacyPolicy = {
-                    privacyCommon: [],
-                    privacyA: [],
-                    privacyB: [],
-                };
-            }
+
+        if (checkedValues.includes("additional")) {
+            newFields.additional = currentFields.additional || {
+                additionalCommon: [],
+                additionalA: [],
+                additionalB: [],
+            };
+        }
+        if (checkedValues.includes("RightsAndObligations")) {
+            newFields.RightsAndObligations = currentFields.RightsAndObligations || {
+                rightsCommon: [],
+                rightsA: [],
+                rightsB: [],
+            };
+        }
+        if (checkedValues.includes("warrantyAndMaintenance")) {
+            newFields.warrantyAndMaintenance = currentFields.warrantyAndMaintenance || {
+                warrantyCommon: [],
+                warrantyA: [],
+                warrantyB: [],
+            };
+        }
+        if (checkedValues.includes("breachAndDamages")) {
+            newFields.breachAndDamages = currentFields.breachAndDamages || {
+                breachCommon: [],
+                breachA: [],
+                breachB: [],
+            };
+        }
+        if (checkedValues.includes("TerminationOfContract")) {
+            newFields.TerminationOfContract = currentFields.TerminationOfContract || {
+                terminationCommon: [],
+                terminationA: [],
+                terminationB: [],
+            };
+        }
+        if (checkedValues.includes("DisputeResolutionClause")) {
+            newFields.DisputeResolutionClause = currentFields.DisputeResolutionClause || {
+                disputeCommon: [],
+                disputeA: [],
+                disputeB: [],
+            };
+        }
+        if (checkedValues.includes("PrivacyPolicy")) {
+            newFields.PrivacyPolicy = currentFields.PrivacyPolicy || {
+                privacyCommon: [],
+                privacyA: [],
+                privacyB: [],
+            };
+        }
+
+        form.setFieldsValue({
+            ...currentFields,
+            ...newFields,
         });
-        form.setFieldsValue({ ...form.getFieldsValue(), ...newFields });
     };
 
     const optionsMap = {
@@ -378,7 +379,7 @@ const CreateTemplate = () => {
                         rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}
                     >
                         <Select
-                        showSearch
+                            showSearch
                             style={{ width: "100%" }}
                             placeholder="Chọn loại hợp đồng"
                             loading={isLoadingType}
@@ -396,7 +397,7 @@ const CreateTemplate = () => {
                                             onKeyDown={(e) => e.stopPropagation()}
                                         />
                                         <Button type="text" icon={<PlusOutlined />} onClick={addNewType} >
-                                        {/* loading={isCreating} */}
+                                            {/* loading={isCreating} */}
                                             Thêm
                                         </Button>
                                     </Space>
@@ -405,7 +406,7 @@ const CreateTemplate = () => {
                             options={contractType?.contractTypes?.map((type) => ({
                                 label: type,
                                 value: type,
-                              }))}
+                            }))}
                         />
                     </Form.Item>
                 </Form>
@@ -595,7 +596,6 @@ const CreateTemplate = () => {
                                             </div>
                                         </Form.Item>
 
-
                                         {isVATChecked && (
                                             <Form.Item
                                                 label="Phần trăm VAT"
@@ -604,7 +604,7 @@ const CreateTemplate = () => {
                                             >
                                                 <Input
                                                     type="number"
-                                                    className="w-[100px]"
+                                                    className="w-[150px]"
                                                     placeholder="Nhập phần trăm VAT"
                                                     addonAfter="%"
                                                     max={100}
@@ -620,6 +620,45 @@ const CreateTemplate = () => {
                                                 />
                                             </Form.Item>
                                         )}
+
+                                        <Form.Item name="isDateLateChecked" valuePropName="checked">
+                                            <div className="flex items-center">
+                                                <Switch
+                                                    className="mr-4"
+                                                    onChange={(checked) => {
+                                                        form.setFieldsValue({ isDateLateChecked: checked });
+                                                        setIsDateLateChecked(checked);
+                                                    }}
+                                                    checked={form.getFieldValue("isDateLateChecked") ?? isDateLateChecked}
+                                                />
+                                                <p className="text-sm">Cho phép thanh toán trễ hạn (ngày)</p>
+                                            </div>
+                                        </Form.Item>
+
+                                        {isDateLateChecked && (
+                                            <Form.Item
+                                                label="Ngày trễ"
+                                                name="maxDateLate"
+                                                rules={[{ required: true, message: "Vui lòng nhập số ngày trễ tối đa" }]}
+                                            >
+                                                <Input
+                                                    type="number"
+                                                    className="w-[150px]"
+                                                    placeholder="Vui lòng nhập số ngày trễ tối đa"
+                                                    addonAfter="ngày"
+                                                    min={0}
+                                                    onChange={(e) => {
+                                                        const value = parseInt(e.target.value, 10);
+                                                        if (value < 0) {
+                                                            message.error("Phần trăm VAT phải nằm trong khoảng 0 đến 100.");
+                                                            form.setFieldsValue({ maxDateLate: null });
+                                                            // e.target.value = '';
+                                                        }
+                                                    }}
+                                                />
+                                            </Form.Item>
+                                        )}
+
 
                                         <h3 className="font-bold text-[19px] mt-6 mb-3">5. THỜI GIAN HIỆU LỰC</h3>
                                         {/* <Form.Item
@@ -644,8 +683,9 @@ const CreateTemplate = () => {
                                                     className="mr-4"
                                                     onChange={(checked) => {
                                                         form.setFieldsValue({ autoRenew: checked });
+                                                        setIsAutoRenew(checked);
                                                     }}
-                                                    checked={form.getFieldValue('autoRenew')} />
+                                                    checked={form.getFieldValue('autoRenew') ?? isAutoRenew} />
                                                 <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
                                             </div>
                                         </Form.Item>
@@ -1006,6 +1046,47 @@ const CreateTemplate = () => {
                                                 </div>
                                             </Form.Item>
 
+                                            <Form.Item name="violate" valuePropName="checked">
+                                                <div className="flex items-center">
+                                                    <Switch
+                                                        className="mr-4"
+                                                        onChange={(checked) => {
+                                                            form.setFieldsValue({ violate: checked });
+                                                            setIsisViolate(checked);
+                                                        }}
+                                                        checked={form.getFieldValue("violate") ?? isViolate}
+                                                    />
+                                                    <p className="text-sm"> Cho phép đơn phương hủy hợp đồng nếu vi phạm các quy định trong điều khoản hợp đồng</p>
+                                                </div>
+                                            </Form.Item>
+
+                                            <Form.Item name="suspend" valuePropName="checked">
+                                                <div className="flex items-center">
+                                                    <Switch
+                                                        className="mr-4"
+                                                        onChange={(checked) => {
+                                                            form.setFieldsValue({ suspend: checked });
+                                                            setIsSuspend(checked);
+                                                        }}
+                                                        checked={form.getFieldValue("suspend") ?? isSuspend}
+                                                    />
+                                                    <p className="text-sm">Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng được ghi rõ</p>
+                                                </div>
+                                            </Form.Item>
+
+                                            {isSuspend && (
+                                                <Form.Item
+                                                    label="trường hợp"
+                                                    name="suspendContent"
+                                                    rules={[{ required: true, message: "Vui lòng nhập rõ trường hợp tạm ngưng!" }]}
+                                                >
+                                                    <TextArea
+                                                        className="w-[450px]"
+                                                        placeholder="Nhập nội dung"
+                                                        rows={4}
+                                                    />
+                                                </Form.Item>
+                                            )}
                                         </div>
                                 }
                             ]}
@@ -1059,8 +1140,9 @@ const CreateTemplate = () => {
                             <h4 className="font-bold text-lg placeholder:"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
                             <div>
                                 {form.getFieldValue("autoAddVAT") && <p className="mt-3">- Tự động thêm thuế VAT khi tạo hợp đồng ({form.getFieldValue("vatPercentage")}%)</p>}
-                                {form.getFieldValue("autoRenew") && <p className="mt-3">- Tự động gia hạn khi hợp đồng hết hạn nếu không có bất kỳ phản hồi nào </p>}
+                                {form.getFieldValue("autoRenew") && <p className="mt-3">- Tự động gia hạn khi hợp đồng hết hạn nếu không có bất kỳ phản hồi nào từ các phía</p>}
                                 {form.getFieldValue("appendixEnabled") && <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực </p>}
+                                {form.getFieldValue("isDateLateChecked") && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {form.getFieldValue("maxDateLate")} (ngày) </p>}
                             </div>
                         </div>
                         <div className="mt-4">
@@ -1237,7 +1319,7 @@ const CreateTemplate = () => {
                                         </ul>
                                     </div>
                                 )}
-                                 {form.getFieldValue("specialTermsA") && (
+                                {form.getFieldValue("specialTermsA") && (
                                     <div className="mt-2">
                                         <h5 className="font-semibold text-lg">Điều khoản đặc biệt bên A</h5>
                                         <p>{form.getFieldValue("specialTermsB")}</p>
@@ -1256,6 +1338,11 @@ const CreateTemplate = () => {
                             <h4 className="font-bold text-lg placeholder:"><u>CÁC THÔNG TIN KHÁC</u></h4>
                             {form.getFieldValue("appendixEnabled") && <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>}
                             {form.getFieldValue("transferEnabled") && <p className="mt-3">- Cho phép chuyển nhượng hợp đồng</p>}
+                            {form.getFieldValue("violate") && <p className="mt-3">- Cho phép đơn phương hủy hợp đồng nếu 1 trong 2 vi phạm các quy định trong điều khoản được ghi trong hợp đồng</p>}
+                            {form.getFieldValue("suspend") && <div>
+                                <p className="mt-3">- Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng sau: {form.getFieldValue("suspendContent")}</p>
+                              
+                            </div>}
                         </div>
                     </div>
                 </div>

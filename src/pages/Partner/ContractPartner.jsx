@@ -95,11 +95,11 @@ const ContractPartner = ({ partnerId }) => {
                 theme={{
                     components: {
                         Table: {
-                            headerBg:'#c7eaf7',
+                            headerBg:'#2196f3',
                             headerSortActiveBg:"#44b1ff",
                             headerFilterHoverBg:"#44b1ff",
                             headerSortHoverBg:"#44b1ff",
-                            headerColor:"#005580"
+                            headerColor:"#fff"
                         },
                     },
                 }}

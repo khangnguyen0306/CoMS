@@ -13,6 +13,7 @@ const MaintenancePage = Loadable({ loader: () => import("../components/layout/Ma
 const BussinessInfor = Loadable({ loader: () => import("../pages/BussinessInfor/BussinessInfor") });
 const CreateTemplate = Loadable({ loader: () => import("../pages/template/CreateTemplate") });
 const ManageTemplate = Loadable({ loader: () => import("../pages/template/ManageTemplate") });
+const DeletedTemplate = Loadable({ loader: () => import("../pages/template/DeletedTemplate") });
 
 export const router = createBrowserRouter([
     {
@@ -29,7 +30,7 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: Home,
+                element: Dashboard,
             },
             {
                 path: "contract",
@@ -62,6 +63,10 @@ export const router = createBrowserRouter([
             {
                 path: "managetemplate",
                 element: ManageTemplate,
+            },
+            {
+                path: "deletedtemplate",
+                element: DeletedTemplate,
             },
 
             // {
