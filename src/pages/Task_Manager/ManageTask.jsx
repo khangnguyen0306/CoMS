@@ -205,7 +205,7 @@ const ManageTask = () => {
 
                     <Form.Item
                         name="assignedTo"
-                        label="Người Thực Hiện"
+                        label="Người Chịu Trách Nhiệm Chính"
                         rules={[{ required: true, message: "Vui lòng chọn người thực hiện!" }]}
                     >
                         <Select placeholder="Chọn nhân viên">
@@ -258,11 +258,20 @@ const ManageTask = () => {
 
                     <Form.Item
                         name="dueDate"
-                        label="Ngày Dự Kiến Hoàn Thành"
+                        label="Ngày Hoàn Thành"
                         rules={[{ required: true, message: "Vui lòng chọn ngày hoàn thành!" }]}
                     >
                         <DatePicker />
                     </Form.Item>
+
+                    <Form.Item
+                        name="description"
+                        label="Mô Tả"
+                        rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
+                    >
+                        <Input.TextArea rows={4} />
+                    </Form.Item>
+
 
                     <Form.Item>
                         <Button type="primary" htmlType="submit">
