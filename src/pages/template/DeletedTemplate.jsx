@@ -22,7 +22,7 @@ const DeletedContract = () => {
   const filteredContracts = templateData?.filter(contract =>
     contract.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (selectedType ? contract.type === selectedType : true)
-  );
+  ).sort((a, b) => a.daysDeleted - b.daysDeleted);
 
   const showModal = (contract) => {
     setSelectedContract(contract.id);

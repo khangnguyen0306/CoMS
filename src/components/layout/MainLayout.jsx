@@ -49,7 +49,7 @@ const MainLayout = () => {
         { icon: GoLaw, label: 'Clause', key: "clause" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
-            { icon: MdOutlineClass, label: 'Loại hợp đồng', key: "contract" },
+            { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
             { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
             { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
             { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
@@ -59,7 +59,6 @@ const MainLayout = () => {
           icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Template hợp đồng', key: "manageTemplate" },
             { icon: BsClipboard2DataFill, label: 'Tạo Template', key: "templateCreate" },
-            { icon: FaHistory, label: 'Hủy / Tái Ký', key: "contractType3" },
             { icon: BsTrash3Fill, label: 'Đã xóa', key: "deletedtemplate" },
           ]
         },
