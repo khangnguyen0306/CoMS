@@ -16,6 +16,7 @@ const BussinessInfor = Loadable({ loader: () => import("../pages/BussinessInfor/
 const CreateTemplate = Loadable({ loader: () => import("../pages/template/CreateTemplate") });
 const ManageTemplate = Loadable({ loader: () => import("../pages/template/ManageTemplate") });
 const DeletedTemplate = Loadable({ loader: () => import("../pages/template/DeletedTemplate") });
+const Clause = Loadable({ loader: () => import("../pages/Clause/ManageClause") });
 
 export const router = createBrowserRouter([
     {
@@ -61,6 +62,10 @@ export const router = createBrowserRouter([
             {
                 path: "task",
                 element: Task,
+            },
+            {
+                path: "clause",
+                element: Clause,
             },
             {
                 path: "task/:id",

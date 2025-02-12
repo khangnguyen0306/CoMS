@@ -14,6 +14,8 @@ import { BsClipboard2DataFill } from "react-icons/bs"
 import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
 import { AiFillIdcard } from "react-icons/ai";
+import { FaTasks } from "react-icons/fa";
+import { GoLaw } from "react-icons/go";
 import LOGO from './../../assets/Image/letter-c.svg'
 import { logOut } from "../../slices/auth.slice";
 import { useDispatch } from "react-redux";
@@ -34,6 +36,7 @@ const MainLayout = () => {
     'templateCreate': '/createtemplate',
     'manageTemplate': '/managetemplate',
     'deletedtemplate': '/deletedtemplate',
+    'clause': '/clause',
     '4': '/combo',
   }
 
@@ -42,7 +45,8 @@ const MainLayout = () => {
       icon: MdDashboard, key: "all", label: 'Danh mục', children: [
         { icon: MdDashboard, label: 'Dashboard', key: "dash", default: true },
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
-        { icon: FaUserTie, label: 'Task', key: "task" },
+        { icon: FaTasks, label: 'Task', key: "task" },
+        { icon: GoLaw, label: 'Clause', key: "clause" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },

@@ -185,7 +185,7 @@ const ManagePartner = () => {
 
     return (
         <div>
-            <div className="text-lg font-bold text-blue-700 mb-4">Manage Partner</div>
+            <div className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>Manage Partner</div>
 
             <div className="mb-4 flex items-center gap-2">
                 <Dropdown
