@@ -25,7 +25,13 @@ export const ContractAPI = createApi({
                     ? result.contractTypes.map(({ id }) => ({ type: "ContractType", id }))
                     : [{ type: "ContractType", id: id }],
         }),
-
+        getAllContract: builder.query({
+            query: () => `791ec81c-b150-440d-9c3c-07fcfe5cc6da`,
+            providesTags: (result) =>
+                result
+                    ? result.map(({ id }) => ({ type: "Contract", id }))
+                    : [{ type: "Contract", id: id }],
+        }),
         // getPartnerInfoDetail: builder.query({
         //     query: (partnerId) => ({
         //         url: `9edef7db-1c09-42ed-aef8-ae8d14119f2c`,
@@ -65,5 +71,6 @@ export const ContractAPI = createApi({
 
 export const {
     useGetContractTypeQuery,
+    useGetAllContractQuery
     // useGetContractByPartnerQuery
 } = ContractAPI;
