@@ -3,13 +3,15 @@ import React, { useEffect, useState } from 'react'
 import { motion } from "framer-motion";
 import { AuroraBackground } from '../../components/ui/BackgroundLogin';
 import Logo from '../../assets/Image/Logo.png';
-import { Alert, Button, Checkbox, Form, Image, Input } from 'antd';
+import { Alert, Button, Checkbox, Form, Image, Input, message, notification } from 'antd';
 import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { EyeInvisibleOutlined, EyeTwoTone, LockOutlined, UserOutlined } from '@ant-design/icons';
 import Cookies from "js-cookie";
 import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
+import { useLoginUserMutation } from '../../services/AuthAPI';
+import { setToken, setUser } from '../../slices/Auth.slice';
 
 
 const Login = () => {
@@ -21,7 +23,7 @@ const Login = () => {
     const [rememberMe, setRememberMe] = useState(false);
 
 
-    // const [loginUser, { isLoading }] = useLoginUserMutation();
+    const [loginUser, { isLoading }] = useLoginUserMutation();
     // dispatch(setLocation(location.pathname));
     // const previousLocation = useSelector(selectLoacation);
 
@@ -41,24 +43,25 @@ const Login = () => {
 
     const handleLoginSuccess = (data) => {
         if (data.data.roles[0] == "ROLE_ADMIN") {
-            setTimeout(() => {
-                navigate('/admin');
-            }, 100)
+            // setTimeout(() => {
+            //     navigate('/admin');
+            // }, 100)
+            // message.success("admin ")
         }
 
-        if (data.data.roles[0] == "ROLE_CUSTOMER") {
-            console.log('location nè', previousLocation);
-            setTimeout(() => {
-                navigate(previousLocation);
-            }, 100)
+        if (data.data.roles[0] == "ROLE_MANAGER") {
+
+            // setTimeout(() => {
+            //     navigate(previousLocation);
+            // }, 100)
         }
 
         //   const user = data.data;
         //   console.log('user', user);
         //   const token = data.data.token;
         //   const avatar = data.data.avatar;
-        //   dispatch(setUser(user));
-        //   dispatch(setToken(token));
+        dispatch(setUser(data.data));
+        dispatch(setToken(data.data.token));
 
 
         // remember me
@@ -72,7 +75,7 @@ const Login = () => {
             duration: 2,
             description: (
                 <div className="flex items-center relative">
-                    <p className="font-bold ">Chào mừng bạn </p>
+                    <p className="font-bold ">Chào mừng {data.data.fullName} </p>
                     {/* <Image className="ml-2 absolute bottom-[-10px]" width={35} src={null} /> */}
                 </div>
             ),
@@ -97,15 +100,15 @@ const Login = () => {
     };
 
     const handleSubmit = async (values) => {
+        console.log(values);
         try {
-            // const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
-            // console.log(result);
-            // if (result.data) {
-
-            //   handleLoginSuccess(result.data);
-            // } else {
-            //   handleLoginFailure(result.error, values.login_identifier);
-            // }
+            const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
+            console.log(result.data.data);
+            if (result.data) {
+                handleLoginSuccess(result.data);
+            } else {
+                handleLoginFailure(result.error, values.login_identifier);
+            }
         } catch (error) {
             console.error("Login error:", error);
             message.error("An unexpected error occurred. Please try again later.");

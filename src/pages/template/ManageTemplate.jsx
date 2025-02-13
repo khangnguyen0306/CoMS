@@ -126,7 +126,9 @@ const ManageTemplate = () => {
         <div className="flex flex-col md:flex-row">
             {/* Left Section */}
             <div className="flex-1 p-4">
-                <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>Quản lý hợp đồng mẫu</p>
+                <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
+                >QUẢN LÝ MẪU HỢP ĐỒNG
+                </p>
                 {/* Search Bar */}
                 <Space style={{ marginBottom: 16 }}>
                     <Search
