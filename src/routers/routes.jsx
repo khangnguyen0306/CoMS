@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import Loadable from "./Loadable";
 import MainLayout from "../components/layout/MainLayout";
+import AuthGuard from "./AuthGuard";
 
 const Home = Loadable({ loader: () => import("../pages/Home") });
 const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
@@ -17,6 +18,7 @@ const CreateTemplate = Loadable({ loader: () => import("../pages/template/Create
 const ManageTemplate = Loadable({ loader: () => import("../pages/template/ManageTemplate") });
 const DeletedTemplate = Loadable({ loader: () => import("../pages/template/DeletedTemplate") });
 const Clause = Loadable({ loader: () => import("../pages/Clause/ManageClause") });
+const UserManagement = Loadable({ loader: () => import("../pages/user/UserManagement") });
 
 export const router = createBrowserRouter([
     {
@@ -32,79 +34,63 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
             {
-                index: true,
-                element: Dashboard,
+                path: "/",
+                element: <AuthGuard />,
+                children: [
+                    {
+                        index: true,
+                        element: Dashboard,
+                    },
+                    {
+                        path: "contract",
+                        element: Contract,
+                    },
+                    {
+                        path: "bsinformation",
+                        element: BussinessInfor,
+                    },
+                    {
+                        path: "dashboard",
+                        element: Dashboard,
+                    },
+                    {
+                        path: "profile",
+                        element: Profile,
+                    },
+                    {
+                        path: "partner",
+                        element: Partner,
+                    },
+                    {
+                        path: "partner/:id",
+                        element: DetailPartner,
+                    },
+                    {
+                        path: "task",
+                        element: Task,
+                    },
+                    {
+                        path: "task/:id",
+                        element: DetailTask,
+                    },
+                    {
+                        path: "createtemplate",
+                        element: CreateTemplate,
+                    },
+                    {
+                        path: "managetemplate",
+                        element: ManageTemplate,
+                    },
+                    {
+                        path: "deletedtemplate",
+                        element: DeletedTemplate,
+                    },
+                    {
+                        path: "user",
+                        element: UserManagement,
+                    },
+                ],
             },
-            {
-                path: "contract",
-                element: Contract,
-            },
-            {
-                path: "bsinformation",
-                element: BussinessInfor,
-            },
-            {
-                path: "dashboard",
-                element: Dashboard,
-            },
-            {
-                path: "profile",
-                element: Profile,
-            },
-            {
-                path: "partner",
-                element: Partner,
-            },
-            {
-                path: "partner/:id",
-                element: DetailPartner,
-            },
-            {
-                path: "task",
-                element: Task,
-            },
-            {
-                path: "clause",
-                element: Clause,
-            },
-            {
-                path: "task/:id",
-                element: DetailTask,
-            },
-            {
-                path: "createtemplate",
-                element: CreateTemplate,
-            },
-            {
-                path: "managetemplate",
-                element: ManageTemplate,
-            },
-            {
-                path: "deletedtemplate",
-                element: DeletedTemplate,
-            },
-            // {
-            //     path: "/",
-            //     element: <AuthGuard />,
-            //     children: [
-            //         {
-            //             index: true,
-            //             element: Home,
-            //         },
-            //         {
-            //             path: "profile",
-            //             element: Profile,
-            //         },
-            //         {
-            //             path: "/booking",
-            //             element: BookingPage,
-            //         },
-            //         {
-            //             path: "/manageBooking",
-            //             element: ManageBooking,
-            //         },
-            //     ],
-            // },
         ],
     },
     {
