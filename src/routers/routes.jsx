@@ -17,6 +17,7 @@ const BussinessInfor = Loadable({ loader: () => import("../pages/BussinessInfor/
 const CreateTemplate = Loadable({ loader: () => import("../pages/template/CreateTemplate") });
 const ManageTemplate = Loadable({ loader: () => import("../pages/template/ManageTemplate") });
 const DeletedTemplate = Loadable({ loader: () => import("../pages/template/DeletedTemplate") });
+const Clause = Loadable({ loader: () => import("../pages/Clause/ManageClause") });
 const UserManagement = Loadable({ loader: () => import("../pages/user/UserManagement") });
 
 export const router = createBrowserRouter([

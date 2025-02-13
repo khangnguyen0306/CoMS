@@ -3,6 +3,7 @@ import { Table, Modal, Form, Input, Select, DatePicker, Button, Space, message, 
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useGetTaskManageQuery } from '../../services/TaskAPI';
+import dayjs from "dayjs";
 
 
 const { Option } = Select;
@@ -37,6 +38,7 @@ const ManageTask = () => {
             status: "Đã được giao",
             priority: values.priority,
             supervisor: values.supervisor,
+            description: values.description,
         };
 
         setTasks((prevTasks) => [...prevTasks, newTask]);
@@ -117,20 +119,14 @@ const ManageTask = () => {
             dataIndex: "createdDate",
             key: "createdDate",
             sorter: (a, b) => new Date(a.createdDate) - new Date(b.createdDate),
+            render: (date) => date ? dayjs(date).format("DD-MM-YYYY") : "",
         },
-        // {
-        //     title: "Lần cuối xem hợp đồng",
-        //     dataIndex: "lastViewed",
-        //     key: "lastViewed",
-        //     sorter: (a, b) => new Date(a.lastViewed) - new Date(b.lastViewed),
-        // },
-
         {
             title: "Ngày Dự Kiến Hoàn Thành",
             dataIndex: "dueDate",
             key: "dueDate",
             sorter: (a, b) => new Date(a.dueDate) - new Date(b.dueDate),
-
+            render: (date) => date ? dayjs(date).format("DD-MM-YYYY") : "",
         },
         {
             title: "Trạng Thái",
