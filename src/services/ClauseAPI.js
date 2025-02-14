@@ -6,7 +6,7 @@ export const clauseAPI = createApi({
     reducerPath: "clauseManagement",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: "https://mocki.io/v1/",
+        baseUrl: "http://localhost:8080/api/v1",
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -21,6 +21,13 @@ export const clauseAPI = createApi({
         getClauseManage: builder.query({
             query: () => ({
                 url: `/07f8d268-a098-4297-b681-2eecbd4198a0`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
+        getAllTypeClause: builder.query({
+            query: (id) => ({
+                url: `/terms/get-all-type-terms`,
                 method: "GET",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
@@ -57,4 +64,5 @@ export const clauseAPI = createApi({
 
 export const {
     useGetClauseManageQuery,
+    useGetAllTypeClauseQuery,
 } = clauseAPI;
