@@ -4,6 +4,7 @@ import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, Edit
 import { useGetAllContractQuery } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
+import { Link } from "react-router-dom";
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -52,14 +53,9 @@ const ManageContracts = () => {
         {
             title: "Tên hợp đồng",
             dataIndex: "contract_name",
-            key: "contract_name",
+            key: "name",
             sorter: (a, b) => a.contract_name.localeCompare(b.contract_name),
-        },
-        {
-            title: "Đối tác",
-            dataIndex: "partner",
-            key: "partner",
-            sorter: (a, b) => a.partner.localeCompare(b.partner),
+            render: (text) => <Link className="font-bold text-[#228eff]">{text}</Link>,
         },
         {
             title: "Loại hợp đồng",
@@ -72,6 +68,13 @@ const ManageContracts = () => {
             })),
             onFilter: (value, record) => record.contract_type === value,
         },
+        {
+            title: "Đối tác",
+            dataIndex: "partner",
+            key: "partner",
+            sorter: (a, b) => a.partner.localeCompare(b.partner),
+        },
+     
         {
             title: "Giá trị",
             dataIndex: "value",
@@ -138,7 +141,7 @@ const ManageContracts = () => {
         <div className="flex flex-col md:flex-row">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                    Quản lý hợp đồng
+                   QUẢN LÝ HỢP ĐỒNG
                 </p>
                 <Space style={{ marginBottom: 16 }}>
                     <Search

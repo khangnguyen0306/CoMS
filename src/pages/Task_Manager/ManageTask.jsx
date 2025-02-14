@@ -168,7 +168,9 @@ const ManageTask = () => {
 
     return (
         <div style={{ padding: "20px" }}>
-            <div className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>Manage Task</div>
+     <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                QUẢN LÝ TASK
+                </p>
             <Space style={{ marginBottom: "20px", display: "flex", justifyContent: "flex-end" }}>
                 <Button type="primary" onClick={() => setIsModalVisible(true)}>
                     Tạo Task Mới

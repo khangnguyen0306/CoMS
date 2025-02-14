@@ -244,6 +244,7 @@ const ManageClause = () => {
                                     trigger="hover"
                                 >
                                     <List.Item
+                                        style={{ cursor: 'default' }}
                                         onClick={() => showModal(clause)}
                                         className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
                                         actions={[

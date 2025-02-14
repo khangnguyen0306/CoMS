@@ -5,6 +5,7 @@ import { ContractAPI } from "../services/ContractAPI";
 import { TemplateAPI } from "../services/TemplateAPI";
 import { taskAPI } from "../services/TaskAPI";
 import { clauseAPI } from "../services/ClauseAPI";
+import { userAPI } from "../services/UserAPI";
 import AuthReducer from "../slices/auth.slice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
@@ -17,7 +18,6 @@ const persistConfig = {
 };
 
 const AuthPerisReducer = persistReducer(persistConfig, AuthReducer);
-
 
 export const store = configureStore({
   reducer: {
@@ -35,6 +35,8 @@ export const store = configureStore({
     task: taskAPI,
     [clauseAPI.reducerPath]: clauseAPI.reducer,
     clause: clauseAPI,
+    [userAPI.reducerPath]: userAPI.reducer,
+    user: userAPI,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -44,6 +46,7 @@ export const store = configureStore({
       ContractAPI.middleware,
       TemplateAPI.middleware,
       taskAPI.middleware,
+      userAPI.middleware,
       clauseAPI.middleware
     ),
 });
