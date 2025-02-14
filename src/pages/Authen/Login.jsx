@@ -4,14 +4,15 @@ import { motion } from "framer-motion";
 import { AuroraBackground } from '../../components/ui/BackgroundLogin';
 import Logo from '../../assets/Image/Logo.png';
 import { Alert, Button, Checkbox, Form, Image, Input, message, notification } from 'antd';
-import { useDispatch } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { EyeInvisibleOutlined, EyeTwoTone, LockOutlined, UserOutlined } from '@ant-design/icons';
 import Cookies from "js-cookie";
 import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
 import { useLoginUserMutation } from '../../services/AuthAPI';
-import { setToken, setUser } from '../../slices/Auth.slice';
+import { selectCurrentToken, setToken, setUser } from '../../slices/auth.slice';
+
 
 
 const Login = () => {
@@ -21,6 +22,12 @@ const Login = () => {
     const location = useLocation()
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
+    const token = useSelector(selectCurrentToken)
+    useEffect(() => {
+        if (token) {
+            navigate("/");
+        }
+    }, [token, navigate]);
 
 
     const [loginUser, { isLoading }] = useLoginUserMutation();
@@ -43,23 +50,18 @@ const Login = () => {
 
     const handleLoginSuccess = (data) => {
         if (data.data.roles[0] == "ROLE_ADMIN") {
-            // setTimeout(() => {
-            //     navigate('/admin');
-            // }, 100)
-            // message.success("admin ")
+            setTimeout(() => {
+                navigate('/admin', { replace: true });
+            }, 50)
         }
 
-        if (data.data.roles[0] == "ROLE_MANAGER") {
-
-            // setTimeout(() => {
-            //     navigate(previousLocation);
-            // }, 100)
+        if (data.data.roles[0] == "ROLE_MANAGER" || data.data.roles[0] == "ROLE_STAFF") {
+            setTimeout(() => {
+                navigate(previousLocation);
+            }, 50)
         }
 
-        //   const user = data.data;
-        //   console.log('user', user);
-        //   const token = data.data.token;
-        //   const avatar = data.data.avatar;
+        //   const avatar = data.data.avatar; // check for change
         dispatch(setUser(data.data));
         dispatch(setToken(data.data.token));
 

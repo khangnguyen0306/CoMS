@@ -137,6 +137,7 @@ const ManageClause = () => {
                 </Form>
             </Modal>
             <List
+
                 itemLayout="horizontal"
                 dataSource={filteredClause}
                 renderItem={clause => (
@@ -145,7 +146,7 @@ const ManageClause = () => {
                             <Card
                                 bordered
                                 className="shadow-lg rounded-lg"
-                                style={{ width: 320, backgroundColor: "#f9fafb", borderColor: "#d1d5db" }}
+                                style={{ width: 320, backgroundColor: "#f9fafb", borderColor: "#d1d5db", cursor: 'text' }}
                             >
                                 <Title level={4} className="text-blue-600">Chi tiết điều khoản</Title>
                                 <div className="mt-2 space-y-1">
@@ -171,6 +172,7 @@ const ManageClause = () => {
                         trigger="hover"
                     >
                         <List.Item
+                            style={{ cursor: 'default' }}
                             onClick={() => showModal(clause)}
                             className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
                             actions={[

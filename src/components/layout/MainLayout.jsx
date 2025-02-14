@@ -17,15 +17,17 @@ import { AiFillIdcard } from "react-icons/ai";
 import { FaTasks } from "react-icons/fa";
 import { GoLaw } from "react-icons/go";
 import LOGO from './../../assets/Image/letter-c.svg'
-import { logOut } from "../../slices/auth.slice";
-import { useDispatch } from "react-redux";
+import { logOut, selectCurrentUser } from "../../slices/auth.slice";
+import { useDispatch, useSelector } from "react-redux";
 const { Content, Sider } = Layout;
-
-
+import { FaUserCog } from "react-icons/fa";
+import { LuWaypoints } from "react-icons/lu";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
+  const user = useSelector(selectCurrentUser)
+  console.log(user)
   const router = {
     '1': '/',
     'dash': '/dashboard',
@@ -37,6 +39,7 @@ const MainLayout = () => {
     'manageTemplate': '/managetemplate',
     'deletedtemplate': '/deletedtemplate',
     'clause': '/clause',
+    'user': '/admin/user',
     '4': '/combo',
   }
 
@@ -102,7 +105,27 @@ const MainLayout = () => {
     };
   });
 
-
+  const navAdmin = [
+    {
+      icon: FaUserCog, key: "user", label: 'Quản lý tài khoản'
+    },
+    {
+      icon: LuWaypoints, key: "workflow", label: 'Quy trình duyệt'
+    },
+    // {
+    //   icon: IoMdSettings, label: 'Cấu hình', key: "setting", children: [
+    //     { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
+    //     { icon: SiAuth0, label: 'Phân quyền', key: "setting2" },
+    //     { icon: IoMdSettings, label: 'Cấu hình', key: "setting3" },
+    //   ]
+    // },
+  ].map((item, index) => {
+    return {
+      key: item.key,
+      icon: React.createElement(item.icon),
+      label: item.label,
+    };
+  });
 
 
   const {
@@ -110,7 +133,7 @@ const MainLayout = () => {
   } = theme.useToken();
 
   const handleMenuClick = (e) => {
-    console.log(e)
+    // console.log(e)
     const path = router[e.key];
     if (path) {
       navigate(path);
@@ -152,9 +175,10 @@ const MainLayout = () => {
             height: '100%',
             borderRight: 0,
           }}
-          items={nav}
+          items={user?.roles[0] !== "ROLE_ADMIN" ? nav : navAdmin}
           onClick={handleMenuClick}
         />
+
       </Sider>
       <Layout style={{
         marginInlineStart: 80,
@@ -179,7 +203,7 @@ const MainLayout = () => {
               height={60}
               width={60}
               className="cursor-pointer p-2"
-              onClick={() => navigate('/')}
+              onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : '/')}
               alt="Logo"
             />
             <p className="ml-2 text-white">Quản lý hợp đồng CoMS</p>
@@ -209,23 +233,6 @@ const MainLayout = () => {
             marginTop: '60px'
           }}
         >
-          {/* 
-          <Breadcrumb
-            items={[
-              {
-                title: 'Home',
-              },
-              {
-                title: 'List',
-              },
-              {
-                title: 'App',
-              },
-            ]}
-            style={{
-              margin: '16px 0',
-            }}
-          /> */}
 
           <Content
             style={{

@@ -19,7 +19,6 @@ const persistConfig = {
 
 const AuthPerisReducer = persistReducer(persistConfig, AuthReducer);
 
-
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
@@ -47,7 +46,7 @@ export const store = configureStore({
       ContractAPI.middleware,
       TemplateAPI.middleware,
       taskAPI.middleware,
-      userAPI.middleware,,
+      userAPI.middleware,
       clauseAPI.middleware
     ),
 });
