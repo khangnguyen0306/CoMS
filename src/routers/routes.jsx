@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import Loadable from "./Loadable";
 import MainLayout from "../components/layout/MainLayout";
 import AuthGuard from "./AuthGuard";
+import AdminGuard from "./AdminGuard";
 
 const Home = Loadable({ loader: () => import("../pages/Home") });
 const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
@@ -84,6 +85,20 @@ export const router = createBrowserRouter([
                     {
                         path: "deletedtemplate",
                         element: DeletedTemplate,
+                    },
+                    {
+                        path: "clause",
+                        element: Clause,
+                    },
+                ],
+            },
+            {
+                path: "/admin",
+                element: <AdminGuard />,
+                children: [
+                    {
+                        index: true,
+                        element: Dashboard,
                     },
                     {
                         path: "user",
