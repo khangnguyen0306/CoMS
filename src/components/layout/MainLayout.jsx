@@ -16,6 +16,7 @@ import { MdLibraryBooks } from "react-icons/md";
 import { AiFillIdcard } from "react-icons/ai";
 import { FaTasks } from "react-icons/fa";
 import { GoLaw } from "react-icons/go";
+import { FaHandshakeSimple } from "react-icons/fa6";
 import LOGO from './../../assets/Image/letter-c.svg'
 import { logOut, selectCurrentUser } from "../../slices/auth.slice";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,6 +41,7 @@ const MainLayout = () => {
     'deletedtemplate': '/deletedtemplate',
     'clause': '/clause',
     'user': '/admin/user',
+    'contractPartner': '/contractpartner',
     '4': '/combo',
   }
 
@@ -56,6 +58,7 @@ const MainLayout = () => {
             { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
             { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
             { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
+            { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
           ]
         },
         {

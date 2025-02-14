@@ -20,6 +20,8 @@ const ManageTemplate = Loadable({ loader: () => import("../pages/template/Manage
 const DeletedTemplate = Loadable({ loader: () => import("../pages/template/DeletedTemplate") });
 const Clause = Loadable({ loader: () => import("../pages/Clause/ManageClause") });
 const UserManagement = Loadable({ loader: () => import("../pages/user/UserManagement") });
+const ContractPartner = Loadable({ loader: () => import("../pages/Contract/ContractPartner") });
+
 
 export const router = createBrowserRouter([
     {
@@ -89,6 +91,10 @@ export const router = createBrowserRouter([
                     {
                         path: "clause",
                         element: Clause,
+                    },
+                    {
+                        path: "contractpartner",
+                        element: ContractPartner,
                     },
                 ],
             },
