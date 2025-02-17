@@ -9,8 +9,8 @@ import ContractPartner from './ContractPartner';
 const { Title } = Typography;
 
 const PartnerDetail = () => {
-    const partnerId = useParams(); // chua su dung thieu useEffect thay doi id can reload
-    const { data: partnerData, isLoading: isFetching, error: fetchError } = useGetPartnerInfoDetailQuery();
+    const partyId = useParams().id;
+    const { data: partnerData, isLoading: isFetching, error: fetchError } = useGetPartnerInfoDetailQuery({ id: partyId });
     // const [updatePartner, { isLoading: isUpdating }] = useUpdatePartnerInfoMutation();
     const [isEditing, setIsEditing] = useState(false);
     const [form] = Form.useForm();
@@ -55,7 +55,7 @@ const PartnerDetail = () => {
         }
     };
 
-   
+
     if (isFetching) return <Skeleton active />;
     if (fetchError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
     if (!partnerData) return <Card><Empty description="Không có dữ liệu để hiển thị" /></Card>;
@@ -97,7 +97,7 @@ const PartnerDetail = () => {
                         title: <Link to={"/partner"} >Khách hàng</Link>,
                     },
                     {
-                        title: <p className='font-bold'>{partnerData.partnerName}</p>,
+                        title: <p className='font-bold'>{partnerData?.data.partnerName}</p>,
                     },
                 ]}
                 style={{
@@ -140,7 +140,7 @@ const PartnerDetail = () => {
                                         <Title level={4} className='flex items-center justify-between'>
                                             <div className='flex items-center font-bold mt-3 p-1 '>
                                                 <FaUserTie className='mr-3' />
-                                                {partnerData.partnerName}
+                                                {partnerData?.data.partnerName}
                                             </div>
                                             <div>
                                                 {!isEditing ? (
@@ -171,16 +171,16 @@ const PartnerDetail = () => {
                                             form={form}
                                             layout="vertical"
                                             initialValues={{
-                                                partnerName: partnerData.partnerName,
-                                                partnerCode: partnerData.partnerCode,
-                                                taxCode: partnerData.taxCode,
-                                                spokesmanName: partnerData.spokesmanName,
-                                                spokesmanPosition: partnerData.spokesmanPosition,
-                                                businessField: partnerData.businessField,
-                                                address: partnerData.address,
-                                                phone: partnerData.phone,
-                                                email: partnerData.email,
-                                                note: partnerData.note,
+                                                partnerName: partnerData?.data.partnerName,
+                                                partnerCode: partnerData?.data.partnerCode,
+                                                taxCode: partnerData?.data.taxCode,
+                                                spokesmanName: partnerData?.data.spokesmanName,
+                                                spokesmanPosition: partnerData?.data.spokesmanPosition,
+                                                businessField: partnerData?.data.businessField,
+                                                address: partnerData?.data.address,
+                                                phone: partnerData?.data.phone,
+                                                email: partnerData?.data.email,
+                                                note: partnerData?.data.note,
                                             }}
                                         >
                                             <Form.Item label="Tên Partner" name="partnerName" rules={[{ required: true, message: 'Vui lòng nhập tên đối tác!' }]}>
@@ -195,12 +195,12 @@ const PartnerDetail = () => {
                                             <Form.Item label="Tên đại diện" name="spokesmanName">
                                                 <Input />
                                             </Form.Item>
-                                            <Form.Item label="Chức vụ đại diện" name="spokesmanPosition">
+                                            {/* <Form.Item label="Chức vụ đại diện" name="spokesmanPosition">
                                                 <Input />
-                                            </Form.Item>
-                                            <Form.Item label="Lĩnh vực kinh doanh" name="businessField">
+                                            </Form.Item> */}
+                                            {/* <Form.Item label="Lĩnh vực kinh doanh" name="businessField">
                                                 <Input />
-                                            </Form.Item>
+                                            </Form.Item> */}
                                             <Form.Item label="Địa chỉ" name="address">
                                                 <Input />
                                             </Form.Item>
@@ -234,7 +234,7 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData.partnerName}
+                                                {partnerData?.data.partnerName}
                                             </Descriptions.Item>
                                             <Descriptions.Item
                                                 label="Mã Partner"
@@ -249,7 +249,7 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                <Tag color="purple">{partnerData.partnerCode}</Tag>
+                                                <Tag color="purple">{partnerData?.data.partnerCode}</Tag>
                                             </Descriptions.Item>
                                             <Descriptions.Item
                                                 label="Mã số thuế"
@@ -264,7 +264,7 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData.taxCode}
+                                                {partnerData?.data.taxCode}
                                             </Descriptions.Item>
                                             <Descriptions.Item
                                                 label="Tên đại diện"
@@ -279,9 +279,9 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData.spokesmanName}
+                                                {partnerData?.data.spokesmanName}
                                             </Descriptions.Item>
-                                            <Descriptions.Item
+                                            {/* <Descriptions.Item
                                                 label="Chức vụ đại diện"
                                                 style={{
                                                     border: '1px solid #89c4d9',
@@ -294,9 +294,9 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData.spokesmanPosition}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item
+                                                {partnerData?.data.spokesmanPosition}
+                                            </Descriptions.Item> */}
+                                            {/* <Descriptions.Item
                                                 label="Lĩnh vực kinh doanh"
                                                 style={{
                                                     border: '1px solid #89c4d9',
@@ -309,8 +309,8 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData.businessField}
-                                            </Descriptions.Item>
+                                                {partnerData?.data.businessField}
+                                            </Descriptions.Item> */}
                                             <Descriptions.Item
                                                 label="Địa chỉ"
                                                 style={{
@@ -324,7 +324,7 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData.address}
+                                                {partnerData?.data.address}
                                             </Descriptions.Item>
                                             <Descriptions.Item
                                                 label="Ngân hàng"
@@ -339,10 +339,14 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                <Row className='flex gap-x-4 w-[70%]'>
-                                                    <Col > <p className='font-bold '>Tên ngân hàng: </p>  <p className='font-bold'>Số tài khoản: </p></Col>
-                                                    <Col > <p>{partnerData.Banking.bankName}</p> <p>{partnerData.Banking.accountNumber}</p></Col>
-                                                </Row>
+                                                {partnerData?.data.banking.map((bank, index) => (
+                                                    <Row key={index} className='flex gap-x-4 w-[70%]'>
+                                                        <Col>
+                                                            <p className='font-bold'>Tên ngân hàng: {bank.bankName}</p>
+                                                            <p className='font-bold'>Số tài khoản: {bank.backAccountNumber}</p>
+                                                        </Col>
+                                                    </Row>
+                                                ))}
                                             </Descriptions.Item>
                                             <Descriptions.Item
                                                 label="Loại Partner"
@@ -357,8 +361,8 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                <Tag color={getPartnerTypeColor(partnerData.partnerType)}>
-                                                    {partnerData.partnerType}
+                                                <Tag color={getPartnerTypeColor(partnerData?.data.partnerType)}>
+                                                    {partnerData?.data.partnerType}
                                                 </Tag>
                                             </Descriptions.Item>
 
@@ -377,7 +381,7 @@ const PartnerDetail = () => {
                                                 }}
                                             >
                                                 <PhoneOutlined className="mr-2" />
-                                                {partnerData.phone}
+                                                {partnerData?.data.phone}
                                             </Descriptions.Item>
 
                                             <Descriptions.Item
@@ -393,7 +397,7 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                <a href={`mailto:${partnerData.email}`}> <MailOutlined className="mr-2" />{partnerData.email}</a>
+                                                <a href={`mailto:${partnerData?.data.email}`}> <MailOutlined className="mr-2" />{partnerData?.data.email}</a>
                                             </Descriptions.Item>
 
                                             <Descriptions.Item
@@ -409,7 +413,7 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData.note || " Không có ghi chú "}
+                                                {partnerData?.data.note || " Không có ghi chú "}
                                             </Descriptions.Item>
                                         </Descriptions>
                                     )}
@@ -421,7 +425,7 @@ const PartnerDetail = () => {
                             key: '2',
                             children: (
                                 <Card>
-                                   <ContractPartner partnerId={partnerId}/>
+                                    <ContractPartner partnerId={partyId} />
                                 </Card>
                             ),
                         },

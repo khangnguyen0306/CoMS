@@ -3,6 +3,7 @@ import Loadable from "./Loadable";
 import MainLayout from "../components/layout/MainLayout";
 import AuthGuard from "./AuthGuard";
 import AdminGuard from "./AdminGuard";
+import ManagerGuard from "./ManagerGuard";
 
 const Home = Loadable({ loader: () => import("../pages/Home") });
 const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
@@ -24,11 +25,9 @@ const ContractPartner = Loadable({ loader: () => import("../pages/Contract/Contr
 
 
 export const router = createBrowserRouter([
+
     {
-        path: "/",
-        element: Home,
-    },
-    {
+        index: true,
         path: "/login",
         element: Login,
     },
@@ -42,19 +41,15 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         index: true,
-                        element: Dashboard,
+                        element: Contract, // chua set contract for staff
                     },
                     {
-                        path: "contract",
+                        path: "/contract",
                         element: Contract,
                     },
                     {
                         path: "bsinformation",
                         element: BussinessInfor,
-                    },
-                    {
-                        path: "dashboard",
-                        element: Dashboard,
                     },
                     {
                         path: "profile",
@@ -109,6 +104,72 @@ export const router = createBrowserRouter([
                     {
                         path: "user",
                         element: UserManagement,
+                    },
+                ],
+            },
+            {
+                path: "/manager",
+                element: <ManagerGuard />,
+                children: [
+                    {
+                        index: true,
+                        element: Dashboard,
+                    },
+                    {
+                        path: "dashboard",
+                        element: Dashboard,
+                    },
+                    {
+                        path: "contract",
+                        element: Contract,
+                    },
+                    {
+                        path: "bsinformation",
+                        element: BussinessInfor,
+                    },
+                    {
+                        path: "dashboard",
+                        element: Dashboard,
+                    },
+                    {
+                        path: "profile",
+                        element: Profile,
+                    },
+                    {
+                        path: "partner",
+                        element: Partner,
+                    },
+                    {
+                        path: "partyId/:id",
+                        element: DetailPartner,
+                    },
+                    {
+                        path: "task",
+                        element: Task,
+                    },
+                    {
+                        path: "task/:id",
+                        element: DetailTask,
+                    },
+                    {
+                        path: "createtemplate",
+                        element: CreateTemplate,
+                    },
+                    {
+                        path: "managetemplate",
+                        element: ManageTemplate,
+                    },
+                    {
+                        path: "deletedtemplate",
+                        element: DeletedTemplate,
+                    },
+                    {
+                        path: "clause",
+                        element: Clause,
+                    },
+                    {
+                        path: "contractpartner",
+                        element: ContractPartner,
                     },
                 ],
             },

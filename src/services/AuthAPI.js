@@ -6,10 +6,10 @@ import { BE_API_LOCAL } from "../config/config";
 
 export const authApi = createApi({
   reducerPath: "authManagement",
-  baseQuery: fetchBaseQuery({ baseUrl:  BE_API_LOCAL  }),
+  baseQuery: fetchBaseQuery({ baseUrl: BE_API_LOCAL }),
   endpoints: (builder) => ({
 
-    
+
     loginUser: builder.mutation({
       query: ({ login_identifier, password }) => ({
         url: `users/login`,
@@ -43,34 +43,33 @@ export const authApi = createApi({
       invalidatesTags: [{ type: " UserList ", id: " LIST " }],
     }),
 
-
     verifyOtp: builder.mutation({
-      query: (payload) => {
+      query: ({ email, otp }) => {
         return {
           method: "POST",
-          url: `user/forgotpassword`,
-          body: payload,
+          url: `forgot-password/verify-otp/${email}`,
+          body: { otp },
         };
       },
     }),
     resetPassword: builder.mutation({
-      query: ({ token, newPassword }) => {
+      query: ({ email, newPassword }) => {
         return {
           method: "POST",
-          url: `user/resetpassword`,
-          body: { token: token, newPassword: newPassword },
+          url: `forgot-password/change-password/${email}`,
+          body: { new_password: newPassword, confirm_password: newPassword },
         };
       },
     }),
-    // changePasswordByEmail: builder.mutation({
-    //   query: ({ email, newPassword }) => {
-    //     return {
-    //       method: "POST",
-    //       url: `forgotPassword/changePassword/${email}`,
-    //       body: { password: newPassword, retypePassword: newPassword },
-    //     };
-    //   },
-    // }),
+    changePasswordByEmail: builder.mutation({
+      query: ({ email, new_password }) => {
+        return {
+          method: "POST",
+          url: `forgot-password/change-password/${email}`,
+          body: { new_password: new_password, confirm_password: new_password },
+        };
+      },
+    }),
     // refreshToken: builder.mutation({
     //   query: ({ refreshToken }) => ({
     //     url: `users/refresh-token`,
@@ -80,9 +79,9 @@ export const authApi = createApi({
     // }),
     sendResetEmail: builder.mutation({
       query: (email) => ({
-        url: `auth/forgot-password`,
-        method: "PUT",
-        body: { email },
+        url: `forgot-password/send-otp/${email}`,
+        method: "POST",
+        // body: ,
       }),
     }),
   }),
@@ -93,8 +92,8 @@ export const {
   useRegisterUserMutation,
   useSendResetEmailMutation,
   useVerifyOtpMutation,
-  useResetPasswordMutation
-  //   useChangePasswordByEmailMutation,
+  useResetPasswordMutation,
+  useChangePasswordByEmailMutation,
   //   useVerifyMailMutation,
   //   useVerifyOtpMutation,
   //   useRefreshTokenMutation,

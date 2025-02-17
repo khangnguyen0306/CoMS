@@ -21,7 +21,7 @@ const ManageClause = () => {
     const { data: clauseData, isLoading: loadingClause, isError: DataError } = useGetClauseManageQuery();
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
     const [form] = Form.useForm();
-    console.log(typeData);
+   
     const filteredClause = clauseData?.filter(contract =>
         contract.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
         (selectedType ? contract.type === selectedType : true)
@@ -36,7 +36,7 @@ const ManageClause = () => {
 
     const handleUpdate = (clauseCode) => {
         console.log(clauseCode);
-        const clauseToEdit = clauseData.find(clause => clause.clauseCode === clauseCode);
+        const clauseToEdit = clauseData?.find(clause => clause.clauseCode === clauseCode);
 
         if (clauseToEdit) {
             form.setFieldsValue(clauseToEdit); // Đặt dữ liệu vào form
@@ -62,7 +62,7 @@ const ManageClause = () => {
         });
     };
 
-    if (loadingClause) return <Skeleton active />;
+    if (loadingClause || loadingType) return <Skeleton active />;
     if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
     return (
         <ConfigProvider

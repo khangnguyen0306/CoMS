@@ -12,7 +12,8 @@ import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
 import { useLoginUserMutation } from '../../services/AuthAPI';
 import { selectCurrentToken, setToken, setUser } from '../../slices/auth.slice';
-
+import ForgotPass from './ForgotPass';
+import helloIcon from "./../../assets/Image/hello.svg"
 
 
 const Login = () => {
@@ -23,6 +24,8 @@ const Login = () => {
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
     const token = useSelector(selectCurrentToken)
+    const [isForgotPass, setIsForgoPass] = useState(false);
+
     useEffect(() => {
         if (token) {
             navigate("/");
@@ -49,16 +52,24 @@ const Login = () => {
     }, [form]);
 
     const handleLoginSuccess = (data) => {
-        if (data.data.roles[0] == "ROLE_ADMIN") {
-            setTimeout(() => {
-                navigate('/admin', { replace: true });
-            }, 50)
-        }
-
-        if (data.data.roles[0] == "ROLE_MANAGER" || data.data.roles[0] == "ROLE_STAFF") {
-            setTimeout(() => {
-                navigate(previousLocation);
-            }, 50)
+        switch (data.data.roles[0]) {
+            case "ROLE_ADMIN":
+                setTimeout(() => {
+                    navigate('/admin', { replace: true });
+                }, 50);
+                break;
+            case "ROLE_MANAGER":
+                setTimeout(() => {
+                    navigate('/manager', { replace: true });
+                }, 50);
+                break;
+            case "ROLE_STAFF":
+                setTimeout(() => {
+                    navigate('/');
+                }, 50);
+                break;
+            default:
+                break; // Xử lý trường hợp không có vai trò nào phù hợp
         }
 
         //   const avatar = data.data.avatar; // check for change
@@ -73,10 +84,11 @@ const Login = () => {
         }
 
         notification.info({
-            message: "Chào mừng trở lại !",
+            message: <span className='ml-[45px]'>Chào mừng trở lại !</span>,
             duration: 2,
+            icon: <Image width={50} height={50} preview={false} src={helloIcon} />,
             description: (
-                <div className="flex items-center relative">
+                <div className="flex items-center relative ml-[45px]">
                     <p className="font-bold ">Chào mừng {data.data.fullName} </p>
                     {/* <Image className="ml-2 absolute bottom-[-10px]" width={35} src={null} /> */}
                 </div>
@@ -105,7 +117,7 @@ const Login = () => {
         console.log(values);
         try {
             const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
-            console.log(result.data.data);
+            // console.log(result.data.data);
             if (result.data) {
                 handleLoginSuccess(result.data);
             } else {
@@ -116,6 +128,10 @@ const Login = () => {
             message.error("An unexpected error occurred. Please try again later.");
         }
     };
+
+    const handleForgotPass = () => {
+        setIsForgoPass(!isForgotPass);
+    }
 
     const words = [
 
@@ -160,86 +176,90 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col text-center items-center justify-center w-full mt-7">
+                    <div className="flex flex-col text-center items-center justify-center w-full mt-5">
                         <div className="form-container">
-                            <Form form={form} onFinish={handleSubmit} className='min-w-[300px]'>
-                                {error && (
-                                    <>
-                                        <Alert message={error} type="error" showIcon />
-                                        <br />
-                                    </>
-                                )}
-                                <div className='flex flex-col gap-2'>
-                                    <Form.Item
-                                        style={{ marginBottom: '0.5rem' }}
-                                        name="login_identifier"
-                                        rules={[{ required: true, message: "Trường này không được để trống" }]}
-                                    >
+                            {isForgotPass ? (
+                                <ForgotPass setIsForgotPass={setIsForgoPass} />
+                            ) : (
+                                <Form form={form} onFinish={handleSubmit} className='min-w-[300px]'>
+                                    {error && (
+                                        <>
+                                            <Alert message={error} type="error" showIcon />
+                                            <br />
+                                        </>
+                                    )}
+                                    <div className='flex flex-col gap-2'>
+                                        <Form.Item
+                                            style={{ marginBottom: '0.5rem' }}
+                                            name="login_identifier"
+                                            rules={[{ required: true, message: "Trường này không được để trống" }]}
+                                        >
 
-                                        <Input
-                                            placeholder="  Email hoặc số điện thoại"
-                                            size="large"
-                                            className="form-Input py-3"
-                                            prefix={<UserOutlined className='pr-2' />}
+                                            <Input
+                                                placeholder="  Email hoặc số điện thoại"
+                                                size="large"
+                                                className="form-Input py-3"
+                                                prefix={<UserOutlined className='pr-2' />}
 
-                                        />
+                                            />
+                                        </Form.Item>
+
+                                        <Form.Item
+                                            name="password"
+                                            rules={[{ required: true, message: "Trường này không được để trống" }]}
+                                        >
+                                            <Input.Password
+                                                placeholder="  Mật khẩu"
+                                                size="large" className="form-input py-3"
+
+                                                prefix={<LockOutlined className='pr-2' />}
+                                                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                    <Form.Item name="remember" valuePropName="checked">
+                                        <Checkbox
+                                            checked={rememberMe}
+                                            onChange={(e) => setRememberMe(e.target.checked)}
+                                            className='text-zinc-300'
+                                        >
+                                            Ghi nhớ đăng nhập
+                                        </Checkbox>
                                     </Form.Item>
 
-                                    <Form.Item
-                                        name="password"
-                                        rules={[{ required: true, message: "Trường này không được để trống" }]}
-                                    >
-                                        <Input.Password
-                                            placeholder="  Mật khẩu"
-                                            size="large" className="form-input py-3"
-
-                                            prefix={<LockOutlined className='pr-2' />}
-                                            iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                                        />
-                                    </Form.Item>
-                                </div>
-                                <Form.Item name="remember" valuePropName="checked">
-                                    <Checkbox
-                                        checked={rememberMe}
-                                        onChange={(e) => setRememberMe(e.target.checked)}
-                                        className='text-zinc-300'
-                                    >
-                                        Ghi nhớ đăng nhập
-                                    </Checkbox>
-                                </Form.Item>
-
-                                <Form.Item>
-                                    <Button
-                                        size='large'
-                                        className="
+                                    <Form.Item>
+                                        <Button
+                                            size='large'
+                                            className="
                                          w-[80%]
                                         bg-gradient-to-r 
                                         from-blue-500 to-cyan-400 text-white 
                                         font-medium rounded-full py-2 px-6 transition-transform duration-800
                                         hover:from-cyan-400 hover:to-blue-500 hover:scale-105 hover:shadow-cyan-200 hover:shadow-lg"
-                                        type="primary"
-                                        htmlType="submit"
-                                    // loading={isLoading}  //////////////////////////////////////////// set loading
-                                    // onClick={() => showModal('login')}
-                                    >
-                                        Đăng nhập
-                                    </Button>
-                                </Form.Item>
-                            </Form>
+                                            type="primary"
+                                            htmlType="submit"
+                                            loading={isLoading}
+
+                                        >
+                                            Đăng nhập
+                                        </Button>
+                                    </Form.Item>
+                                </Form>
+                            )}
                         </div>
                         <div className="mb-4">
                             <button
                                 className="mt-3"
-                            // onClick={handleOpenModalForgotPass}
+                                onClick={handleForgotPass}
                             >
                                 <u className="text-[#60a5fa] pl-1 text-[15px] font-SemiBold">
-                                    Quên mật khẩu?
+                                    {isForgotPass ? ('Đăng nhập') : ('Quên mật khẩu')}
                                 </u>
                             </button>
                         </div>
                     </div>
                 </motion.div>
-            </AuroraBackground>
+            </AuroraBackground >
         )
     )
 }
