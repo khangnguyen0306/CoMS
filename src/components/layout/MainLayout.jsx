@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button, Image, Layout, Menu, notification, theme } from "antd";
+import { Breadcrumb, Button, Image, Layout, Menu, notification, theme, Modal } from "antd";
 import { LaptopOutlined, LoginOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
@@ -47,13 +47,19 @@ const MainLayout = () => {
   }
 
   const handleLogout = useCallback(() => {
-    dispatch(logOut());
-    notification.success({
-      message: "Logout successfully",
-      description: "See you again!",
-      duration: 1.5
+    Modal.confirm({
+      title: 'Xác nhận đăng xuất',
+      content: 'Bạn có chắc chắn muốn đăng xuất không?',
+      onOk() {
+        dispatch(logOut());
+        notification.success({
+          message: "Logout successfully",
+          description: "See you again!",
+          duration: 1.5
+        });
+        navigate("/login");
+      },
     });
-    navigate("/login");
   }, [dispatch, navigate]);
 
   const navManager = [

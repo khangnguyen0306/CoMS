@@ -17,7 +17,7 @@ import {
     Select,
     message
 } from "antd";
-import { SearchOutlined, EyeOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { SearchOutlined, EyeOutlined, PlusOutlined, EditOutlined, EditFilled, EyeFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery } from '../../services/PartnerAPI';
@@ -266,14 +266,7 @@ const ManagePartner = () => {
             render: (_, record) => (
                 <Space className="flex justify-center">
                     <Button
-                        icon={<EyeOutlined />}
-                        onClick={() => {
-                            addViewHistory(record);
-                            navigateToDetail(record);
-                        }}
-                    />
-                    <Button
-                        icon={<EditOutlined />}
+                        icon={<EditFilled style={{color:'#2196f3'}}/>}
                         onClick={() => showEditModal(record)}
                     />
                 </Space>
