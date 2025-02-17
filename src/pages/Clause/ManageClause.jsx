@@ -1,69 +1,203 @@
-import React, { useState } from 'react';
-import { Input, Button, Modal, List, Select, message, Skeleton, Card, Empty, ConfigProvider, Tag, Popover, Typography, Form, Tabs } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Input, Button, Modal, List, Select, message, Skeleton, Card, Empty, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Pagination } from 'antd';
 import 'tailwindcss/tailwind.css';
 import { DeleteFilled } from '@ant-design/icons';
 import { GrUpdate } from "react-icons/gr";
 import { useGetClauseManageQuery } from '../../services/ClauseAPI';
-import TrashIcon from '../../assets/Image/delete.svg';
-import { useGetContractTypeQuery } from '../../services/ContractAPI';
-import { useGetAllTypeClauseQuery } from '../../services/ClauseAPI';
+import { useGetAllTypeClauseQuery, useCreateClauseMutation, useUpdateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
 import TabPane from 'antd/es/tabs/TabPane';
-
+import dayjs from 'dayjs';
+import { FaSortDown, FaSortUp } from 'react-icons/fa';
+// theem ngayf tao va sorter theo do
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 const { Search } = Input;
 
 const ManageClause = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedType, setSelectedType] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedType, setSelectedType] = useState('');
+    const [sortOrder, setSortOrder] = useState('ascend');
+    const [activeTab, setActiveTab] = useState("1");
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState("10");
+    const [isModalOpenClause, setIsModalOpenClause] = useState(false);
+    const [isModalOpenLegal, setIsModalOpenLegal] = useState(false);
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
-    const { data: clauseData, isLoading: loadingClause, isError: DataError } = useGetClauseManageQuery();
+    const [isModalOpenAddLegal, setIsModalOpenAddLegal] = useState(false);
+    const { data: clauseData, isLoading: loadingClause, isError: DataError, refetch: refetchClause } = useGetClauseManageQuery({
+        keyword: searchTerm,
+        typeTermIds: selectedType,
+        page,
+        size: pageSize
+    });
+    const { data: legalData, isLoading: loadingLegal, refetch: refetchLegal } = useGetLegalQuery({ page: 0, size: 10 });
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
+    const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
+    const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
+    const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
-    console.log(typeData);
-    const filteredClause = clauseData?.filter(contract =>
-        contract.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (selectedType ? contract.type === selectedType : true)
-    );
+    console.log(selectedType);
+    console.log(clauseData?.data?.totalElements);
 
-    const colorMap = {
-        "General Clause": "blue",
-        "Warranty Clause": "green",
-        "Financial Clause": "volcano",
-        "Other Clause": "purple",
+
+    // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
+    const convertToDate = (dateArr) => {
+        return new Date(
+            dateArr[0],
+            dateArr[1] - 1,
+            dateArr[2],
+            dateArr[3],
+            dateArr[4],
+            dateArr[5],
+        );
     };
 
-    const handleUpdate = (clauseCode) => {
-        console.log(clauseCode);
-        const clauseToEdit = clauseData.find(clause => clause.clauseCode === clauseCode);
+    const calculateDaysAgo = (createdAt) => {
+        const createdDate = convertToDate(createdAt);
+        const today = new Date();
 
+        // Tính số mili giây giữa 2 ngày rồi chuyển sang ngày
+        const differenceInMs = today - createdDate;
+        const differenceInDays = Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
+
+        return differenceInDays;
+    };
+
+
+    // Sắp xếp dữ liệu theo createdAt dựa vào sortOrder
+    const sortedClause = clauseData?.data?.content
+        ?.slice()
+        .filter(item => !item.isDelete)
+        .sort((a, b) => {
+            const dateA = convertToDate(a.createdAt);
+            const dateB = convertToDate(b.createdAt);
+            return sortOrder === 'ascend' ? dateA - dateB : dateB - dateA;
+        });
+
+    console.log("Total items:", sortedClause || 0);
+
+    const sortedLegal = legalData?.data?.content
+        ?.slice()
+        .filter(item => !item.isDelete)
+        .sort((a, b) => {
+            const dateA = new Date(...a.createdAt);
+            const dateB = new Date(...b.createdAt);
+            return sortOrder === 'ascend' ? dateA - dateB : dateB - dateA;
+        });
+
+    const colorMap = {
+        "Điều khoản thêm": "volcano",
+        "Quyền và nghĩa vụ": "geekblue",
+        "Bảo hành và bảo trì": "green",
+        "Vi phạm và thiệt hại": "red",
+        "Chấm dứt hợp đồng": "orange",
+        "Điều khoản giải quyết tranh chấp": "blue",
+        "Chính sách bảo mật": "purple",
+        "Căn cứ pháp lí": "lime",
+        "Điều khoản chung": "cyan",
+        "Các điều khoản khác": "magenta"
+    };
+
+
+    const handleUpdateClause = (clauseCode) => {
+        const clauseToEdit = clauseData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
+        console.log(clauseToEdit);
         if (clauseToEdit) {
-            form.setFieldsValue(clauseToEdit); // Đặt dữ liệu vào form
-            setIsModalOpen(true); // Hiển thị modal
+            form.setFieldsValue(clauseToEdit);
+
+            setIsModalOpenClause(true); // Hiển thị modal
         } else {
             message.error('Không tìm thấy điều khoản!');
         }
     };
+    const handleUpdateLegal = (clauseCode) => {
+        const clauseToEdit = legalData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
+        console.log(clauseToEdit);
+        if (clauseToEdit) {
+            form.setFieldsValue(clauseToEdit);
 
+            setIsModalOpenLegal(true); // Hiển thị modal
+        } else {
+            message.error('Không tìm thấy Căn căn cứ!');
+        }
+    };
 
     const openAddClauseModal = () => {
         form.resetFields();
         setIsModalOpenAdd(true);
     };
+    const openAddLagelModal = () => {
+        form.resetFields();
+        setIsModalOpenAddLegal(true);
+    };
 
-    const handleDelete = (contractId) => {
+    useEffect(() => {
+
+        refetchLegal();
+    }, []);
+
+    const handleSubmitAddClause = async (values) => {
+        console.log('Form data:', values);
+        try {
+            const result = await createClause({ idType: values.type, label: values.label, value: values.value }).unwrap();
+            message.success("Tạo điều khoản thành công");
+            refetchClause();
+            refetchLegal();
+            setIsModalOpenAdd(false);
+            form.resetFields();
+        } catch (error) {
+            console.error("Lỗi tạo điều khoản:", error);
+            message.error("Có lỗi xảy ra khi tạo điều khoản");
+        }
+    };
+
+    const handleSubmitUpdateClause = async (values) => {
+        console.log('Form data:', values);
+        try {
+            const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value }).unwrap();
+            console.log(updatedData);
+            message.success("Cập nhật điều khoản thành công!");
+            setIsModalOpenClause(false);
+            setIsModalOpenLegal(false);
+            refetchLegal();
+            refetchClause()
+            form.resetFields();
+        } catch (error) {
+            console.error("Lỗi cập nhật điều khoản:", error);
+            message.error("Có lỗi xảy ra khi cập nhật điều khoản!");
+        }
+    };
+
+    const handleDelete = async (contractId) => {
         Modal.confirm({
-            title: 'Bạn có chắc muốn xóa điều khoản này không?',
-            onOk: () => {
-                // Logic để xóa hợp đồng
-                message.success('Xóa thành công');
+            title: 'Bạn có chắc muốn xóa không?',
+            onOk: async () => {
+                try {
+                    const result = await deleteClause({ termId: contractId });
+                    if (result.error.originalStatus == 200) {
+                        refetchClause();
+                        refetchLegal();
+                        message.success('Xóa thành công');
+                    } else
+                        message.success('Xóa thất bại vui lòng thử lại');
+
+                }
+                catch (error) {
+                    console.error("Error during delete:", error);
+                    message.error('Xóa thất bại, vui lòng thử lại!');
+                }
             },
         });
     };
 
-    if (loadingClause) return <Skeleton active />;
-    if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+
+    const handleSortByCreatedAt = () => {
+        setSortOrder(sortOrder === 'ascend' ? 'descend' : 'ascend');
+    };
+
+
+    if (loadingClause || loadingType) return <Skeleton active />;
+    // if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
     return (
         <ConfigProvider
             theme={{
@@ -87,7 +221,11 @@ const ManageClause = () => {
                 type="card"
                 style={{ marginBottom: 32 }}
                 tabBarStyle={{}}
-                className='mt-10'>
+                className='mt-10'
+                activeKey={activeTab}
+                onChange={setActiveTab}
+            >
+
                 {/* Tab Điều Khoản */}
                 <TabPane tab="Điều Khoản" key="1">
                     {/** Gọi component quản lý điều khoản */}
@@ -98,7 +236,7 @@ const ManageClause = () => {
                                 Quản Lý Điều Khoản
                             </div>
                         </div>
-                        <div className='flex w-3/5 gap-4'>
+                        <div className='flex w-5/5 gap-4'>
                             <Search
                                 placeholder="Tìm kiếm tên điều khoản"
                                 onSearch={setSearchTerm}
@@ -109,20 +247,31 @@ const ManageClause = () => {
                             <Select
                                 placeholder="Chọn loại điều khoản"
                                 value={selectedType}
-                                onChange={setSelectedType}
+                                onChange={(value) => setSelectedType(value || "")}
                                 className="mb-4 max-w-[250px] min-w-[170px]"
                                 allowClear
                             >
-                                {[...new Set(clauseData?.map(contract => contract.type))].map((type, index) => (
-                                    <Option key={index} value={type}>{type}</Option>
+
+                                {typeData?.data.map(item => (
+                                    <Option key={item.id} value={item.id}>
+                                        {item.name}
+                                    </Option>
                                 ))}
                             </Select>
                             <Button
                                 type="primary"
                                 onClick={openAddClauseModal}
-                                className="mb-4"
+                                className="mb-4 justify-self-end"
                             >
                                 + Thêm điều khoản
+                            </Button>
+                            {/* Nút sắp xếp theo Ngày tạo */}
+                            <Button
+                                onClick={handleSortByCreatedAt}
+                                className="mb-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow-md transition duration-200"
+                            >
+                                Sắp xếp theo Ngày tạo
+                                {sortOrder === 'ascend' ? <FaSortUp size={16} /> : <FaSortDown size={16} />}
                             </Button>
                         </div>
                         <Modal
@@ -131,9 +280,13 @@ const ManageClause = () => {
                             onCancel={() => setIsModalOpenAdd(false)}
                             footer={null}
                         >
-                            <Form form={form} layout="vertical" >
+                            <Form
+                                form={form}
+                                layout="vertical"
+                                onFinish={(values) => handleSubmitAddClause(values)}
+                            >
                                 <Form.Item
-                                    name="name"
+                                    name="label"
                                     label="Tên điều khoản"
                                     rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
                                 >
@@ -142,17 +295,17 @@ const ManageClause = () => {
 
                                 <Form.Item name="type" label="Loại điều khoản">
                                     <Select placeholder="Chọn loại điều khoản">
-                                        {typeData?.contractTypes.map(item => (
-                                            <Select.Option key={item} value={item}>
-                                                {item}
-                                            </Select.Option>
+                                        {typeData?.data.map(item => (
+                                            <Option key={item.id} value={item.id}>
+                                                {item.name}
+                                            </Option>
                                         ))}
                                     </Select>
                                 </Form.Item>
 
 
                                 <Form.Item
-                                    name="content"
+                                    name="value"
                                     label="Nội dung"
                                     rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
                                 >
@@ -169,13 +322,21 @@ const ManageClause = () => {
                         </Modal>
                         <Modal
                             title="Cập nhật điều khoản"
-                            open={isModalOpen}
-                            onCancel={() => setIsModalOpen(false)}
+                            open={isModalOpenClause}
+                            onCancel={() => setIsModalOpenClause(false)}
                             footer={null}
                         >
-                            <Form form={form} layout="vertical" >
+                            <Form
+                                form={form}
+                                layout="vertical"
+                                onFinish={(values) => handleSubmitUpdateClause(values)}
+                            >
                                 <Form.Item
-                                    name="name"
+                                    name="id"
+                                />
+
+                                <Form.Item
+                                    name="label"
                                     label="Tên điều khoản"
                                     rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
                                 >
@@ -184,17 +345,17 @@ const ManageClause = () => {
 
                                 <Form.Item name="type" label="Loại điều khoản">
                                     <Select placeholder="Chọn loại điều khoản">
-                                        {typeData?.contractTypes.map(item => (
-                                            <Select.Option key={item} value={item}>
-                                                {item}
-                                            </Select.Option>
+                                        {typeData?.data.map(item => (
+                                            <Option key={item.id} value={item.id}>
+                                                {item.name}
+                                            </Option>
                                         ))}
                                     </Select>
                                 </Form.Item>
 
 
                                 <Form.Item
-                                    name="content"
+                                    name="value"
                                     label="Nội dung"
                                     rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
                                 >
@@ -204,14 +365,24 @@ const ManageClause = () => {
 
                                 <Form.Item>
                                     <Button type="primary" htmlType="submit">
-                                        Cập Nhật Clause
+                                        Cập Nhật Điều Khoản
                                     </Button>
                                 </Form.Item>
                             </Form>
                         </Modal>
                         <List
                             itemLayout="horizontal"
-                            dataSource={filteredClause}
+                            pagination={{
+                                current: page + 1,
+                                pageSize: pageSize,
+                                total: clauseData?.data?.totalElements || 0,
+                                onChange: (newPage, newPageSize) => {
+                                    console.log("Page changed:", newPage, "PageSize:", newPageSize);
+                                    setPage(newPage - 1);
+                                    setPageSize(newPageSize);
+                                },
+                            }}
+                            dataSource={sortedClause}
                             renderItem={clause => (
                                 <Popover
                                     content={
@@ -231,10 +402,17 @@ const ManageClause = () => {
                                                     </Tag>
                                                 </p>
                                                 <p>
-                                                    <Text strong>Tên: </Text> {clause.name}
+                                                    <Text strong>Tên: </Text> {clause.label}
                                                 </p>
                                                 <p>
-                                                    <Text strong>Nội dung: </Text> {clause.content}
+                                                    <Text strong>Nội dung: </Text> {clause.value}
+                                                </p>
+                                                <p>
+                                                    <Text strong>Ngày tạo: </Text>{dayjs(new Date(
+                                                        clause.createdAt[0],
+                                                        clause.createdAt[1] - 1,
+                                                        clause.createdAt[2]
+                                                    )).format("DD/M/YYYY")}
                                                 </p>
                                             </div>
                                         </Card>
@@ -254,7 +432,7 @@ const ManageClause = () => {
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleUpdate(clause.clauseCode);
+                                                            handleUpdateClause(clause.clauseCode);
                                                         }}
                                                     >
                                                         <GrUpdate />
@@ -288,8 +466,17 @@ const ManageClause = () => {
                                                         <Tag color={colorMap[clause.type] || "default"} className="w-fit">
                                                             {clause.type}
                                                         </Tag>
-                                                        <p className="text-[#3378cc] font-bold text-base">{clause.name}</p>
-                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.content}</p>
+                                                        <p className="text-[#3378cc] font-bold text-base">{clause.label}</p>
+                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.value}</p>
+                                                        <p className="text-gray-400 text-sm">
+                                                            Ngày tạo: {dayjs(new Date(
+                                                                clause.createdAt[0],
+                                                                clause.createdAt[1] - 1,
+                                                                clause.createdAt[2]
+                                                            )).format("DD/M/YYYY")}
+                                                        </p>
+
+
                                                     </div>
                                                 </div>
                                             }
@@ -299,72 +486,78 @@ const ManageClause = () => {
                                 </Popover>
                             )}
                         />
+                        {/* <Pagination
+                            current={page + 1}
+                            pageSize={pageSize}
+                            total={clauseData?.data?.length}
+                            onChange={(newPage, newPageSize) => {
+                                setPage(newPage - 1);
+                                setPageSize(newPageSize);
+                            }}
+                            className="mt-4"
+                        /> */}
                     </div>
                 </TabPane>
 
-                {/* Tab Căn Cước Pháp Lý */}
-                <TabPane tab="Căn Cước Pháp Lý" key="2">
-                    {/** Gọi component quản lý căn cước pháp lý */}
+                {/* Tab Căn cứ Pháp Lý */}
+                <TabPane tab="Căn cứ Pháp Lý" key="2">
+                    {/** Gọi component quản lý căn cứ pháp lý */}
                     <div className="p-4 min-h-[100vh]">
                         <div className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
-                                Quản Lý Căn Cước Pháp Lý
+                                Quản Lý Căn Cứ Pháp Lý
                             </div>
                         </div>
                         <div className='flex w-3/5 gap-4'>
                             <Search
-                                placeholder="Tìm kiếm tên căn cước"
+                                placeholder="Tìm kiếm tên căn cứ"
                                 onSearch={setSearchTerm}
                                 enterButton="Tìm kiếm"
                                 allowClear
                                 className="mb-4 max-w-[350px]"
                             />
-                            <Select
-                                placeholder="Chọn loại căn cước"
-                                value={selectedType}
-                                onChange={setSelectedType}
-                                className="mb-4 max-w-[250px] min-w-[170px]"
-                                allowClear
-                            >
-                                {[...new Set(clauseData?.map(contract => contract.type))].map((type, index) => (
-                                    <Option key={index} value={type}>{type}</Option>
-                                ))}
-                            </Select>
                             <Button
                                 type="primary"
-                                onClick={openAddClauseModal}
+                                onClick={openAddLagelModal}
                                 className="mb-4"
                             >
-                                + Thêm Căn Cước
+                                + Thêm Căn cứ
+                            </Button>
+                            <Button
+                                onClick={handleSortByCreatedAt}
+                                className="mb-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow-md transition duration-200"
+                            >
+                                Sắp xếp theo Ngày tạo
+                                {sortOrder === 'ascend' ? <FaSortUp size={16} /> : <FaSortDown size={16} />}
                             </Button>
                         </div>
                         <Modal
-                            title="Thêm Căn Cước Pháp Lý"
-                            open={isModalOpenAdd}
-                            onCancel={() => setIsModalOpenAdd(false)}
+                            title="Thêm Căn cứ Pháp Lý"
+                            open={isModalOpenAddLegal}
+                            onCancel={() => setIsModalOpenAddLegal(false)}
                             footer={null}
                         >
-                            <Form form={form} layout="vertical" >
+                            <Form
+                                form={form}
+                                layout="vertical"
+                                onFinish={(values) => handleSubmitAddClause(values)}
+                                initialValues={{
+                                    type: 8,
+                                }}
+                            >
                                 <Form.Item
-                                    name="name"
-                                    label="Tên căn cước"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên căn cước!" }]}
+                                    name="label"
+                                    label="Tên căn cứ"
+                                    rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
                                 >
-                                    <Input placeholder="Nhập tên căn cước" />
+                                    <Input placeholder="Nhập tên căn cứ" />
                                 </Form.Item>
 
-                                <Form.Item name="type" label="Loại căn cước">
-                                    <Select placeholder="Chọn loại căn cước">
-                                        {typeData?.contractTypes.map(item => (
-                                            <Select.Option key={item} value={item}>
-                                                {item}
-                                            </Select.Option>
-                                        ))}
-                                    </Select>
+                                <Form.Item name="type" style={{ display: "none" }}>
                                 </Form.Item>
 
                                 <Form.Item
-                                    name="content"
+                                    name="value"
                                     label="Nội dung"
                                     rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
                                 >
@@ -373,38 +566,38 @@ const ManageClause = () => {
 
                                 <Form.Item>
                                     <Button type="primary" htmlType="submit">
-                                        Tạo Căn Cước
+                                        Tạo Căn cứ
                                     </Button>
                                 </Form.Item>
                             </Form>
                         </Modal>
                         <Modal
-                            title="Cập Nhật Căn Cước"
-                            open={isModalOpen}
-                            onCancel={() => setIsModalOpen(false)}
+                            title="Cập Nhật Căn cứ"
+                            open={isModalOpenLegal}
+                            onCancel={() => setIsModalOpenLegal(false)}
                             footer={null}
                         >
-                            <Form form={form} layout="vertical" >
+                            <Form
+                                form={form}
+                                layout="vertical"
+                                onFinish={(values) => handleSubmitUpdateClause(values)}
+                                initialValues={{
+                                    type: 8,
+                                }}
+                            >
                                 <Form.Item
-                                    name="name"
-                                    label="Tên căn cước"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên căn cước!" }]}
+                                    name="id"
+                                />
+                                <Form.Item
+                                    name="label"
+                                    label="Tên căn cứ"
+                                    rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
                                 >
-                                    <Input placeholder="Nhập tên căn cước" />
-                                </Form.Item>
-
-                                <Form.Item name="type" label="Loại căn cước">
-                                    <Select placeholder="Chọn loại căn cước">
-                                        {typeData?.contractTypes.map(item => (
-                                            <Select.Option key={item} value={item}>
-                                                {item}
-                                            </Select.Option>
-                                        ))}
-                                    </Select>
+                                    <Input placeholder="Nhập tên căn cứ" />
                                 </Form.Item>
 
                                 <Form.Item
-                                    name="content"
+                                    name="value"
                                     label="Nội dung"
                                     rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
                                 >
@@ -413,14 +606,14 @@ const ManageClause = () => {
 
                                 <Form.Item>
                                     <Button type="primary" htmlType="submit">
-                                        Cập Nhật Căn Cước
+                                        Cập Nhật Căn cứ
                                     </Button>
                                 </Form.Item>
                             </Form>
                         </Modal>
                         <List
                             itemLayout="horizontal"
-                            dataSource={filteredClause}
+                            dataSource={sortedLegal}
                             renderItem={clause => (
                                 <Popover
                                     content={
@@ -429,7 +622,7 @@ const ManageClause = () => {
                                             className="shadow-lg rounded-lg"
                                             style={{ width: 320, backgroundColor: "#f9fafb", borderColor: "#d1d5db" }}
                                         >
-                                            <Title level={4} className="text-blue-600">Chi tiết căn cước</Title>
+                                            <Title level={4} className="text-blue-600">Chi tiết căn cứ</Title>
                                             <div className="mt-2 space-y-1">
                                                 <p>
                                                     <Text strong>Mã: </Text> {clause.clauseCode}
@@ -440,10 +633,13 @@ const ManageClause = () => {
                                                     </Tag>
                                                 </p>
                                                 <p>
-                                                    <Text strong>Tên: </Text> {clause.name}
+                                                    <Text strong>Tên: </Text> {clause.label}
                                                 </p>
                                                 <p>
-                                                    <Text strong>Nội dung: </Text> {clause.content}
+                                                    <Text strong>Nội dung: </Text> {clause.value}
+                                                </p>
+                                                <p>
+                                                    <Text strong>Ngày tạo: </Text> {clause.createdAt}
                                                 </p>
                                             </div>
                                         </Card>
@@ -461,7 +657,7 @@ const ManageClause = () => {
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleUpdate(clause.clauseCode);
+                                                            handleUpdateLegal(clause.clauseCode);
                                                         }}
                                                     >
                                                         <GrUpdate />
@@ -493,8 +689,9 @@ const ManageClause = () => {
                                                         <Tag color={colorMap[clause.type] || "default"} className="w-fit">
                                                             {clause.type}
                                                         </Tag>
-                                                        <p className="text-[#3378cc] font-bold text-base">{clause.name}</p>
-                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.content}</p>
+                                                        <p className="text-[#3378cc] font-bold text-base">{clause.label}</p>
+                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.value}</p>
+                                                        <p className="text-gray-400 text-sm">Ngày tạo: {clause.createdAt}</p>
                                                     </div>
                                                 </div>
                                             }
