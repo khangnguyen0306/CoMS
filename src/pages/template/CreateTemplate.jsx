@@ -1161,176 +1161,170 @@ const CreateTemplate = () => {
                                 {form.getFieldValue("RightsAndObligations") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Quyền và nghĩa vụ các bên:</h5>
-                                        <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chung</h4>
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("RightsAndObligations").specialCommon?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             )) || <p className="ml-2">Không có</p>}
-                                        </ul>
-                                        {form.getFieldValue("RightsAndObligations").specialA && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên A</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("RightsAndObligations").specialA?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul>
-                                        {form.getFieldValue("RightsAndObligations").specialB && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên B</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("RightsAndObligations").specialB?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
                                         </ul>
                                     </div>
                                 )}
                                 {form.getFieldValue("DisputeResolutionClause") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản giải quyết tranh chấp:</h5>
-                                        <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chung</h4>
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseCommon?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             )) || <p className="ml-2">Không có</p>}
-                                        </ul>
-                                        {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseA && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên A</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseA?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul>
-                                        {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseB && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên B</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseB?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
                                         </ul>
                                     </div>
                                 )}
                                 {form.getFieldValue("additional") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản Bổ sung:</h5>
-                                        <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chung</h4>
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("additional").additionalCommon?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             )) || <p className="ml-2">Không có</p>}
-                                        </ul>
-                                        {form.getFieldValue("additional").additionalA && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên A</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("additional").additionalA?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul>
-                                        {form.getFieldValue("additional").additionalB && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên B</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("additional").additionalB?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
                                         </ul>
                                     </div>
                                 )}
                                 {form.getFieldValue("breachAndDamages") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản pháp lý:</h5>
-                                        <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chung</h4>
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("breachAndDamages").breachAndDamagesCommon?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             )) || <p className="ml-2">Không có</p>}
-                                        </ul>
-                                        {form.getFieldValue("breachAndDamages").breachAndDamagesA && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên A</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("breachAndDamages").breachAndDamagesA?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul>
-                                        {form.getFieldValue("breachAndDamages").breachAndDamagesB && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên B</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("breachAndDamages").breachAndDamagesB?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
                                         </ul>
                                     </div>
                                 )}
                                 {form.getFieldValue("TerminationOfContract") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản chấm dứt hợp đồng:</h5>
-                                        <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chung</h4>
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("TerminationOfContract").TerminationOfContractCommon?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             )) || <p className="ml-2">Không có</p>}
-                                        </ul>
-                                        {form.getFieldValue("TerminationOfContract").TerminationOfContractA && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên A</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("TerminationOfContract").TerminationOfContractA?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul>
-                                        {form.getFieldValue("TerminationOfContract").TerminationOfContractB && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên B</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("TerminationOfContract").TerminationOfContractB?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
                                         </ul>
                                     </div>
                                 )}
                                 {form.getFieldValue("warrantyAndMaintenance") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản bảo hành và bảo trì:</h5>
-                                        <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chung</h4>
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceCommon?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             )) || <p className="ml-2">Không có</p>}
-                                        </ul>
-                                        {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceA && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên A</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceA?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul>
-                                        {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceB && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên B</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceB?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
                                         </ul>
                                     </div>
                                 )}
                                 {form.getFieldValue("PrivacyPolicy") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản chính sách bảo mật:</h5>
-                                        <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chung</h4>
+                                        {/* <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chung</h4> */}
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("PrivacyPolicy").PrivacyPolicyCommon?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
-                                        {form.getFieldValue("PrivacyPolicy").PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
+                                        {/* {form.getFieldValue("PrivacyPolicy").PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>} */}
+                                        {/* <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("PrivacyPolicy").PrivacyPolicyA?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             ))}
-                                        </ul>
-                                        {form.getFieldValue("PrivacyPolicy").PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>}
-                                        <ul className="mt-2 flex flex-col gap-1">
+                                        </ul> */}
+                                        {/* {form.getFieldValue("PrivacyPolicy").PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>} */}
+                                        {/* <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("PrivacyPolicy").PrivacyPolicyB?.map((term, index) => (
                                                 <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                             ))}
-                                        </ul>
+                                        </ul> */}
                                     </div>
                                 )}
-                                {form.getFieldValue("specialTermsA") && (
-                                    <div className="mt-2">
-                                        <h5 className="font-semibold text-lg">Điều khoản đặc biệt bên A</h5>
-                                        <p>{form.getFieldValue("specialTermsB")}</p>
-                                    </div>
-                                )}
-                                {form.getFieldValue("specialTermsB") && (
-                                    <div className="mt-2">
-                                        <h5 className="font-semibold text-lg">Điều khoản đặc biệt bên B</h5>
-                                        <p>{form.getFieldValue("specialTermsB")}</p>
-                                    </div>
-                                )}
+
+                                <div className="mt-2">
+                                    <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên A</h5>
+                                    <ul className="mt-2 flex flex-col gap-1">
+
+                                        {form.getFieldValue("RightsAndObligations") && form.getFieldValue("RightsAndObligations").specialA?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("DisputeResolutionClause") && form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseA?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("additional") && form.getFieldValue("additional").additionalA?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("breachAndDamages") && form.getFieldValue("breachAndDamages").breachAndDamagesA?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("TerminationOfContract") && form.getFieldValue("TerminationOfContract").TerminationOfContractA?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("warrantyAndMaintenance") && form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceA?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("PrivacyPolicy") && form.getFieldValue("PrivacyPolicy").PrivacyPolicyA?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    {form.getFieldValue("specialTermsA") && (<p className="ml-3">{form.getFieldValue("specialTermsA")}</p>)}
+                                </div>
+
+
+                                <div className="mt-2">
+                                    <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên B</h5>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("RightsAndObligations") && form.getFieldValue("RightsAndObligations").specialB?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("DisputeResolutionClause") && form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseB?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("additional") && form.getFieldValue("additional").additionalB?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("breachAndDamages") && form.getFieldValue("breachAndDamages").breachAndDamagesB?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("TerminationOfContract") && form.getFieldValue("TerminationOfContract").TerminationOfContractB?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("warrantyAndMaintenance") && form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceB?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("PrivacyPolicy") && form.getFieldValue("PrivacyPolicy").PrivacyPolicyB?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        ))}
+                                    </ul>
+                                    {form.getFieldValue("specialTermsB") && (<p className="ml-3">{form.getFieldValue("specialTermsB")}</p>)}
+                                </div>
+
                             </div>
 
                         </div>
@@ -1341,7 +1335,7 @@ const CreateTemplate = () => {
                             {form.getFieldValue("violate") && <p className="mt-3">- Cho phép đơn phương hủy hợp đồng nếu 1 trong 2 vi phạm các quy định trong điều khoản được ghi trong hợp đồng</p>}
                             {form.getFieldValue("suspend") && <div>
                                 <p className="mt-3">- Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng sau: {form.getFieldValue("suspendContent")}</p>
-                              
+
                             </div>}
                         </div>
                     </div>

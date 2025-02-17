@@ -27,7 +27,7 @@ export const bussinessAPI = createApi({
 
         getBussinessInformatin: builder.query({
             query: () => ({
-                url: `/078762be-3ce3-441a-be11-58af5f7a8e8c`,
+                url: `6219a6ba-6297-4291-bad1-9ad89ede566b`,
                 method: "GET",
             }),
             keepUnusedDataFor: 60 * 5,
