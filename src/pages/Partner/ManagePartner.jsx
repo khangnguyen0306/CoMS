@@ -119,7 +119,7 @@ const ManagePartner = () => {
             const values = await form.validateFields();
             const bankingInfo = bankAccounts.map(account => ({
                 bankName: account.bankName,
-                backAccountNumber: account.accountNumber,
+                backAccountNumber: account.backAccountNumber,
             }));
             const newPartnerData = {
                 ...values,
@@ -132,7 +132,7 @@ const ManagePartner = () => {
                 message.success('Thêm mới thành công!');
                 refetch();
                 form.resetFields();
-                setBankAccounts([{ bankName: '', accountNumber: '' }]);
+                setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
                 setIsModalVisible(false);
             } else {
                 message.error('Thêm mới thất bại vui lòng thử lại!');
