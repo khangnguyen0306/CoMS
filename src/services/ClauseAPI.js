@@ -19,8 +19,15 @@ export const clauseAPI = createApi({
     endpoints: (builder) => ({
 
         getClauseManage: builder.query({
-            query: () => ({
-                url: `/07f8d268-a098-4297-b681-2eecbd4198a0`,
+            query: ({ keyword, page, size, typeTermIds }) => ({
+                url: `/terms/get-all?typeTermIds=${typeTermIds}&keyword=${keyword}&page=${page}&size=${size}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
+        getLegal: builder.query({
+            query: ({ page, size }) => ({
+                url: `/terms/get-all?typeTermIds=8&page=${page}&size=${size}`,
                 method: "GET",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
@@ -29,6 +36,29 @@ export const clauseAPI = createApi({
             query: (id) => ({
                 url: `/terms/get-all-type-terms`,
                 method: "GET",
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
+        CreateClause: builder.mutation({
+            query: ({ idType, label, value }) => ({
+                url: `/terms/create/${idType}`,
+                method: "POST",
+                body: { label, value },
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
+        UpdateClause: builder.mutation({
+            query: ({ termId, label, value }) => ({
+                url: `/terms/update/${termId}`,
+                method: "PUT",
+                body: { label, value },
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
+        DeleteClause: builder.mutation({
+            query: ({ termId }) => ({
+                url: `/terms/update-status/${termId}/true`,
+                method: "PUT",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
@@ -65,4 +95,8 @@ export const clauseAPI = createApi({
 export const {
     useGetClauseManageQuery,
     useGetAllTypeClauseQuery,
+    useCreateClauseMutation,
+    useUpdateClauseMutation,
+    useGetLegalQuery,
+    useDeleteClauseMutation,
 } = clauseAPI;

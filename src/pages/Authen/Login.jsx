@@ -117,7 +117,7 @@ const Login = () => {
         console.log(values);
         try {
             const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
-            // console.log(result.data.data);
+            console.log(result);
             if (result.data) {
                 handleLoginSuccess(result.data);
             } else {
