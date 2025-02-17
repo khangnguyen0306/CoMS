@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Breadcrumb, Button, Image, Layout, Menu, notification, theme } from "antd";
-import { LaptopOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
+import { LaptopOutlined, LoginOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
@@ -28,10 +28,11 @@ const MainLayout = () => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser)
-  console.log(user)
+
   const router = {
     '1': '/',
     'dash': '/dashboard',
+    'dashboard': "/manager/dashboard",
     'task': '/task',
     'client': '/partner',
     'contract': '/contract',
@@ -45,10 +46,20 @@ const MainLayout = () => {
     '4': '/combo',
   }
 
-  const nav = [
+  const handleLogout = useCallback(() => {
+    dispatch(logOut());
+    notification.success({
+      message: "Logout successfully",
+      description: "See you again!",
+      duration: 1.5
+    });
+    navigate("/login");
+  }, [dispatch, navigate]);
+
+  const navManager = [
     {
       icon: MdDashboard, key: "all", label: 'Danh mục', children: [
-        { icon: MdDashboard, label: 'Dashboard', key: "dash", default: true },
+        { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
         { icon: FaTasks, label: 'Task', key: "task" },
         { icon: GoLaw, label: 'Clause', key: "clause" },
@@ -84,12 +95,15 @@ const MainLayout = () => {
         { icon: IoMdSettings, label: 'Cấu hình', key: "setting3" },
       ]
     },
+    {
+      icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
+    },
   ].map((item, index) => {
     return {
       key: item.key,
       icon: React.createElement(item.icon),
       label: item.label,
-      children: item.children.map((childItem, childIndex) => {
+      children: item.children?.map((childItem, childIndex) => {
         return {
           icon: React.createElement(childItem.icon),
           key: childItem.key,
@@ -115,13 +129,9 @@ const MainLayout = () => {
     {
       icon: LuWaypoints, key: "workflow", label: 'Quy trình duyệt'
     },
-    // {
-    //   icon: IoMdSettings, label: 'Cấu hình', key: "setting", children: [
-    //     { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
-    //     { icon: SiAuth0, label: 'Phân quyền', key: "setting2" },
-    //     { icon: IoMdSettings, label: 'Cấu hình', key: "setting3" },
-    //   ]
-    // },
+    {
+      icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
+    },
   ].map((item, index) => {
     return {
       key: item.key,
@@ -131,6 +141,52 @@ const MainLayout = () => {
   });
 
 
+  const navStaff = [
+    { icon: FaUserTie, label: 'Khách hàng', key: "client" },
+    // { icon: FaTasks, label: 'Task', key: "task" },
+    { icon: GoLaw, label: 'Clause', key: "clause" },
+    {
+      icon: FaFileContract, label: 'Hợp đồng', children: [
+        { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
+        { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
+        { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
+        { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
+        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
+      ]
+    },
+    {
+      icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
+        { icon: MdOutlineClass, label: 'Template hợp đồng', key: "manageTemplate" },
+        { icon: BsClipboard2DataFill, label: 'Tạo Template', key: "templateCreate" },
+        { icon: BsTrash3Fill, label: 'Đã xóa', key: "deletedtemplate" },
+      ]
+    },
+    {
+      icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
+    },
+  ].map((item, index) => {
+    return {
+      key: item.key,
+      icon: React.createElement(item.icon),
+      label: item.label,
+      children: item.children?.map((childItem, childIndex) => {
+        return {
+          icon: React.createElement(childItem.icon),
+          key: childItem.key,
+          label: childItem.label,
+          path: childItem.path,
+          children: childItem.children && childItem.children.length > 0 ? childItem.children.map((grandchildItem, grandchildIndex) => {
+            return {
+              icon: React.createElement(grandchildItem.icon),
+              key: grandchildItem.key,
+              label: grandchildItem.label,
+              path: grandchildItem.path,
+            }
+          }) : null,
+        };
+      }),
+    };
+  });
   const {
     token: { colorBgContainer, borderRadiusLG, ...other },
   } = theme.useToken();
@@ -141,17 +197,12 @@ const MainLayout = () => {
     if (path) {
       navigate(path);
     }
+    if (e.key === "logout") {
+      handleLogout();
+    }
   };
 
-  const handleLogout = useCallback(() => {
-    dispatch(logOut());
-    notification.success({
-      message: "Logout successfully",
-      description: "See you again!",
-      duration: 1.5
-    });
-    navigate("/login");
-  }, [dispatch, navigate]);
+
   return (
     <Layout>
       <Sider
@@ -178,7 +229,7 @@ const MainLayout = () => {
             height: '100%',
             borderRight: 0,
           }}
-          items={user?.roles[0] !== "ROLE_ADMIN" ? nav : navAdmin}
+          items={user?.roles[0] == "ROLE_ADMIN" ? navAdmin : user?.roles[0] == "ROLE_MANAGER" ? navManager : navStaff}
           onClick={handleMenuClick}
         />
 
@@ -206,25 +257,12 @@ const MainLayout = () => {
               height={60}
               width={60}
               className="cursor-pointer p-2"
-              onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : '/')}
+              onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : user?.roles[0] == "ROLE_MANAGER" ? "/manager/dashboard" : '/contract')}
               alt="Logo"
             />
             <p className="ml-2 text-white">Quản lý hợp đồng CoMS</p>
           </div>
-          <div>
-            <Button
-              type="primary"
-              size='large'
-              onClick={handleLogout}
-              className='bg-gradient-to-r
-                      mr-[80px]
-                    from-blue-500 to-cyan-400 text-white 
-                    font-medium rounded-full py-3 px-6 transition-transform duration-800
-                     hover:from-cyan-400 hover:to-blue-500 hover:scale-105 hover:shadow-cyan-200 hover:shadow-lg'
-            >
-              Đăng xuất
-            </Button>
-          </div>
+
         </Header>
 
 

@@ -236,176 +236,261 @@ const ManageTemplate = () => {
                                             {templateDetail?.RightsAndObligations && (
                                                 <div>
                                                     <h5 className="font-semibold text-lg">Quyền và nghĩa vụ các bên:</h5>
-                                                    <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chung</h4>
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.RightsAndObligations?.specialCommon?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         )) || <p className="ml-2">Không có</p>}
-                                                    </ul>
-                                                    {templateDetail?.RightsAndObligations?.specialA && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên A</h4>}
-                                                    <ul className="mt-2 flex flex-col gap-1">
-                                                        {templateDetail?.RightsAndObligations?.specialA?.map((term, index) => (
-                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                        ))}
-                                                    </ul>
-                                                    {templateDetail?.RightsAndObligations?.specialB && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên B</h4>}
-                                                    <ul className="mt-2 flex flex-col gap-1">
-                                                        {templateDetail?.RightsAndObligations?.specialB?.map((term, index) => (
-                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                        ))}
                                                     </ul>
                                                 </div>
                                             )}
                                             {templateDetail?.DisputeResolutionClause && (
                                                 <div>
                                                     <h5 className="font-semibold text-lg">Điều khoản giải quyết tranh chấp:</h5>
-                                                    <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chung</h4>
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseCommon?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         )) || <p className="ml-2">Không có</p>}
                                                     </ul>
-                                                    {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên A</h4>}
+                                                    {/* {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên A</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
-                                                    {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên B</h4>}
+                                                    </ul> */}
+                                                    {/* {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên B</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
+                                                    </ul> */}
                                                 </div>
                                             )}
                                             {templateDetail?.additional && (
                                                 <div>
                                                     <h5 className="font-semibold text-lg">Điều khoản Bổ sung:</h5>
-                                                    <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chung</h4>
+                                                    {/* <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chung</h4> */}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.additional?.additionalCommon?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         )) || <p className="ml-2">Không có</p>}
                                                     </ul>
-                                                    {templateDetail?.additional?.additionalA && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên A</h4>}
+                                                    {/* {templateDetail?.additional?.additionalA && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên A</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.additional?.additionalA?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
-                                                    {templateDetail?.additional?.additionalB && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên B</h4>}
+                                                    </ul> */}
+                                                    {/* {templateDetail?.additional?.additionalB && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên B</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.additional?.additionalB?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
+                                                    </ul> */}
                                                 </div>
                                             )}
                                             {templateDetail?.breachAndDamages && (
                                                 <div>
                                                     <h5 className="font-semibold text-lg">Điều khoản pháp lý:</h5>
-                                                    <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chung</h4>
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.breachAndDamages?.breachAndDamagesCommon?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         )) || <p className="ml-2">Không có</p>}
                                                     </ul>
-                                                    {templateDetail?.breachAndDamages?.breachAndDamagesA && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên A</h4>}
+                                                    {/* {templateDetail?.breachAndDamages?.breachAndDamagesA && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên A</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.breachAndDamages?.breachAndDamagesA?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
-                                                    {templateDetail?.breachAndDamages?.breachAndDamagesB && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên B</h4>}
+                                                    </ul> */}
+                                                    {/* {templateDetail?.breachAndDamages?.breachAndDamagesB && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên B</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.breachAndDamages?.breachAndDamagesB?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
+                                                    </ul> */}
                                                 </div>
                                             )}
                                             {templateDetail?.TerminationOfContract && (
                                                 <div>
                                                     <h5 className="font-semibold text-lg">Điều khoản chấm dứt hợp đồng:</h5>
-                                                    <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chung</h4>
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.TerminationOfContract?.TerminationOfContractCommon?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         )) || <p className="ml-2">Không có</p>}
                                                     </ul>
-                                                    {templateDetail?.TerminationOfContract?.TerminationOfContractA && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên A</h4>}
+                                                    {/* {templateDetail?.TerminationOfContract?.TerminationOfContractA && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên A</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.TerminationOfContract?.TerminationOfContractA?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
-                                                    {templateDetail?.TerminationOfContract?.TerminationOfContractB && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên B</h4>}
+                                                    </ul> */}
+                                                    {/* {templateDetail?.TerminationOfContract?.TerminationOfContractB && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên B</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.TerminationOfContract?.TerminationOfContractB?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
+                                                    </ul> */}
                                                 </div>
                                             )}
                                             {templateDetail?.warrantyAndMaintenance && (
                                                 <div>
                                                     <h5 className="font-semibold text-lg">Điều khoản bảo hành và bảo trì:</h5>
-                                                    <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chung</h4>
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceCommon?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         )) || <p className="ml-2">Không có</p>}
                                                     </ul>
-                                                    {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên A</h4>}
+                                                    {/* {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên A</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
-                                                    {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên B</h4>}
+                                                    </ul> */}
+                                                    {/* {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên B</h4>}
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
-                                                    </ul>
+                                                    </ul> */}
                                                 </div>
                                             )}
                                             {templateDetail?.PrivacyPolicy && (
                                                 <div>
                                                     <h5 className="font-semibold text-lg">Điều khoản chính sách bảo mật:</h5>
-                                                    <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chung</h4>
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.PrivacyPolicy?.PrivacyPolicyCommon?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         )) || <p className="ml-2">Không có</p>}
                                                     </ul>
-                                                    {templateDetail?.PrivacyPolicy?.PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>}
+                                                    {/* {templateDetail?.PrivacyPolicy?.PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.PrivacyPolicy?.PrivacyPolicyA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                    {/* {templateDetail?.PrivacyPolicy?.PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.PrivacyPolicy?.PrivacyPolicyB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                </div>
+                                            )}
+
+                                            <div className="mt-2">
+                                                <h5 className="font-semibold text-lg">Điều khoản chỉ áp dụng bên A</h5>
+                                                {templateDetail?.RightsAndObligations?.specialB && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên B</h4>}
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.RightsAndObligations?.specialB?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>   {templateDetail?.RightsAndObligations?.specialA && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.RightsAndObligations?.specialA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.additional?.additionalA && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.additional?.additionalA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.breachAndDamages?.breachAndDamagesA && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.breachAndDamages?.breachAndDamagesA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.TerminationOfContract?.TerminationOfContractA && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.TerminationOfContract?.TerminationOfContractA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.PrivacyPolicy?.PrivacyPolicyA && (
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.PrivacyPolicy?.PrivacyPolicyA?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
                                                     </ul>
-                                                    {templateDetail?.PrivacyPolicy?.PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>}
+                                                )}
+                                                {templateDetail?.specialTermsA && (<p className="ml-2">{templateDetail?.specialTermsB}</p>)}
+                                            </div>
+
+
+                                            <div className="mt-2">
+                                                <h5 className="font-semibold text-lg">Điều khoản chỉ áp dụng bên B</h5>
+                                                {templateDetail?.RightsAndObligations?.specialB && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.RightsAndObligations?.specialB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.additional?.additionalB && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.additional?.additionalB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.breachAndDamages?.breachAndDamagesB && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.breachAndDamages?.breachAndDamagesB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.TerminationOfContract?.TerminationOfContractB && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.TerminationOfContract?.TerminationOfContractB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB && (
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {templateDetail?.PrivacyPolicy?.PrivacyPolicyB && (
                                                     <ul className="mt-2 flex flex-col gap-1">
                                                         {templateDetail?.PrivacyPolicy?.PrivacyPolicyB?.map((term, index) => (
                                                             <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                         ))}
                                                     </ul>
-                                                </div>
-                                            )}
-                                            {templateDetail?.specialTermsA && (
-                                                <div className="mt-2">
-                                                    <h5 className="font-semibold text-lg">Điều khoản đặc biệt bên A</h5>
-                                                    <p>{templateDetail?.specialTermsB}</p>
-                                                </div>
-                                            )}
-                                            {templateDetail?.specialTermsB && (
-                                                <div className="mt-2">
-                                                    <h5 className="font-semibold text-lg">Điều khoản đặc biệt bên B</h5>
-                                                    <p>{templateDetail?.specialTermsB}</p>
-                                                </div>
-                                            )}
+                                                )}
+                                                {templateDetail?.specialTermsB && (<p className="ml-2">{templateDetail?.specialTermsB}</p>)}
+                                            </div>
+
                                         </div>
 
                                     </div>
@@ -479,176 +564,261 @@ const ManageTemplate = () => {
                                         {templateDetail?.RightsAndObligations && (
                                             <div>
                                                 <h5 className="font-semibold text-lg">Quyền và nghĩa vụ các bên:</h5>
-                                                <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chung</h4>
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.RightsAndObligations?.specialCommon?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     )) || <p className="ml-2">Không có</p>}
-                                                </ul>
-                                                {templateDetail?.RightsAndObligations?.specialA && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên A</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.RightsAndObligations?.specialA?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
-                                                {templateDetail?.RightsAndObligations?.specialB && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên B</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.RightsAndObligations?.specialB?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
                                                 </ul>
                                             </div>
                                         )}
                                         {templateDetail?.DisputeResolutionClause && (
                                             <div>
                                                 <h5 className="font-semibold text-lg">Điều khoản giải quyết tranh chấp:</h5>
-                                                <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chung</h4>
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseCommon?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     )) || <p className="ml-2">Không có</p>}
                                                 </ul>
-                                                {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên A</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
-                                                {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên B</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
+                                                {/* {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên A</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                {/* {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB && <h4 className="font-bold mt-2 ml-2">Điều khoản giải quyết tranh chấp chỉ riêng bên B</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
                                             </div>
                                         )}
                                         {templateDetail?.additional && (
                                             <div>
                                                 <h5 className="font-semibold text-lg">Điều khoản Bổ sung:</h5>
-                                                <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chung</h4>
+                                                {/* <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chung</h4> */}
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.additional?.additionalCommon?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     )) || <p className="ml-2">Không có</p>}
                                                 </ul>
-                                                {templateDetail?.additional?.additionalA && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên A</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.additional?.additionalA?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
-                                                {templateDetail?.additional?.additionalB && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên B</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.additional?.additionalB?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
+                                                {/* {templateDetail?.additional?.additionalA && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên A</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.additional?.additionalA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                {/* {templateDetail?.additional?.additionalB && <h4 className="font-bold mt-2 ml-2">Điều khoản Bổ sung chỉ riêng bên B</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.additional?.additionalB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
                                             </div>
                                         )}
                                         {templateDetail?.breachAndDamages && (
                                             <div>
                                                 <h5 className="font-semibold text-lg">Điều khoản pháp lý:</h5>
-                                                <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chung</h4>
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.breachAndDamages?.breachAndDamagesCommon?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     )) || <p className="ml-2">Không có</p>}
                                                 </ul>
-                                                {templateDetail?.breachAndDamages?.breachAndDamagesA && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên A</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.breachAndDamages?.breachAndDamagesA?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
-                                                {templateDetail?.breachAndDamages?.breachAndDamagesB && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên B</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.breachAndDamages?.breachAndDamagesB?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
+                                                {/* {templateDetail?.breachAndDamages?.breachAndDamagesA && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên A</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.breachAndDamages?.breachAndDamagesA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                {/* {templateDetail?.breachAndDamages?.breachAndDamagesB && <h4 className="font-bold mt-2 ml-2">Điều khoản pháp lý chỉ riêng bên B</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.breachAndDamages?.breachAndDamagesB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
                                             </div>
                                         )}
                                         {templateDetail?.TerminationOfContract && (
                                             <div>
                                                 <h5 className="font-semibold text-lg">Điều khoản chấm dứt hợp đồng:</h5>
-                                                <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chung</h4>
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.TerminationOfContract?.TerminationOfContractCommon?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     )) || <p className="ml-2">Không có</p>}
                                                 </ul>
-                                                {templateDetail?.TerminationOfContract?.TerminationOfContractA && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên A</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.TerminationOfContract?.TerminationOfContractA?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
-                                                {templateDetail?.TerminationOfContract?.TerminationOfContractB && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên B</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.TerminationOfContract?.TerminationOfContractB?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
+                                                {/* {templateDetail?.TerminationOfContract?.TerminationOfContractA && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên A</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.TerminationOfContract?.TerminationOfContractA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                {/* {templateDetail?.TerminationOfContract?.TerminationOfContractB && <h4 className="font-bold mt-2 ml-2">Điều khoản chấm dứt hợp đồng chỉ riêng bên B</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.TerminationOfContract?.TerminationOfContractB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
                                             </div>
                                         )}
                                         {templateDetail?.warrantyAndMaintenance && (
                                             <div>
                                                 <h5 className="font-semibold text-lg">Điều khoản bảo hành và bảo trì:</h5>
-                                                <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chung</h4>
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceCommon?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     )) || <p className="ml-2">Không có</p>}
                                                 </ul>
-                                                {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên A</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
-                                                {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên B</h4>}
-                                                <ul className="mt-2 flex flex-col gap-1">
-                                                    {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB?.map((term, index) => (
-                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                                    ))}
-                                                </ul>
+                                                {/* {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên A</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                {/* {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB && <h4 className="font-bold mt-2 ml-2">Điều khoản bảo hành và bảo trì chỉ riêng bên B</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
                                             </div>
                                         )}
                                         {templateDetail?.PrivacyPolicy && (
                                             <div>
                                                 <h5 className="font-semibold text-lg">Điều khoản chính sách bảo mật:</h5>
-                                                <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chung</h4>
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.PrivacyPolicy?.PrivacyPolicyCommon?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     )) || <p className="ml-2">Không có</p>}
                                                 </ul>
-                                                {templateDetail?.PrivacyPolicy?.PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>}
+                                                {/* {templateDetail?.PrivacyPolicy?.PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.PrivacyPolicy?.PrivacyPolicyA?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                                {/* {templateDetail?.PrivacyPolicy?.PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>}
+                                                    <ul className="mt-2 flex flex-col gap-1">
+                                                        {templateDetail?.PrivacyPolicy?.PrivacyPolicyB?.map((term, index) => (
+                                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                        ))}
+                                                    </ul> */}
+                                            </div>
+                                        )}
+
+                                        <div className="mt-2">
+                                            <h5 className="font-semibold text-lg">Điều khoản chỉ áp dụng bên A</h5>
+                                            {templateDetail?.RightsAndObligations?.specialB && <h4 className="font-bold mt-2 ml-2">Quyền và nghĩa vụ chỉ riêng bên B</h4>}
+                                            <ul className="mt-2 flex flex-col gap-1">
+                                                {templateDetail?.RightsAndObligations?.specialB?.map((term, index) => (
+                                                    <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                ))}
+                                            </ul>   {templateDetail?.RightsAndObligations?.specialA && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.RightsAndObligations?.specialA?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseA?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.additional?.additionalA && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.additional?.additionalA?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.breachAndDamages?.breachAndDamagesA && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.breachAndDamages?.breachAndDamagesA?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.TerminationOfContract?.TerminationOfContractA && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.TerminationOfContract?.TerminationOfContractA?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceA?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.PrivacyPolicy?.PrivacyPolicyA && (
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.PrivacyPolicy?.PrivacyPolicyA?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     ))}
                                                 </ul>
-                                                {templateDetail?.PrivacyPolicy?.PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>}
+                                            )}
+                                            {templateDetail?.specialTermsA && (<p className="ml-2">{templateDetail?.specialTermsB}</p>)}
+                                        </div>
+
+
+                                        <div >
+                                            <h5 className="font-semibold text-lg">Điều khoản chỉ áp dụng bên B</h5>
+                                            {templateDetail?.RightsAndObligations?.specialB && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.RightsAndObligations?.specialB?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.DisputeResolutionClause?.DisputeResolutionClauseB?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.additional?.additionalB && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.additional?.additionalB?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.breachAndDamages?.breachAndDamagesB && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.breachAndDamages?.breachAndDamagesB?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.TerminationOfContract?.TerminationOfContractB && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.TerminationOfContract?.TerminationOfContractB?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB && (
+                                                <ul className="mt-2 flex flex-col gap-1">
+                                                    {templateDetail?.warrantyAndMaintenance?.warrantyAndMaintenanceB?.map((term, index) => (
+                                                        <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {templateDetail?.PrivacyPolicy?.PrivacyPolicyB && (
                                                 <ul className="mt-2 flex flex-col gap-1">
                                                     {templateDetail?.PrivacyPolicy?.PrivacyPolicyB?.map((term, index) => (
                                                         <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
                                                     ))}
                                                 </ul>
-                                            </div>
-                                        )}
-                                        {templateDetail?.specialTermsA && (
-                                            <div className="mt-2">
-                                                <h5 className="font-semibold text-lg">Điều khoản đặc biệt bên A</h5>
-                                                <p>{templateDetail?.specialTermsB}</p>
-                                            </div>
-                                        )}
-                                        {templateDetail?.specialTermsB && (
-                                            <div className="mt-2">
-                                                <h5 className="font-semibold text-lg">Điều khoản đặc biệt bên B</h5>
-                                                <p>{templateDetail?.specialTermsB}</p>
-                                            </div>
-                                        )}
+                                            )}
+                                            {templateDetail?.specialTermsB && (<p className="ml-2">{templateDetail?.specialTermsB}</p>)}
+                                        </div>
+
                                     </div>
 
                                 </div>

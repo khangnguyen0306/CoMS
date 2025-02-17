@@ -1,22 +1,60 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Card, Statistic, Table, Button, Input, Space, Tag, Typography, List, Dropdown } from "antd";
-import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
+import {
+    Row,
+    Col,
+    Card,
+    Statistic,
+    Table,
+    Button,
+    Input,
+    Space,
+    Tag,
+    Typography,
+    List,
+    Dropdown,
+    Modal,
+    Form,
+    Select,
+    message
+} from "antd";
+import { SearchOutlined, EyeOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
-import { useGetPartnerListQuery } from '../../services/PartnerAPI';
+import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery } from '../../services/PartnerAPI';
+import { validationPatterns } from "../../utils/ultil";
 
 const { Link } = Typography;
 const { Search } = Input;
 
 const ManagePartner = () => {
     const navigate = useNavigate();
-    const { data: partnerData, isLoading: isFetching, error: fetchError } = useGetPartnerListQuery();
-    const [viewHistory, setViewHistory] = useState([]);
+
+    // --- State cho search & phân trang ---
     const [searchText, setSearchText] = useState("");
-    const [filteredData, setFilteredData] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    // currentPage được lưu dạng 1-based để hiển thị trên UI
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
 
+    // Gọi API: API yêu cầu page theo dạng 0-based nên truyền currentPage - 1
+    const { data: partnerData, isLoading: isFetching, error: fetchError, refetch } = useGetPartnerListQuery({
+        search: searchQuery,
+        page: currentPage - 1,
+        pageSize: pageSize,
+    });
 
+    const [CreatePartner, { isLoading }] = useCreatePartnerMutation();
+    const [EditPartner, { isLoading: isLoadingEdit }] = useEditPartnerMutation();
+    const [viewHistory, setViewHistory] = useState([]);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
+    const [bankAccounts, setBankAccounts] = useState([{ bankName: '', backAccountNumber: '' }]);
+    const [editingPartner, setEditingPartner] = useState(null);
 
+    // --- Xử lý viewHistory ---
+    const getViewHistory = () => {
+        return JSON.parse(localStorage.getItem('viewHistory')) || [];
+    };
 
     const handleDeleteItem = (key) => {
         const currentHistory = getViewHistory();
@@ -25,34 +63,22 @@ const ManagePartner = () => {
         setViewHistory(updatedHistory);
     };
 
-    // Lấy danh sách viewHistory khi component được mount
     useEffect(() => {
-        // Hàm đồng bộ viewHistory với partnerData
         const syncViewHistoryWithAPI = () => {
             const initialHistory = getViewHistory();
             if (partnerData) {
-                // Lọc ra những item có trong partnerData
                 const validHistory = initialHistory.filter((item) =>
-                    partnerData.some((partner) => partner.key === item.key)
+                    partnerData?.data?.content.some((partner) => partner.key === item.key)
                 );
-                // Nếu có sự thay đổi, cập nhật lại localStorage và state
                 if (validHistory.length !== initialHistory.length) {
                     localStorage.setItem('viewHistory', JSON.stringify(validHistory));
                 }
                 setViewHistory(validHistory);
             }
         };
-
-        // Đồng bộ hóa khi partnerData thay đổi
         syncViewHistoryWithAPI();
     }, [partnerData]);
 
-    //lấy viewHistory từ localStorage
-    const getViewHistory = () => {
-        return JSON.parse(localStorage.getItem('viewHistory')) || [];
-    };
-
-    //thêm viewHistory vào localStorage
     const addViewHistory = (record) => {
         const minimalRecord = {
             key: record.key,
@@ -61,40 +87,123 @@ const ManagePartner = () => {
             img: record.img,
         };
         const currentHistory = getViewHistory();
-
-        // Kiểm tra nếu item chưa có trong danh sách viewHistory
         if (!currentHistory.find((item) => item.key === minimalRecord.key)) {
-            // Thêm mới vào đầu danh sách
             const updatedHistory = [minimalRecord, ...currentHistory];
-
-            // Giới hạn số lượng lịch sử là 10
             const limitedHistory = updatedHistory.slice(0, 10);
-
-            // Lưu vào localStorage và cập nhật state
             localStorage.setItem('viewHistory', JSON.stringify(limitedHistory));
             setViewHistory(limitedHistory);
         }
     };
 
-
     const navigateToDetail = (record) => {
         addViewHistory(record);
-        navigate(`/partner/${record.key}`, { state: record });
+        navigate(`/partner/${record.partyId}`);
     };
 
-    const handleSearch = debounce((value) => {
-        if (value) {
-            const filtered = partnerData.filter(
-                (item) =>
-                    item.partnerName.toLowerCase().includes(value.toLowerCase()) ||
-                    item.spokesmanName.toLowerCase().includes(value.toLowerCase()) ||
-                    item.email.toLowerCase().includes(value.toLowerCase())
-            );
-            setFilteredData(filtered);
-        } else {
-            setFilteredData([]); // Reset to empty filtered data
-        }
+    // --- Xử lý search với debounce ---
+    const debouncedSearch = debounce((value) => {
+        setSearchQuery(value);
+        // Khi tìm kiếm, reset lại trang về 1 (1-based)
+        setCurrentPage(1);
     }, 300);
+
+    // --- Modal: Tạo partner mới ---
+    const showModal = () => {
+        setIsModalVisible(true);
+        form.resetFields();
+        setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
+    };
+
+    const handleOk = async () => {
+        try {
+            const values = await form.validateFields();
+            const bankingInfo = bankAccounts.map(account => ({
+                bankName: account.bankName,
+                backAccountNumber: account.accountNumber,
+            }));
+            const newPartnerData = {
+                ...values,
+                banking: bankingInfo,
+            };
+
+            const result = await CreatePartner(newPartnerData);
+            console.log(result);
+            if (result.data.status === "CREATED") {
+                message.success('Thêm mới thành công!');
+                refetch();
+                form.resetFields();
+                setBankAccounts([{ bankName: '', accountNumber: '' }]);
+                setIsModalVisible(false);
+            } else {
+                message.error('Thêm mới thất bại vui lòng thử lại!');
+            }
+        } catch (error) {
+            console.error("Error creating partner:", error);
+        }
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
+
+    const addBankAccount = () => {
+        setBankAccounts([...bankAccounts, { bankName: '', backAccountNumber: '' }]);
+    };
+
+    const handleBankChange = (index, field, value) => {
+        const newBankAccounts = bankAccounts.map((account, i) => 
+            i === index ? { ...account, [field]: value } : account
+        );
+        setBankAccounts(newBankAccounts);
+    };
+
+    // --- Xử lý phân trang của table ---
+    // Khi pageSize thay đổi, reset currentPage về 1
+    const handleTableChange = (pagination, filters, sorter) => {
+        if (pagination.pageSize !== pageSize) {
+            setCurrentPage(1);
+            setPageSize(pagination.pageSize);
+        } else {
+            setCurrentPage(pagination.current);
+        }
+    };
+
+    // --- Modal: Chỉnh sửa partner --- 
+    const showEditModal = (partner) => {
+        setEditingPartner(partner);
+        form.setFieldsValue(partner);
+        setBankAccounts(partner.banking || [{ bankName: '', backAccountNumber: '' }]);
+        setIsModalVisible(true);
+    };
+
+    const handleEditOk = async () => {
+        try {
+            const values = await form.validateFields();
+            const bankingInfo = bankAccounts.map(account => ({
+                bankName: account.bankName,
+                backAccountNumber: account.backAccountNumber,
+            }));
+            const updatedPartnerData = {
+                ...values,
+                banking: bankingInfo,
+            };
+            console.log(updatedPartnerData);
+            const result = await EditPartner({ ...updatedPartnerData, id: editingPartner.partyId });
+            console.log(result);
+            if (result.data.status === "OK") {
+                message.success('Cập nhật thành công!');
+                refetch();
+                form.resetFields();
+                setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
+                setIsModalVisible(false);
+                setEditingPartner(null);
+            } else {
+                message.error('Cập nhật thất bại vui lòng thử lại!');
+            }
+        } catch (error) {
+            console.error("Error updating partner:", error);
+        }
+    };
 
     const columns = [
         {
@@ -108,10 +217,7 @@ const ManagePartner = () => {
             dataIndex: 'partnerName',
             sorter: (a, b) => a.partnerName.localeCompare(b.partnerName),
             render: (text, record) => (
-                <Link
-                    onClick={() => navigateToDetail(record)}
-                    className="font-medium hover:text-blue-600"
-                >
+                <Link onClick={() => navigateToDetail(record)} className="font-medium hover:text-blue-600">
                     {text}
                 </Link>
             ),
@@ -122,8 +228,8 @@ const ManagePartner = () => {
             dataIndex: 'partnerType',
             width: '150px',
             filters: [
-                { text: 'Nhà cung cấp', value: 'Nhà cung cấp' },
-                { text: 'Khách hàng', value: 'Khách hàng' },
+                { text: 'Nhà cung cấp', value: 'PARTY_B' },
+                { text: 'Khách hàng', value: 'PARTY_A' },
             ],
             onFilter: (value, record) => record.partnerType === value,
             render: (type) => (
@@ -155,16 +261,6 @@ const ManagePartner = () => {
             width: '200px',
         },
         {
-            title: 'Ngân hàng',
-            dataIndex: 'Banking',
-            render: (banking) =>
-                banking
-                    ? `${banking.bankName || 'Không rõ'} - ${banking.accountNumber || 'Không rõ'}`
-                    : 'Không có thông tin',
-            width: '250px',
-        },
-
-        {
             title: 'Thao tác',
             width: '100px',
             render: (_, record) => (
@@ -176,20 +272,25 @@ const ManagePartner = () => {
                             navigateToDetail(record);
                         }}
                     />
+                    <Button
+                        icon={<EditOutlined />}
+                        onClick={() => showEditModal(record)}
+                    />
                 </Space>
             ),
         },
     ];
 
-
-
     return (
         <div>
-               <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+            <p
+                className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent'
+                style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
+            >
                 QUẢN LÝ THÔNG TIN KHÁCH HÀNG
-                </p>
+            </p>
 
-            <div className="mb-4 flex items-center gap-2">
+            <div className="mb-4 flex justify-between items-center gap-2">
                 <Dropdown
                     trigger={["click"]}
                     overlay={
@@ -197,10 +298,17 @@ const ManagePartner = () => {
                             dataSource={viewHistory}
                             renderItem={(item) => (
                                 <List.Item
-                                    style={{ cursor: 'pointer', border: '1.5px solid #89c4d9', borderRadius: '5px', marginBottom: '8px' }}
+                                    style={{
+                                        cursor: 'pointer',
+                                        border: '1.5px solid #89c4d9',
+                                        borderRadius: '5px',
+                                        marginBottom: '8px'
+                                    }}
                                     onClick={() => {
                                         setSearchText(item.partnerName);
-                                        handleSearch(item.partnerName);
+                                        setSearchQuery(item.partnerName);
+                                        // Reset lại trang về 1 khi chọn từ viewHistory
+                                        setCurrentPage(1);
                                     }}
                                 >
                                     <Space style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
@@ -215,11 +323,7 @@ const ManagePartner = () => {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                             <span
-                                                style={{
-                                                    color: 'red',
-                                                    cursor: 'pointer',
-                                                    fontSize: '16px',
-                                                }}
+                                                style={{ color: 'red', cursor: 'pointer', fontSize: '16px' }}
                                                 onClick={(e) => {
                                                     handleDeleteItem(item.key);
                                                     e.stopPropagation();
@@ -229,8 +333,6 @@ const ManagePartner = () => {
                                             </span>
                                         </div>
                                     </Space>
-
-
                                 </List.Item>
                             )}
                             style={{
@@ -238,7 +340,7 @@ const ManagePartner = () => {
                                 maxHeight: 200,
                                 overflowY: "auto",
                                 padding: "8px",
-                                background: "#fff",
+                                background: "#fff"
                             }}
                         />
                     }
@@ -248,25 +350,102 @@ const ManagePartner = () => {
                         placeholder="Tìm kiếm theo tên, công ty, email"
                         allowClear
                         enterButton
-                        onChange={(e) => setSearchText(e.target.value)}
+                        onChange={(e) => {
+                            setSearchText(e.target.value);
+                            //   debouncedSearch(e.target.value);
+                        }}
                         onSearch={(value) => {
-                            handleSearch(value);
+                            setSearchQuery(value);
+                            setCurrentPage(1);
                         }}
                         style={{ width: 350 }}
                     />
                 </Dropdown>
+                <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+                    Tạo partner mới
+                </Button>
             </div>
+
+            <Modal title={editingPartner ? "Chỉnh sửa Partner" : "Tạo Partner Mới"} open={isModalVisible} onOk={editingPartner ? handleEditOk : handleOk} onCancel={handleCancel}>
+                <Form form={form} layout="vertical">
+                    <Form.Item name="partyId"/>
+                    <Form.Item name="partnerType" label="Loại Partner" rules={[{ required: true }]}>
+                        <Select>
+                            <Select.Option value="PARTY_B">Nhà cung cấp</Select.Option>
+                            <Select.Option value="PARTY_A">Khách hàng</Select.Option>
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="partnerName" label="Tên Partner" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="spokesmanName" label="Người đại diện" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="address" label="Địa chỉ" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="taxCode" label="Mã số thuế" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="phone"
+                        label="Điện thoại"
+                        rules={[{
+                            required: true,
+                            pattern: validationPatterns.phoneNumber.pattern,
+                            message: validationPatterns.phoneNumber.message
+                        }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[{
+                            required: true,
+                            pattern: validationPatterns.email.pattern,
+                            message: validationPatterns.email.message
+                        }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <div>
+                        <h4>Ngân hàng</h4>
+                        {bankAccounts.map((bank, index) => (
+                            <div key={index} style={{ marginBottom: '10px' }}>
+                                <Form.Item className="mt-2">
+                                    <div className="flex flex-col gap-2 w-[70%] ml-[10px]">
+                                        <Input
+                                            placeholder="Tên ngân hàng"
+                                            value={bank.bankName}
+                                            onChange={(e) => handleBankChange(index, 'bankName', e.target.value)}
+                                        />
+                                        <Input
+                                            placeholder="Số tài khoản"
+                                            value={bank.backAccountNumber}
+                                            onChange={(e) => handleBankChange(index, 'backAccountNumber', e.target.value)}
+                                        />
+                                    </div>
+                                </Form.Item>
+                            </div>
+                        ))}
+                        <Button icon={<PlusOutlined />} onClick={addBankAccount}>Thêm ngân hàng</Button>
+                    </div>
+                </Form>
+            </Modal>
 
             <Table
                 columns={columns}
-                dataSource={filteredData.length > 0 ? filteredData : partnerData}
+                dataSource={partnerData?.data?.content}
                 loading={isFetching}
-                bordered
+                onChange={handleTableChange}
                 pagination={{
-                    pageSize: 10,
-                    showSizeChanger: true,
+                    current: currentPage,
+                    pageSize: pageSize,
+                    total: partnerData?.data?.totalElements || 0,
                     showTotal: (total) => `Tổng ${total} bản ghi`,
                 }}
+                bordered
                 components={{
                     body: {
                         cell: (props) => (
@@ -302,7 +481,6 @@ const ManagePartner = () => {
                     }
                 }}
             />
-
         </div>
     );
 };
