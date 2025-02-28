@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button, Image, Layout, Menu, notification, theme, Modal } from "antd";
-import { LaptopOutlined, LoginOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
+import { Image, Layout, Menu, notification, theme, Modal } from "antd";
+import { LoginOutlined, PlusCircleFilled } from "@ant-design/icons";
 import React, { useCallback, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
@@ -23,6 +23,7 @@ import { useDispatch, useSelector } from "react-redux";
 const { Content, Sider } = Layout;
 import { FaUserCog } from "react-icons/fa";
 import { LuWaypoints } from "react-icons/lu";
+import { FaFileCirclePlus } from "react-icons/fa6";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ const MainLayout = () => {
     'clause': '/clause',
     'user': '/admin/user',
     'contractPartner': '/contractpartner',
+    "createContract": "/createContract",
     '4': '/combo',
   }
 
@@ -68,11 +70,11 @@ const MainLayout = () => {
         { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
         { icon: FaTasks, label: 'Task', key: "task" },
-        { icon: GoLaw, label: 'Clause', key: "clause" },
+        { icon: GoLaw, label: 'Điều khoản', key: "clause" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
-            { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
+            { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
             { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
             { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
             { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },

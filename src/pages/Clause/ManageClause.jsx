@@ -1,7 +1,8 @@
+// isDelete sẽ có 3 trạng thái : đang hoạt động, đã xóa(khi user xóa đk), đã cũ(khi user edit thì đk cũ sẽ chuyển sang trạng thái đã cũ và tạo đk mới)
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Modal, List, Select, message, Skeleton, Card, Empty, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Pagination } from 'antd';
 import 'tailwindcss/tailwind.css';
-import { DeleteFilled } from '@ant-design/icons';
+import { DeleteFilled, EditFilled } from '@ant-design/icons';
 import { GrUpdate } from "react-icons/gr";
 import { useGetClauseManageQuery } from '../../services/ClauseAPI';
 import { useGetAllTypeClauseQuery, useCreateClauseMutation, useUpdateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
@@ -36,8 +37,6 @@ const ManageClause = () => {
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
-    console.log(selectedType);
-    console.log(clauseData?.data?.totalElements);
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -55,12 +54,9 @@ const ManageClause = () => {
     const calculateDaysAgo = (createdAt) => {
         const createdDate = convertToDate(createdAt);
         const today = new Date();
-
-        // Tính số mili giây giữa 2 ngày rồi chuyển sang ngày
         const differenceInMs = today - createdDate;
         const differenceInDays = Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
-
-        return differenceInDays;
+        return differenceInDays === 0 ? "Được tạo hôm nay" : `Được tạo ${differenceInDays} ngày trước`;
     };
 
 
@@ -68,11 +64,6 @@ const ManageClause = () => {
     const sortedClause = clauseData?.data?.content
         ?.slice()
         .filter(item => !item.isDelete)
-        .sort((a, b) => {
-            const dateA = convertToDate(a.createdAt);
-            const dateB = convertToDate(b.createdAt);
-            return sortOrder === 'ascend' ? dateA - dateB : dateB - dateA;
-        });
 
     console.log("Total items:", sortedClause || 0);
 
@@ -101,7 +92,6 @@ const ManageClause = () => {
 
     const handleUpdateClause = (clauseCode) => {
         const clauseToEdit = clauseData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
-        console.log(clauseToEdit);
         if (clauseToEdit) {
             form.setFieldsValue(clauseToEdit);
 
@@ -110,6 +100,7 @@ const ManageClause = () => {
             message.error('Không tìm thấy điều khoản!');
         }
     };
+
     const handleUpdateLegal = (clauseCode) => {
         const clauseToEdit = legalData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
         console.log(clauseToEdit);
@@ -144,6 +135,7 @@ const ManageClause = () => {
             refetchClause();
             refetchLegal();
             setIsModalOpenAdd(false);
+            setIsModalOpenAddLegal(false);
             form.resetFields();
         } catch (error) {
             console.error("Lỗi tạo điều khoản:", error);
@@ -179,7 +171,7 @@ const ManageClause = () => {
                         refetchLegal();
                         message.success('Xóa thành công');
                     } else
-                        message.success('Xóa thất bại vui lòng thử lại');
+                        message.error('Xóa thất bại vui lòng thử lại');
 
                 }
                 catch (error) {
@@ -196,7 +188,7 @@ const ManageClause = () => {
     };
 
 
-    if (loadingClause || loadingType) return <Skeleton active />;
+    if (loadingClause || loadingType || loadingLegal) return <Skeleton active />;
     // if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
     return (
         <ConfigProvider
@@ -231,7 +223,7 @@ const ManageClause = () => {
                     {/** Gọi component quản lý điều khoản */}
                     <div className="p-4 min-h-[100vh]">
                         {/* Sửa nested <p> thành <div> */}
-                        <div className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                        <div className='font-bold mb-10  text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
                                 Quản Lý Điều Khoản
                             </div>
@@ -253,7 +245,7 @@ const ManageClause = () => {
                             >
 
                                 {typeData?.data.map(item => (
-                                    <Option key={item.id} value={item.id}>
+                                    <Option key={item.original_term_id} value={item.original_term_id}>
                                         {item.name}
                                     </Option>
                                 ))}
@@ -296,7 +288,7 @@ const ManageClause = () => {
                                 <Form.Item name="type" label="Loại điều khoản">
                                     <Select placeholder="Chọn loại điều khoản">
                                         {typeData?.data.map(item => (
-                                            <Option key={item.id} value={item.id}>
+                                            <Option key={item.original_term_id} value={item.original_term_id}>
                                                 {item.name}
                                             </Option>
                                         ))}
@@ -346,7 +338,7 @@ const ManageClause = () => {
                                 <Form.Item name="type" label="Loại điều khoản">
                                     <Select placeholder="Chọn loại điều khoản">
                                         {typeData?.data.map(item => (
-                                            <Option key={item.id} value={item.id}>
+                                            <Option key={item.original_term_id} value={item.original_term_id}>
                                                 {item.name}
                                             </Option>
                                         ))}
@@ -435,20 +427,21 @@ const ManageClause = () => {
                                                             handleUpdateClause(clause.clauseCode);
                                                         }}
                                                     >
-                                                        <GrUpdate />
+                                                        <EditFilled />
                                                     </Button>
                                                     <Button
                                                         danger
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
+                                                            console.log(clause)
                                                             handleDelete(clause.id);
                                                         }}
                                                     >
                                                         <DeleteFilled />
                                                     </Button>
                                                 </div>
-                                                <p>Xóa {clause.daysDeleted} ngày trước</p>
+                                                <p>{calculateDaysAgo(clause.createdAt)}</p>
                                             </div>,
                                         ]}
                                     >
@@ -457,7 +450,7 @@ const ManageClause = () => {
                                             title={
                                                 <div className="flex flex-row items-center gap-8">
                                                     {/* Cột mã điều khoản */}
-                                                    <div className=" flex flex-col items-center">
+                                                    <div className=" flex flex-col items-center min-w-[100px]">
                                                         <p>Mã ĐK</p>
                                                         <p className="font-bold text-base">{clause.clauseCode}</p>
                                                     </div>
@@ -503,7 +496,7 @@ const ManageClause = () => {
                 <TabPane tab="Căn cứ Pháp Lý" key="2">
                     {/** Gọi component quản lý căn cứ pháp lý */}
                     <div className="p-4 min-h-[100vh]">
-                        <div className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                        <div className='font-bold mb-10 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
                                 Quản Lý Căn Cứ Pháp Lý
                             </div>
@@ -639,7 +632,11 @@ const ManageClause = () => {
                                                     <Text strong>Nội dung: </Text> {clause.value}
                                                 </p>
                                                 <p>
-                                                    <Text strong>Ngày tạo: </Text> {clause.createdAt}
+                                                    <Text strong>Ngày tạo: </Text> {dayjs(new Date(
+                                                        clause.createdAt[0],
+                                                        clause.createdAt[1] - 1,
+                                                        clause.createdAt[2]
+                                                    )).format("DD/M/YYYY")}
                                                 </p>
                                             </div>
                                         </Card>
@@ -667,7 +664,7 @@ const ManageClause = () => {
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleDelete(clause.id);
+                                                            handleDelete(clause.original_term_id);
                                                         }}
                                                     >
                                                         <DeleteFilled />
@@ -691,7 +688,11 @@ const ManageClause = () => {
                                                         </Tag>
                                                         <p className="text-[#3378cc] font-bold text-base">{clause.label}</p>
                                                         <p className="text-gray-400 text-sm">Nội dung: {clause.value}</p>
-                                                        <p className="text-gray-400 text-sm">Ngày tạo: {clause.createdAt}</p>
+                                                        <p className="text-gray-400 text-sm">Ngày tạo: {dayjs(new Date(
+                                                            clause.createdAt[0],
+                                                            clause.createdAt[1] - 1,
+                                                            clause.createdAt[2]
+                                                        )).format("DD/M/YYYY")}</p>
                                                     </div>
                                                 </div>
                                             }

@@ -20,14 +20,14 @@ export const clauseAPI = createApi({
 
         getClauseManage: builder.query({
             query: ({ keyword, page, size, typeTermIds }) => ({
-                url: `/terms/get-all?typeTermIds=${typeTermIds}&keyword=${keyword}&page=${page}&size=${size}`,
+                url: `/terms/get-all?typeTermIds=${typeTermIds}&keyword=${keyword?.trim() || ""}&page=${page}&size=${size}`,
                 method: "GET",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
         getLegal: builder.query({
-            query: ({ page, size }) => ({
-                url: `/terms/get-all?typeTermIds=8&page=${page}&size=${size}`,
+            query: ({ page, size, keyword }) => ({
+                url: `/terms/get-all?typeTermIds=8&page=${page}&size=${size}&keyword=${keyword?.trim() || ""}`,
                 method: "GET",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
@@ -95,8 +95,11 @@ export const clauseAPI = createApi({
 export const {
     useGetClauseManageQuery,
     useGetAllTypeClauseQuery,
+    useLazyGetAllTypeClauseQuery,
     useCreateClauseMutation,
     useUpdateClauseMutation,
     useGetLegalQuery,
     useDeleteClauseMutation,
+    useLazyGetLegalQuery,
+    useLazyGetClauseManageQuery
 } = clauseAPI;
