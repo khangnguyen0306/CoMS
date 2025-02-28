@@ -36,8 +36,8 @@ export const partnerAPI = createApi({
         }),
 
         getPartnerList: builder.query({
-            query: ({ search, page, pageSize }) => ({
-                url: `parties/get-all?keyword=${search}&page=${page}&pageSize=${pageSize}`,
+            query: ({ keyword, page, size }) => ({
+                url: `parties/get-all?keyword=${keyword}&page=${page}&pageSize=${size}`,
                 method: "GET",
             }),
             providesTags: (result, error, Partner) =>
@@ -57,7 +57,7 @@ export const partnerAPI = createApi({
 
         editPartner: builder.mutation({
             query: ({ id, ...updatedPartnerData }) => ({
-                url: `parties/update/${id}`, 
+                url: `parties/update/${id}`,
                 method: "PUT",
                 body: updatedPartnerData,
             }),
@@ -79,6 +79,7 @@ export const {
     useGetPartnerInfoDetailQuery,
     useGetContractByPartnerQuery,
     useGetPartnerListQuery,
+    useLazyGetPartnerListQuery,
     useCreatePartnerMutation,
     useEditPartnerMutation
 } = partnerAPI;

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Steps, Button, Input, DatePicker, Checkbox, message, Form, Collapse, Skeleton, Empty, Card, Row, Col, Select, ConfigProvider, Radio, Switch, Spin, Divider, Space } from "antd";
+import { Steps, Button, Input, DatePicker, Checkbox, message, Form, Collapse, Skeleton, Empty, Card, Row, Col, Select, ConfigProvider, Radio, Switch, Spin, Divider, Space, Popconfirm, Modal, Popover } from "antd";
 import RichTextEditor, {
     BaseKit, Bold, BulletList, Clear, Color, ColumnActionButton, FontFamily, FontSize, Heading, Highlight, History, HorizontalRule, Image, ImportWord,
-    Indent, Italic, LineHeight, Link, Mention, OrderedList, SearchAndReplace, SlashCommand, Strike, Table, TextAlign, Underline, ExportWord
+    Indent, Italic, Link, Mention, OrderedList, SearchAndReplace, SlashCommand, Strike, Table, TextAlign, Underline, ExportWord,
 } from 'reactjs-tiptap-editor';
 import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
@@ -10,6 +10,7 @@ import { FaDeleteLeft } from "react-icons/fa6";
 import { GrNext } from "react-icons/gr";
 import { GrPrevious } from "react-icons/gr";
 import { BsSave2Fill } from "react-icons/bs";
+
 const extensions = [
     BaseKit.configure({
     }),
@@ -29,7 +30,10 @@ const extensions = [
     OrderedList,
     TextAlign.configure({ types: ['heading', 'paragraph'], spacer: true }),
     Indent,
-    LineHeight,
+    // LineHeight.configure({
+    //     defaultHeight: '100%',
+    //     lineHeights:['100%','100%','100%','100%']
+    // }),
     Link,
     Image.configure({
         upload: (files) =>
@@ -62,21 +66,33 @@ const extensions = [
 
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import TextArea from "antd/es/input/TextArea";
-import { useGetContractTypeQuery } from "../../services/ContractAPI";
-import { PlusOutlined } from "@ant-design/icons";
+import { useCreateContractTypeMutation, useDeleteContractTypeMutation, useEditContractTypeMutation, useGetContractTypeQuery } from "../../services/ContractAPI";
+import { DeleteOutlined, EditFilled, PlusOutlined } from "@ant-design/icons";
+import { useCreateClauseMutation, useGetAllTypeClauseQuery, useGetClauseManageQuery, useLazyGetAllTypeClauseQuery, useLazyGetClauseManageQuery, useLazyGetLegalQuery } from "../../services/ClauseAPI";
+import LazySelect from "../../hooks/LazySelect";
+import { useCreateTemplateMutation } from "../../services/TemplateAPI";
+import { useNavigate } from "react-router-dom";
+import { PreviewSection } from "../../components/ui/PreviewSection";
 const { Step } = Steps;
 
 const CreateTemplate = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
+    const containerRef = useRef(null);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isOverflowing, setIsOverflowing] = useState(false);
     const [templateName, setTemplateName] = useState("");
     const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()      ///fix rerendering
-    const { data: contractType, isLoading: isLoadingType, isError: ErrorLoadingType } = useGetContractTypeQuery()
+    const { data: contractType, isLoading: isLoadingType, isError: ErrorLoadingType, refetch } = useGetContractTypeQuery()
+    const [getAllTypeClause, { data: allTypeClause, isLoading: loadingType }] = useLazyGetAllTypeClauseQuery();
+    const [getContractLegal, { data: legalData, isLoading: loadingLegal }] = useLazyGetLegalQuery();
+    const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery({ typeTermIds: 9 });
+    const [CreateTemplate, { isLoading: loadingCreateTemplate }] = useCreateTemplateMutation()
     const [content, setContent] = useState('');
     const [isVATChecked, setIsVATChecked] = useState(false);
     const [selectedGeneralTerms, setSelectedGeneralTerms] = useState([]);
     const [selectedlegalBasis, setSelectedlegalBasis] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState("generalTermsOptions"); // New state for selected category
+    const [selectedOthersTerms, setSelectedOthersTerms] = useState([]);
     const [isAppendixEnabled, setIsAppendixEnabled] = useState(false);
     const [isTransferEnabled, setIsTransferEnabled] = useState(false);
     const [isDateLateChecked, setIsDateLateChecked] = useState(false);
@@ -84,7 +100,79 @@ const CreateTemplate = () => {
     const [isAutoRenew, setIsAutoRenew] = useState(false);
     const [isSuspend, setIsSuspend] = useState(false);
     const [newType, setNewType] = useState("");
+    const [newTypeCreate, setNewTypeCreate] = useState('')
     const inputRef = useRef(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const navigate = useNavigate()
+    const [editValue, setEditValue] = useState({
+        label: '',
+        value: ''
+    });
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newLegalBasis, setNewLegalBasis] = useState({ name: '', content: '' });
+
+    const [isAddGeneralModalOpen, setIsAddGeneralModalOpen] = useState(false);
+    const [newGeneralTerm, setNewGeneralTerm] = useState({ name: "", typeId: null, content: "" });
+
+    const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
+    const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation()
+    const [editContractType, { isLoadingEditType }] = useEditContractTypeMutation()
+    const [deleteContractType, { isLoadingDeleteType }] = useDeleteContractTypeMutation()
+
+    const loadLegalData = async ({ page, size, keyword }) => {
+        return getContractLegal({ page, size, keyword }).unwrap();
+    };
+    const loadGenaralData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 9 }).unwrap();
+    };
+
+    const loadDKBSData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 1 }).unwrap();
+    };
+    const loadQVNVCBData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 2 }).unwrap();
+    };
+    const loadBHVBTData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 3 }).unwrap();
+    };
+    const loadVPBTTHData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 4 }).unwrap();
+    };
+    const loadCDHDData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 5 }).unwrap();
+    };
+    const loadGQTCData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 6 }).unwrap();
+    };
+    const loadBMData = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 7 }).unwrap();
+    };
+    const loadDKKata = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
+    };
+
+    useEffect(() => {
+        if (containerRef.current) {
+            const containerHeight = containerRef.current.scrollHeight;
+            setIsOverflowing(containerHeight > 270);
+        }
+    }, [selectedlegalBasis]);
+
+    const toggleExpand = () => {
+        setIsExpanded(!isExpanded);
+    };
+
+    const showAddGeneralModal = async (value) => {
+        setNewGeneralTerm({ name: "", typeId: value, content: "" });
+        setIsAddGeneralModalOpen(true);
+    }
+
+    const handleAddGeneralCancel = () => {
+        setIsAddGeneralModalOpen(false);
+        setNewGeneralTerm({ name: "", typeId: null, content: "" });
+    };
+
+
     function debounce(func, wait) {
         let timeout;
         return function (...args) {
@@ -98,14 +186,6 @@ const CreateTemplate = () => {
         form.setFieldsValue({ contractContent: value });
     }, 100), []);
 
-
-    // useEffect(() => {
-    //     const getInitials = (name) => name.toUpperCase().split(' ').map(word => word[0]).join('');
-    //     const currentDate = new Date();
-    //     // Cập nhật định dạng ngày để bao gồm giờ, phút và giây
-    //     const formattedDate = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}${currentDate.getHours()}${currentDate.getMinutes()}${currentDate.getSeconds()}`;
-    //     setContractNumber(`${getInitials(templateName)}-${formattedDate}`);
-    // }, [templateName]);
 
     // Move to next step
     const next = () => {
@@ -126,152 +206,47 @@ const CreateTemplate = () => {
     const handleTemplateNameChange = (e) => {
         setTemplateName(e.target.value);
     };
+    const handleTypeChange = (e) => {
+        setEditValue({
+            label: e.target.value,
+            value: editValue.value
+        });
+    };
 
     // Hàm xử lý thay đổi tiêu đề hợp đồng và cập nhật số hợp đồng
     const handleContractTitleChange = (e) => {
         const newTitle = e.target.value;
         form.setFieldsValue({ contractTitle: newTitle });
         setTemplateName(e.target.value)
-        // updateContractNumber(newTitle);
     };
 
-    // Hàm cập nhật số hợp đồng dựa trên tên tiêu đề mới
-    // const updateContractNumber = (newTitle) => {
-    //     const getInitials = (name) => name.toUpperCase().split(' ').map(word => word[0]).join('');
-    //     const formattedDate = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}`;
-    //     setContractNumber(`${getInitials(newTitle)}${formattedDate}`);
-    // };
+
+    const handleContractTypeChange = (e) => {
+        const newType = e;
+        form.setFieldsValue({ contractTypeId: newType });
+        setNewType(e)
+    };
 
     const [selectedOtherTypeTerms, setSelectedOtherTypeTerms] = useState([]);
 
     // Xử lý thay đổi checkbox
     const handleCheckboxChange = (checkedValues) => {
         setSelectedOtherTypeTerms(checkedValues);
-        const currentFields = form.getFieldsValue(); // Lấy các giá trị hiện tại của form
+        const currentFields = form.getFieldsValue();
         const newFields = {};
 
-        if (checkedValues.includes("additional")) {
-            newFields.additional = currentFields.additional || {
-                additionalCommon: [],
-                additionalA: [],
-                additionalB: [],
+        checkedValues.forEach((value) => {
+            newFields[value] = currentFields[value] || {
+                Common: [],
+                A: [],
+                B: [],
             };
-        }
-        if (checkedValues.includes("RightsAndObligations")) {
-            newFields.RightsAndObligations = currentFields.RightsAndObligations || {
-                rightsCommon: [],
-                rightsA: [],
-                rightsB: [],
-            };
-        }
-        if (checkedValues.includes("warrantyAndMaintenance")) {
-            newFields.warrantyAndMaintenance = currentFields.warrantyAndMaintenance || {
-                warrantyCommon: [],
-                warrantyA: [],
-                warrantyB: [],
-            };
-        }
-        if (checkedValues.includes("breachAndDamages")) {
-            newFields.breachAndDamages = currentFields.breachAndDamages || {
-                breachCommon: [],
-                breachA: [],
-                breachB: [],
-            };
-        }
-        if (checkedValues.includes("TerminationOfContract")) {
-            newFields.TerminationOfContract = currentFields.TerminationOfContract || {
-                terminationCommon: [],
-                terminationA: [],
-                terminationB: [],
-            };
-        }
-        if (checkedValues.includes("DisputeResolutionClause")) {
-            newFields.DisputeResolutionClause = currentFields.DisputeResolutionClause || {
-                disputeCommon: [],
-                disputeA: [],
-                disputeB: [],
-            };
-        }
-        if (checkedValues.includes("PrivacyPolicy")) {
-            newFields.PrivacyPolicy = currentFields.PrivacyPolicy || {
-                privacyCommon: [],
-                privacyA: [],
-                privacyB: [],
-            };
-        }
+        });
 
         form.setFieldsValue({
             ...currentFields,
             ...newFields,
         });
-    };
-
-    const optionsMap = {
-        legalBasis: [
-            {
-                label: "Cam kết chung",
-                value: "Các bên cam kết thực hiện đúng các điều khoản trong Hợp Đồng đã ký. Mọi điều chỉnh hay bổ sung chỉ có giá trị khi các bên đã thoả thuận bằng văn bản"
-            },
-            {
-                label: "Hợp đồng này gắn với lợi ích và trách nhiệm của các bên tham gia ký kết. Từ những điều khoản đã nói ở trên, không bên nào có quyền chuyển nhượng một phần hoặc toàn bộ Hợp đồng này cho một bên khác nếu chưa có sự chấp thuận của bên kia",
-                value: "Hợp đồng này gắn với lợi ích và trách nhiệm của các bên tham gia ký kết. Từ những điều khoản đã nói ở trên, không bên nào có quyền chuyển nhượng một phần hoặc toàn bộ Hợp đồng này cho một bên khác nếu chưa có sự chấp thuận của bên kia"
-            },
-            {
-                label: "Điều khoản chung 3",
-                value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004"
-            },
-        ],
-        additional: [
-            { label: "Bổ sung chung", value: "additionalCommon" },
-            { label: "Bổ sung riêng bên A", value: "additionalA" },
-            { label: "Bổ sung riêng bên B", value: "additionalB" },
-        ],
-        specialConditions: [
-            { label: "Đặc biệt chung", value: "specialCommon" },
-            { label: "Đặc biệt riêng bên A", value: "specialA" },
-            { label: "Đặc biệt riêng bên B", value: "specialB" },
-        ],
-        generalTermsOptions: [
-            { label: "Điều khoản chung 1", value: "Căn cứ Bộ luật Dân sự năm 2015" },
-            { label: "Điều khoản chung 2", value: "Căn cứ Luật Thương mại năm 2005" },
-            { label: "Điều khoản chung 3", value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004" },
-        ],
-        RightsAndObligations: [
-            { label: "Điều khoản chung 1", value: "Căn cứ Bộ luật Dân sự năm 2015" },
-            { label: "Điều khoản chung 2", value: "Căn cứ Luật Thương mại năm 2005" },
-            { label: "Điều khoản chung 3", value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004" },
-        ],
-        warrantyAndMaintenance: [
-            { label: "Điều khoản chung 1", value: "Căn cứ Bộ luật Dân sự năm 2015" },
-            { label: "Điều khoản chung 2", value: "Căn cứ Luật Thương mại năm 2005" },
-            { label: "Điều khoản chung 3", value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004" },
-        ],
-        breachAndDamages: [
-            { label: "Điều khoản chung 1", value: "Căn cứ Bộ luật Dân sự năm 2015" },
-            { label: "Điều khoản chung 2", value: "Căn cứ Luật Thương mại năm 2005" },
-            { label: "Điều khoản chung 3", value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004" },
-        ],
-        TerminationOfContract: [
-            { label: "Điều khoản chung 1", value: "Căn cứ Bộ luật Dân sự năm 2015" },
-            { label: "Điều khoản chung 2", value: "Căn cứ Luật Thương mại năm 2005" },
-            { label: "Điều khoản chung 3", value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004" },
-        ],
-        DisputeResolutionClause: [
-            { label: "Điều khoản chung 1", value: "Căn cứ Bộ luật Dân sự năm 2015" },
-            { label: "Điều khoản chung 2", value: "Căn cứ Luật Thương mại năm 2005" },
-            { label: "Điều khoản chung 3", value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004" },
-        ],
-        PrivacyPolicy: [
-            { label: "Điều khoản chung 1", value: "Căn cứ Bộ luật Dân sự năm 2015" },
-            { label: "Điều khoản chung 2", value: "Căn cứ Luật Thương mại năm 2005" },
-            { label: "Điều khoản chung 3", value: "Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004" },
-        ],
-    };
-
-    // Update the handleSelectChange function to filter based on selected category
-    const handleCategoryChange = (value) => {
-        setSelectedCategory(value);
-        // form.setFieldsValue({ generalTerms: [] });
     };
 
     useEffect(() => {
@@ -283,6 +258,11 @@ const CreateTemplate = () => {
         form.setFieldsValue({ generalTerms: newValues });
         setSelectedGeneralTerms(newValues);
     };
+    
+    const handleSelectDKKChange = (newValues) => {
+        form.setFieldsValue({ otherTerms: newValues });
+        setSelectedOthersTerms(newValues);
+    };
 
     const handleRemoveTerm = (termToRemove) => {
         const updatedTerms = selectedGeneralTerms.filter(term => term !== termToRemove);
@@ -290,6 +270,14 @@ const CreateTemplate = () => {
         setSelectedGeneralTerms(updatedTerms);
         // handleSelectChange(updatedTerms);
     };
+
+    const handleRemoveDKKTerm = (termToRemove) => {
+        const updatedTerms = selectedOtherTypeTerms.filter(term => term !== termToRemove);
+        form.setFieldsValue({ otherTerms: updatedTerms });
+        setSelectedOtherTypeTerms(updatedTerms);
+        // handleSelectChange(updatedTerms);
+    };
+
     useEffect(() => {
         const initialTerms = form.getFieldValue('legalBasis') || [];
         setSelectedlegalBasis(initialTerms);
@@ -308,64 +296,252 @@ const CreateTemplate = () => {
         // handleSelectChange(updatedTerms);
     };
 
-    const handleChildSelectChange = (key, newValues) => {
-        const currentValues = form.getFieldValue(key.split(',')[0]) || {};
-        const updatedValues = {
-            ...currentValues,
-            [key]: newValues,
-        };
-        form.setFieldsValue({ [key.split(',')[0]]: updatedValues });
+    const handleChildSelectChange = (typeKey, fieldKey, newValues) => {
+        const currentFormValues = form.getFieldsValue(true);
+
+        // Lấy tất cả giá trị đã chọn từ các field con khác trong cùng loại điều khoản
+        const otherFieldsInSameType = ["Common", "A", "B"].filter((key) => key !== fieldKey);
+        const selectedValuesInSameType = otherFieldsInSameType.reduce((acc, key) => {
+            const values = (currentFormValues[typeKey]?.[key] || []).map((item) => item.value);
+            acc[key] = values;
+            return acc;
+        }, {});
+
+        // Kiểm tra xem có giá trị nào trong newValues đã tồn tại ở các field con khác không
+        const duplicateValues = newValues.filter((item) => {
+            return Object.entries(selectedValuesInSameType).some(([key, values]) => {
+                if (values.includes(item.value)) {
+                    item.duplicateField = key;
+                    return true;
+                }
+                return false;
+            });
+        });
+
+        // Nếu có giá trị trùng, hiển thị cảnh báo và lọc giá trị
+        if (duplicateValues.length > 0) {
+            duplicateValues.forEach((item) => {
+                message.error(
+                    `Điều khoản đã được chọn ở ${displayLabels[typeKey][item.duplicateField]}. Bạn không thể chọn cùng 1 điều khoản ở 2 bên.`
+                );
+            });
+
+            // Lọc bỏ các giá trị trùng
+            const validValues = newValues.filter(
+                (item) => !Object.values(selectedValuesInSameType).flat().includes(item.value)
+            );
+
+            // Cập nhật form với giá trị đã lọc
+            form.setFieldsValue({
+                [typeKey]: {
+                    ...(currentFormValues[typeKey] || {}),
+                    [fieldKey]: validValues,
+                },
+            });
+        } else {
+            // Cập nhật form bình thường nếu không có trùng
+            form.setFieldsValue({
+                [typeKey]: {
+                    ...(currentFormValues[typeKey] || {}),
+                    [fieldKey]: newValues,
+                },
+            });
+        }
     };
 
     const displayLabels = {
-        // 'legalBasisCommon': "Căn phứ pháp lý chung",
-        // 'legalBasisA': "Căn cứ pháp lý chỉ riêng bên A",
-        // 'legalBasisB': "Căn cứ pháp lý chỉ riêng bên B",
-        'additionalCommon': "Bổ sung chung",
-        'additionalA': "Bổ sung riêng bên A",
-        'additionalB': "Bổ sung riêng bên B",
-        'specialCommon': "Đặc biệt chung",
-        'specialA': "Đặc biệt riêng bên A",
-        'specialB': "Đặc biệt riêng bên B",
-        'warrantyAndMaintenanceCommon': "Điền khoản bảo hành và bảo trì chung",
-        'warrantyAndMaintenanceA': "Điều khoản bảo hành và bảo trì riêng bên A",
-        'warrantyAndMaintenanceB': "Điều khoản bảo hành và bảo trì riêng bên B",
-        'breachAndDamagesCommon': "Điều khoản pháp lý chung",
-        'breachAndDamagesA': "Điều khoản pháp lý riêng bên A",
-        'breachAndDamagesB': "Điều khoản pháp lý riêng bên B",
-        'terminationOfContractCommon': "Điều khoản chấm dứt hợp đồng chung",
-        'terminationOfContractA': "Điều khoản chấm dứt hợp đồng riêng bên A",
-        'terminationOfContractB': "Điều khoản chấm dứt hợp đồng riêng bên B",
-        'disputeResolutionClauseCommon': "Điều khoản giải quyết tranh chấp chung",
-        'disputeResolutionClauseA': "Điều khoản giải quyết tranh chấp riêng bên A",
-        'disputeResolutionClauseB': "Điều khoản giải quyết tranh chấp riêng bên B",
-        'privacyPolicyCommon': "Điều khoản chính sách bảo mật chung",
-        'privacyPolicyA': "Điều khoản chính sách bảo mật riêng bên A",
-        'privacyPolicyB': "Điều khoản chính sách bảo mật riêng bên B",
+        '1': {
+            "Common": "Điều khoản bổ sung chung",
+            "A": "Điều khoản bổ sung riêng bên A",
+            "B": "Điều khoản bổ sung riêng bên B",
+        },
+        '2': {
+            "Common": "Quyền và nghĩa vụ chung",
+            "A": "Quyền và nghĩa vụ riêng bên A",
+            "B": "Quyền và nghĩa vụ riêng bên B",
+        },
+        '3': {
+            "Common": "Điều khoản Bảo hành và bảo trì chung",
+            "A": "Điều khoản Bảo hành và bảo trì riêng bên A",
+            "B": "Điều khoản Bảo hành và bảo trì riêng bên B",
+        },
+        '4': {
+            "Common": "Điều khoản vi phạm và thiệt hại chung",
+            "A": "Điều khoản vi phạm và thiệt hại riêng bên A",
+            "B": "Điều khoản vi phạm và thiệt hại riêng bên B",
+        },
+        '5': {
+            "Common": "Điều khoản chấm dứt hợp đồng chung",
+            "A": "Điều khoản chấm dứt hợp đồng riêng bên A",
+            "B": "Điều khoản chấm dứt hợp đồng riêng bên B",
+        },
+        '6': {
+            "Common": "Điều khoản giải quyết tranh chấp chung",
+            "A": "Điều khoản giải quyết tranh chấp riêng bên A",
+            "B": "Điều khoản giải quyết tranh chấp riêng bên B",
+        },
+        '7': {
+            "Common": "Điều khoản bảo mật chung",
+            "A": "Điều khoản bảo mật riêng bên A",
+            "B": "Điều khoản bảo mật riêng bên B",
+        }
     }
 
     const onNewTypeChange = (e) => {
-        setNewType(e.target.value);
+        console.log(e)
+        setNewTypeCreate(e.target.value);
     };
 
     const addNewType = async () => {
-        if (!newType.trim()) return message.warning("Vui lòng nhập loại hợp đồng!");
+        if (!newTypeCreate.trim()) return message.warning("Vui lòng nhập loại hợp đồng!");
         try {
-            //   await createContractType({ name: newType }).unwrap();
+            await createContractType({ name: newTypeCreate }).unwrap();
+            setNewTypeCreate("");
             message.success("Thêm loại hợp đồng thành công!");
-            setNewType(""); // Reset input
-            refetch(); // Reload danh sách từ API
+            refetch();
         } catch (error) {
-            message.error("Lỗi khi tạo loại hợp đồng!");
+            if (error.data == "exist") {
+                message.error("Loại hợp đồng đã tồn tại!");
+            } else {
+                message.error("Lỗi khi tạo loại hợp đồng!");
+            }
+
         }
     };
+
+
+    const showEditModal = (option) => {
+        // setIsDropdownOpen(false)
+        setEditValue(option);
+        setIsEditModalOpen(true);
+
+    };
+
+    const handleEditOk = async () => {
+        if (!editValue.label || !editValue.value) {
+            message.warning("Tên loại hợp đồng không được để trống!");
+            return;
+        }
+        try {
+            await editContractType({ name: editValue.label, id: editValue.value }).unwrap();
+            message.success("Sửa hợp đồng thành công!");
+            setEditValue({
+                label: '',
+                value: ''
+            });
+            refetch();
+            setIsEditModalOpen(false);
+        } catch (error) {
+            console.log(error);
+            if (error.data == "exist") {
+                message.error("Loại hợp đồng đã tồn tại!");
+            } else {
+                message.error("Lỗi khi tạo loại hợp đồng!");
+            }
+        }
+    };
+
+    const handleDeleteType = async (id) => {
+        try {
+            await deleteContractType(id).unwrap();
+            message.success("Xóa hợp đồng thành công!");
+            refetch();
+            if (form.getFieldValue("contractType") === id) {
+                form.setFieldsValue({ contractType: undefined });
+            }
+        } catch (error) {
+            console.log(error);
+            message.error("Lỗi khi xóa loại hợp đồng!");
+        }
+    };
+
+
+    const showAddModal = () => {
+        setIsAddModalOpen(true);
+    };
+
+    const handleAddOk = async () => {
+        let name = form.getFieldValue('legalLabel') || '';
+        let content = form.getFieldValue('legalContent') || '';
+        console.log(name, content);
+        try {
+            const result = await createClause({ idType: 8, label: name, value: content }).unwrap();
+            console.log(result);
+            if (result.status === "CREATED") {
+                message.success("Tạo điều khoản thành công");
+            }
+            loadLegalData();
+            setIsAddModalOpen(false);
+            form.resetFields();
+        } catch (error) {
+            console.error("Lỗi tạo điều khoản:", error);
+            message.error("Có lỗi xảy ra khi tạo điều khoản");
+        }
+
+    };
+
+    const handleAddCancel = () => {
+        setIsAddModalOpen(false);
+    };
+
+    const handleAddOkGeneralTerm = async () => {
+        const { name, typeId, content } = newGeneralTerm;
+        if (!name || !typeId || !content) {
+            message.error("Vui lòng nhập đầy đủ thông tin!");
+            return;
+        }
+        try {
+            const result = await createClause({ idType: typeId, label: name, value: content }).unwrap();
+            if (result.status === "CREATED") {
+                message.success("Tạo điều khoản thành công");
+            }
+            switch (typeId.toString()) {
+                case "1":
+                    await loadDKBSData({ page: 0, size: 10 });
+                    break;
+                case "2":
+                    await loadQVNVCBData({ page: 0, size: 10 });
+                    break;
+                case "3":
+                    await loadBHVBTData({ page: 0, size: 10 });
+                    break;
+                case "4":
+                    await loadVPBTTHData({ page: 0, size: 10 });
+                    break;
+                case "5":
+                    await loadCDHDData({ page: 0, size: 10 });
+                    break;
+                case "6":
+                    await loadGQTCData({ page: 0, size: 10 });
+                    break;
+                case "7":
+                    await loadBMData({ page: 0, size: 10 });
+                    break;
+                case "9":
+                    await loadGenaralData({ page: 0, size: 10 });
+                    break;
+                case "10":
+                    await loadDKKata({ page: 0, size: 10 });
+                    break;
+                default:
+                    console.warn("Không tìm thấy typeId phù hợp:", typeId);
+            }
+
+            handleAddGeneralCancel();
+
+        } catch (error) {
+            console.error("Lỗi tạo điều khoản:", error);
+            message.error("Có lỗi xảy ra khi tạo điều khoản");
+        }
+    };
+
     console.log(form.getFieldsValue())
-    // Steps content
+
     const steps = [
         {
             title: "Nhập tên template",
             content: (
-                <Form form={form} layout="vertical">
+                <Form form={form} layout="vertical" onFinish={(values) => handleSubmit(values)}>
                     <Form.Item
                         label="Tên template"
                         name="templateName"
@@ -375,13 +551,14 @@ const CreateTemplate = () => {
                     </Form.Item>
                     <Form.Item
                         label="Loại hợp đồng"
-                        name="contractType"
+                        name="contractTypeId"
                         rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}
                     >
                         <Select
                             showSearch
                             style={{ width: "100%" }}
                             placeholder="Chọn loại hợp đồng"
+                            onChange={handleContractTypeChange}
                             loading={isLoadingType}
                             notFoundContent={isLoadingType ? <Spin size="small" /> : "Không có dữ liệu"}
                             dropdownRender={(menu) => (
@@ -392,21 +569,63 @@ const CreateTemplate = () => {
                                         <Input
                                             placeholder="Nhập loại hợp đồng mới"
                                             ref={inputRef}
-                                            value={newType}
+                                            value={newTypeCreate}
                                             onChange={onNewTypeChange}
                                             onKeyDown={(e) => e.stopPropagation()}
                                         />
-                                        <Button type="text" icon={<PlusOutlined />} onClick={addNewType} >
-                                            {/* loading={isCreating} */}
+                                        <Button type="text" icon={<PlusOutlined />} onClick={addNewType} loading={isLoadingCreateType} >
                                             Thêm
                                         </Button>
                                     </Space>
                                 </>
                             )}
-                            options={contractType?.contractTypes?.map((type) => ({
-                                label: type,
-                                value: type,
+                            options={contractType?.map((type) => ({
+                                label: type.name,
+                                value: type.id,
+                                key: type.id,
+                                disabled: isLoadingCreateType,
+                                loading: isLoadingType,
                             }))}
+                            optionRender={(option) => (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>{option.label}</span>
+                                    <div>
+
+
+                                        <Button
+                                            loading={isLoadingEditType}
+                                            type="link"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                showEditModal(option);
+                                            }}
+                                        >
+                                            <EditFilled />
+                                        </Button>
+
+
+                                        <Popconfirm
+                                            title="Bạn có chắc chắn muốn xóa?"
+                                            onConfirm={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteType(option.value);
+                                            }}
+                                            okText="Xóa"
+                                            cancelText="Hủy"
+                                        >
+                                            <Button
+                                                loading={isLoadingDeleteType}
+                                                type="link"
+                                                danger
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <DeleteOutlined />
+                                            </Button>
+                                        </Popconfirm>
+
+                                    </div>
+                                </div>
+                            )}
                         />
                     </Form.Item>
                 </Form>
@@ -415,7 +634,7 @@ const CreateTemplate = () => {
         {
             title: "Thông tin hợp đồng",
             content: (
-                <Form form={form} layout="vertical" className="flex flex-col gap-3">
+                <Form form={form} layout="vertical" className="flex flex-col gap-3" onFinish={(values) => handleSubmit(values)}>
                     <ConfigProvider
                         theme={{
                             components: {
@@ -438,12 +657,6 @@ const CreateTemplate = () => {
                                     children: <div>
                                         <h3 className="font-bold text-[19px]">1. TIÊU ĐỀ HỢP ĐỒNG</h3>
                                         <div className="ml-6 mt-3">
-                                            {/* <Form.Item
-                                                label="Số hợp đồng "
-                                                name="contractNumber"
-                                            >
-                                                <Input placeholder={contractNumber} disabled />
-                                            </Form.Item> */}
                                             <Form.Item
                                                 label="Tiêu đề hợp đồng"
                                                 name="contractTitle"
@@ -455,13 +668,11 @@ const CreateTemplate = () => {
                                                     placeholder="Tên hợp đồng (VD: Hợp đồng Mua Bán Hàng Hóa)"
                                                 />
                                             </Form.Item>
-                                            {/* <Form.Item
-                                                label="Ngày ký kết hợp đồng"
-                                                name="signDate"
-                                                rules={[{ required: false, message: "Vui lòng chọn ngày ký kết hợp đồng!" }]}
-                                            >
-                                                <DatePicker className="w-full" disabled />
-                                            </Form.Item> */}
+                                            <Form.Item
+                                                name="contractTypeId"
+                                                initialValue={newType}
+                                            />
+
                                         </div>
                                         <div className="bg-[#f5f5f5] shadow-md p-4 rounded-md text-center">
                                             <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
@@ -471,7 +682,6 @@ const CreateTemplate = () => {
                                             <p className="text-2xl font-bold mt-3">{templateName.toUpperCase()}</p>
                                             <p className="mt-3"><b>Số:</b> Tên HD viết tắt / ngày tháng năm</p>
                                         </div>
-
                                         <h3 className="font-bold text-[19px] my-6">2. THÔNG TIN CÁC BÊN THAM GIA</h3>
 
                                         <Form.Item
@@ -481,6 +691,10 @@ const CreateTemplate = () => {
                                         >
                                             <Input disabled />
                                         </Form.Item>
+                                        <Form.Item
+                                            name="contractType"
+
+                                        />
 
                                         <Row gutter={16} className="bg-[#f5f5f5] shadow-md p-4 rounded-md gap-7" justify={"center"}>
                                             <Col className="flex flex-col gap-2 " md={10} sm={24} >
@@ -508,34 +722,66 @@ const CreateTemplate = () => {
                                             name='legalBasis'
                                             rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
                                         >
-                                            <Select
+                                            <LazySelect
+                                                loadDataCallback={loadLegalData}
+                                                options={legalData?.data.content}
                                                 showSearch
                                                 labelInValue
                                                 mode="multiple"
-                                                placeholder={`Chọn căn cứ pháp lý`}
-                                                options={optionsMap['legalBasis']}
+                                                placeholder="Chọn căn cứ pháp lý"
                                                 onChange={handleSelectlegalBasisChange}
-                                            >
-                                            </Select>
+                                                dropdownRender={(menu) => (
+                                                    <>
+                                                        {menu}
+                                                        <Divider style={{ margin: "8px 0" }} />
+                                                        <Space style={{ padding: "0 8px 4px" }}>
+                                                            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+                                                                Thêm căn cứ
+                                                            </Button>
+                                                        </Space>
+                                                    </>
+                                                )}
+                                            />
                                         </Form.Item>
-                                        <div className="mt-4 shadow-md ml-2 mb-3 bg-[#f5f5f5] p-4 rounded-md max-h-[400px] overflow-y-auto">
-                                            <h4 className="font-bold">Căn cứ pháp lý đã chọn:</h4>
-                                            <ul className="mt-2 flex flex-col gap-3 ">
-                                                {selectedlegalBasis.map((term, index) => (
-                                                    <li key={term} className="flex justify-between p-2 items-center border-b-2 border-e-slate-100 hover:bg-[#d1d1d1]">
-                                                        <p className="w-[90%]"> {index + 1}. {term.key}</p>
-                                                        <Button
-                                                            type="primary"
-                                                            danger
-                                                            size="small"
-                                                            onClick={() => handleRemovelegalBasisTerm(term)}
-                                                            icon={<FaDeleteLeft />}
+                                        <div className="mt-4 shadow-md ml-2 mb-3 bg-[#f5f5f5] p-4 rounded-md">
+                                            <div
+                                                ref={containerRef}
+                                                className="overflow-y-auto"
+                                                style={{ maxHeight: isExpanded ? 'none' : '270px' }}
+                                            >
+                                                <h4 className="font-bold">Căn cứ pháp lý đã chọn:</h4>
+                                                <ul className="mt-2 flex flex-col gap-3">
+                                                    {selectedlegalBasis.map((term, index) => (
+                                                        <li
+                                                            key={term}
+                                                            className="flex justify-between p-2 items-center border-b-2 border-e-slate-100 hover:bg-[#d1d1d1]"
                                                         >
-                                                            Xóa
-                                                        </Button>
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                                            <p className="w-[90%]"> {index + 1}. {term.title}</p>
+                                                            <Button
+                                                                type="primary"
+                                                                danger
+                                                                size="small"
+                                                                onClick={() => handleRemovelegalBasisTerm(term)}
+                                                                icon={<FaDeleteLeft />}
+                                                            >
+                                                                Xóa
+                                                            </Button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+
+                                            {isOverflowing && (
+                                                <div className="flex justify-center mt-2">
+                                                    <Button
+                                                        type="link"
+                                                        onClick={toggleExpand}
+                                                        className="text-[#1677ff] font-medium"
+                                                    >
+                                                        {isExpanded ? 'Thu gọn ▲' : 'Xem thêm ▼'}
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 },
@@ -567,21 +813,11 @@ const CreateTemplate = () => {
                                                 placeholder="Nhập nội dung hợp đồng tại đây..."
                                             />
                                         </Form.Item>
-                                        <div className="mt-4 p-4 bg-[#f5f5f5] rounded shadow-md">
-                                            <h4 className="font-bold text-lg">Xem trước nội dung hợp đồng:</h4>
-                                            <div className="p-2 " dangerouslySetInnerHTML={{ __html: content }} />
-                                        </div>
+
+                                        <PreviewSection content={content} />
+
                                         <h3 className="font-bold text-[19px] mt-9 mb-3">4. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
-                                        {/* <Form.Item
-                                            label="Phương thức thanh toán"
-                                            name="paymentMethod"
-                                            rules={[{ required: true, message: "Vui lòng chọn phương thức thanh toán!" }]}
-                                        >
-                                            <Radio.Group options={[
-                                                { label: "Thanh toán 1 đợt", value: "one-time" },
-                                                { label: "Thanh toán nhiều đợt", value: "multiple" }
-                                            ]} />
-                                        </Form.Item> */}
+
                                         <Form.Item name="autoAddVAT" valuePropName="checked">
                                             <div className="flex items-center">
                                                 <Switch
@@ -659,18 +895,7 @@ const CreateTemplate = () => {
                                             </Form.Item>
                                         )}
 
-
                                         <h3 className="font-bold text-[19px] mt-6 mb-3">5. THỜI GIAN HIỆU LỰC</h3>
-                                        {/* <Form.Item
-                                            label="Thời gian hiệu lực"
-                                            name="effectiveTime"
-                                            rules={[{ required: true, message: "Vui lòng chọn thời gian hiệu lực!" }]}
-                                        >
-                                            <Radio.Group options={[
-                                                { label: "Mốc bắt đầu và kết thúc", value: "fixed-dates" },
-                                                { label: "Các mốc cụ thể", value: "specific-milestones" }
-                                            ]} />
-                                        </Form.Item> */}
 
                                         <Form.Item
                                             label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
@@ -706,56 +931,39 @@ const CreateTemplate = () => {
                                             <p className="font-bold text-[16px] mb-1"> Điều khoản chung</p>
                                             <p className="">Mô tả: (Điều khoản được áp dụng cho cả 2 bên) </p>
                                         </div>
-                                        <div className="flex items-center mb-4 ml-2">
-                                            <p className="text-sm font-bold mr-3"> Loại điều khoản </p>
-                                            <Select
-                                                onChange={handleCategoryChange}
-                                                defaultValue={'generalTermsOptions'}
-                                                options={[
-                                                    { label: "Điều khoản chung", value: "generalTermsOptions" },
-                                                    // { label: "Căn cứ pháp lý", value: "legalBasis" },
-                                                    { label: "Điều khoản bổ sung", value: "additional" },
-                                                    { label: "Điều khoản đặc biệt", value: "specialConditions" },
-                                                ]}
-                                                className=" w-2/6 "
-                                            />
-                                        </div>
                                         <Form.Item
-                                            // label={
-                                            //     <div className=" ml-2 my-3 ">
-                                            //         <p className="font-bold text-[16px]"> Điều khoản chung</p>
-                                            //         <p className="">Mô tả: (Điều khoản được áp dụng cho cả 2 bên) </p>
-                                            //     </div>
-                                            // }
+                                            label={"Điều khoản chung"}
                                             name="generalTerms"
                                             rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
                                             className="ml-2"
                                         >
-
-                                            <Select
-                                                mode="multiple"
-                                                maxTagCount='responsive'
+                                            <LazySelect
+                                                loadDataCallback={loadGenaralData}
+                                                options={generalData?.data.content}
                                                 showSearch
-                                                placeholder={<div>Chọn điều khoản chung
-
-                                                </div>}
-                                                options={optionsMap[selectedCategory]}
-                                                filterOption={(input, option) =>
-                                                    option.label.toLowerCase().includes(input.toLowerCase())
-                                                }
+                                                labelInValue
+                                                mode="multiple"
+                                                placeholder="Chọn điều khoản chung"
                                                 onChange={handleSelectChange}
-                                            >
-
-                                            </Select>
+                                                dropdownRender={(menu) => (
+                                                    <>
+                                                        {menu}
+                                                        <Divider style={{ margin: "8px 0" }} />
+                                                        <Space style={{ padding: "0 8px 4px" }}>
+                                                            <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(9)}>
+                                                                Thêm điều khoản
+                                                            </Button>
+                                                        </Space>
+                                                    </>
+                                                )}
+                                            />
                                         </Form.Item>
-
-
                                         <div className="mt-4 shadow-md ml-2 mb-3 bg-[#f5f5f5] p-4 rounded-md max-h-[400px] overflow-y-auto">
                                             <h4 className="font-bold">Điều khoản chung đã chọn:</h4>
                                             <ul className="mt-2 flex flex-col gap-3 ">
                                                 {selectedGeneralTerms.map((term, index) => (
                                                     <li key={index + term} className="flex justify-between p-2 items-center border-b-2 border-e-slate-100 hover:bg-[#d1d1d1]">
-                                                        <p className="w-[90%]"> {index + 1}. {term}</p>
+                                                        <p className="w-[90%]"> {index + 1}. {term.title}</p>
                                                         <Button
                                                             type="primary"
                                                             danger
@@ -780,200 +988,400 @@ const CreateTemplate = () => {
                                             <Checkbox.Group
                                                 className="flex flex-col ml-4 gap-4"
                                                 options={[
-                                                    // { label: "Căn cứ pháp lý", value: "legalBasis" },
-                                                    { label: "ĐIỀU KHOẢN BỔ SUNG", value: "additional" },
-                                                    { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: "RightsAndObligations" },
-                                                    { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: "warrantyAndMaintenance" },
-                                                    { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: "breachAndDamages" },
-                                                    { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: "TerminationOfContract" },
-                                                    { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: "DisputeResolutionClause" },
-                                                    { label: "ĐIỀU KHOẢN BẢO MẬT", value: "PrivacyPolicy" },
+                                                    { label: "ĐIỀU KHOẢN BỔ SUNG", value: "1" },
+                                                    { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: "2" },
+                                                    { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: "3" },
+                                                    { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: "4" },
+                                                    { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: "5" },
+                                                    { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: "6" },
+                                                    { label: "ĐIỀU KHOẢN BẢO MẬT", value: "7" }
                                                 ]}
                                                 onChange={handleCheckboxChange}
                                             />
                                         </Form.Item>
 
                                         <div className="flex flex-col">
-                                            {/* {selectedOtherTypeTerms.includes("legalBasis") && (
-                                                <div className="mt-4">
-                                                    <h4 className="font-bold mb-2">Căn cứ pháp lý</h4>
-                                                    {["legalBasisCommon", "legalBasisA", "legalBasisB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['legalBasis', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={`Chọn ${optionsMap.legalBasis[index].label}`}
-                                                                options={optionsMap['legalBasis']}
-                                                                onChange={(newValues) => handleChildSelectChange('legalBasis', newValues)}
-                                                            >
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
-                                                </div>
-                                            )} */}
-                                            {selectedOtherTypeTerms.includes("additional") && (
+                                            {selectedOtherTypeTerms.includes("1") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN BỔ SUNG</h4>
-                                                    {["additionalCommon", "additionalA", "additionalB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['additional', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={displayLabels[key]}
-                                                                options={optionsMap['additional']}
-                                                                onChange={(newValues) => handleChildSelectChange(`additional`, newValues)}
-                                                            >
+                                                    {["Common", "A", "B"].map((key, index) => {
+                                                        // Tính toán các giá trị đã chọn từ các trường còn lại trong cùng loại
+                                                        const otherSelectedValues = [];
+                                                        ["Common", "A", "B"].forEach((k) => {
+                                                            if (k !== key) {
+                                                                const values = (form.getFieldValue(['1', k]) || []).map(
+                                                                    (item) => item.value
+                                                                );
+                                                                otherSelectedValues.push(...values);
+                                                            }
+                                                        });
 
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
+                                                        return (
+                                                            <Form.Item
+                                                                key={index}
+                                                                label={displayLabels["1"][key]}
+                                                                name={["1", key]}
+                                                            >
+                                                                <LazySelect
+                                                                    loadDataCallback={loadDKBSData}
+                                                                    options={generalData?.data.content}
+                                                                    globalSelected={[...otherSelectedValues]}
+                                                                    showSearch
+                                                                    labelInValue
+                                                                    placeholder={displayLabels["1"][key]}
+                                                                    mode="multiple"
+                                                                    onChange={(newValues) =>
+                                                                        handleChildSelectChange("1", key, newValues)
+                                                                    }
+                                                                    dropdownRender={(menu) => (
+                                                                        <>
+                                                                            {menu}
+                                                                            <Divider style={{ margin: "8px 0" }} />
+                                                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(1)}>
+                                                                                    Thêm điều khoản
+                                                                                </Button>
+                                                                            </Space>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </Form.Item>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("RightsAndObligations") && (
+
+                                            {selectedOtherTypeTerms.includes("2") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">QUYỀN VÀ NGHĨA VỤ CÁC BÊN</h4>
-                                                    {["specialCommon", "specialA", "specialB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['RightsAndObligations', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={displayLabels[key]}
-                                                                options={optionsMap['RightsAndObligations']}
-                                                                onChange={(newValues) => handleChildSelectChange(`RightsAndObligations`, newValues)}
+                                                    {["Common", "A", "B"].map((key, index) => {
+                                                        const otherSelectedValues = [];
+                                                        ["Common", "A", "B"].forEach((k) => {
+                                                            if (k !== key) {
+                                                                const values = (form.getFieldValue(['2', k]) || []).map(
+                                                                    (item) => item.value
+                                                                );
+                                                                otherSelectedValues.push(...values);
+                                                            }
+                                                        });
+                                                        return (
+                                                            <Form.Item
+                                                                key={index}
+                                                                label={displayLabels['2'][key]}
+                                                                name={['2', key]}
                                                             >
-
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
+                                                                <LazySelect
+                                                                    loadDataCallback={loadQVNVCBData}
+                                                                    options={generalData?.data.content}
+                                                                    globalSelected={[...otherSelectedValues]}
+                                                                    showSearch
+                                                                    labelInValue
+                                                                    placeholder={displayLabels["2"][key]}
+                                                                    mode="multiple"
+                                                                    onChange={(newValues) =>
+                                                                        handleChildSelectChange("2", key, newValues)
+                                                                    }
+                                                                    dropdownRender={(menu) => (
+                                                                        <>
+                                                                            {menu}
+                                                                            <Divider style={{ margin: "8px 0" }} />
+                                                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(2)}>
+                                                                                    Thêm điều khoản
+                                                                                </Button>
+                                                                            </Space>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </Form.Item>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("warrantyAndMaintenance") && (
+                                            {selectedOtherTypeTerms.includes("3") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN BẢO HÀNH VÀ BẢO TRÌ</h4>
-                                                    {["warrantyAndMaintenanceCommon", "warrantyAndMaintenanceA", "warrantyAndMaintenanceB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['warrantyAndMaintenance', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={displayLabels[key]}
-                                                                options={optionsMap['warrantyAndMaintenance']}
-                                                                onChange={(newValues) => handleChildSelectChange(`warrantyAndMaintenance`, newValues)}
+                                                    {["Common", "A", "B"].map((key, index) => {
+                                                        const otherSelectedValues = [];
+                                                        ["Common", "A", "B"].forEach((k) => {
+                                                            if (k !== key) {
+                                                                const values = (form.getFieldValue(['3', k]) || []).map(
+                                                                    (item) => item.value
+                                                                );
+                                                                otherSelectedValues.push(...values);
+                                                            }
+                                                        });
+                                                        return (
+                                                            <Form.Item
+                                                                key={index}
+                                                                label={displayLabels['3'][key]}
+                                                                name={['3', key]}
                                                             >
-
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
+                                                                <LazySelect
+                                                                    loadDataCallback={loadBHVBTData}
+                                                                    options={generalData?.data.content}
+                                                                    globalSelected={[...otherSelectedValues]}
+                                                                    showSearch
+                                                                    labelInValue
+                                                                    placeholder={displayLabels["3"][key]}
+                                                                    mode="multiple"
+                                                                    onChange={(newValues) =>
+                                                                        handleChildSelectChange("3", key, newValues)
+                                                                    }
+                                                                    dropdownRender={(menu) => (
+                                                                        <>
+                                                                            {menu}
+                                                                            <Divider style={{ margin: "8px 0" }} />
+                                                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(3)}>
+                                                                                    Thêm điều khoản
+                                                                                </Button>
+                                                                            </Space>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </Form.Item>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("breachAndDamages") && (
+                                            {selectedOtherTypeTerms.includes("4") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI</h4>
-                                                    {["breachAndDamagesCommon", "breachAndDamagesA", "breachAndDamagesB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['breachAndDamages', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={displayLabels[key]}
-                                                                options={optionsMap['breachAndDamages']}
-                                                                onChange={(newValues) => handleChildSelectChange(`breachAndDamages`, newValues)}
+                                                    {["Common", "A", "B"].map((key, index) => {
+                                                        const otherSelectedValues = [];
+                                                        ["Common", "A", "B"].forEach((k) => {
+                                                            if (k !== key) {
+                                                                const values = (form.getFieldValue(['4', k]) || []).map(
+                                                                    (item) => item.value
+                                                                );
+                                                                otherSelectedValues.push(...values);
+                                                            }
+                                                        });
+                                                        return (
+                                                            <Form.Item
+                                                                key={index}
+                                                                label={displayLabels['4'][key]}
+                                                                name={['4', key]}
                                                             >
-
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
+                                                                <LazySelect
+                                                                    loadDataCallback={loadVPBTTHData}
+                                                                    options={generalData?.data.content}
+                                                                    globalSelected={[...otherSelectedValues]}
+                                                                    showSearch
+                                                                    labelInValue
+                                                                    placeholder={displayLabels["4"][key]}
+                                                                    mode="multiple"
+                                                                    onChange={(newValues) =>
+                                                                        handleChildSelectChange("4", key, newValues)
+                                                                    }
+                                                                    dropdownRender={(menu) => (
+                                                                        <>
+                                                                            {menu}
+                                                                            <Divider style={{ margin: "8px 0" }} />
+                                                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(4)}>
+                                                                                    Thêm điều khoản
+                                                                                </Button>
+                                                                            </Space>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </Form.Item>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("TerminationOfContract") && (
+                                            {selectedOtherTypeTerms.includes("5") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG</h4>
-                                                    {["TerminationOfContractCommon", "TerminationOfContractA", "TerminationOfContractB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['TerminationOfContract', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={displayLabels[key]}
-                                                                options={optionsMap['TerminationOfContract']}
-                                                                onChange={(newValues) => handleChildSelectChange(`TerminationOfContract`, newValues)}
+                                                    {["Common", "A", "B"].map((key, index) => {
+                                                        const otherSelectedValues = [];
+                                                        ["Common", "A", "B"].forEach((k) => {
+                                                            if (k !== key) {
+                                                                const values = (form.getFieldValue(['5', k]) || []).map(
+                                                                    (item) => item.value
+                                                                );
+                                                                otherSelectedValues.push(...values);
+                                                            }
+                                                        });
+                                                        return (
+                                                            <Form.Item
+                                                                key={index}
+                                                                label={displayLabels['5'][key]}
+                                                                name={['5', key]}
                                                             >
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
+                                                                <LazySelect
+                                                                    loadDataCallback={loadCDHDData}
+                                                                    options={generalData?.data.content}
+                                                                    globalSelected={[...otherSelectedValues]}
+                                                                    showSearch
+                                                                    labelInValue
+                                                                    placeholder={displayLabels["5"][key]}
+                                                                    mode="multiple"
+                                                                    onChange={(newValues) =>
+                                                                        handleChildSelectChange("5", key, newValues)
+                                                                    }
+                                                                    dropdownRender={(menu) => (
+                                                                        <>
+                                                                            {menu}
+                                                                            <Divider style={{ margin: "8px 0" }} />
+                                                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(5)}>
+                                                                                    Thêm điều khoản
+                                                                                </Button>
+                                                                            </Space>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </Form.Item>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("DisputeResolutionClause") && (
+                                            {selectedOtherTypeTerms.includes("6") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP</h4>
-                                                    {["DisputeResolutionClauseCommon", "DisputeResolutionClauseA", "DisputeResolutionClauseB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['DisputeResolutionClause', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={displayLabels[key]}
-                                                                options={optionsMap['DisputeResolutionClause']}
-                                                                onChange={(newValues) => handleChildSelectChange(`DisputeResolutionClause`, newValues)}
+                                                    {["Common", "A", "B"].map((key, index) => {
+                                                        const otherSelectedValues = [];
+                                                        ["Common", "A", "B"].forEach((k) => {
+                                                            if (k !== key) {
+                                                                const values = (form.getFieldValue(['6', k]) || []).map(
+                                                                    (item) => item.value
+                                                                );
+                                                                otherSelectedValues.push(...values);
+                                                            }
+                                                        });
+                                                        return (
+                                                            <Form.Item
+                                                                key={index}
+                                                                label={displayLabels['6'][key]}
+                                                                name={['6', key]}
                                                             >
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
+                                                                <LazySelect
+                                                                    loadDataCallback={loadGQTCData}
+                                                                    options={generalData?.data.content}
+                                                                    globalSelected={[...otherSelectedValues]}
+                                                                    showSearch
+                                                                    labelInValue
+                                                                    placeholder={displayLabels["6"][key]}
+                                                                    mode="multiple"
+                                                                    onChange={(newValues) =>
+                                                                        handleChildSelectChange("6", key, newValues)
+                                                                    }
+                                                                    dropdownRender={(menu) => (
+                                                                        <>
+                                                                            {menu}
+                                                                            <Divider style={{ margin: "8px 0" }} />
+                                                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(6)}>
+                                                                                    Thêm điều khoản
+                                                                                </Button>
+                                                                            </Space>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </Form.Item>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("PrivacyPolicy") && (
+                                            {selectedOtherTypeTerms.includes("7") && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN BẢO MẬT</h4>
-                                                    {["PrivacyPolicyCommon", "PrivacyPolicyA", "PrivacyPolicyB"].map((key, index) => (
-                                                        <Form.Item
-                                                            key={index}
-                                                            label={displayLabels[key]}
-                                                            name={['PrivacyPolicy', key]}
-                                                        >
-                                                            <Select
-                                                                showSearch
-                                                                labelInValue
-                                                                mode="multiple"
-                                                                placeholder={displayLabels[key]}
-                                                                options={optionsMap['PrivacyPolicy']}
-                                                                onChange={(newValues) => handleChildSelectChange(`PrivacyPolicy`, newValues)}
+                                                    {["Common", "A", "B"].map((key, index) => {
+                                                        const otherSelectedValues = [];
+                                                        ["Common", "A", "B"].forEach((k) => {
+                                                            if (k !== key) {
+                                                                const values = (form.getFieldValue(['7', k]) || []).map(
+                                                                    (item) => item.value
+                                                                );
+                                                                otherSelectedValues.push(...values);
+                                                            }
+                                                        });
+                                                        return (
+                                                            <Form.Item
+                                                                key={index}
+                                                                label={displayLabels['7'][key]}
+                                                                name={['7', key]}
                                                             >
-                                                            </Select>
-                                                        </Form.Item>
-                                                    ))}
+                                                                <LazySelect
+                                                                    loadDataCallback={loadBMData}
+                                                                    options={generalData?.data.content}
+                                                                    globalSelected={[...otherSelectedValues]}
+                                                                    showSearch
+                                                                    labelInValue
+                                                                    placeholder={displayLabels["7"][key]}
+                                                                    mode="multiple"
+                                                                    onChange={(newValues) =>
+                                                                        handleChildSelectChange("7", key, newValues)
+                                                                    }
+                                                                    dropdownRender={(menu) => (
+                                                                        <>
+                                                                            {menu}
+                                                                            <Divider style={{ margin: "8px 0" }} />
+                                                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(7)}>
+                                                                                    Thêm điều khoản
+                                                                                </Button>
+                                                                            </Space>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </Form.Item>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
+                                        </div>
+                                        <div className=" ml-2 my-3 ">
+                                            <p className="font-bold text-[16px] mb-1"> Điều khoản khác</p>
+                                            {/* <p className="">Mô tả: (Điều khoản được áp dụng cho cả 2 bên) </p> */}
+                                        </div>
+                                        <Form.Item
+                                            label={"Điều khoản khác"}
+                                            name="othersTerms"
+                                            rules={[{ required: true, message: "Vui lòng chọn điều khoản khác!" }]}
+                                            className="ml-2"
+                                        >
+                                            <LazySelect
+                                                loadDataCallback={loadDKKata}
+                                                showSearch
+                                                labelInValue
+                                                mode="multiple"
+                                                placeholder="Chọn điều khoản khác"
+                                                onChange={handleSelectDKKChange}
+                                                dropdownRender={(menu) => (
+                                                    <>
+                                                        {menu}
+                                                        <Divider style={{ margin: "8px 0" }} />
+                                                        <Space style={{ padding: "0 8px 4px" }}>
+                                                            <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(10)}>
+                                                                Thêm điều khoản
+                                                            </Button>
+                                                        </Space>
+                                                    </>
+                                                )}
+                                            />
+                                        </Form.Item>
+                                        <div className="mt-4 shadow-md ml-2 mb-3 bg-[#f5f5f5] p-4 rounded-md max-h-[400px] overflow-y-auto">
+                                            <h4 className="font-bold">Điều khoản khác đã chọn:</h4>
+                                            <ul className="mt-2 flex flex-col gap-3 ">
+                                                {selectedOthersTerms.map((term, index) => (
+                                                    <li key={index + term} className="flex justify-between p-2 items-center border-b-2 border-e-slate-100 hover:bg-[#d1d1d1]">
+                                                        <p className="w-[90%]"> {index + 1}. {term.title}</p>
+                                                        <Button
+                                                            type="primary"
+                                                            danger
+                                                            size="small"
+                                                            onClick={() => handleRemoveDKKTerm(term)}
+                                                            icon={<FaDeleteLeft />}
+                                                        >
+                                                            Xóa
+                                                        </Button>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
                                         <Form.Item
                                             label={
@@ -1108,7 +1516,7 @@ const CreateTemplate = () => {
                         <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                     </div>
                     <div className=" px-4 pt-[100px] flex flex-col gap-2">
-                        {form.getFieldValue("legalBasis") ? form.getFieldValue("legalBasis").map(term => <p><i>- {term.value}</i></p>) : null}
+                        {form.getFieldValue("legalBasis") ? form.getFieldValue("legalBasis").map(term => <p><i>- {term.title}</i></p>) : null}
                     </div>
                     <div className="p-4 rounded-md flex flex-col gap-4">
                         <div className="flex flex-col gap-2 " md={10} sm={24} >
@@ -1152,38 +1560,36 @@ const CreateTemplate = () => {
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản chung:</h5>
                                         <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("generalTerms")?.map((term, index) => (
-                                                <li className="ml-2" key={term}>{index + 1}. {term}</li>
-                                            ))}
+                                            {form.getFieldValue("generalTerms") ? form.getFieldValue("generalTerms").map(term => <p><i>- {term.title}</i></p>) : null}
                                         </ul>
                                     </div>
                                 )}
-                                {form.getFieldValue("RightsAndObligations") && (
+                                {form.getFieldValue("2") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Quyền và nghĩa vụ các bên:</h5>
                                         <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("RightsAndObligations").specialCommon?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            {form.getFieldValue("2").Common?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
                                     </div>
                                 )}
-                                {form.getFieldValue("DisputeResolutionClause") && (
+                                {form.getFieldValue("6") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản giải quyết tranh chấp:</h5>
                                         <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseCommon?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            {form.getFieldValue("6").Common?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
                                     </div>
                                 )}
-                                {form.getFieldValue("additional") && (
+                                {form.getFieldValue("1") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản Bổ sung:</h5>
                                         <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("additional").additionalCommon?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            {form.getFieldValue("1").Common?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
                                     </div>
@@ -1193,91 +1599,88 @@ const CreateTemplate = () => {
                                         <h5 className="font-semibold text-lg">Điều khoản pháp lý:</h5>
                                         <ul className="mt-2 flex flex-col gap-1">
                                             {form.getFieldValue("breachAndDamages").breachAndDamagesCommon?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
                                     </div>
                                 )}
-                                {form.getFieldValue("TerminationOfContract") && (
+                                {form.getFieldValue("5") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản chấm dứt hợp đồng:</h5>
                                         <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("TerminationOfContract").TerminationOfContractCommon?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            {form.getFieldValue("5").Common?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
                                     </div>
                                 )}
-                                {form.getFieldValue("warrantyAndMaintenance") && (
+                                {form.getFieldValue("3") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản bảo hành và bảo trì:</h5>
                                         <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceCommon?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            {form.getFieldValue("3").Common?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
                                     </div>
                                 )}
-                                {form.getFieldValue("PrivacyPolicy") && (
+                                {form.getFieldValue("4") && (
+                                    <div>
+                                        <h5 className="font-semibold text-lg">Điều khoản vi phạm và thiệt hại</h5>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("4").Common?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            )) || <p className="ml-2">Không có</p>}
+                                        </ul>
+                                    </div>
+                                )}
+                                {form.getFieldValue("7") && (
                                     <div>
                                         <h5 className="font-semibold text-lg">Điều khoản chính sách bảo mật:</h5>
                                         {/* <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chung</h4> */}
                                         <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("PrivacyPolicy").PrivacyPolicyCommon?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                            {form.getFieldValue("7").Common?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
                                             )) || <p className="ml-2">Không có</p>}
                                         </ul>
-                                        {/* {form.getFieldValue("PrivacyPolicy").PrivacyPolicyA && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên A</h4>} */}
-                                        {/* <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("PrivacyPolicy").PrivacyPolicyA?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul> */}
-                                        {/* {form.getFieldValue("PrivacyPolicy").PrivacyPolicyB && <h4 className="font-bold mt-2 ml-2">Điều khoản chính sách bảo mật chỉ riêng bên B</h4>} */}
-                                        {/* <ul className="mt-2 flex flex-col gap-1">
-                                            {form.getFieldValue("PrivacyPolicy").PrivacyPolicyB?.map((term, index) => (
-                                                <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                            ))}
-                                        </ul> */}
                                     </div>
                                 )}
 
                                 <div className="mt-2">
                                     <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên A</h5>
                                     <ul className="mt-2 flex flex-col gap-1">
-
-                                        {form.getFieldValue("RightsAndObligations") && form.getFieldValue("RightsAndObligations").specialA?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("1") && form.getFieldValue("1").A?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("DisputeResolutionClause") && form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseA?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("2") && form.getFieldValue("2").A?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("additional") && form.getFieldValue("additional").additionalA?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("3") && form.getFieldValue("3").A?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("breachAndDamages") && form.getFieldValue("breachAndDamages").breachAndDamagesA?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("4") && form.getFieldValue("4").A?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("TerminationOfContract") && form.getFieldValue("TerminationOfContract").TerminationOfContractA?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("5") && form.getFieldValue("5").A?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("warrantyAndMaintenance") && form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceA?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("6") && form.getFieldValue("6").A?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("PrivacyPolicy") && form.getFieldValue("PrivacyPolicy").PrivacyPolicyA?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("7") && form.getFieldValue("7").A?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     {form.getFieldValue("specialTermsA") && (<p className="ml-3">{form.getFieldValue("specialTermsA")}</p>)}
@@ -1287,42 +1690,41 @@ const CreateTemplate = () => {
                                 <div className="mt-2">
                                     <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên B</h5>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("RightsAndObligations") && form.getFieldValue("RightsAndObligations").specialB?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
-                                        ))}
-                                    </ul>
-
-                                    <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("DisputeResolutionClause") && form.getFieldValue("DisputeResolutionClause").DisputeResolutionClauseB?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("1") && form.getFieldValue("1").B?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("additional") && form.getFieldValue("additional").additionalB?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("2") && form.getFieldValue("2").B?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("breachAndDamages") && form.getFieldValue("breachAndDamages").breachAndDamagesB?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("3") && form.getFieldValue("3").B?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("TerminationOfContract") && form.getFieldValue("TerminationOfContract").TerminationOfContractB?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("4") && form.getFieldValue("4").B?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("warrantyAndMaintenance") && form.getFieldValue("warrantyAndMaintenance").warrantyAndMaintenanceB?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("5") && form.getFieldValue("5").B?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("PrivacyPolicy") && form.getFieldValue("PrivacyPolicy").PrivacyPolicyB?.map((term, index) => (
-                                            <li className="ml-2" key={term.value}>{index + 1}. {term.value}</li>
+                                        {form.getFieldValue("6") && form.getFieldValue("6").B?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
-                                    {form.getFieldValue("specialTermsB") && (<p className="ml-3">{form.getFieldValue("specialTermsB")}</p>)}
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {form.getFieldValue("7") && form.getFieldValue("7").B?.map((term, index) => (
+                                            <li className="ml-2" key={term.value}>- {term.title}</li>
+                                        ))}
+                                    </ul>
+                                    {form.getFieldValue("specialTerms") && (<p className="ml-3">{form.getFieldValue("specialTerms")}</p>)}
                                 </div>
 
                             </div>
@@ -1343,6 +1745,92 @@ const CreateTemplate = () => {
             ),
         },
     ];
+
+
+
+    const handleSubmit = async () => {
+        try {
+            // Lấy từng giá trị cụ thể từ form và gán giá trị mặc định nếu không tồn tại
+            const contractTitle = form.getFieldValue('contractTitle') || '';
+            const partyInfo = form.getFieldValue('partyInfo') || '';
+            const legalBasis = form.getFieldValue('legalBasis') || [];
+            const appendixEnabled = form.getFieldValue('appendixEnabled') || false;
+            const transferEnabled = form.getFieldValue('transferEnabled') || false;
+            const violate = form.getFieldValue('violate') || false;
+            const suspend = form.getFieldValue('suspend') || false;
+            const suspendContent = form.getFieldValue('suspendContent') || '';
+            const generalTerms = form.getFieldValue('generalTerms') || [];
+            const otherTerms = form.getFieldValue('otherTerms') || [];
+            const additionalTerms = form.getFieldValue('additionalTerms') || [];
+            const contractContent = form.getFieldValue('contractContent') || '';
+            const autoAddVAT = form.getFieldValue('autoAddVAT') || false;
+            const vatPercentage = form.getFieldValue('vatPercentage') || '0';
+            const isDateLateChecked = form.getFieldValue('isDateLateChecked') || false;
+            const maxDateLate = form.getFieldValue('maxDateLate') || '0';
+            const autoRenew = form.getFieldValue('autoRenew') || false;
+            const specialTermsA = form.getFieldValue('specialTermsA') || '';
+            const contractTypeId = form.getFieldValue('contractTypeId') || '';
+            const specialTermsB = form.getFieldValue('specialTermsB') || '';
+
+            // Lấy additionalConfig từ các key cụ thể (ví dụ: "1", "2", "3")
+            const configKeys = ["1", "2", "3", "4", "5", "6", "7"];
+            const additionalConfig = {};
+            configKeys.forEach(key => {
+                const fieldData = form.getFieldValue(key) || {};
+                additionalConfig[key] = {
+                    Common: (fieldData.Common || []).map(item => ({ id: item.value })),
+                    A: (fieldData.A || []).map(item => ({ id: item.value })),
+                    B: (fieldData.B || []).map(item => ({ id: item.value })),
+                };
+            });
+
+            // Chuyển đổi dữ liệu
+            const transformedData = {
+                contractTitle,
+                partyInfo,
+                legalBasis: legalBasis.map(item => (item.value)),
+                appendixEnabled,
+                transferEnabled,
+                violate,
+                contractTypeId,
+                suspend,
+                suspendContent,
+                generalTerms: generalTerms.map(item => item.value),
+                otherTerms: otherTerms.map(item => item.value),
+                additionalTerms,
+                additionalConfig: Object.keys(additionalConfig).reduce((acc, key) => {
+                    acc[key] = {
+                        Common: additionalConfig[key].Common.map(item => ({ id: item.value })),
+                        A: additionalConfig[key].A.map(item => ({ id: item.value })),
+                        B: additionalConfig[key].B.map(item => ({ id: item.value }))
+                    };
+                    return acc;
+                }, {}),
+                specialTermsA: specialTermsA,
+                specialTermsB: specialTermsB,
+                contractContent,
+                autoAddVAT,
+                vatPercentage,
+                isDateLateChecked,
+                maxDateLate,
+                autoRenew,
+                additionalConfig
+            };
+
+            console.log("Transformed Data:", transformedData);
+
+            const response = await CreateTemplate(transformedData).unwrap();
+            console.log(response);
+            form.resetFields();
+            message.success("Lưu template thành công!");
+            navigate('/managetemplate')
+
+        } catch (error) {
+            console.error("Error:", error);
+            message.error("Lỗi khi tạo loại hợp đồng!");
+        }
+    };
+
 
 
     if (isLoading || isLoadingType) return <Skeleton active />;
@@ -1371,7 +1859,8 @@ const CreateTemplate = () => {
                 {currentStep === steps.length - 1 && (
                     <Button
                         type="primary"
-                        onClick={() => message.success("Lưu template thành công!")}
+                        htmlType="submit"
+                        onClick={handleSubmit}
                         icon={<BsSave2Fill />}
                         iconPosition="end"
                     >
@@ -1379,8 +1868,98 @@ const CreateTemplate = () => {
                     </Button>
                 )}
             </div>
+            <Modal
+                title="Chỉnh sửa loại hợp đồng"
+                open={isEditModalOpen}
+                onOk={handleEditOk}
+                onCancel={() => setIsEditModalOpen(false)}
+                okText="Lưu"
+                cancelText="Hủy"
+            >
+                <Input
+                    value={editValue?.label}
+                    onChange={handleTypeChange}
+                    placeholder="Nhập tên mới"
+                />
+            </Modal>
+            <Modal
+                title="Thêm căn cứ pháp lý"
+                open={isAddModalOpen}
+                onOk={handleAddOk}
+                onCancel={handleAddCancel}
+                okText="Lưu"
+                cancelText="Hủy"
+            >
+                <Form
+                    layout="vertical"
+                    form={form}
+                >
+                    <Form.Item
+                        name="legalLabel"
+                        label="Tên căn cứ pháp lý"
+                        rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                    >
+                        <Input
+                            value={newLegalBasis.name}
+                            onChange={(e) => setNewLegalBasis({ ...newLegalBasis, name: e.target.value })}
+                            placeholder="Nhập tên căn cứ pháp lý"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        rules={[{ required: true, message: "Vui lòng nhập nội dung căn cứ!" }]}
+                        label="Nội dung"
+                        name="legalContent"
+                    >
+                        <TextArea
+                            value={newLegalBasis.content}
+                            onChange={(e) => setNewLegalBasis({ ...newLegalBasis, content: e.target.value })}
+                            placeholder="Nhập nội dung"
+                            rows={4}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+
+{/* đang hơi lag do sử dụng state */}
+
+            <Modal
+                title="Thêm điều khoản chung"
+                open={isAddGeneralModalOpen}
+                onOk={handleAddOkGeneralTerm}
+                onCancel={handleAddGeneralCancel}
+                okText="Lưu"
+                cancelText="Hủy"
+            >
+                <Form layout="vertical">
+                    <Form.Item
+                        label="Tên điều khoản"
+                        rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
+                    >
+                        <Input
+                            value={newGeneralTerm.name}
+                            onChange={(e) => setNewGeneralTerm({ ...newGeneralTerm, name: e.target.value })}
+                            placeholder="Nhập tên điều khoản"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Nội dung điều khoản"
+                        rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
+                    >
+                        <TextArea
+                            value={newGeneralTerm.content}
+                            onChange={(e) => setNewGeneralTerm({ ...newGeneralTerm, content: e.target.value })}
+                            placeholder="Nhập nội dung"
+                            rows={4}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };
 
 export default CreateTemplate;
+
+
+

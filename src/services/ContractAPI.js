@@ -19,11 +19,11 @@ export const ContractAPI = createApi({
     endpoints: (builder) => ({
 
         getContractType: builder.query({
-            query: () => `b4fac395-38bb-49c9-8db0-257252d1e30c`,
+            query: () => `http://localhost:8080/api/v1/contract-types`,
             providesTags: (result) =>
                 result
-                    ? result.contractTypes.map(({ id }) => ({ type: "ContractType", id }))
-                    : [{ type: "ContractType", id: id }],
+                    ? result.map(({ id }) => ({ type: "ContractType", id }))
+                    : [{ type: "ContractType", id: 'UNKNOWN_ID' }],
         }),
         getAllContract: builder.query({
             query: () => `791ec81c-b150-440d-9c3c-07fcfe5cc6da`,
@@ -39,6 +39,34 @@ export const ContractAPI = createApi({
                     ? result.map(({ id }) => ({ type: "Contract", id }))
                     : [{ type: "Contract", id: id }],
         }),
+
+        createContractType: builder.mutation({
+            query: ({ name }) => ({
+                url: `http://localhost:8080/api/v1/contract-types`,
+                method: "POST",
+                body: { name: name },
+            }),
+            invalidatesTags: [{ type: "ContractType", id: "LIST" }],
+        }),
+
+
+        editContractType: builder.mutation({
+            query: ({ name, id }) => ({
+                url: `http://localhost:8080/api/v1/contract-types/${id}`,
+                method: "PUT",
+                body: { name: name },
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: "ContractType", id: id }],
+        }),
+
+       deleteContractType: builder.mutation({
+            query: (contractTypeId) => ({
+                url: `http://localhost:8080/api/v1/contract-types/${contractTypeId}/delete-status?isDeleted=${true}`, 
+                method: "PATCH",
+            }),
+            invalidatesTags: (result, error, contractTypeId) => [{ type: "DoctorList", id: contractTypeId }],
+        }),
+
         // getPartnerInfoDetail: builder.query({
         //     query: (partnerId) => ({
         //         url: `9edef7db-1c09-42ed-aef8-ae8d14119f2c`,
@@ -78,7 +106,11 @@ export const ContractAPI = createApi({
 
 export const {
     useGetContractTypeQuery,
+    useLazyGetContractTypeQuery,
     useGetAllContractQuery,
     useGetAllContractPartnerQuery,
+    useCreateContractTypeMutation,
+    useEditContractTypeMutation,
+    useDeleteContractTypeMutation
     // useGetContractByPartnerQuery
 } = ContractAPI;
