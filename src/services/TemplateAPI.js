@@ -1,12 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { selectTokens } from "../slices/auth.slice";
-// import { BE_API_LOCAL } from "../config";
+import { BE_API_LOCAL } from "../config/config";
 
 export const TemplateAPI = createApi({
     reducerPath: "templateManagement",
     tagTypes: ["Template"],
     baseQuery: fetchBaseQuery({
-        baseUrl: "https://mocki.io/v1/",
+        baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -19,14 +19,14 @@ export const TemplateAPI = createApi({
     endpoints: (builder) => ({
 
         getAllTemplate: builder.query({
-            query: () => `d70a6fd2-61d8-4607-9ce7-acfa7215391c`,
+            query: ({ page, size }) => `templates?page=${page}&size=${size}&sortBy=id&order=asc`,
             providesTags: (result) =>
                 result
-                    ? result.map(({ id }) => ({ type: "Template", id }))
-                    : [{ type: "Template", id: id }],
+                    ? result.data.content.map(({ id }) => ({ type: "Template", id }))
+                    : [{ type: "Template", id: 'LIST' }],
         }),
         getAllDeletedTemplate: builder.query({
-            query: () => `69dee311-5125-4bac-bc6d-aabed7f3d593`,
+            query: () => `https://mocki.io/v1/69dee311-5125-4bac-bc6d-aabed7f3d593`,
             providesTags: (result) =>
                 result
                     ? result.map(({ id }) => ({ type: "Template", id }))
@@ -35,20 +35,28 @@ export const TemplateAPI = createApi({
 
         getTemplateDataDetail: builder.query({
             query: (templateId) => ({               // chua gan ID
-                url: `94b4cf47-4986-443c-9fc4-4aa7d4452010`,
+                url: `templates/${templateId}`,
                 method: "GET",
             }),
             providesTags: (result, error, Template) => [{ type: "Template", id: Template }],
         }),
 
-        // createDoctor: builder.mutation({
-        //     query: (newDoctorData) => ({
-        //         url: `/create`,
-        //         method: "POST",
-        //         body: newDoctorData,
-        //     }),
-        //     invalidatesTags: [{ type: "DoctorList", id: "LIST" }],
-        // }),
+        createTemplate: builder.mutation({
+            query: (templateData) => ({
+                url: `templates/create`,
+                method: "POST",
+                body: templateData,
+            }),
+            invalidatesTags: [{ type: "Template", id: "LIST" }],
+        }),
+        duplicateTemplate: builder.mutation({
+            query: (templateId) => ({
+                url: `templates/${templateId}/duplicate`,
+                method: "POST",
+                body: templateId,
+            }),
+            invalidatesTags: [{ type: "Template", id: "LIST" }],
+        }),
 
         // editDoctor: builder.mutation({
         //     query: ({ userId, ...updatedDoctorData }) => ({
@@ -72,7 +80,10 @@ export const TemplateAPI = createApi({
 
 export const {
     useGetAllTemplateQuery,
+    useLazyGetAllTemplateQuery,
     useGetTemplateDataDetailQuery,
-    useGetAllDeletedTemplateQuery
+    useGetAllDeletedTemplateQuery,
+    useCreateTemplateMutation,
+    useDuplicateTemplateMutation
     // useGetContractByPartnerQuery
 } = TemplateAPI;

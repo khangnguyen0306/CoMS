@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-    Row,
-    Col,
-    Card,
-    Statistic,
     Table,
     Button,
     Input,
@@ -17,9 +13,8 @@ import {
     Select,
     message
 } from "antd";
-import { SearchOutlined, EyeOutlined, PlusOutlined, EditOutlined, EditFilled, EyeFilled, DeleteFilled } from '@ant-design/icons';
+import { PlusOutlined, EditFilled, DeleteFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import debounce from 'lodash/debounce';
 import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation } from '../../services/PartnerAPI';
 import { validationPatterns } from "../../utils/ultil";
 
@@ -38,11 +33,11 @@ const ManagePartner = () => {
 
     // Gọi API: API yêu cầu page theo dạng 0-based nên truyền currentPage - 1
     const { data: partnerData, isLoading: isFetching, error: fetchError, refetch } = useGetPartnerListQuery({
-        search: searchQuery,
+        keyword: searchQuery,
         page: currentPage - 1,
-        pageSize: pageSize,
+        size: pageSize,
     });
-
+    // //////////////////////////////////// //////////////////////// ////////////////////////////////// chua co search
     const [CreatePartner, { isLoading }] = useCreatePartnerMutation();
     const [EditPartner, { isLoading: isLoadingEdit }] = useEditPartnerMutation();
     const [DeletePartner, { isLoading: loadingDelete }] = useDeletePartnerMutation();
@@ -102,12 +97,6 @@ const ManagePartner = () => {
         navigate(`/partner/${record.partyId}`);
     };
 
-    // --- Xử lý search với debounce ---
-    const debouncedSearch = debounce((value) => {
-        setSearchQuery(value);
-        // Khi tìm kiếm, reset lại trang về 1 (1-based)
-        setCurrentPage(1);
-    }, 300);
 
     // --- Modal: Tạo partner mới ---
     const showModal = () => {
@@ -257,8 +246,8 @@ const ManagePartner = () => {
             ],
             onFilter: (value, record) => record.partnerType === value,
             render: (type) => (
-                <Tag color={type === 'Nhà cung cấp' ? 'blue' : 'green'}>
-                    {type}
+                <Tag color={type === 'PARTY_B' ? 'blue' : 'green'}>
+                    {type === "PARTY_B" ? "Nhà cung cấp" : "Khách hàng  "}
                 </Tag>
             ),
         },
