@@ -15,28 +15,34 @@ const { Option } = Select;
 const { Search } = Input;
 
 const ManageClause = () => {
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTermClause, setSearchTermClause] = useState('');
+    const [searchTermLegal, setSearchTermLegal] = useState('');
     const [selectedType, setSelectedType] = useState('');
-    const [sortOrder, setSortOrder] = useState('ascend');
+    const [sortOrderClause, setSortOrderClause] = useState('desc');
+    const [sortOrderLegal, setSortOrderLegal] = useState('desc');
     const [activeTab, setActiveTab] = useState("1");
-    const [page, setPage] = useState(0);
-    const [pageSize, setPageSize] = useState("10");
+    const [pageClause, setPageClause] = useState(0);
+    const [pageSizeClause, setPageSizeClause] = useState("10");
+    const [pageLegal, setPageLegal] = useState(0);
+    const [pageSizeLegal, setPageSizeLegal] = useState("10");
     const [isModalOpenClause, setIsModalOpenClause] = useState(false);
     const [isModalOpenLegal, setIsModalOpenLegal] = useState(false);
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
     const [isModalOpenAddLegal, setIsModalOpenAddLegal] = useState(false);
     const { data: clauseData, isLoading: loadingClause, isError: DataError, refetch: refetchClause } = useGetClauseManageQuery({
-        keyword: searchTerm,
+        keyword: searchTermClause,
         typeTermIds: selectedType,
-        page,
-        size: pageSize
+        page: pageClause,
+        size: pageSizeClause,
+        order: sortOrderClause,
     });
-    const { data: legalData, isLoading: loadingLegal, refetch: refetchLegal } = useGetLegalQuery({ page: 0, size: 10 });
+    const { data: legalData, isLoading: loadingLegal, refetch: refetchLegal } = useGetLegalQuery({ page: pageLegal, size: pageSizeLegal, keyword: searchTermLegal, order: sortOrderLegal });
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
+    console.log(clauseData?.data?.totalElements);
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -53,11 +59,44 @@ const ManageClause = () => {
 
     const calculateDaysAgo = (createdAt) => {
         const createdDate = convertToDate(createdAt);
-        const today = new Date();
-        const differenceInMs = today - createdDate;
-        const differenceInDays = Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
-        return differenceInDays === 0 ? "Được tạo hôm nay" : `Được tạo ${differenceInDays} ngày trước`;
+        const now = new Date();
+        const diffMs = now - createdDate;
+
+        // Tính theo giây
+        const diffSeconds = Math.floor(diffMs / 1000);
+        if (diffSeconds < 60) {
+            return "Được tạo vài giây trước";
+        }
+
+        // Tính theo phút
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        if (diffMinutes < 60) {
+            return `Được tạo ${diffMinutes} phút trước`;
+        }
+
+        // Tính theo giờ
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        if (diffHours < 24) {
+            return `Được tạo ${diffHours} giờ trước`;
+        }
+
+        // Tính theo ngày
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays < 30) {
+            return `Được tạo ${diffDays} ngày trước`;
+        }
+
+        // Tính theo tháng (ước tính 30 ngày mỗi tháng)
+        const diffMonths = Math.floor(diffDays / 30);
+        if (diffMonths < 12) {
+            return `Được tạo ${diffMonths} tháng trước`;
+        }
+
+        // Tính theo năm (ước tính 12 tháng mỗi năm)
+        const diffYears = Math.floor(diffMonths / 12);
+        return `Được tạo ${diffYears} năm trước`;
     };
+
 
 
     // Sắp xếp dữ liệu theo createdAt dựa vào sortOrder
@@ -70,11 +109,7 @@ const ManageClause = () => {
     const sortedLegal = legalData?.data?.content
         ?.slice()
         .filter(item => !item.isDelete)
-        .sort((a, b) => {
-            const dateA = new Date(...a.createdAt);
-            const dateB = new Date(...b.createdAt);
-            return sortOrder === 'ascend' ? dateA - dateB : dateB - dateA;
-        });
+
 
     const colorMap = {
         "Điều khoản thêm": "volcano",
@@ -93,6 +128,8 @@ const ManageClause = () => {
     const handleUpdateClause = (clauseCode) => {
         const clauseToEdit = clauseData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
         if (clauseToEdit) {
+            setSortOrderClause('desc');
+            setPageClause(0);
             form.setFieldsValue(clauseToEdit);
 
             setIsModalOpenClause(true); // Hiển thị modal
@@ -105,6 +142,7 @@ const ManageClause = () => {
         const clauseToEdit = legalData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
         console.log(clauseToEdit);
         if (clauseToEdit) {
+            setSortOrderLegal('desc');
             form.setFieldsValue(clauseToEdit);
 
             setIsModalOpenLegal(true); // Hiển thị modal
@@ -115,17 +153,16 @@ const ManageClause = () => {
 
     const openAddClauseModal = () => {
         form.resetFields();
+        setSortOrderClause('desc');
         setIsModalOpenAdd(true);
+        setPageClause(0);
     };
     const openAddLagelModal = () => {
         form.resetFields();
+        setSortOrderLegal('desc');
         setIsModalOpenAddLegal(true);
     };
 
-    useEffect(() => {
-
-        refetchLegal();
-    }, []);
 
     const handleSubmitAddClause = async (values) => {
         console.log('Form data:', values);
@@ -134,6 +171,7 @@ const ManageClause = () => {
             message.success("Tạo điều khoản thành công");
             refetchClause();
             refetchLegal();
+            // setPageClause(0);
             setIsModalOpenAdd(false);
             setIsModalOpenAddLegal(false);
             form.resetFields();
@@ -149,10 +187,12 @@ const ManageClause = () => {
             const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value }).unwrap();
             console.log(updatedData);
             message.success("Cập nhật điều khoản thành công!");
+            refetchClause();
+            console.log(pageClause)
+            console
+            refetchLegal();
             setIsModalOpenClause(false);
             setIsModalOpenLegal(false);
-            refetchLegal();
-            refetchClause()
             form.resetFields();
         } catch (error) {
             console.error("Lỗi cập nhật điều khoản:", error);
@@ -184,8 +224,22 @@ const ManageClause = () => {
 
 
     const handleSortByCreatedAt = () => {
-        setSortOrder(sortOrder === 'ascend' ? 'descend' : 'ascend');
+        console.log("Sort order:", sortOrderClause);
+        setSortOrderClause(sortOrderClause === 'asc' ? 'desc' : 'asc');
     };
+    const handleSortByCreatedAtLegal = () => {
+        setSortOrderLegal(sortOrderLegal === 'asc' ? 'desc' : 'asc');
+    };
+    const handlePageChange = (newPage, newPageSize) => {
+        console.log("Page changed:", newPage, "PageSize:", newPageSize);
+        setPageLegal(newPage - 1);
+        setPageSizeLegal(newPageSize);
+    }
+    const handlePageClauseChange = (newPage, newPageSize) => {
+        console.log("Page changed:", newPage, "PageSize:", newPageSize);
+        setPageClause(newPage - 1);
+        setPageSizeClause(newPageSize);
+    }
 
 
     if (loadingClause || loadingType || loadingLegal) return <Skeleton active />;
@@ -231,7 +285,7 @@ const ManageClause = () => {
                         <div className='flex w-5/5 gap-4'>
                             <Search
                                 placeholder="Tìm kiếm tên điều khoản"
-                                onSearch={setSearchTerm}
+                                onSearch={setSearchTermClause}
                                 enterButton="tìm kiếm"
                                 allowClear
                                 className="mb-4 max-w-[350px]"
@@ -258,24 +312,38 @@ const ManageClause = () => {
                                 + Thêm điều khoản
                             </Button>
                             {/* Nút sắp xếp theo Ngày tạo */}
-                            <Button
+                            <button
                                 onClick={handleSortByCreatedAt}
-                                className="mb-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow-md transition duration-200"
+                                className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortOrderClause === 'asc'
+                                    ? 'bg-red-500 hover:bg-red-600'
+                                    : 'bg-blue-500 hover:bg-blue-600'
+                                    }`}
                             >
-                                Sắp xếp theo Ngày tạo
-                                {sortOrder === 'ascend' ? <FaSortUp size={16} /> : <FaSortDown size={16} />}
-                            </Button>
+                                <span className="text-white opacity-100">
+                                    {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
+                                </span>
+                            </button>
+
                         </div>
                         <Modal
                             title="Thêm điều khoản"
                             open={isModalOpenAdd}
-                            onCancel={() => setIsModalOpenAdd(false)}
+                            onCancel={() => {
+                                form.resetFields();
+                                setIsModalOpenAdd(false);
+                            }}
                             footer={null}
+                            afterOpenChange={(open) => {
+                                if (open) form.resetFields();
+                            }}
                         >
                             <Form
                                 form={form}
                                 layout="vertical"
-                                onFinish={(values) => handleSubmitAddClause(values)}
+                                onFinish={(values) => {
+                                    form.resetFields();
+                                    handleSubmitAddClause(values)
+                                }}
                             >
                                 <Form.Item
                                     name="label"
@@ -315,13 +383,19 @@ const ManageClause = () => {
                         <Modal
                             title="Cập nhật điều khoản"
                             open={isModalOpenClause}
-                            onCancel={() => setIsModalOpenClause(false)}
+                            onCancel={() => {
+                                form.resetFields();
+                                setIsModalOpenClause(false)
+                            }}
                             footer={null}
                         >
                             <Form
                                 form={form}
                                 layout="vertical"
-                                onFinish={(values) => handleSubmitUpdateClause(values)}
+                                onFinish={(values) => {
+                                    form.resetFields();
+                                    handleSubmitUpdateClause(values)
+                                }}
                             >
                                 <Form.Item
                                     name="id"
@@ -365,13 +439,11 @@ const ManageClause = () => {
                         <List
                             itemLayout="horizontal"
                             pagination={{
-                                current: page + 1,
-                                pageSize: pageSize,
+                                current: pageClause + 1,
+                                pageSize: pageSizeClause,
                                 total: clauseData?.data?.totalElements || 0,
                                 onChange: (newPage, newPageSize) => {
-                                    console.log("Page changed:", newPage, "PageSize:", newPageSize);
-                                    setPage(newPage - 1);
-                                    setPageSize(newPageSize);
+                                    handlePageClauseChange(newPage, newPageSize)
                                 },
                             }}
                             dataSource={sortedClause}
@@ -418,14 +490,15 @@ const ManageClause = () => {
                                         onClick={() => showModal(clause)}
                                         className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
                                         actions={[
-                                            <div className="flex flex-col justify-center gap-y-2">
-                                                <div className="flex gap-2">
+                                            <div className="flex flex-col items-center gap-2 mr-3">
+                                                <div className="flex gap-3 mb-3">
                                                     <Button
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleUpdateClause(clause.clauseCode);
                                                         }}
+                                                        className="flex items-center justify-center"
                                                     >
                                                         <EditFilled />
                                                     </Button>
@@ -437,12 +510,17 @@ const ManageClause = () => {
                                                             console.log(clause)
                                                             handleDelete(clause.id);
                                                         }}
+                                                        className="flex items-center justify-center"
                                                     >
                                                         <DeleteFilled />
                                                     </Button>
                                                 </div>
-                                                <p>{calculateDaysAgo(clause.createdAt)}</p>
-                                            </div>,
+                                                <div className="text-center">
+                                                    <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
+                                                    <p className="text-xs text-gray-500">Version: {clause?.version}.0.0</p>
+                                                </div>
+                                            </div>
+
                                         ]}
                                     >
                                         <List.Item.Meta
@@ -479,16 +557,7 @@ const ManageClause = () => {
                                 </Popover>
                             )}
                         />
-                        {/* <Pagination
-                            current={page + 1}
-                            pageSize={pageSize}
-                            total={clauseData?.data?.length}
-                            onChange={(newPage, newPageSize) => {
-                                setPage(newPage - 1);
-                                setPageSize(newPageSize);
-                            }}
-                            className="mt-4"
-                        /> */}
+
                     </div>
                 </TabPane>
 
@@ -504,7 +573,7 @@ const ManageClause = () => {
                         <div className='flex w-3/5 gap-4'>
                             <Search
                                 placeholder="Tìm kiếm tên căn cứ"
-                                onSearch={setSearchTerm}
+                                onSearch={setSearchTermLegal}
                                 enterButton="Tìm kiếm"
                                 allowClear
                                 className="mb-4 max-w-[350px]"
@@ -517,23 +586,29 @@ const ManageClause = () => {
                                 + Thêm Căn cứ
                             </Button>
                             <Button
-                                onClick={handleSortByCreatedAt}
+                                onClick={handleSortByCreatedAtLegal}
                                 className="mb-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow-md transition duration-200"
                             >
-                                Sắp xếp theo Ngày tạo
-                                {sortOrder === 'ascend' ? <FaSortUp size={16} /> : <FaSortDown size={16} />}
+                                {/* Sắp xếp theo Ngày tạo */}
+                                {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                             </Button>
                         </div>
                         <Modal
                             title="Thêm Căn cứ Pháp Lý"
                             open={isModalOpenAddLegal}
-                            onCancel={() => setIsModalOpenAddLegal(false)}
+                            onCancel={() => {
+                                form.resetFields();
+                                setIsModalOpenAddLegal(false)
+                            }}
                             footer={null}
                         >
                             <Form
                                 form={form}
                                 layout="vertical"
-                                onFinish={(values) => handleSubmitAddClause(values)}
+                                onFinish={(values) => {
+                                    form.resetFields();
+                                    handleSubmitAddClause(values)
+                                }}
                                 initialValues={{
                                     type: 8,
                                 }}
@@ -544,9 +619,6 @@ const ManageClause = () => {
                                     rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
                                 >
                                     <Input placeholder="Nhập tên căn cứ" />
-                                </Form.Item>
-
-                                <Form.Item name="type" style={{ display: "none" }}>
                                 </Form.Item>
 
                                 <Form.Item
@@ -567,13 +639,19 @@ const ManageClause = () => {
                         <Modal
                             title="Cập Nhật Căn cứ"
                             open={isModalOpenLegal}
-                            onCancel={() => setIsModalOpenLegal(false)}
+                            onCancel={() => {
+                                form.resetFields();
+                                setIsModalOpenLegal(false)
+                            }}
                             footer={null}
                         >
                             <Form
                                 form={form}
                                 layout="vertical"
-                                onFinish={(values) => handleSubmitUpdateClause(values)}
+                                onFinish={(values) => {
+                                    form.resetFields();
+                                    handleSubmitUpdateClause(values)
+                                }}
                                 initialValues={{
                                     type: 8,
                                 }}
@@ -606,6 +684,15 @@ const ManageClause = () => {
                         </Modal>
                         <List
                             itemLayout="horizontal"
+                            pagination={{
+                                current: pageLegal + 1,
+                                pageSize: pageSizeLegal,
+                                total: legalData?.data?.totalElements || 0,
+                                onChange: (newPage, newPageSize) => {
+                                    // console.log("Page changed:", newPage, "PageSize:", newPageSize);
+                                    handlePageChange(newPage, newPageSize)
+                                },
+                            }}
                             dataSource={sortedLegal}
                             renderItem={clause => (
                                 <Popover

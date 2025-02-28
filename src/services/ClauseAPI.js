@@ -26,8 +26,8 @@ export const clauseAPI = createApi({
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
         getLegal: builder.query({
-            query: ({ page, size, keyword }) => ({
-                url: `/terms/get-all?typeTermIds=8&page=${page}&size=${size}&keyword=${keyword?.trim() || ""}`,
+            query: ({ page, size, keyword, order }) => ({
+                url: `/terms/get-all?typeTermIds=8&page=${page}&size=${size}&order=${order}&keyword=${keyword}`,
                 method: "GET",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
@@ -45,7 +45,8 @@ export const clauseAPI = createApi({
                 method: "POST",
                 body: { label, value },
             }),
-            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+            invalidatesTags: [{ type: "Clause", id: "LIST" }],
+            // providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
         UpdateClause: builder.mutation({
             query: ({ termId, label, value }) => ({

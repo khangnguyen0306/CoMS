@@ -64,7 +64,13 @@ export const partnerAPI = createApi({
             invalidatesTags: (result, error, { id }) => [{ type: "Partner", id: id }],
         }),
 
-
+        deletePartner: builder.mutation({
+            query: ({ partnerId }) => ({
+                url: `parties/update-status/${partnerId}/true`,
+                method: "PUT",
+            }),
+            invalidatesTags: (result, error, partnerId) => [{ type: "Partner", id: partnerId }],
+        }),
         // deleteDoctor: builder.mutation({
         //     query: (userId) => ({
         //         url: `/delete/${userId}`, // Use userId instead of doctorId
@@ -81,5 +87,6 @@ export const {
     useGetPartnerListQuery,
     useLazyGetPartnerListQuery,
     useCreatePartnerMutation,
-    useEditPartnerMutation
+    useEditPartnerMutation,
+    useDeletePartnerMutation,
 } = partnerAPI;

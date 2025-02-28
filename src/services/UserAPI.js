@@ -4,9 +4,9 @@ import { selectTokens } from "../slices/auth.slice";
 
 export const userAPI = createApi({
     reducerPath: "userManagement",
-    tagTypes: ['USER','ROLE'],
+    tagTypes: ['USER', 'ROLE'],
     baseQuery: fetchBaseQuery({
-        baseUrl: "https://mocki.io/v1/",
+        baseUrl: "http://localhost:8080/api/v1",
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -18,58 +18,54 @@ export const userAPI = createApi({
     }),
     endpoints: (builder) => ({
         getAllUser: builder.query({
-            query: () => `a031aa4f-2c07-4d77-a16f-bb44296d7794`,
+            query: ({ keyword, page, limit }) => ({
+                url: `/users/get-all-user?page=${page}&limit=${limit}&keyword=${keyword}`,
+                method: "GET",
+            }),
             providesTags: (result) =>
-                result
-                    ? result.map(({ id }) => ({ type: "USER", id }))
-                    : [{ type: "USER", id: id }],
+                result?.users
+                    ? [...result.users.map(({ id }) => ({ type: "USER", id })), { type: "USER", id: "LIST" }]
+                    : [{ type: "USER", id: "LIST" }],
+
         }),
-        getAllUserRole: builder.query({
-            query: () => `ff1a6575-2d88-4543-b31a-adb41df22e69`,
-            providesTags: (result) =>
-                result
-                    ? result.map(({ id }) => ({ type: "ROLE", id }))
-                    : [{ type: "ROLE", id: id }],
+        BanUser: builder.mutation({
+            query: ({ userId }) => ({
+                url: `/users/block-or-enable/${userId}/0`,
+                method: "PUT",
+            }),
+            providesTags: (result, error, User) => [{ type: "User", id: User }],
         }),
-        // getTaskManage: builder.query({
-        //     query: () => ({
-        //         url: `/0d303150-d00d-4f4d-98ca-f073ec3e704b`,
-        //         method: "GET",
-        //     }),
-        //     providesTags: (result, error, Task) => [{ type: "Task", id: Task }],
-        // }),
-
-        // createDoctor: builder.mutation({
-        //     query: (newDoctorData) => ({
-        //         url: `/create`,
-        //         method: "POST",
-        //         body: newDoctorData,
-        //     }),
-        //     invalidatesTags: [{ type: "DoctorList", id: "LIST" }],
-        // }),
-
-        // editDoctor: builder.mutation({
-        //     query: ({ userId, ...updatedDoctorData }) => ({
-        //         url: `/update/${userId}`, // Sử dụng userId để phù hợp với tài liệu API
-        //         method: "PUT",
-        //         body: updatedDoctorData,
-        //     }),
-        //     invalidatesTags: (result, error, { userId }) => [{ type: "DoctorList", id: userId }],
-        // }),
-
-
-        // deleteDoctor: builder.mutation({
-        //     query: (userId) => ({
-        //         url: `/delete/${userId}`, // Use userId instead of doctorId
-        //         method: "DELETE",
-        //     }),
-        //     invalidatesTags: (result, error, userId) => [{ type: "DoctorList", id: userId }],
-        // }),
+        ActiveUser: builder.mutation({
+            query: ({ userId }) => ({
+                url: `/users/block-or-enable/${userId}/1`,
+                method: "PUT",
+            }),
+            providesTags: (result, error, User) => [{ type: "User", id: User }],
+        }),
+        UpdateUser: builder.mutation({
+            query: ({ id, email, full_name, phone_number, address, role_id, is_ceo }) => ({
+                url: `/users/update-user/${id}`,
+                method: "PUT",
+                body: { email, full_name, phone_number, address, role_id, is_ceo },
+            }),
+            invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
+        }),
+        AddUser: builder.mutation({
+            query: ({ email, full_name, phone_number, address, role_id, is_ceo }) => ({
+                url: `/users/register`,
+                method: "POST",
+                body: { email, full_name, phone_number, address, role_id, is_ceo },
+            }),
+            invalidatesTags: [{ type: "USER", id: "LIST" }],
+        }),
     }),
 });
 
 export const {
-    // useGetTaskManageQuery,
     useGetAllUserQuery,
-    useGetAllUserRoleQuery
+    useBanUserMutation,
+    useActiveUserMutation,
+    useUpdateUserMutation,
+    useAddUserMutation,
+
 } = userAPI;

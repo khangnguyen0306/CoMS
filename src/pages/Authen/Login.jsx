@@ -99,7 +99,7 @@ const Login = () => {
     };
 
     const handleLoginFailure = (error, email) => {
-        if (error.data) {
+        if (error.data.status === "UNAUTHORIZED") {
             setError("Tài khoản hoặc mật khẩu không đúng. vui lòng thử lại!");
             // message.error(error.data.message);
         } else {

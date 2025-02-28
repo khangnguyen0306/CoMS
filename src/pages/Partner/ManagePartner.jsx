@@ -13,9 +13,9 @@ import {
     Select,
     message
 } from "antd";
-import { PlusOutlined, EditFilled } from '@ant-design/icons';
+import { PlusOutlined, EditFilled, DeleteFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery } from '../../services/PartnerAPI';
+import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation } from '../../services/PartnerAPI';
 import { validationPatterns } from "../../utils/ultil";
 
 const { Link } = Typography;
@@ -40,6 +40,7 @@ const ManagePartner = () => {
     // //////////////////////////////////// //////////////////////// ////////////////////////////////// chua co search
     const [CreatePartner, { isLoading }] = useCreatePartnerMutation();
     const [EditPartner, { isLoading: isLoadingEdit }] = useEditPartnerMutation();
+    const [DeletePartner, { isLoading: loadingDelete }] = useDeletePartnerMutation();
     const [viewHistory, setViewHistory] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
@@ -75,14 +76,15 @@ const ManagePartner = () => {
     }, [partnerData]);
 
     const addViewHistory = (record) => {
+        console.log('addViewHistory', record);
         const minimalRecord = {
-            key: record.key,
+            partyId: record.partyId,
             partnerName: record.partnerName,
             email: record.email,
             img: record.img,
         };
         const currentHistory = getViewHistory();
-        if (!currentHistory.find((item) => item.key === minimalRecord.key)) {
+        if (!currentHistory.find((item) => item.partyId === minimalRecord.partyId)) {
             const updatedHistory = [minimalRecord, ...currentHistory];
             const limitedHistory = updatedHistory.slice(0, 10);
             localStorage.setItem('viewHistory', JSON.stringify(limitedHistory));
@@ -104,6 +106,7 @@ const ManagePartner = () => {
     };
 
     const handleOk = async () => {
+
         try {
             const values = await form.validateFields();
             const bankingInfo = bankAccounts.map(account => ({
@@ -114,9 +117,8 @@ const ManagePartner = () => {
                 ...values,
                 banking: bankingInfo,
             };
-
+            console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData);
-            console.log(result);
             if (result.data.status === "CREATED") {
                 message.success('Thêm mới thành công!');
                 refetch();
@@ -130,6 +132,28 @@ const ManagePartner = () => {
             console.error("Error creating partner:", error);
         }
     };
+
+    const handleDelete = async (partnerId) => {
+        Modal.confirm({
+            title: 'Bạn có chắc muốn xóa không?',
+            onOk: async () => {
+                try {
+                    const result = await DeletePartner({ partnerId: partnerId });
+                    if (result.error.originalStatus == 200) {
+                        refetch();
+                        message.success('Xóa thành công');
+                    } else
+                        message.success('Xóa thất bại vui lòng thử lại');
+
+                }
+                catch (error) {
+                    console.error("Error during delete:", error);
+                    message.error('Xóa thất bại, vui lòng thử lại!');
+                }
+            },
+        });
+    };
+
 
     const handleCancel = () => {
         setIsModalVisible(false);
@@ -257,6 +281,10 @@ const ManagePartner = () => {
                     <Button
                         icon={<EditFilled style={{ color: '#2196f3' }} />}
                         onClick={() => showEditModal(record)}
+                    />
+                    <Button
+                        icon={<DeleteFilled style={{ color: '#2196f3' }} />}
+                        onClick={() => handleDelete(record.partyId)}
                     />
                 </Space>
             ),

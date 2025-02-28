@@ -144,6 +144,7 @@ const PartnerDetail = () => {
                                             </div>
                                             <div>
                                                 {!isEditing ? (
+                                                    //để sau làm nút chỉnh sửa
                                                     <Button
                                                         type="primary"
                                                         onClick={handleEditClick}
@@ -362,9 +363,14 @@ const PartnerDetail = () => {
                                                 }}
                                             >
                                                 <Tag color={getPartnerTypeColor(partnerData?.data.partnerType)}>
-                                                    {partnerData?.data.partnerType}
+                                                    {partnerData?.data.partnerType === "PARTY_B"
+                                                        ? "Khách hàng"
+                                                        : partnerData?.data.partnerType === "PARTY_A"
+                                                            ? "Nhà cung cấp"
+                                                            : "Không xác định"}
                                                 </Tag>
                                             </Descriptions.Item>
+
 
 
                                             <Descriptions.Item
