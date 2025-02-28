@@ -56,16 +56,16 @@ export const authApi = createApi({
       query: ({ email, newPassword }) => {
         return {
           method: "POST",
-          url: `forgot-password/change-password/${email}`,
+          url: `forgot-password/change-password/${email}?resetToken=${token}`,
           body: { new_password: newPassword, confirm_password: newPassword },
         };
       },
     }),
     changePasswordByEmail: builder.mutation({
-      query: ({ email, new_password }) => {
+      query: ({ email, new_password, token }) => {
         return {
           method: "POST",
-          url: `forgot-password/change-password/${email}`,
+          url: `forgot-password/change-password/${email}?resetToken=${token}`,
           body: { new_password: new_password, confirm_password: new_password },
         };
       },

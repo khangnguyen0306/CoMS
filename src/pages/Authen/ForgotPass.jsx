@@ -19,6 +19,8 @@ const ForgotPass = ({ setIsForgotPass }) => {
     const [changePassword, { isLoading: isLoadingChange }] = useChangePasswordByEmailMutation();
     const [isVerified, setIsVerified] = useState(false);
     const [codeVerify, setCodeVerify] = useState('')
+    const [token, setToken] = useState('')
+    console.log(token);
     // Hàm gửi mã
     const handleSendCode = async () => {
         const email = form.getFieldValue('email');
@@ -59,10 +61,10 @@ const ForgotPass = ({ setIsForgotPass }) => {
         if (codeVerify) {
             try {
                 const codeCheck = await verifyCode({ email: email, otp: codeVerify });
-                console.log(codeCheck);
                 if (codeCheck.error) {
                     setError('Mã xác thực không đúng.');
                 } else {
+                    setToken(codeCheck.data.data);
                     setIsVerified(!isVerified);
                 }
             } catch (e) {
@@ -77,7 +79,7 @@ const ForgotPass = ({ setIsForgotPass }) => {
         // console.log(email, newPassword, confirmPassword)
         if (codeVerify) {
             try {
-                const changePass = await changePassword({ email: email, new_password: newPassword, confirm_password: confirmPassword });
+                const changePass = await changePassword({ email: email, new_password: newPassword, confirm_password: confirmPassword, token: token });
                 // console.log(changePass);
                 if (changePass.data.status === "OK") {
                     const messagesc = "Mật khẩu đã được thay đổi !"
@@ -196,7 +198,7 @@ const ForgotPass = ({ setIsForgotPass }) => {
                             <Input.Password placeholder="Nhập mật khẩu mới" size="large" />
                         </Form.Item>
                         <Form.Item
-                            label={<span className='text-white'> xác nhận Mật khẩu mới</span>}
+                            label={<span className='text-white'> Xác nhận Mật khẩu mới</span>}
                             name="confirm_password"
                             rules={[
                                 { required: true, message: 'Nhập lại mật khẩu để xác nhận!' },

@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button, Image, Layout, Menu, notification, theme, Modal } from "antd";
-import { LaptopOutlined, LoginOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
-import React, { useCallback, useState } from "react";
+import { Breadcrumb, Button, Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge } from "antd";
+import { BellOutlined, LaptopOutlined, LoginOutlined, NotificationFilled, NotificationOutlined, UserOutlined } from "@ant-design/icons";
+import React, { useCallback, useEffect, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
@@ -23,12 +23,14 @@ import { useDispatch, useSelector } from "react-redux";
 const { Content, Sider } = Layout;
 import { FaUserCog } from "react-icons/fa";
 import { LuWaypoints } from "react-icons/lu";
+import RealTimeNotification from "../../pages/Noti/RealTimeNotification";
+import { List } from "antd/es/form/Form";
+import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
-  const user = useSelector(selectCurrentUser)
-
+  const user = useSelector(selectCurrentUser);
   const router = {
     '1': '/',
     'dash': '/dashboard',
@@ -42,6 +44,7 @@ const MainLayout = () => {
     'deletedtemplate': '/deletedtemplate',
     'clause': '/clause',
     'user': '/admin/user',
+    'workflow': '/admin/process',
     'contractPartner': '/contractpartner',
     '4': '/combo',
   }
@@ -61,6 +64,8 @@ const MainLayout = () => {
       },
     });
   }, [dispatch, navigate]);
+
+
 
   const navManager = [
     {
@@ -158,6 +163,7 @@ const MainLayout = () => {
         { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
         { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
+
       ]
     },
     {
@@ -268,7 +274,9 @@ const MainLayout = () => {
             />
             <p className="ml-2 text-white">Quản lý hợp đồng CoMS</p>
           </div>
-
+          <div className="flex items-center mr-36">
+            <NotificationDropdown />
+          </div>
         </Header>
 
 
@@ -292,6 +300,7 @@ const MainLayout = () => {
               boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
             }}
           >
+            {user?.roles[0] === "ROLE_STAFF" && <RealTimeNotification />}
             <Outlet />
           </Content>
 

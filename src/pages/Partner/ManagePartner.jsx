@@ -17,10 +17,10 @@ import {
     Select,
     message
 } from "antd";
-import { SearchOutlined, EyeOutlined, PlusOutlined, EditOutlined, EditFilled, EyeFilled } from '@ant-design/icons';
+import { SearchOutlined, EyeOutlined, PlusOutlined, EditOutlined, EditFilled, EyeFilled, DeleteFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
-import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery } from '../../services/PartnerAPI';
+import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation } from '../../services/PartnerAPI';
 import { validationPatterns } from "../../utils/ultil";
 
 const { Link } = Typography;
@@ -45,6 +45,7 @@ const ManagePartner = () => {
 
     const [CreatePartner, { isLoading }] = useCreatePartnerMutation();
     const [EditPartner, { isLoading: isLoadingEdit }] = useEditPartnerMutation();
+    const [DeletePartner, { isLoading: loadingDelete }] = useDeletePartnerMutation();
     const [viewHistory, setViewHistory] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
@@ -80,14 +81,15 @@ const ManagePartner = () => {
     }, [partnerData]);
 
     const addViewHistory = (record) => {
+        console.log('addViewHistory', record);
         const minimalRecord = {
-            key: record.key,
+            partyId: record.partyId,
             partnerName: record.partnerName,
             email: record.email,
             img: record.img,
         };
         const currentHistory = getViewHistory();
-        if (!currentHistory.find((item) => item.key === minimalRecord.key)) {
+        if (!currentHistory.find((item) => item.partyId === minimalRecord.partyId)) {
             const updatedHistory = [minimalRecord, ...currentHistory];
             const limitedHistory = updatedHistory.slice(0, 10);
             localStorage.setItem('viewHistory', JSON.stringify(limitedHistory));
@@ -115,6 +117,7 @@ const ManagePartner = () => {
     };
 
     const handleOk = async () => {
+
         try {
             const values = await form.validateFields();
             const bankingInfo = bankAccounts.map(account => ({
@@ -125,9 +128,8 @@ const ManagePartner = () => {
                 ...values,
                 banking: bankingInfo,
             };
-
+            console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData);
-            console.log(result);
             if (result.data.status === "CREATED") {
                 message.success('Thêm mới thành công!');
                 refetch();
@@ -142,6 +144,28 @@ const ManagePartner = () => {
         }
     };
 
+    const handleDelete = async (partnerId) => {
+        Modal.confirm({
+            title: 'Bạn có chắc muốn xóa không?',
+            onOk: async () => {
+                try {
+                    const result = await DeletePartner({ partnerId: partnerId });
+                    if (result.error.originalStatus == 200) {
+                        refetch();
+                        message.success('Xóa thành công');
+                    } else
+                        message.success('Xóa thất bại vui lòng thử lại');
+
+                }
+                catch (error) {
+                    console.error("Error during delete:", error);
+                    message.error('Xóa thất bại, vui lòng thử lại!');
+                }
+            },
+        });
+    };
+
+
     const handleCancel = () => {
         setIsModalVisible(false);
     };
@@ -151,7 +175,7 @@ const ManagePartner = () => {
     };
 
     const handleBankChange = (index, field, value) => {
-        const newBankAccounts = bankAccounts.map((account, i) => 
+        const newBankAccounts = bankAccounts.map((account, i) =>
             i === index ? { ...account, [field]: value } : account
         );
         setBankAccounts(newBankAccounts);
@@ -266,8 +290,12 @@ const ManagePartner = () => {
             render: (_, record) => (
                 <Space className="flex justify-center">
                     <Button
-                        icon={<EditFilled style={{color:'#2196f3'}}/>}
+                        icon={<EditFilled style={{ color: '#2196f3' }} />}
                         onClick={() => showEditModal(record)}
+                    />
+                    <Button
+                        icon={<DeleteFilled style={{ color: '#2196f3' }} />}
+                        onClick={() => handleDelete(record.partyId)}
                     />
                 </Space>
             ),
@@ -361,7 +389,7 @@ const ManagePartner = () => {
 
             <Modal title={editingPartner ? "Chỉnh sửa Partner" : "Tạo Partner Mới"} open={isModalVisible} onOk={editingPartner ? handleEditOk : handleOk} onCancel={handleCancel}>
                 <Form form={form} layout="vertical">
-                    <Form.Item name="partyId"/>
+                    <Form.Item name="partyId" />
                     <Form.Item name="partnerType" label="Loại Partner" rules={[{ required: true }]}>
                         <Select>
                             <Select.Option value="PARTY_B">Nhà cung cấp</Select.Option>

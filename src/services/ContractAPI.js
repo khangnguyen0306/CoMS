@@ -33,7 +33,7 @@ export const ContractAPI = createApi({
                     : [{ type: "Contract", id: id }],
         }),
         getAllContractPartner: builder.query({
-            query: () => `eda1f2ba-a6ce-4376-bc06-941bda736191`,
+            query: () => `510fa7fd-5caa-4cfa-b858-5c6ea74cc683`,
             providesTags: (result) =>
                 result
                     ? result.map(({ id }) => ({ type: "Contract", id }))
