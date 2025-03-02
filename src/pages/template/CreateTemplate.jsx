@@ -1,9 +1,35 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Steps, Button, Input, DatePicker, Checkbox, message, Form, Collapse, Skeleton, Empty, Card, Row, Col, Select, ConfigProvider, Radio, Switch, Spin, Divider, Space, Popconfirm, Modal, Popover } from "antd";
-import RichTextEditor, {
-    BaseKit, Bold, BulletList, Clear, Color, ColumnActionButton, FontFamily, FontSize, Heading, Highlight, History, HorizontalRule, Image, ImportWord,
-    Indent, Italic, Link, Mention, OrderedList, SearchAndReplace, SlashCommand, Strike, Table, TextAlign, Underline, ExportWord,
-} from 'reactjs-tiptap-editor';
+
+import {
+    BaseKit,
+    Bold,
+    BulletList,
+    Clear,
+    Color,
+    ColumnActionButton,
+    ExportWord,
+    FontFamily,
+    FontSize,
+    Heading,
+    Highlight,
+    History,
+    HorizontalRule,
+    Image,
+    ImportWord,
+    Indent,
+    Italic,
+    Link,
+    Mention,
+    OrderedList,
+    SearchAndReplace,
+    SlashCommand,
+    Strike,
+    Table,
+    TextAlign,
+    Underline,
+} from 'reactjs-tiptap-editor/extension-bundle'
+import RichTextEditor from 'reactjs-tiptap-editor'
 import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
 import { FaDeleteLeft } from "react-icons/fa6";
@@ -1773,7 +1799,7 @@ const CreateTemplate = () => {
                 const commonData = fieldData.Common || [];
                 const aData = fieldData.A || [];
                 const bData = fieldData.B || [];
-                
+
                 // Chỉ thêm key vào additionalConfig nếu có ít nhất một mảng chứa dữ liệu
                 if (commonData.length > 0 || aData.length > 0 || bData.length > 0) {
                     additionalConfig[key] = {
@@ -1921,7 +1947,7 @@ const CreateTemplate = () => {
             </Modal>
 
 
-{/* đang hơi lag do sử dụng state */}
+            {/* đang hơi lag do sử dụng state */}
 
             <Modal
                 title="Thêm điều khoản chung"

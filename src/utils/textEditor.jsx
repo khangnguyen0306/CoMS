@@ -1,7 +1,32 @@
-import RichTextEditor, {
-    BaseKit, Bold, BulletList, Clear, Color, ColumnActionButton, FontFamily, FontSize, Heading, Highlight, History, HorizontalRule, Image, ImportWord,
-    Indent, Italic, Link, Mention, OrderedList, SearchAndReplace, SlashCommand, Strike, Table, TextAlign, Underline, ExportWord,
-} from 'reactjs-tiptap-editor';
+import {
+    BaseKit,
+    Bold,
+    BulletList,
+    Clear,
+    Color,
+    ColumnActionButton,
+    ExportWord,
+    FontFamily,
+    FontSize,
+    Heading,
+    Highlight,
+    History,
+    HorizontalRule,
+    Image,
+    ImportWord,
+    Indent,
+    Italic,
+    Link,
+    Mention,
+    OrderedList,
+    SearchAndReplace,
+    SlashCommand,
+    Strike,
+    Table,
+    TextAlign,
+    Underline,
+} from 'reactjs-tiptap-editor/extension-bundle'
+import RichTextEditor from 'reactjs-tiptap-editor'
 import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
 
