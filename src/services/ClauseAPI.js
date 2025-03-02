@@ -32,6 +32,13 @@ export const clauseAPI = createApi({
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
+        getLegalCreateContract: builder.query({
+            query: ({ page, size, keyword, order }) => ({
+                url: `/terms/get-all-less-field?typeTermIds=8&page=${page}&size=${size}&order=${order}&keyword=${keyword}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
         getAllTypeClause: builder.query({
             query: (id) => ({
                 url: `/terms/get-all-type-terms`,
@@ -102,5 +109,7 @@ export const {
     useGetLegalQuery,
     useDeleteClauseMutation,
     useLazyGetLegalQuery,
-    useLazyGetClauseManageQuery
+    useLazyGetClauseManageQuery,
+    useGetLegalCreateContractQuery,
+    useLazyGetLegalCreateContractQuery
 } = clauseAPI;

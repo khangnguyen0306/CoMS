@@ -82,6 +82,7 @@ export const {
     useGetAllTemplateQuery,
     useLazyGetAllTemplateQuery,
     useGetTemplateDataDetailQuery,
+    useLazyGetTemplateDataDetailQuery,
     useGetAllDeletedTemplateQuery,
     useCreateTemplateMutation,
     useDuplicateTemplateMutation
