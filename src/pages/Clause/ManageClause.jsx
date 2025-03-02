@@ -9,7 +9,6 @@ import { useGetAllTypeClauseQuery, useCreateClauseMutation, useUpdateClauseMutat
 import TabPane from 'antd/es/tabs/TabPane';
 import dayjs from 'dayjs';
 import { FaSortDown, FaSortUp } from 'react-icons/fa';
-// theem ngayf tao va sorter theo do
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 const { Search } = Input;
@@ -323,8 +322,8 @@ const ManageClause = () => {
                                     {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                                 </span>
                             </button>
-
                         </div>
+
                         <Modal
                             title="Thêm điều khoản"
                             open={isModalOpenAdd}
@@ -380,6 +379,7 @@ const ManageClause = () => {
                                 </Form.Item>
                             </Form>
                         </Modal>
+
                         <Modal
                             title="Cập nhật điều khoản"
                             open={isModalOpenClause}
@@ -418,7 +418,6 @@ const ManageClause = () => {
                                         ))}
                                     </Select>
                                 </Form.Item>
-
 
                                 <Form.Item
                                     name="value"
@@ -689,7 +688,6 @@ const ManageClause = () => {
                                 pageSize: pageSizeLegal,
                                 total: legalData?.data?.totalElements || 0,
                                 onChange: (newPage, newPageSize) => {
-                                    // console.log("Page changed:", newPage, "PageSize:", newPageSize);
                                     handlePageChange(newPage, newPageSize)
                                 },
                             }}
