@@ -1840,7 +1840,6 @@ const CreateTemplate = () => {
                 isDateLateChecked,
                 maxDateLate,
                 autoRenew,
-                additionalConfig
             };
 
             console.log("Transformed Data:", transformedData);

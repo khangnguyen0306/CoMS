@@ -17,7 +17,7 @@ import { AiFillIdcard } from "react-icons/ai";
 import { FaTasks } from "react-icons/fa";
 import { GoLaw } from "react-icons/go";
 import { FaHandshakeSimple } from "react-icons/fa6";
-import LOGO from './../../assets/Image/letter-c.svg'
+import LOGO from './../../assets/Image/letterC.svg'
 import { logOut, selectCurrentUser } from "../../slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 const { Content, Sider } = Layout;
