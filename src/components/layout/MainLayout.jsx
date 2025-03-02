@@ -18,7 +18,7 @@ import { FaTasks } from "react-icons/fa";
 import { GoLaw } from "react-icons/go";
 import { FaHandshakeSimple } from "react-icons/fa6";
 import LOGO from './../../assets/Image/letter-c.svg'
-import { logOut, selectCurrentUser } from "../../slices/auth.slice";
+import { logOut, selectCurrentUser } from "../../slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 const { Content, Sider } = Layout;
 import { FaUserCog } from "react-icons/fa";

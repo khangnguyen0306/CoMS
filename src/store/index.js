@@ -7,7 +7,7 @@ import { taskAPI } from "../services/TaskAPI";
 import { clauseAPI } from "../services/ClauseAPI";
 import { userAPI } from "../services/UserAPI";
 import { processAPI } from "../services/ProcessAPI";
-import AuthReducer from "../slices/auth.slice";
+import AuthReducer from "../slices/authSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import sessionStorage from 'redux-persist/lib/storage/session'
