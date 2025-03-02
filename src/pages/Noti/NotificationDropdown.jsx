@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Badge, Dropdown, List } from "antd";
 import { BellOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../slices/auth.slice";
+import { selectCurrentUser } from "../../slices/authSlice";
 
 const NotificationDropdown = () => {
   const user = useSelector(selectCurrentUser);

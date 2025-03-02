@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { selectCurrentToken, selectCurrentUser } from "../slices/auth.slice";
+import { selectCurrentToken, selectCurrentUser } from "../slices/authSlice";
 
 
 const AdminGuard = () => {

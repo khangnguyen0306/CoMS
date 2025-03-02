@@ -11,7 +11,7 @@ import Cookies from "js-cookie";
 import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
 import { useLoginUserMutation } from '../../services/AuthAPI';
-import { selectCurrentToken, setToken, setUser } from '../../slices/auth.slice';
+import { selectCurrentToken, setToken, setUser } from '../../slices/authSlice';
 import ForgotPass from './ForgotPass';
 import helloIcon from "./../../assets/Image/hello.svg"
 
