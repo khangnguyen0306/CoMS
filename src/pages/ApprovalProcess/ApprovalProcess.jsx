@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Form, Select, Steps, message } from "antd";
-import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
+import { Button, Form, Select, Steps, message, Alert } from "antd";
+import { MinusCircleOutlined } from "@ant-design/icons";
 import { useGetAllUserQuery } from "../../services/UserAPI";
 import { useGetProcessTemplatesQuery } from "../../services/ProcessAPI";
 import dayjs from "dayjs";
@@ -9,7 +9,7 @@ const { Step } = Steps;
 const { Option } = Select;
 
 const ApprovalProcess = () => {
-    // Lấy dữ liệu mẫu quy trình từ API
+    // Lấy dữ liệu mẫu quy trình từ API (nếu có)
     const { data: processTemplatesData } = useGetProcessTemplatesQuery();
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
     const { data: userData } = useGetAllUserQuery({
@@ -18,11 +18,11 @@ const ApprovalProcess = () => {
         limit: 10,
     });
 
-    // Lọc ra các user có role.id = 2 (Manager)
-    const filterUsers = (users) => users.filter((user) => user.role.id === 2);
+    // Lọc ra các user có role.id = 2 hoặc 3 (Manager)
+    const filterUsers = (users) => users.filter((user) => [2, 3].includes(user.role.id));
     const filteredUsers = userData?.users ? filterUsers(userData.users) : [];
 
-    // State chứa danh sách mẫu quy trình (khởi tạo từ API nếu có)
+    // State chứa danh sách mẫu quy trình (đã tạo từ API hoặc tạo mới)
     const [processes, setProcesses] = useState([]);
     useEffect(() => {
         if (processTemplatesData) {
@@ -30,21 +30,18 @@ const ApprovalProcess = () => {
         }
     }, [processTemplatesData]);
 
-    // State hiển thị modal thêm quy trình
-    const [isModalVisible, setIsModalVisible] = useState(false);
-
-    // States cho modal tạo quy trình (Steps + Form)
+    // State xác định chế độ tạo/chỉnh sửa quy trình
+    const [isCreating, setIsCreating] = useState(false);
+    // Các state cho giao diện Steps (cho việc tạo/chỉnh sửa quy trình)
     const [current, setCurrent] = useState(0);
     const [form] = Form.useForm();
-    // Lưu các lựa chọn của từng bước; ban đầu có 3 bước + bước cuối tự động
+    // Lưu các lựa chọn của từng bước; mặc định chỉ có đợt 1 và đợt cuối
     const [approvals, setApprovals] = useState({
         stage1: null,
-        stage2: null,
-        stage3: null,
         stageFinal: null,
     });
-    // Số bước ký duyệt tự tạo (không bao gồm bước cuối)
-    const [customStagesCount, setCustomStagesCount] = useState(3);
+    // Số bước ký duyệt tự tạo (không bao gồm bước cuối) - mặc định chỉ có 1 bước (stage1)
+    const [customStagesCount, setCustomStagesCount] = useState(1);
 
     // Hàm tạo mảng các bước (Steps) dựa trên customStagesCount hiện tại
     const generateSteps = () => {
@@ -55,7 +52,6 @@ const ApprovalProcess = () => {
                 title: (
                     <div className="flex items-center">
                         {`Ký duyệt đợt ${i}`}
-                        {/* Hiển thị icon dấu trừ nếu có hơn 1 bước */}
                         {customStagesCount > 1 && (
                             <MinusCircleOutlined
                                 className="ml-2 text-red-500 cursor-pointer"
@@ -109,34 +105,26 @@ const ApprovalProcess = () => {
 
     const stepsData = generateSteps();
 
-    // Hàm xử lý xóa 1 bước ký duyệt (chỉ áp dụng cho các bước trong customStagesCount)
+    // Hàm xử lý xóa 1 bước ký duyệt (áp dụng cho các bước thuộc customStagesCount)
     const handleRemoveStage = (stageNumber) => {
-        // Nếu xóa bước đang hiển thị, chuyển current về bước trước nếu cần
         let newCurrent = current;
         if (current >= stageNumber) {
             newCurrent = Math.max(0, current - 1);
             setCurrent(newCurrent);
         }
-        // Giảm số bước ký duyệt
         setCustomStagesCount((prev) => prev - 1);
-
-        // Cập nhật state approvals: xóa key tương ứng và dịch chuyển các bước sau nó
         setApprovals((prev) => {
             const newApprovals = {};
-            // Duyệt qua các bước mới sau khi xóa
             for (let i = 1; i <= customStagesCount; i++) {
                 if (i < stageNumber) {
                     newApprovals[`stage${i}`] = prev[`stage${i}`];
                 } else if (i > stageNumber) {
-                    // Dịch chuyển giá trị từ bước i sang bước i-1
                     newApprovals[`stage${i - 1}`] = prev[`stage${i}`];
                 }
             }
-            // Giữ lại stageFinal
             newApprovals.stageFinal = prev.stageFinal;
             return newApprovals;
         });
-        message.info(`Đã xóa bước ký duyệt đợt ${stageNumber}`);
     };
 
     // Xử lý bước "Tiếp tục"
@@ -172,18 +160,11 @@ const ApprovalProcess = () => {
                     };
                     setProcesses([...processes, newProcess]);
                     message.success("Mẫu quy trình đã được tạo thành công!");
-                    // Reset modal
+                    // Sau khi tạo, cập nhật lại state để hiển thị quy trình vừa tạo (chế độ edit)
+                    setApprovals(newProcess.approvals);
+                    setCustomStagesCount(newProcess.customStagesCount);
                     setCurrent(0);
-                    setApprovals({
-                        stage1: null,
-                        stage2: null,
-                        stage3: null,
-                        stageFinal: null,
-                    });
-                    form.resetFields();
-                    setIsModalVisible(false);
-                    // Reset số bước về mặc định (3 bước)
-                    setCustomStagesCount(3);
+                    form.setFieldsValue(newProcess.approvals);
                 }
             })
             .catch((error) => {
@@ -215,83 +196,51 @@ const ApprovalProcess = () => {
         }
     };
 
-    // Hàm xử lý thêm đợt ký duyệt (chỉ thêm vào cuối danh sách bước ký duyệt)
+    // Hàm xử lý thêm đợt ký duyệt (thêm vào cuối danh sách)
     const handleAddStage = () => {
         setCustomStagesCount(customStagesCount + 1);
         setApprovals((prev) => ({ ...prev, [`stage${customStagesCount + 1}`]: null }));
     };
 
-    // Các cột của bảng mẫu quy trình
-    const columns = [
-        {
-            title: "Mã quy trình",
-            dataIndex: "id",
-            key: "id",
-        },
-        {
-            title: "Tên mẫu quy trình",
-            dataIndex: "name",
-            key: "name",
-        },
-        {
-            title: "Số bước ký duyệt",
-            dataIndex: "customStagesCount",
-            key: "customStagesCount",
-            render: (text) => `${text} đợt + 1 (đợt cuối)`,
-        },
-        {
-            title: "Ngày tạo",
-            dataIndex: "createdAt",
-            key: "createdAt",
-            render: (date) => dayjs(date).format("DD-MM-YYYY"),
-        },
-        {
-            title: "Danh sách duyệt",
-            dataIndex: "summary",
-            key: "summary",
-            render: (summary) => summary.join(" -> "),
-        },
-    ];
-
     return (
         <div>
-            <div className="flex justify-between items-center mb-8">
-                <h2 className="font-bold text-2xl">Quản Lý Mẫu Quy Trình Ký Duyệt</h2>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
-                    Thêm quy trình
-                </Button>
+            <div
+                className="font-bold mb-10 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent"
+                style={{ textShadow: "8px 8px 8px rgba(0, 0, 0, 0.2)" }}
+            >
+                <div className="flex items-center gap-4">Quản Lý Quy Trình Ký Duyệt</div>
             </div>
 
-            {/* Bảng hiển thị danh sách mẫu quy trình */}
-            <Table dataSource={processes} columns={columns} rowKey="id" />
-
-            {/* Modal thêm mẫu quy trình */}
-            <Modal
-                title="Tạo Mẫu Quy Trình Ký Duyệt"
-                visible={isModalVisible}
-                onCancel={() => {
-                    setIsModalVisible(false);
-                    setCurrent(0);
-                    form.resetFields();
-                }}
-                footer={null}
-            >
-                <div className="mb-4">
-                    <h3 className="font-bold text-xl">Chọn Quy Trình Ký Duyệt</h3>
+            {/* Nếu chưa ở chế độ tạo mới, hiển thị thông báo + nút tạo mới */}
+            {!isCreating ? (
+                <div className="flex flex-col items-center gap-4">
+                    <Alert message="Chưa có quy trình nào" type="info" showIcon />
+                    <Button type="primary" onClick={() => setIsCreating(true)}>
+                        Tạo mới quy trình
+                    </Button>
                 </div>
+            ) : (
+                // Nếu đang ở chế độ tạo mới, hiển thị giao diện Steps
                 <div className="flex pb-12">
-                    {/* Steps hiển thị các bước */}
+                    {/* Cột hiển thị Steps */}
                     <div className="mr-4 h-auto max-w-[50%]">
-                        <Steps current={current} direction="vertical" style={{ height: "100%" }} onChange={handleStepChange}>
+                        <Steps
+                            current={current}
+                            direction="vertical"
+                            style={{ height: "100%" }}
+                            onChange={handleStepChange}
+                        >
                             {stepsData.map((item, index) => {
-                                const stageKey = index < customStagesCount ? `stage${index + 1}` : "stageFinal";
+                                const stageKey =
+                                    index < customStagesCount ? `stage${index + 1}` : "stageFinal";
                                 return (
                                     <Step
                                         key={item.key || index}
                                         title={item.title}
                                         description={
                                             approvals[stageKey]
-                                                ? `Người duyệt: ${filteredUsers.find((m) => m.id === approvals[stageKey])?.full_name || ""}`
+                                                ? `Người duyệt: ${filteredUsers.find((m) => m.id === approvals[stageKey])
+                                                    ?.full_name || ""}`
                                                 : ""
                                         }
                                     />
@@ -305,7 +254,7 @@ const ApprovalProcess = () => {
                             <Button>Áp dụng quy trình</Button>
                         </div>
                     </div>
-                    {/* Form hiển thị nội dung bước hiện tại */}
+                    {/* Cột hiển thị Form của bước hiện tại */}
                     <div className="flex-1">
                         <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
                             {stepsData[current].content}
@@ -322,7 +271,7 @@ const ApprovalProcess = () => {
                         </Form>
                     </div>
                 </div>
-            </Modal>
+            )}
         </div>
     );
 };

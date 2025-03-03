@@ -184,7 +184,7 @@ const ManageClause = () => {
     const handleSubmitUpdateClause = async (values) => {
         console.log('Form data:', values);
         try {
-            const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value }).unwrap();
+            const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: values.type }).unwrap();
             console.log(updatedData);
             message.success("Cập nhật điều khoản thành công!");
             refetchClause();
@@ -517,7 +517,6 @@ const ManageClause = () => {
                                                 </div>
                                                 <div className="text-center">
                                                     <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
-                                                    <p className="text-xs text-gray-500">Version: {clause?.version}.0.0</p>
                                                 </div>
                                             </div>
 

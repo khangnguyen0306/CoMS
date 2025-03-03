@@ -24,9 +24,11 @@ const { Content, Sider } = Layout;
 import { FaUserCog } from "react-icons/fa";
 import { LuWaypoints } from "react-icons/lu";
 import { FaFileCirclePlus } from "react-icons/fa6";
+import { FcProcess } from "react-icons/fc";
 import RealTimeNotification from "../../pages/Noti/RealTimeNotification";
-import { List } from "antd/es/form/Form";
 import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
+
+import { List } from "antd/es/form/Form";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -48,6 +50,7 @@ const MainLayout = () => {
     'workflow': '/admin/process',
     'contractPartner': '/contractpartner',
     "createContract": "/createContract",
+    "process": "/process",
     '4': '/combo',
   }
 
@@ -158,6 +161,7 @@ const MainLayout = () => {
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Clause', key: "clause" },
+    { icon: FcProcess, label: 'Quy trình', key: "process" },
     {
       icon: FaFileContract, label: 'Hợp đồng', children: [
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
@@ -277,7 +281,9 @@ const MainLayout = () => {
             <p className="ml-2 text-white">Quản lý hợp đồng CoMS</p>
           </div>
           <div className="flex items-center mr-36">
-            <NotificationDropdown />
+            <p className="text-white mr-4">{user?.fullName}</p>
+            {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
+            {/* coi lại chỗ này sau khi test được real time notification */}
           </div>
         </Header>
 

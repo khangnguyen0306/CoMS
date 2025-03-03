@@ -48,7 +48,6 @@ const NotificationDropdown = () => {
 
   return (
     <div className="flex items-center">
-      <p className="text-white mr-4">{user?.fullName}</p>
       <Dropdown arrow overlay={dropdownContent} trigger={["click"]} placement="bottomRight">
         <Badge count={notifications.length} size="small">
           <BellOutlined style={{ fontSize: 24, color: "#fff", cursor: "pointer" }} />
