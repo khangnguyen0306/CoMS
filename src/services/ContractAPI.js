@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { selectTokens } from "../slices/authSlice";
+import { BE_API_LOCAL } from "../config/config";
 // import { BE_API_LOCAL } from "../config";
 
 export const ContractAPI = createApi({
     reducerPath: "contractManagement",
     tagTypes: ["Contract,ContractType"],
     baseQuery: fetchBaseQuery({
-        baseUrl: "https://mocki.io/v1/",
+        baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -19,21 +20,21 @@ export const ContractAPI = createApi({
     endpoints: (builder) => ({
 
         getContractType: builder.query({
-            query: () => `http://localhost:8080/api/v1/contract-types`,
+            query: () => `contract-types`,
             providesTags: (result) =>
                 result
                     ? result.map(({ id }) => ({ type: "ContractType", id }))
                     : [{ type: "ContractType", id: 'UNKNOWN_ID' }],
         }),
         getAllContract: builder.query({
-            query: () => `791ec81c-b150-440d-9c3c-07fcfe5cc6da`,
+            query: () => `https://mocki.io/v1/791ec81c-b150-440d-9c3c-07fcfe5cc6da`,
             providesTags: (result) =>
                 result
                     ? result.map(({ id }) => ({ type: "Contract", id }))
                     : [{ type: "Contract", id: id }],
         }),
         getAllContractPartner: builder.query({
-            query: () => `510fa7fd-5caa-4cfa-b858-5c6ea74cc683`,
+            query: () => `https://mocki.io/v1/510fa7fd-5caa-4cfa-b858-5c6ea74cc683`,
             providesTags: (result) =>
                 result
                     ? result.map(({ id }) => ({ type: "Contract", id }))
@@ -42,7 +43,7 @@ export const ContractAPI = createApi({
 
         createContractType: builder.mutation({
             query: ({ name }) => ({
-                url: `http://localhost:8080/api/v1/contract-types`,
+                url: `contract-types`,
                 method: "POST",
                 body: { name: name },
             }),
@@ -52,7 +53,7 @@ export const ContractAPI = createApi({
 
         editContractType: builder.mutation({
             query: ({ name, id }) => ({
-                url: `http://localhost:8080/api/v1/contract-types/${id}`,
+                url: `contract-types/${id}`,
                 method: "PUT",
                 body: { name: name },
             }),
@@ -61,7 +62,7 @@ export const ContractAPI = createApi({
 
        deleteContractType: builder.mutation({
             query: (contractTypeId) => ({
-                url: `http://localhost:8080/api/v1/contract-types/${contractTypeId}/delete-status?isDeleted=${true}`, 
+                url: `contract-types/${contractTypeId}/delete-status?isDeleted=${true}`, 
                 method: "PATCH",
             }),
             invalidatesTags: (result, error, contractTypeId) => [{ type: "DoctorList", id: contractTypeId }],
