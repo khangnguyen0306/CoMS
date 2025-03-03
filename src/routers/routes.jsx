@@ -24,6 +24,7 @@ const UserManagement = Loadable({ loader: () => import("../pages/user/UserManage
 const ApprovalProcess = Loadable({ loader: () => import("../pages/ApprovalProcess/ApprovalProcess") });
 const ContractPartner = Loadable({ loader: () => import("../pages/Contract/ContractPartner") });
 const CreateContract = Loadable({ loader: () => import("../pages/Contract/CreateContract") });
+const Setting = Loadable({ loader: () => import("../pages/setting/Setting") });
 const Process = Loadable({ loader: () => import("../pages/Process/Process") });
 
 
@@ -186,6 +187,10 @@ export const router = createBrowserRouter([
                     {
                         path: "contractpartner",
                         element: ContractPartner,
+                    },
+                    {
+                        path: "setting",
+                        element: Setting,
                     },
                 ],
             },

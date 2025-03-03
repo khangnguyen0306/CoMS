@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { selectTokens } from "../slices/auth.slice";
-// import { BE_API_LOCAL } from "../config";
+import { selectTokens } from "../slices/authSlice";
+import { BE_API_LOCAL } from "../config/config";
+
 
 export const clauseAPI = createApi({
     reducerPath: "clauseManagement",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:8080/api/v1",
+        baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -28,6 +29,13 @@ export const clauseAPI = createApi({
         getLegal: builder.query({
             query: ({ page, size, keyword, order }) => ({
                 url: `/terms/get-all?typeTermIds=8&page=${page}&size=${size}&order=${order}&keyword=${keyword}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
+        getLegalCreateContract: builder.query({
+            query: ({ page, size, keyword, order }) => ({
+                url: `/terms/get-all-less-field?typeTermIds=8&page=${page}&size=${size}&order=${order}&keyword=${keyword}`,
                 method: "GET",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
@@ -102,5 +110,7 @@ export const {
     useGetLegalQuery,
     useDeleteClauseMutation,
     useLazyGetLegalQuery,
-    useLazyGetClauseManageQuery
+    useLazyGetClauseManageQuery,
+    useGetLegalCreateContractQuery,
+    useLazyGetLegalCreateContractQuery
 } = clauseAPI;

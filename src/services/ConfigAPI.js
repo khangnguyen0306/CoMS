@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { selectTokens } from "../slices/authSlice";
-// import { BE_API_LOCAL } from "../config";
+import { BE_API_LOCAL } from "../config/config";
 
-export const taskAPI = createApi({
-    reducerPath: "taskManagement",
-    tagTypes: [],
+
+export const ConfigAPI = createApi({
+    reducerPath: "configManagement",
+    tagTypes: ["Config"],
     baseQuery: fetchBaseQuery({
-        baseUrl: "https://mocki.io/v1/",
+        baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -17,23 +18,30 @@ export const taskAPI = createApi({
         },
     }),
     endpoints: (builder) => ({
-
-        getTaskManage: builder.query({
-            query: () => ({
-                url: `/0d303150-d00d-4f4d-98ca-f073ec3e704b`,
-                method: "GET",
-            }),
-            providesTags: (result, error, Task) => [{ type: "Task", id: Task }],
+        getDateNofitifation: builder.query({
+            query: () => `/config/get-all`,
+            providesTags: (result) =>
+                result
+                    ? result.map(({ id }) => ({ type: "DoctorList", id }))
+                    : [{ type: "Config", id: "LIST" }],
         }),
 
-        // createDoctor: builder.mutation({
-        //     query: (newDoctorData) => ({
-        //         url: `/create`,
-        //         method: "POST",
-        //         body: newDoctorData,
+        // getBussinessInformatin: builder.query({
+        //     query: () => ({
+        //         url: `6219a6ba-6297-4291-bad1-9ad89ede566b`,
+        //         method: "GET",
         //     }),
-        //     invalidatesTags: [{ type: "DoctorList", id: "LIST" }],
+        //     keepUnusedDataFor: 60 * 5,
+        //     providesTags: (result, error, bsInformation) => [{ type: "Config", id: bsInformation }],
         // }),
+
+        createDateNofitication: builder.mutation({
+            query: (data) => ({
+                url: `config?key=${data.key}&value=${data.value}&description=${data.description} `,
+                method: "POST",
+            }),
+            invalidatesTags: [{ type: "Config", id: "LIST" }],
+        }),
 
         // editDoctor: builder.mutation({
         //     query: ({ userId, ...updatedDoctorData }) => ({
@@ -56,5 +64,6 @@ export const taskAPI = createApi({
 });
 
 export const {
-    useGetTaskManageQuery,
-} = taskAPI;
+    useCreateDateNofiticationMutation,
+    useGetDateNofitifationQuery
+} = ConfigAPI;

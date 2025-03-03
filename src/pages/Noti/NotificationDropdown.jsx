@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Badge, Dropdown, List } from "antd";
-import { BellOutlined } from "@ant-design/icons";
+import { BellFilled, BellOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../slices/auth.slice";
+import { selectCurrentUser } from "../../slices/authSlice";
 
 const NotificationDropdown = () => {
   const user = useSelector(selectCurrentUser);
@@ -11,6 +11,8 @@ const NotificationDropdown = () => {
     const stored = sessionStorage.getItem("notifications");
     return stored ? JSON.parse(stored) : [];
   });
+  // Add state to track if dropdown is open
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     sessionStorage.setItem("notifications", JSON.stringify(notifications));
@@ -47,10 +49,23 @@ const NotificationDropdown = () => {
   );
 
   return (
-    <div className="flex items-center">
-      <Dropdown arrow overlay={dropdownContent} trigger={["click"]} placement="bottomRight">
-        <Badge count={notifications.length} size="small">
-          <BellOutlined style={{ fontSize: 24, color: "#fff", cursor: "pointer" }} />
+    <div className="flex items-center ">
+      <Dropdown
+        arrow
+        overlay={dropdownContent}
+        trigger={["click"]}
+        placement=""
+        className={`  p-2 rounded-full ${!isOpen ? "bg-gray-600" : "bg-slate-700"}`}
+        onOpenChange={(visible) => setIsOpen(visible)}
+      >
+        <Badge count={notifications.length} size="small" className="flex justify-center flex-col items-center">
+          <BellFilled
+            style={{
+              fontSize: 24,
+              color: isOpen ? "#2196f3" : "#fff",
+              cursor: "pointer"
+            }}
+          />
         </Badge>
       </Dropdown>
     </div>

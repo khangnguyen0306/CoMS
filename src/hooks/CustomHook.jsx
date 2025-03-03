@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 /**
  * Custom hook hỗ trợ lazy load cho Select với phân trang.
@@ -14,6 +14,7 @@ export const useLazyLoadSelect = (loadDataCallback, pageSize = 10) => {
     const [keyword, setKeyword] = useState("");
     const [searchData, setSearchData] = useState([]);
     
+
     const fetchData = useCallback(
         async (pageNumber, searchKeyword = keyword) => {
             setLoading(true);

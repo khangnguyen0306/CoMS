@@ -11,7 +11,7 @@ import Cookies from "js-cookie";
 import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
 import { useLoginUserMutation } from '../../services/AuthAPI';
-import { selectCurrentToken, setToken, setUser } from '../../slices/auth.slice';
+import { selectCurrentToken, setToken, setUser } from '../../slices/authSlice';
 import ForgotPass from './ForgotPass';
 import helloIcon from "./../../assets/Image/hello.svg"
 
@@ -76,7 +76,6 @@ const Login = () => {
         dispatch(setUser(data.data));
         dispatch(setToken(data.data.token));
 
-
         // remember me
         if (rememberMe) {
             Cookies.set("rememberEmail", form.getFieldValue("login_identifier"), { expires: 1 });
@@ -114,7 +113,6 @@ const Login = () => {
     };
 
     const handleSubmit = async (values) => {
-        console.log(values);
         try {
             const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
             console.log(result);

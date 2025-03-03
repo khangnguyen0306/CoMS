@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { selectTokens } from "../slices/auth.slice";
+import { selectTokens } from "../slices/authSlice";
 import { BE_API_LOCAL } from "../config/config";
 
 export const TemplateAPI = createApi({
@@ -82,6 +82,7 @@ export const {
     useGetAllTemplateQuery,
     useLazyGetAllTemplateQuery,
     useGetTemplateDataDetailQuery,
+    useLazyGetTemplateDataDetailQuery,
     useGetAllDeletedTemplateQuery,
     useCreateTemplateMutation,
     useDuplicateTemplateMutation

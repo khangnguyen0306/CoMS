@@ -17,8 +17,8 @@ import { AiFillIdcard } from "react-icons/ai";
 import { FaTasks } from "react-icons/fa";
 import { GoLaw } from "react-icons/go";
 import { FaHandshakeSimple } from "react-icons/fa6";
-import LOGO from './../../assets/Image/letter-c.svg'
-import { logOut, selectCurrentUser } from "../../slices/auth.slice";
+import LOGO from './../../assets/Image/letterC.svg'
+import { logOut, selectCurrentUser } from "../../slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 const { Content, Sider } = Layout;
 import { FaUserCog } from "react-icons/fa";
@@ -50,6 +50,7 @@ const MainLayout = () => {
     'workflow': '/admin/process',
     'contractPartner': '/contractpartner',
     "createContract": "/createContract",
+    'setting': '/manager/setting',
     "process": "/process",
     '4': '/combo',
   }
@@ -105,10 +106,10 @@ const MainLayout = () => {
       ]
     },
     {
-      icon: IoMdSettings, label: 'Cấu hình', key: "setting", children: [
+      icon: IoMdSettings, label: 'Cấu hình', key: "settingManagement", children: [
         { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
-        { icon: SiAuth0, label: 'Phân quyền', key: "setting2" },
-        { icon: IoMdSettings, label: 'Cấu hình', key: "setting3" },
+        // { icon: SiAuth0, label: 'Phân quyền', key: "setting2" },
+        { icon: IoMdSettings, label: 'Cấu hình', key: "setting" },
       ]
     },
     {

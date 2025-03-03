@@ -3,7 +3,7 @@ import { notification } from "antd";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { useSelector } from "react-redux";
-import { selectCurrentToken, selectCurrentUser } from "../../slices/auth.slice";
+import { selectCurrentToken, selectCurrentUser } from "../../slices/authSlice";
 import dayjs from "dayjs";
 
 const RealTimeNotification = () => {

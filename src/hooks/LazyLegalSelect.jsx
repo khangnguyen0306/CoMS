@@ -2,14 +2,14 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Select, Spin, Popover } from "antd";
 import { useLazyLoadSelect } from "./CustomHook";
 
-const LazySelect = ({
+const LazyLegalSelect = ({
     loadDataCallback,
-    options: initialOptions = [],
     globalSelected = [],
+    options: initialOptions = [],
     defaultValue=[],
-    children,
     ...restProps
 }) => {
+
     const {
         handleDropdownVisibleChange,
         handleScroll,
@@ -26,7 +26,7 @@ const LazySelect = ({
         }
         const combined = [...initialOptions, ...data];
         return combined.reduce((acc, curr) => {
-            if (!acc.some((item) => item.id === curr.id)) {
+            if (!acc.some((item) => item.original_term_id === curr.original_term_id)) {
                 acc.push(curr);
             }
             return acc;
@@ -36,17 +36,13 @@ const LazySelect = ({
     // Render option với kiểm tra globalSelected
 
     const renderOptions = () => {
-        if (children) {
-            return children;
-        }
+ 
 
         return mergedOptions?.map((dk) => {
-            const isGloballySelected = globalSelected.includes(dk.id);
+            const isGloballySelected = globalSelected.includes(dk.original_term_id);
             return (
                 <Select.Option
-                    key={dk?.id}
-                    value={dk?.id}
-                    title={dk?.value}
+                    value={dk?.original_term_id}
                     className={isGloballySelected ? "option-selected" : ""}
                 >
                     <Popover
@@ -67,7 +63,7 @@ const LazySelect = ({
         });
     };
    
-
+console.log(defaultValue)
     return (
         <>
             <Select
@@ -91,4 +87,4 @@ const LazySelect = ({
     );
 };
 
-export default LazySelect;
+export default LazyLegalSelect;

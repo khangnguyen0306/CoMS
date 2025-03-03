@@ -480,8 +480,6 @@ const ManagePartner = () => {
                                     color: props.className?.includes('special-header')
                                         ? '#004d80'
                                         : '#005580',
-                                    backgroundColor: '#2196f3',
-                                    color: '#fff',
                                     borderColor: '#89c4d9',
                                     borderStyle: 'solid',
                                     borderWidth: '1px'

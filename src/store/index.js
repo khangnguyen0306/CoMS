@@ -7,7 +7,8 @@ import { taskAPI } from "../services/TaskAPI";
 import { clauseAPI } from "../services/ClauseAPI";
 import { userAPI } from "../services/UserAPI";
 import { processAPI } from "../services/ProcessAPI";
-import AuthReducer from "../slices/auth.slice";
+import { ConfigAPI } from "../services/ConfigAPI";
+import AuthReducer from "../slices/authSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import sessionStorage from 'redux-persist/lib/storage/session'
@@ -40,6 +41,8 @@ export const store = configureStore({
     user: userAPI,
     [processAPI.reducerPath]: processAPI.reducer,
     user: processAPI,
+    [ConfigAPI.reducerPath]: ConfigAPI.reducer,
+    config: ConfigAPI,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -51,7 +54,8 @@ export const store = configureStore({
       taskAPI.middleware,
       userAPI.middleware,
       clauseAPI.middleware,
-      processAPI.middleware
+      processAPI.middleware,
+      ConfigAPI.middleware,
     ),
 });
 

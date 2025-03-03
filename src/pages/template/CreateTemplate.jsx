@@ -1,9 +1,35 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Steps, Button, Input, DatePicker, Checkbox, message, Form, Collapse, Skeleton, Empty, Card, Row, Col, Select, ConfigProvider, Radio, Switch, Spin, Divider, Space, Popconfirm, Modal, Popover } from "antd";
-import RichTextEditor, {
-    BaseKit, Bold, BulletList, Clear, Color, ColumnActionButton, FontFamily, FontSize, Heading, Highlight, History, HorizontalRule, Image, ImportWord,
-    Indent, Italic, Link, Mention, OrderedList, SearchAndReplace, SlashCommand, Strike, Table, TextAlign, Underline, ExportWord,
-} from 'reactjs-tiptap-editor';
+
+import {
+    BaseKit,
+    Bold,
+    BulletList,
+    Clear,
+    Color,
+    ColumnActionButton,
+    ExportWord,
+    FontFamily,
+    FontSize,
+    Heading,
+    Highlight,
+    History,
+    HorizontalRule,
+    Image,
+    ImportWord,
+    Indent,
+    Italic,
+    Link,
+    Mention,
+    OrderedList,
+    SearchAndReplace,
+    SlashCommand,
+    Strike,
+    Table,
+    TextAlign,
+    Underline,
+} from 'reactjs-tiptap-editor/extension-bundle'
+import RichTextEditor from 'reactjs-tiptap-editor'
 import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
 import { FaDeleteLeft } from "react-icons/fa6";
@@ -30,10 +56,6 @@ const extensions = [
     OrderedList,
     TextAlign.configure({ types: ['heading', 'paragraph'], spacer: true }),
     Indent,
-    // LineHeight.configure({
-    //     defaultHeight: '100%',
-    //     lineHeights:['100%','100%','100%','100%']
-    // }),
     Link,
     Image.configure({
         upload: (files) =>
@@ -125,7 +147,6 @@ const CreateTemplate = () => {
     const loadGenaralData = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 9 }).unwrap();
     };
-
     const loadDKBSData = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 1 }).unwrap();
     };
@@ -258,7 +279,7 @@ const CreateTemplate = () => {
         form.setFieldsValue({ generalTerms: newValues });
         setSelectedGeneralTerms(newValues);
     };
-    
+
     const handleSelectDKKChange = (newValues) => {
         form.setFieldsValue({ otherTerms: newValues });
         setSelectedOthersTerms(newValues);
@@ -590,8 +611,6 @@ const CreateTemplate = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span>{option.label}</span>
                                     <div>
-
-
                                         <Button
                                             loading={isLoadingEditType}
                                             type="link"
@@ -988,20 +1007,20 @@ const CreateTemplate = () => {
                                             <Checkbox.Group
                                                 className="flex flex-col ml-4 gap-4"
                                                 options={[
-                                                    { label: "ĐIỀU KHOẢN BỔ SUNG", value: "1" },
-                                                    { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: "2" },
-                                                    { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: "3" },
-                                                    { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: "4" },
-                                                    { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: "5" },
-                                                    { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: "6" },
-                                                    { label: "ĐIỀU KHOẢN BẢO MẬT", value: "7" }
+                                                    { label: "ĐIỀU KHOẢN BỔ SUNG", value: 1 },
+                                                    { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: 2 },
+                                                    { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: 3 },
+                                                    { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: 4 },
+                                                    { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: 5 },
+                                                    { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: 6 },
+                                                    { label: "ĐIỀU KHOẢN BẢO MẬT", value: 7 }
                                                 ]}
                                                 onChange={handleCheckboxChange}
                                             />
                                         </Form.Item>
 
                                         <div className="flex flex-col">
-                                            {selectedOtherTypeTerms.includes("1") && (
+                                            {selectedOtherTypeTerms.includes(1) && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN BỔ SUNG</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
@@ -1051,7 +1070,7 @@ const CreateTemplate = () => {
                                                 </div>
                                             )}
 
-                                            {selectedOtherTypeTerms.includes("2") && (
+                                            {selectedOtherTypeTerms.includes(2) && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">QUYỀN VÀ NGHĨA VỤ CÁC BÊN</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
@@ -1098,7 +1117,7 @@ const CreateTemplate = () => {
                                                     })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("3") && (
+                                            {selectedOtherTypeTerms.includes(3) && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN BẢO HÀNH VÀ BẢO TRÌ</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
@@ -1145,7 +1164,7 @@ const CreateTemplate = () => {
                                                     })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("4") && (
+                                            {selectedOtherTypeTerms.includes(4) && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
@@ -1192,7 +1211,7 @@ const CreateTemplate = () => {
                                                     })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("5") && (
+                                            {selectedOtherTypeTerms.includes(5) && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
@@ -1239,7 +1258,7 @@ const CreateTemplate = () => {
                                                     })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("6") && (
+                                            {selectedOtherTypeTerms.includes(6) && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
@@ -1286,7 +1305,7 @@ const CreateTemplate = () => {
                                                     })}
                                                 </div>
                                             )}
-                                            {selectedOtherTypeTerms.includes("7") && (
+                                            {selectedOtherTypeTerms.includes(7) && (
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN BẢO MẬT</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
@@ -1724,7 +1743,7 @@ const CreateTemplate = () => {
                                             <li className="ml-2" key={term.value}>- {term.title}</li>
                                         ))}
                                     </ul>
-                                    {form.getFieldValue("specialTerms") && (<p className="ml-3">{form.getFieldValue("specialTerms")}</p>)}
+                                    {form.getFieldValue("specialTermsB") && (<p className="ml-3">{form.getFieldValue("specialTermsB")}</p>)}
                                 </div>
 
                             </div>
@@ -1777,11 +1796,18 @@ const CreateTemplate = () => {
             const additionalConfig = {};
             configKeys.forEach(key => {
                 const fieldData = form.getFieldValue(key) || {};
-                additionalConfig[key] = {
-                    Common: (fieldData.Common || []).map(item => ({ id: item.value })),
-                    A: (fieldData.A || []).map(item => ({ id: item.value })),
-                    B: (fieldData.B || []).map(item => ({ id: item.value })),
-                };
+                const commonData = fieldData.Common || [];
+                const aData = fieldData.A || [];
+                const bData = fieldData.B || [];
+
+                // Chỉ thêm key vào additionalConfig nếu có ít nhất một mảng chứa dữ liệu
+                if (commonData.length > 0 || aData.length > 0 || bData.length > 0) {
+                    additionalConfig[key] = {
+                        Common: commonData.map(item => ({ id: item.value })),
+                        A: aData.map(item => ({ id: item.value })),
+                        B: bData.map(item => ({ id: item.value })),
+                    };
+                }
             });
 
             // Chuyển đổi dữ liệu
@@ -1820,14 +1846,18 @@ const CreateTemplate = () => {
             console.log("Transformed Data:", transformedData);
 
             const response = await CreateTemplate(transformedData).unwrap();
-            console.log(response);
-            form.resetFields();
-            message.success("Lưu template thành công!");
-            navigate('/managetemplate')
+            if (response.status == "CREATED") {
+                form.resetFields();
+                message.success("Lưu template thành công!");
+                navigate('/managetemplate')
+            } else {
+                message.error(response.message);
+            }
+
 
         } catch (error) {
             console.error("Error:", error);
-            message.error("Lỗi khi tạo loại hợp đồng!");
+            message.error(error.data.message);
         }
     };
 
@@ -1921,7 +1951,7 @@ const CreateTemplate = () => {
             </Modal>
 
 
-{/* đang hơi lag do sử dụng state */}
+            {/* đang hơi lag do sử dụng state */}
 
             <Modal
                 title="Thêm điều khoản chung"
