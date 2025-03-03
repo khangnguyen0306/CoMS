@@ -1840,19 +1840,24 @@ const CreateTemplate = () => {
                 isDateLateChecked,
                 maxDateLate,
                 autoRenew,
+                additionalConfig
             };
 
             console.log("Transformed Data:", transformedData);
 
             const response = await CreateTemplate(transformedData).unwrap();
-            console.log(response);
-            form.resetFields();
-            message.success("Lưu template thành công!");
-            navigate('/managetemplate')
+            if (response.status == "CREATED") {
+                form.resetFields();
+                message.success("Lưu template thành công!");
+                navigate('/managetemplate')
+            } else {
+                message.error(response.message);
+            }
+
 
         } catch (error) {
             console.error("Error:", error);
-            message.error("Lỗi khi tạo loại hợp đồng!");
+            message.error(error.data.message);
         }
     };
 

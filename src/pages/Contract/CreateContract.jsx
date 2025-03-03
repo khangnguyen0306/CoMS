@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider } from "antd";
 import dayjs from "dayjs";
 import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +44,7 @@ const CreateContractForm = () => {
     const [isAppendixEnabled, setIsAppendixEnabled] = useState(false);
     const [isTransferEnabled, setIsTransferEnabled] = useState(false);
     const [isSuspend, setIsSuspend] = useState(false);
-    const [isViolate, setIsViolate] = useState(false);
+    const [isViolate, setIsisViolate] = useState(false);
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery()
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery()
     const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListQuery()
@@ -221,7 +221,7 @@ const CreateContractForm = () => {
                     setIsAppendixEnabled(data.data?.appendixEnabled)
                     setIsTransferEnabled(data.data?.transferEnabled)
                     setIsSuspend(data.data?.suspend)
-                    setIsViolate(data.data?.violate)
+                    setIsisViolate(data.data?.violate)
                     form.setFieldsValue({
                         legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
                         // contractContent: data.data.contractContent,
@@ -230,7 +230,7 @@ const CreateContractForm = () => {
                         vatPercentage: data.data?.vatPercentage,
                         isDateLateChecked: data.data?.isDateLateChecked,
                         maxDateLate: data.data?.maxDateLate,
-                        isAutoRenew: data.data?.autoRenew,
+                        autoRenew: data.data?.autoRenew,
                         additionalTerms: data.data.additionalTerms?.map(term => term.original_term_id) || [],
                         specialTermsA: data.data?.specialTermsA,
                         specialTermsB: data.data?.specialTermsB,
@@ -238,7 +238,7 @@ const CreateContractForm = () => {
                         transferEnabled: data.data?.transferEnabled,
                         suspend: data.data?.suspend,
                         violate: data.data?.violate,
-                        suspendContent: data.data?.suspendContent,  
+                        suspendContent: data.data?.suspendContent,
                         // Add only original_term_id values from additionalConfig
                         "1": {
                             A: data.data.additionalConfig?.["1"]?.A?.map(item => item.original_term_id) || [],
@@ -284,7 +284,134 @@ const CreateContractForm = () => {
     const hanldeOpenAddLegalModal = () => {
         setIsAddLegalModalOpen(true);
     };
+    const getAllAdditionalTermsContent = () => {
+        // Ánh xạ termId với tiêu đề tương ứng
+        const termTitles = {
+            1: 'ĐIỀU KHOẢN BỔ SUNG',
+            2: 'QUYỀN VÀ NGHĨA VỤ CÁC BÊN',
+            3: 'ĐIỀU KHOẢN BẢO HÀNH VÀ BẢO TRÌ',
+            4: 'ĐIỀU KHOẢN VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI',
+            5: 'ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG',
+            6: 'ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP',
+            7: 'ĐIỀU KHOẢN BẢO MẬT'
+        };
 
+        // Hàm hỗ trợ kết hợp và loại bỏ các mục trùng lặp
+        const combineUniqueTerms = (formTerms, templateTerms) => {
+            const uniqueTerms = new Map();
+
+            // Thêm các mục từ template
+            if (templateTerms && templateTerms.length > 0) {
+                templateTerms.forEach(term => {
+                    const termId = term.original_term_id;
+                    if (termId && !uniqueTerms.has(termId)) {
+                        uniqueTerms.set(termId, term);
+                    }
+                });
+            }
+
+            // Thêm các mục từ form nếu chưa có
+            if (formTerms && formTerms.length > 0) {
+                formTerms.forEach(term => {
+                    const termId = term.value || term.original_term_id;
+                    if (termId && !uniqueTerms.has(termId)) {
+                        uniqueTerms.set(termId, term);
+                    }
+                });
+            }
+
+            return Array.from(uniqueTerms.values());
+        };
+
+        // Hàm giúp hiển thị một loại điều khoản
+        const renderTermSection = (termId) => {
+            // Chỉ hiển thị các điều khoản đã chọn
+            if (!selectedOthersTerms.includes(termId)) {
+                return null;
+            }
+
+            // Lấy dữ liệu từ form
+            const formData = form.getFieldValue(String(termId)) || {
+                A: [],
+                B: [],
+                Common: []
+            };
+
+            // Lấy dữ liệu từ template
+            const templateData = templateDataSelected?.additionalConfig?.[String(termId)] || {
+                A: [],
+                B: [],
+                Common: []
+            };
+
+            // Kết hợp dữ liệu từ form và template, loại bỏ trùng lặp
+            const commonTerms = combineUniqueTerms(formData.Common, templateData.Common);
+            const aTerms = combineUniqueTerms(formData.A, templateData.A);
+            const bTerms = combineUniqueTerms(formData.B, templateData.B);
+
+            // Kiểm tra xem có dữ liệu nào để hiển thị không
+            const hasCommonTerms = commonTerms.length > 0;
+            const hasATerms = aTerms.length > 0;
+            const hasBTerms = bTerms.length > 0;
+            const hasNoTerms = !hasCommonTerms && !hasATerms && !hasBTerms;
+
+            if (hasNoTerms) {
+                return null;
+            }
+
+            return (
+                <div key={termId} className="mb-6 border-b pb-4">
+                    <div className="font-bold text-lg mb-3">{termTitles[termId]}</div>
+
+                    {hasCommonTerms && (
+                        <div className="mb-4">
+                            <div className="font-semibold border-b pb-1 mb-2">Điều khoản chung</div>
+                            {commonTerms.map((term, index) => (
+                                <div key={`common-${index}`} className="mb-2 pl-3">
+                                    {term?.label && <div className="text-gray-600">{index + 1}. {term.label}</div>}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {hasATerms && (
+                        <div className="mb-4">
+                            <div className="font-semibold border-b pb-1 mb-2">Điều khoản riêng bên A</div>
+                            {aTerms.map((term, index) => (
+                                <div key={`a-${index}`} className="mb-2 pl-3">
+                                    {term?.label && <div className="text-gray-600">{index + 1}. {term.label}</div>}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {hasBTerms && (
+                        <div className="mb-4">
+                            <div className="font-semibold border-b pb-1 mb-2">Điều khoản riêng bên B</div>
+                            {bTerms.map((term, index) => (
+                                <div key={`b-${index}`} className="mb-2 pl-3">
+                                    {term?.label && <div className="text-gray-600">{index + 1}. {term.label}</div>}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Hiển thị tất cả các loại điều khoản đã chọn
+        const allTermSections = Object.keys(termTitles).map(termId => renderTermSection(Number(termId)));
+        const hasAnyTerms = allTermSections.some(section => section !== null);
+
+        return (
+            <div className="max-w-2xl max-h-[500px] overflow-auto px-4">
+                {!hasAnyTerms && (
+                    <div className="text-gray-500 italic">Chưa có điều khoản nào được chọn</div>
+                )}
+                {allTermSections}
+            </div>
+        );
+    };
     const getTermsContent = (fieldName) => {
         const fieldLabels = {
             legalBasis: 'Căn cứ pháp lý',
@@ -500,528 +627,561 @@ const CreateContractForm = () => {
             title: "Chi tiết hợp đồng",
             content: (
                 <div className="space-y-4 w-full">
-                    <Divider orientation="center">Thông tin từ Template & Đối tác</Divider>
-                    <Form.Item
-                        className="w-full"
-                        label={
-                            <div className="flex justify-between items-center gap-4">
-                                <p>Căn phứ pháp lý</p>
-                                <Popover
-                                    content={() => getTermsContent('legalBasis')}
-                                    title="Danh sách căn cứ pháp lý đã chọn"
-                                    trigger="hover"
-                                    placement="right"
-                                >
-                                    <Button icon={<EyeFilled />} />
-                                </Popover>
-                            </div>
-                        }
-                        name='legalBasis'
-                        rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
+                    <ConfigProvider
+                        theme={{
+                            components: {
+                                Collapse: {
+                                    headerBg: '#27a2f0',
+                                    colorTextHeading: '#ffffff',
+                                    motionDurationMid: '0.15s',
+                                    motionDurationSlow: '0.15s',
+                                },
+                            },
+                        }}
                     >
-                        <LazyLegalSelect
-                            loadDataCallback={loadLegalData}
-                            showSearch
-                            labelInValue
-                            mode="multiple"
-                            defaultValue={templateDataSelected?.legalBasisTerms?.map(term => term.original_term_id) || []}
-                            placeholder="Chọn căn cứ pháp lý"
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider style={{ margin: "8px 0" }} />
-                                    <Space style={{ padding: "0 8px 4px" }}>
-                                        <Button type="primary" icon={<PlusOutlined />} onClick={hanldeOpenAddLegalModal}>
-                                            Thêm căn cứ
-                                        </Button>
-                                    </Space>
-                                </>
-                            )}
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label={
-                            <div className="flex justify-between items-center gap-4">
-                                <p>Soạn thảo nội dung hợp đồng</p>
-                                <Popover
-                                    content={
-                                        <PreviewSection className='w-[80%]' content={content} />
-                                    }
-                                    trigger="hover"
-                                    placement="right"
-                                >
-                                    <Button icon={<EyeFilled />} />
-                                </Popover>
-                            </div>
-                        }
-                        name="contractContent"
-                        className="mt-5"
-                        rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
-                    >
-                        <RichTextEditor
-                            output="html"
-                            content={content}
-                            onChangeContent={onValueChange}
-                            extensions={extensions}
-                            dark={false}
-                            hideBubble={true}
-                            dense={false}
-                            removeDefaultWrapper
-                            placeholder="Nhập nội dung hợp đồng tại đây..."
-                            contentClass="max-h-[400px] overflow-auto"
-                        />
-
-                    </Form.Item>
-
-
-                    <Form.Item
-                        label="Tổng giá trị hợp đồng"
-                        name="totalValue"
-                        rules={[{ required: true, message: "Vui lòng nhập tổng giá trị hợp đồng!" }]}
-                    >
-
-                        <InputNumber
-                            style={{ width: "100%" }}
-                            placeholder="Nhập tổng giá trị hợp đồng"
-                            min={0}
-                            max={1000000000000000}
-                            formatter={(value) =>
-                                value
-                                    ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
-                                    : ""
-                            }
-                            parser={(value) => value.replace(/\D/g, "")}
-                            onChange={handleChange}
-                        />
-
-
-                    </Form.Item>
-                    {textValue && (
-                        <div className="mt-1 ml-1">
-                            <Typography.Text type="secondary">
-                                (Bằng chữ: <span className="font-bold">{textValue}</span>)
-                            </Typography.Text>
-                        </div>
-                    )}
-
-                    <Divider orientation="center">Thanh toán</Divider>
-                    {/* Sử dụng Form.List để cho phép thêm nhiều lần thanh toán */}
-                    <Form.List name="payments">
-                        {(fields, { add, remove }) => (
-                            <>
-                                {fields.map(({ key, name, ...restField }) => (
-                                    <Space key={key} align="baseline" style={{ display: "flex", marginBottom: 8 }}>
-                                        <Form.Item
-                                            {...restField}
-                                            name={[name, "amount"]}
-                                            rules={[{ required: true, message: "Nhập số tiền thanh toán" }]}
-                                        >
-                                            <InputNumber
-                                                style={{ width: "100%" }}
-                                                placeholder="Số tiền"
-                                                min={0}
-                                                max={1000000000000000}
-                                                formatter={(value) =>
-                                                    value
-                                                        ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
-                                                        : ""
-                                                }
-                                                parser={(value) => value.replace(/\D/g, "")}
-                                            />
-                                        </Form.Item>
-                                        <Form.Item
-                                            {...restField}
-                                            name={[name, "paymentDate"]}
-                                            rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
-                                        >
-                                            <DatePicker
-                                                placeholder="Ngày thanh toán"
-                                                disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                                format="DD/MM/YYYY"
-                                            />
-                                        </Form.Item>
-                                        <Form.Item
-                                            {...restField}
-                                            name={[name, "paymentMethod"]}
-                                            rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}
-                                        >
-                                            <Select placeholder="Phương thức thanh toán" style={{ width: 150 }}>
-                                                <Option value="transfer">Chuyển khoản</Option>
-                                                <Option value="cash">Tiền mặt</Option>
-                                                <Option value="creditCard">Thẻ tín dụng</Option>
-                                            </Select>
-                                        </Form.Item>
-                                        <Button type="primary" onClick={() => remove(name)} danger>
-                                            <DeleteFilled />
-                                        </Button>
-                                    </Space>
-                                ))}
-                                <Button type="primary" onClick={() => add()} block>
-                                    Thêm đợt thanh toán
-                                </Button>
-                            </>
-                        )}
-                    </Form.List>
-
-
-                    <Form.Item name="autoAddVAT" valuePropName="checked">
-                        <div className="flex items-center">
-                            <Switch
-                                className="mr-4"
-                                onChange={(checked) => {
-                                    form.setFieldsValue({ autoAddVAT: checked });
-                                    setIsVATChecked(checked);
-                                }}
-                                checked={form.getFieldValue("autoAddVAT") ?? isVATChecked}
-                            />
-                            <p className="text-sm">Tự động thêm VAT vào hợp đồng</p>
-                        </div>
-                    </Form.Item>
-
-                    {isVATChecked && (
-                        <Form.Item
-                            label="Phần trăm VAT"
-                            name="vatPercentage"
-                            rules={[{ required: true, message: "Vui lòng nhập phần trăm VAT!" }]}
-                        >
-                            <Input
-                                type="number"
-                                className="w-[150px]"
-                                placeholder="Nhập phần trăm VAT"
-                                addonAfter="%"
-                                max={100}
-                                min={0}
-                                onChange={(e) => {
-                                    const value = parseInt(e.target.value, 10);
-                                    if (value < 0 || value > 100) {
-                                        message.error("Phần trăm VAT phải nằm trong khoảng 0 đến 100.");
-                                        form.setFieldsValue({ vatPercentage: null });
-                                        // e.target.value = '';
-                                    }
-                                }}
-                            />
-                        </Form.Item>
-                    )}
-
-
-                    <Form.Item name="isDateLateChecked" valuePropName="checked">
-                        <div className="flex items-center">
-                            <Switch
-                                className="mr-4"
-                                onChange={(checked) => {
-                                    form.setFieldsValue({ isDateLateChecked: checked });
-                                    setIsDateLateChecked(checked);
-                                }}
-                                checked={form.getFieldValue("isDateLateChecked") ?? isDateLateChecked}
-                            />
-                            <p className="text-sm">Cho phép thanh toán trễ hạn tối đa (ngày)</p>
-                        </div>
-                    </Form.Item>
-
-                    {isDateLateChecked && (
-                        <Form.Item
-                            label="Ngày trễ"
-                            name="maxDateLate"
-                            rules={[{ required: true, message: "Vui lòng nhập số ngày trễ tối đa" }]}
-                        >
-                            <Input
-                                type="number"
-                                className="w-[150px]"
-                                placeholder="Vui lòng nhập số ngày trễ tối đa"
-                                addonAfter="ngày"
-                                min={0}
-                                onChange={(e) => {
-                                    const value = parseInt(e.target.value, 10);
-                                    if (value < 0) {
-                                        message.error("Phần trăm VAT phải nằm trong khoảng 0 đến 100.");
-                                        form.setFieldsValue({ maxDateLate: null });
-                                        // e.target.value = '';
-                                    }
-                                }}
-                            />
-                        </Form.Item>
-                    )}
-
-
-
-
-                    <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
-
-                    <Form.Item
-                        label="Thời gian hiệu lực hợp đồng"
-                        required
-                        className="mb-0"
-                    >
-                        <Row gutter={16}>
-                            <Col span={24}>
-                                <DatePicker.RangePicker
+                        <Collapse defaultActiveKey={['1']} >
+                            <Collapse.Panel header="Thông tin cơ bản " key="1">
+                                <Form.Item
                                     className="w-full"
-                                    showTime={{ format: 'HH:mm' }}
-                                    format="DD/MM/YYYY HH:mm"
-                                    disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                    placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
-                                    onChange={(dates) => {
-                                        if (dates) {
-                                            form.setFieldsValue({
-                                                effectiveDate: dates[0],
-                                                expiryDate: dates[1]
-                                            });
-                                        } else {
-                                            form.setFieldsValue({
-                                                effectiveDate: null,
-                                                expiryDate: null
-                                            });
-                                        }
-                                    }}
-                                />
-                            </Col>
-                        </Row>
-                        <Form.Item
-                            name="effectiveDate"
-                            dependencies={['expiryDate']}
-                            rules={[
-                                { required: true, message: "Vui lòng chọn ngày bắt đầu có hiệu lực!" },
-                                ({ getFieldValue }) => ({
-                                    validator(_, value) {
-                                        if (!value || !getFieldValue('expiryDate') ||
-                                            getFieldValue('expiryDate').isAfter(value)) {
-                                            return Promise.resolve();
-                                        }
-                                        return Promise.reject(new Error('Ngày bắt đầu phải trước ngày kết thúc!'));
+                                    label={
+                                        <div className="flex justify-between items-center gap-4">
+                                            <p>Căn phứ pháp lý</p>
+                                            <Popover
+                                                content={() => getTermsContent('legalBasis')}
+                                                title="Danh sách căn cứ pháp lý đã chọn"
+                                                trigger="hover"
+                                                placement="right"
+                                            >
+                                                <Button icon={<EyeFilled />} />
+                                            </Popover>
+                                        </div>
                                     }
-                                })
-                            ]}
-                            hidden
-                        />
-                        <Form.Item
-                            name="expiryDate"
-                            dependencies={['effectiveDate']}
-                            rules={[
-                                { required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" },
-                                ({ getFieldValue }) => ({
-                                    validator(_, value) {
-                                        if (!value || !getFieldValue('effectiveDate') ||
-                                            value.isAfter(getFieldValue('effectiveDate'))) {
-                                            return Promise.resolve();
-                                        }
-                                        return Promise.reject(new Error('Ngày kết thúc phải sau ngày bắt đầu!'));
-                                    }
-                                })
-                            ]}
-                            hidden
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Ngày ký kết"
-                        name="signingDate"
-                        initialValue={dayjs()}
-                        rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
-                    >
-                        <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
-                        name="autoRenew"
-                        valuePropName="checked"
-                        noStyle
-                    >
-                        <div className="flex items-center">
-                            <Switch
-                                className="mr-4"
-                                onChange={(checked) => {
-                                    form.setFieldsValue({ autoRenew: checked });
-                                    setIsAutoRenew(checked);
-                                }}
-                                checked={form.getFieldValue('autoRenew') ?? isAutoRenew} />
-                            <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
-                        </div>
-                    </Form.Item>
-
-
-                    <Divider orientation="center" className="text-lg">Điều khoản & Cam kết</Divider>
-                    <div className=" ml-2 my-3 ">
-                        <p className="font-bold text-[16px] mb-1"> Điều khoản chung</p>
-                        <p className="">Mô tả: (Điều khoản được áp dụng cho cả 2 bên) </p>
-                    </div>
-                    <Form.Item
-                        label={
-                            <div className="flex justify-between items-center gap-4">
-                                <p>Điều khoản chung </p>
-                                <Popover
-                                    content={() => getTermsContent('generalTerms')}
-                                    title="Danh sách Điều khoản chung đã chọn"
-                                    trigger="hover"
-                                    placement="right"
+                                    name='legalBasis'
+                                    rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
                                 >
-                                    <Button icon={<EyeFilled />} />
-                                </Popover>
-                            </div>
-                        }
-                        name="generalTerms"
-                        rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
-                        className="ml-2"
-                    >
-                        <LazySelect
-                            loadDataCallback={loadGenaralData}
-                            options={generalData?.data.content}
-                            showSearch
-                            labelInValue
-                            mode="multiple"
-                            placeholder="Chọn điều khoản chung"
-                            onChange={handleSelectChange}
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider style={{ margin: "8px 0" }} />
-                                    <Space style={{ padding: "0 8px 4px" }}>
-                                        <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(9)}>
-                                            Thêm điều khoản
-                                        </Button>
-                                    </Space>
-                                </>
-                            )}
-                        />
-                    </Form.Item>
+                                    <LazyLegalSelect
+                                        loadDataCallback={loadLegalData}
+                                        showSearch
+                                        labelInValue
+                                        mode="multiple"
+                                        defaultValue={templateDataSelected?.legalBasisTerms?.map(term => term.original_term_id) || []}
+                                        placeholder="Chọn căn cứ pháp lý"
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                <Divider style={{ margin: "8px 0" }} />
+                                                <Space style={{ padding: "0 8px 4px" }}>
+                                                    <Button type="primary" icon={<PlusOutlined />} onClick={hanldeOpenAddLegalModal}>
+                                                        Thêm căn cứ
+                                                    </Button>
+                                                </Space>
+                                            </>
+                                        )}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label={
+                                        <div className="flex justify-between items-center gap-4">
+                                            <p>Soạn thảo nội dung hợp đồng</p>
+                                            <Popover
+                                                content={
+                                                    <PreviewSection className='w-[80%]' content={content} />
+                                                }
+                                                trigger="hover"
+                                                placement="right"
+                                            >
+                                                <Button icon={<EyeFilled />} />
+                                            </Popover>
+                                        </div>
+                                    }
+                                    name="contractContent"
+                                    className="mt-5"
+                                    rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
+                                >
+                                    <RichTextEditor
+                                        output="html"
+                                        content={content}
+                                        onChangeContent={onValueChange}
+                                        extensions={extensions}
+                                        dark={false}
+                                        hideBubble={true}
+                                        dense={false}
+                                        removeDefaultWrapper
+                                        placeholder="Nhập nội dung hợp đồng tại đây..."
+                                        contentClass="max-h-[400px] overflow-auto"
+                                    />
 
-                    <Form.Item
-                        label={
-                            <div className="ml-2 my-3 font-bold text-[16px]">
-                                Các điều khoản khác
-                            </div>
-                        }
-                        name="additionalTerms"
-                    >
-                        <Checkbox.Group
-                            className="flex flex-col ml-4 gap-4"
-                            options={[
-                                { label: "ĐIỀU KHOẢN BỔ SUNG", value: 1 },
-                                { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: 2 },
-                                { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: 3 },
-                                { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: 4 },
-                                { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: 5 },
-                                { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: 6 },
-                                { label: "ĐIỀU KHOẢN BẢO MẬT", value: 7 }
-                            ]}
-                            onChange={handleCheckboxChange}
-                        />
-                    </Form.Item>
-                    <div className="flex flex-col">
-                        {selectedOthersTerms.map(termId => (
-                            <TermSection
-                                key={termId}
-                                termId={termId}
-                                title={termConfigs[termId].title}
-                                form={form}
-                                loadDataCallback={termConfigs[termId].loadData}
-                            />
-                        ))}
-                    </div>
+                                </Form.Item>
 
 
-                    <Divider orientation="center">Điều khoản đặc biệt</Divider>
-                    <Form.Item
-                        label={
-                            <div className="ml-2 my-3">
-                                <p className="font-bold text-[16px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p>
-                                <p className="">Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên A) </p>
-                            </div>
-                        }
-                        name="specialTermsA"
-                    >
-                        <TextArea rows={4}
-                            placeholder="Nhập điều khoản bên A"
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label={
-                            <div className="ml-2 my-3">
-                                <p className="font-bold text-[16px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN B</p>
-                                <p className="">Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên B) </p>
-                            </div>
-                        }
-                        name="specialTermsB"
-                    >
-                        <TextArea rows={4}
-                            placeholder="Nhập điều khoản bên B"
-                        />
-                    </Form.Item>
+                                <Form.Item
+                                    label="Tổng giá trị hợp đồng"
+                                    name="totalValue"
+                                    rules={[{ required: true, message: "Vui lòng nhập tổng giá trị hợp đồng!" }]}
+                                >
+
+                                    <InputNumber
+                                        style={{ width: "100%" }}
+                                        placeholder="Nhập tổng giá trị hợp đồng"
+                                        min={0}
+                                        max={1000000000000000}
+                                        formatter={(value) =>
+                                            value
+                                                ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
+                                                : ""
+                                        }
+                                        parser={(value) => value.replace(/\D/g, "")}
+                                        onChange={handleChange}
+                                    />
 
 
-                    <Divider orientation="center">Các nội dung khác</Divider>
+                                </Form.Item>
+                                {textValue && (
+                                    <div className="mt-1 ml-1">
+                                        <Typography.Text type="secondary">
+                                            (Bằng chữ: <span className="font-bold">{textValue}</span>)
+                                        </Typography.Text>
+                                    </div>
+                                )}
 
-                    <p className="font-bold text-[19px] my-4">8. Phụ lục</p>
+                                <Divider orientation="center">Thanh toán</Divider>
+                                {/* Sử dụng Form.List để cho phép thêm nhiều lần thanh toán */}
+                                <Form.List name="payments">
+                                    {(fields, { add, remove }) => (
+                                        <>
+                                            {fields.map(({ key, name, ...restField }) => (
+                                                <Space key={key} align="baseline" style={{ display: "flex", marginBottom: 8 }}>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "amount"]}
+                                                        rules={[{ required: true, message: "Nhập số tiền thanh toán" }]}
+                                                    >
+                                                        <InputNumber
+                                                            style={{ width: "100%" }}
+                                                            placeholder="Số tiền"
+                                                            min={0}
+                                                            max={1000000000000000}
+                                                            formatter={(value) =>
+                                                                value
+                                                                    ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
+                                                                    : ""
+                                                            }
+                                                            parser={(value) => value.replace(/\D/g, "")}
+                                                        />
+                                                    </Form.Item>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "paymentDate"]}
+                                                        rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
+                                                    >
+                                                        <DatePicker
+                                                        style={{width:150}}
+                                                            placeholder="Ngày thanh toán"
+                                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                                            format="DD/MM/YYYY"
+                                                        />
+                                                    </Form.Item>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "paymentMethod"]}
+                                                        rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}
+                                                    >
+                                                        <Select placeholder="Phương thức thanh toán" style={{ width: 200 }}>
+                                                            <Option value="transfer">Chuyển khoản</Option>
+                                                            <Option value="cash">Tiền mặt</Option>
+                                                            <Option value="creditCard">Thẻ tín dụng</Option>
+                                                        </Select>
+                                                    </Form.Item>
+                                                    <Button type="primary" onClick={() => remove(name)} danger>
+                                                        <DeleteFilled />
+                                                    </Button>
+                                                </Space>
+                                            ))}
+                                            <Button icon={<PlusOutlined/>} type="primary" onClick={() => add()} block>
+                                                Thêm đợt thanh toán
+                                            </Button>
+                                        </>
+                                    )}
+                                </Form.List>
 
-                    <Form.Item name="appendixEnabled" valuePropName="checked">
-                        <div className="flex items-center">
-                            <Switch
-                                className="mr-4"
-                                onChange={(checked) => {
-                                    form.setFieldsValue({ appendixEnabled: checked });
-                                    setIsAppendixEnabled(checked);
-                                }}
-                                checked={form.getFieldValue("appendixEnabled") ?? isAppendixEnabled}
-                            />
-                            <p className="text-sm">Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
-                        </div>
-                    </Form.Item>
+                                <div className="flex items-center gap-5 mt-[50px]">
+                                    <Form.Item name="autoAddVAT" valuePropName="checked">
+                                        <div className="flex items-center min-w-[350px]">
+                                            <Switch
+                                                className="mr-4"
+                                                onChange={(checked) => {
+                                                    form.setFieldsValue({ autoAddVAT: checked });
+                                                    setIsVATChecked(checked);
+                                                }}
+                                                checked={form.getFieldValue("autoAddVAT") ?? isVATChecked}
+                                            />
+                                            <p className="text-sm">Tự động thêm VAT vào hợp đồng</p>
+                                        </div>
+                                    </Form.Item>
 
-                    <Form.Item name="transferEnabled" valuePropName="checked">
-                        <div className="flex items-center">
-                            <Switch
-                                className="mr-4"
-                                onChange={(checked) => {
-                                    form.setFieldsValue({ transferEnabled: checked });
-                                    setIsTransferEnabled(checked);
-                                }}
-                                checked={form.getFieldValue("transferEnabled") ?? isTransferEnabled}
-                            />
-                            <p className="text-sm"> Cho phép chuyển nhượng hợp đồng</p>
-                        </div>
-                    </Form.Item>
+                                    {isVATChecked && (
+                                        <Form.Item
+                                            name="vatPercentage"
+                                            rules={[{ required: true, message: "Vui lòng nhập phần trăm VAT!" }]}
+                                        >
+                                            <Input
+                                                type="number"
+                                                className="w-[150px]"
+                                                placeholder="Nhập phần trăm VAT"
+                                                addonAfter="%"
+                                                max={100}
+                                                min={0}
+                                                onChange={(e) => {
+                                                    const value = parseInt(e.target.value, 10);
+                                                    if (value < 0 || value > 100) {
+                                                        message.error("Phần trăm VAT phải nằm trong khoảng 0 đến 100.");
+                                                        form.setFieldsValue({ vatPercentage: null });
+                                                    }
+                                                }}
+                                            />
+                                        </Form.Item>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-5 mt-5">
+                                    <Form.Item name="isDateLateChecked" valuePropName="checked">
+                                        <div className="flex items-center min-w-[350px]">
+                                            <Switch
+                                                className="mr-4"
+                                                onChange={(checked) => {
+                                                    form.setFieldsValue({ isDateLateChecked: checked });
+                                                    setIsDateLateChecked(checked);
+                                                }}
+                                                checked={form.getFieldValue("isDateLateChecked") ?? isDateLateChecked}
+                                            />
+                                            <p className="text-sm">Cho phép thanh toán trễ hạn tối đa (ngày)</p>
+                                        </div>
+                                    </Form.Item>
 
-                    <Form.Item name="violate" valuePropName="checked">
-                        <div className="flex items-center">
-                            <Switch
-                                className="mr-4"
-                                onChange={(checked) => {
-                                    form.setFieldsValue({ violate: checked });
-                                    setIsisViolate(checked);
-                                }}
-                                checked={form.getFieldValue("violate") ?? isViolate}
-                            />
-                            <p className="text-sm"> Cho phép đơn phương hủy hợp đồng nếu vi phạm các quy định trong điều khoản hợp đồng</p>
-                        </div>
-                    </Form.Item>
+                                    {isDateLateChecked && (
+                                        <Form.Item
+                                            name="maxDateLate"
+                                            rules={[{ required: true, message: "Vui lòng nhập số ngày trễ tối đa" }]}
+                                        >
+                                            <Input
+                                                type="number"
+                                                className="w-[150px]"
+                                                placeholder="Vui lòng nhập số ngày trễ tối đa"
+                                                addonAfter="ngày"
+                                                min={0}
+                                                onChange={(e) => {
+                                                    const value = parseInt(e.target.value, 10);
+                                                    if (value < 0) {
+                                                        message.error("Phần trăm VAT phải nằm trong khoảng 0 đến 100.");
+                                                        form.setFieldsValue({ maxDateLate: null });
+                                                    }
+                                                }}
+                                            />
+                                        </Form.Item>
+                                    )}
+                                </div>
+                            </Collapse.Panel>
 
-                    <Form.Item name="suspend" valuePropName="checked">
-                        <div className="flex items-center">
-                            <Switch
-                                className="mr-4"
-                                onChange={(checked) => {
-                                    form.setFieldsValue({ suspend: checked });
-                                    setIsSuspend(checked);
-                                }}
-                                checked={form.getFieldValue("suspend") ?? isSuspend}
-                            />
-                            <p className="text-sm">Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng được ghi rõ</p>
-                        </div>
-                    </Form.Item>
 
-                    {isSuspend && (
-                        <Form.Item
-                            label="trường hợp"
-                            name="suspendContent"
-                            rules={[{ required: true, message: "Vui lòng nhập rõ trường hợp tạm ngưng!" }]}
-                        >
-                            <TextArea
-                                className="w-[450px]"
-                                placeholder="Nhập nội dung"
-                                rows={4}
-                            />
-                        </Form.Item>
-                    )}
+                            <Collapse.Panel header="Thời gian và hiệu lực" key="2">
+                                <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
+
+                                <Form.Item
+                                    label="Thời gian hiệu lực hợp đồng"
+                                    required
+                                    className="mb-0"
+                                >
+                                    <Row gutter={16}>
+
+                                        <Col span={24}>
+                                            <DatePicker.RangePicker
+                                                className="w-full"
+                                                showTime={{ format: 'HH:mm' }}
+                                                format="DD/MM/YYYY HH:mm"
+                                                disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                                placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
+                                                onChange={(dates) => {
+                                                    if (dates) {
+                                                        form.setFieldsValue({
+                                                            effectiveDate: dates[0],
+                                                            expiryDate: dates[1]
+                                                        });
+                                                    } else {
+                                                        form.setFieldsValue({
+                                                            effectiveDate: null,
+                                                            expiryDate: null
+                                                        });
+                                                    }
+                                                }}
+                                            />
+                                        </Col>
+                                    </Row>
+
+                                    <Form.Item
+                                        name="effectiveDate"
+                                        dependencies={['expiryDate']}
+                                        rules={[
+                                            { required: true, message: "Vui lòng chọn ngày bắt đầu có hiệu lực!" },
+                                            ({ getFieldValue }) => ({
+                                                validator(_, value) {
+                                                    if (!value || !getFieldValue('expiryDate') ||
+                                                        getFieldValue('expiryDate').isAfter(value)) {
+                                                        return Promise.resolve();
+                                                    }
+                                                    return Promise.reject(new Error('Ngày bắt đầu phải trước ngày kết thúc!'));
+                                                }
+                                            })
+                                        ]}
+                                        hidden
+                                    />
+
+                                    <Form.Item
+                                        name="expiryDate"
+                                        dependencies={['effectiveDate']}
+                                        rules={[
+                                            { required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" },
+                                            ({ getFieldValue }) => ({
+                                                validator(_, value) {
+                                                    if (!value || !getFieldValue('effectiveDate') ||
+                                                        value.isAfter(getFieldValue('effectiveDate'))) {
+                                                        return Promise.resolve();
+                                                    }
+                                                    return Promise.reject(new Error('Ngày kết thúc phải sau ngày bắt đầu!'));
+                                                }
+                                            })
+                                        ]}
+                                        hidden
+                                    />
+                                </Form.Item>
+
+                                <Form.Item
+                                className="mt-5"
+                                    label="Ngày ký kết"
+                                    name="signingDate"
+                                    initialValue={dayjs()}
+                                    rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
+                                >
+                                    <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
+                                    name="autoRenew"
+                                    valuePropName="checked"
+                                    noStyle
+                                >
+                                    <div className="flex items-center">
+                                        <Switch
+                                            className="mr-4"
+                                            onChange={(checked) => {
+                                                form.setFieldsValue({ autoRenew: checked });
+                                                setIsAutoRenew(checked);
+                                            }}
+                                            checked={form.getFieldValue('autoRenew') ?? isAutoRenew} />
+                                        <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
+                                    </div>
+                                </Form.Item>
+                            </Collapse.Panel>
+
+
+                            <Collapse.Panel header="Điều khoản & Cam kết" key="3">
+                                <Divider orientation="center" className="text-lg">Điều khoản & Cam kết</Divider>
+                                <div className=" ml-2 my-3 ">
+                                    <p className="font-bold text-[16px] mb-1"> Điều khoản chung</p>
+                                    <p className="">Mô tả: (Điều khoản được áp dụng cho cả 2 bên) </p>
+                                </div>
+                                <Form.Item
+                                    label={
+                                        <div className="flex justify-between items-center gap-4">
+                                            <p>Điều khoản chung </p>
+                                            <Popover
+                                                content={() => getTermsContent('generalTerms')}
+                                                title="Danh sách Điều khoản chung đã chọn"
+                                                trigger="hover"
+                                                placement="right"
+                                            >
+                                                <Button icon={<EyeFilled />} />
+                                            </Popover>
+                                        </div>
+                                    }
+                                    name="generalTerms"
+                                    rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
+                                    className="ml-2"
+                                >
+                                    <LazySelect
+                                        loadDataCallback={loadGenaralData}
+                                        options={generalData?.data.content}
+                                        showSearch
+                                        labelInValue
+                                        mode="multiple"
+                                        placeholder="Chọn điều khoản chung"
+                                        onChange={handleSelectChange}
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                <Divider style={{ margin: "8px 0" }} />
+                                                <Space style={{ padding: "0 8px 4px" }}>
+                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(9)}>
+                                                        Thêm điều khoản
+                                                    </Button>
+                                                </Space>
+                                            </>
+                                        )}
+                                    />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label={
+                                        <div className="ml-2 my-3 font-bold text-[16px] flex justify-between items-center gap-5">
+                                            <p> Các điều khoản khác</p>
+
+                                            {selectedOthersTerms.length > 0 && (
+                                                <Popover
+                                                    content={getAllAdditionalTermsContent}
+                                                    title="Xem trước tất cả điều khoản đã chọn"
+                                                    trigger="click"
+                                                    placement="right"
+                                                    overlayStyle={{ maxWidth: '70vw' }}
+                                                >
+                                                    <Button icon={<EyeFilled />}>Xem trước tất cả</Button>
+                                                </Popover>
+                                            )}
+                                        </div>
+                                    }
+                                    name="additionalTerms"
+                                >
+                                    <Checkbox.Group
+                                        className="flex flex-col ml-4 gap-4"
+                                        options={[
+                                            { label: "ĐIỀU KHOẢN BỔ SUNG", value: 1 },
+                                            { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: 2 },
+                                            { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: 3 },
+                                            { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: 4 },
+                                            { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: 5 },
+                                            { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: 6 },
+                                            { label: "ĐIỀU KHOẢN BẢO MẬT", value: 7 }
+                                        ]}
+                                        onChange={handleCheckboxChange}
+                                    />
+                                </Form.Item>
+
+                                <div className="flex flex-col">
+                                    {selectedOthersTerms.map(termId => (
+                                        <TermSection
+                                            key={termId}
+                                            termId={termId}
+                                            title={termConfigs[termId].title}
+                                            form={form}
+                                            loadDataCallback={termConfigs[termId].loadData}
+                                        />
+                                    ))}
+                                </div>
+
+
+                                <Divider orientation="center">Điều khoản đặc biệt</Divider>
+                                <Form.Item
+                                    label={
+                                        <div className="ml-2 my-3">
+                                            <p className="font-bold text-[16px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p>
+                                            <p className="">Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên A) </p>
+                                        </div>
+                                    }
+                                    name="specialTermsA"
+                                >
+                                    <TextArea rows={4}
+                                        placeholder="Nhập điều khoản bên A"
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label={
+                                        <div className="ml-2 my-3">
+                                            <p className="font-bold text-[16px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN B</p>
+                                            <p className="">Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên B) </p>
+                                        </div>
+                                    }
+                                    name="specialTermsB"
+                                >
+                                    <TextArea rows={4}
+                                        placeholder="Nhập điều khoản bên B"
+                                    />
+                                </Form.Item>
+
+                            </Collapse.Panel>
+
+                            <Collapse.Panel header="Phụ lục & các loại khác" key="4">
+                                <Divider orientation="center">Các nội dung khác</Divider>
+
+                                <Form.Item name="appendixEnabled" valuePropName="checked">
+                                    <div className="flex items-center">
+                                        <Switch
+                                            className="mr-4"
+                                            onChange={(checked) => {
+                                                form.setFieldsValue({ appendixEnabled: checked });
+                                                setIsAppendixEnabled(checked);
+                                            }}
+                                            checked={form.getFieldValue("appendixEnabled") ?? isAppendixEnabled}
+                                        />
+                                        <p className="text-sm">Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
+                                    </div>
+                                </Form.Item>
+
+                                <Form.Item name="transferEnabled" valuePropName="checked">
+                                    <div className="flex items-center">
+                                        <Switch
+                                            className="mr-4"
+                                            onChange={(checked) => {
+                                                form.setFieldsValue({ transferEnabled: checked });
+                                                setIsTransferEnabled(checked);
+                                            }}
+                                            checked={form.getFieldValue("transferEnabled") ?? isTransferEnabled}
+                                        />
+                                        <p className="text-sm"> Cho phép chuyển nhượng hợp đồng</p>
+                                    </div>
+                                </Form.Item>
+
+                                <Form.Item name="violate" valuePropName="checked">
+                                    <div className="flex items-center">
+                                        <Switch
+                                            className="mr-4"
+                                            onChange={(checked) => {
+                                                form.setFieldsValue({ violate: checked });
+                                                setIsisViolate(checked);
+                                            }}
+                                            checked={form.getFieldValue("violate") ?? isViolate}
+                                        />
+                                        <p className="text-sm"> Cho phép đơn phương hủy hợp đồng nếu vi phạm các quy định trong điều khoản hợp đồng</p>
+                                    </div>
+                                </Form.Item>
+
+                                <Form.Item name="suspend" valuePropName="checked">
+                                    <div className="flex items-center">
+                                        <Switch
+                                            className="mr-4"
+                                            onChange={(checked) => {
+                                                form.setFieldsValue({ suspend: checked });
+                                                setIsSuspend(checked);
+                                            }}
+                                            checked={form.getFieldValue("suspend") ?? isSuspend}
+                                        />
+                                        <p className="text-sm">Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng được ghi rõ</p>
+                                    </div>
+                                </Form.Item>
+
+                                {isSuspend && (
+                                    <Form.Item
+                                        label="trường hợp"
+                                        name="suspendContent"
+                                        rules={[{ required: true, message: "Vui lòng nhập rõ trường hợp tạm ngưng!" }]}
+                                    >
+                                        <TextArea
+                                            className="w-[450px]"
+                                            placeholder="Nhập nội dung"
+                                            rows={4}
+                                        />
+                                    </Form.Item>
+                                )}
+                            </Collapse.Panel>
+                        </Collapse>
+                    </ConfigProvider>
                 </div>
             ),
         },

@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { selectTokens } from "../slices/authSlice";
-// import { BE_API_LOCAL } from "../config";
+import { BE_API_LOCAL } from "../config/config";
+
 
 export const clauseAPI = createApi({
     reducerPath: "clauseManagement",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:8080/api/v1",
+        baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {

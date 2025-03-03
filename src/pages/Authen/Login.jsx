@@ -76,7 +76,6 @@ const Login = () => {
         dispatch(setUser(data.data));
         dispatch(setToken(data.data.token));
 
-
         // remember me
         if (rememberMe) {
             Cookies.set("rememberEmail", form.getFieldValue("login_identifier"), { expires: 1 });
@@ -114,7 +113,6 @@ const Login = () => {
     };
 
     const handleSubmit = async (values) => {
-        console.log(values);
         try {
             const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
             console.log(result);
