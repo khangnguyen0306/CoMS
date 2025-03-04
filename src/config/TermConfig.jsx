@@ -143,39 +143,39 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
     };
     const handleChildSelectChange = (typeKey, fieldKey, newValues) => {
         const currentFormValues = form.getFieldsValue(true);
-
-        // Lấy tất cả giá trị đã chọn từ các field con khác trong cùng loại điều khoản
+    
+        // Lấy các field con khác trong cùng loại (ngoại trừ field hiện tại) với giá trị là mảng số nguyên
         const otherFieldsInSameType = ["Common", "A", "B"].filter((key) => key !== fieldKey);
         const selectedValuesInSameType = otherFieldsInSameType.reduce((acc, key) => {
-            const values = (currentFormValues[typeKey]?.[key] || []).map((item) => item.value);
+            const values = currentFormValues[typeKey]?.[key] || [];
             acc[key] = values;
             return acc;
         }, {});
-
-        // Kiểm tra xem có giá trị nào trong newValues đã tồn tại ở các field con khác không
-        const duplicateValues = newValues.filter((item) => {
-            return Object.entries(selectedValuesInSameType).some(([key, values]) => {
-                if (values.includes(item.value)) {
-                    item.duplicateField = key;
-                    return true;
-                }
-                return false;
-            });
-        });
-
-        // Nếu có giá trị trùng, hiển thị cảnh báo và lọc giá trị
+    
+        // Kiểm tra xem giá trị nào trong newValues đã tồn tại ở các field con khác không
+        const duplicateValues = newValues.filter((item) =>
+            Object.entries(selectedValuesInSameType).some(([otherField, values]) => values.includes(item))
+        );
+    
         if (duplicateValues.length > 0) {
-            duplicateValues.forEach((item) => {
-                message.error(
-                    `Điều khoản đã được chọn ở ${displayLabels[typeKey][item.duplicateField]}. Bạn không thể chọn cùng 1 điều khoản ở 2 bên.`
+            duplicateValues.forEach((dup) => {
+                // Tìm field nào đã chứa giá trị trùng
+                const duplicateFieldEntry = Object.entries(selectedValuesInSameType).find(
+                    ([otherField, values]) => values.includes(dup)
                 );
+                if (duplicateFieldEntry) {
+                    const duplicateField = duplicateFieldEntry[0];
+                    message.error(
+                        `Điều khoản đã được chọn ở ${displayLabels[typeKey][duplicateField]}. Bạn không thể chọn cùng 1 điều khoản ở 2 bên.`
+                    );
+                }
             });
-
+    
             // Lọc bỏ các giá trị trùng
             const validValues = newValues.filter(
-                (item) => !Object.values(selectedValuesInSameType).flat().includes(item.value)
+                (item) => !Object.values(selectedValuesInSameType).flat().includes(item)
             );
-
+    
             // Cập nhật form với giá trị đã lọc
             form.setFieldsValue({
                 [typeKey]: {
@@ -184,7 +184,7 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
                 },
             });
         } else {
-            // Cập nhật form bình thường nếu không có trùng
+            // Cập nhật form bình thường nếu không có giá trị trùng
             form.setFieldsValue({
                 [typeKey]: {
                     ...(currentFormValues[typeKey] || {}),
@@ -193,11 +193,12 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
             });
         }
     };
+    
     const otherSelectedValues = [];
 
     // Calculate values already selected in other sections
     ["Common", "A", "B"].forEach((k) => {
-        const values = (form.getFieldValue([termId, k]) || []).map(item => item.value);
+        const values = (form.getFieldValue([termId, k]) || []).map(item => item);
         otherSelectedValues.push(...values);
     });
 
@@ -221,10 +222,9 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
                 // Remove the current section's values from otherSelectedValues
                 const filteredValues = otherSelectedValues.filter(value =>
                     !(form.getFieldValue([termId, key]) || [])
-                        .map(item => item.value)
+                        .map(item => item)
                         .includes(value)
                 );
-
                 return (
                     <Form.Item
                         key={index}
@@ -236,7 +236,6 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
                             options={generalData?.data.content}
                             globalSelected={filteredValues}
                             showSearch
-                            labelInValue
                             placeholder={displayLabels[termId][key]}
                             mode="multiple"
                             onChange={(newValues) => handleChildSelectChange(termId, key, newValues)}
