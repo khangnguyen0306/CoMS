@@ -25,6 +25,8 @@ const ApprovalProcess = Loadable({ loader: () => import("../pages/ApprovalProces
 const ContractPartner = Loadable({ loader: () => import("../pages/Contract/ContractPartner") });
 const CreateContract = Loadable({ loader: () => import("../pages/Contract/CreateContract") });
 const Setting = Loadable({ loader: () => import("../pages/setting/Setting") });
+const Process = Loadable({ loader: () => import("../pages/Process/Process") });
+
 
 
 export const router = createBrowserRouter([
@@ -97,6 +99,10 @@ export const router = createBrowserRouter([
                     {
                         path: "createContract",
                         element: CreateContract,
+                    },
+                    {
+                        path: "process",
+                        element: Process,
                     },
                 ],
             },

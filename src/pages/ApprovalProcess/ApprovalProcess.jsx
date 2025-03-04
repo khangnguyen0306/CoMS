@@ -1,53 +1,86 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Form, Select, Steps, message } from "antd";
-import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
+import { Button, Form, Select, Steps, message, Alert, Empty, Typography } from "antd";
+import { MinusCircleOutlined } from "@ant-design/icons";
 import { useGetAllUserQuery } from "../../services/UserAPI";
-import { useGetProcessTemplatesQuery } from "../../services/ProcessAPI";
-import dayjs from "dayjs";
+import { useCreateProcessMutation, useGetProcessTemplatesQuery } from "../../services/ProcessAPI";
+
 
 const { Step } = Steps;
 const { Option } = Select;
 
 const ApprovalProcess = () => {
-    // Lấy dữ liệu mẫu quy trình từ API
-    const { data: processTemplatesData } = useGetProcessTemplatesQuery();
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
-    const { data: userData } = useGetAllUserQuery({
+    const { data: userData, isLoadingUSer } = useGetAllUserQuery({
         keyword: "",
         page: 0,
         limit: 10,
     });
 
-    // Lọc ra các user có role.id = 2 (Manager)
-    const filterUsers = (users) => users.filter((user) => user.role.id === 2);
-    const filteredUsers = userData?.users ? filterUsers(userData.users) : [];
+    const { data: processData, isLoading, isError } = useGetProcessTemplatesQuery({});
 
-    // State chứa danh sách mẫu quy trình (khởi tạo từ API nếu có)
-    const [processes, setProcesses] = useState([]);
-    useEffect(() => {
-        if (processTemplatesData) {
-            setProcesses(processTemplatesData);
-        }
-    }, [processTemplatesData]);
+    console.log("Process data:", processData);
 
-    // State hiển thị modal thêm quy trình
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [createProcess] = useCreateProcessMutation();
 
-    // States cho modal tạo quy trình (Steps + Form)
+    // Lọc ra các user có role.id = 2 hoặc 3 (Manager)
+    // const filterUsers = (users) => users.filter((user) => [2, 3].includes(user.role.id));
+    // const filteredUsers = userData?.users ? filterUsers(userData.users) : [];
+    // console.log("Filtered users:", filteredUsers);
+
+    // State xác định chế độ tạo/chỉnh sửa quy trình
+    const [isCreating, setIsCreating] = useState(false);
+    // Các state cho giao diện Steps (cho việc tạo/chỉnh sửa quy trình)
     const [current, setCurrent] = useState(0);
     const [form] = Form.useForm();
-    // Lưu các lựa chọn của từng bước; ban đầu có 3 bước + bước cuối tự động
+    // Lưu các lựa chọn của từng bước; mặc định chỉ có đợt 1 và đợt cuối
     const [approvals, setApprovals] = useState({
         stage1: null,
-        stage2: null,
-        stage3: null,
         stageFinal: null,
     });
-    // Số bước ký duyệt tự tạo (không bao gồm bước cuối)
-    const [customStagesCount, setCustomStagesCount] = useState(3);
+    // Số bước ký duyệt tự tạo (không bao gồm bước cuối) - mặc định chỉ có 1 bước (stage1)
+    const [customStagesCount, setCustomStagesCount] = useState(1);
 
     // Hàm tạo mảng các bước (Steps) dựa trên customStagesCount hiện tại
     const generateSteps = () => {
+        // Nếu có dữ liệu quy trình từ API, sử dụng dữ liệu đó
+        if (processData) {
+            const process = processData.data[0];
+            const { customStagesCount, stages } = process;
+            console.log("Process data:", process);
+            // Giả sử trong JSON, stages đã bao gồm tất cả các bước (tùy chỉnh và đợt cuối)
+            const steps = stages.map((stage) => {
+                console.log("Stage data:", stage, stage.approver);
+                // Sử dụng process.customStagesCount hoặc state customStagesCount nếu giống nhau
+                const isFinal = stage.stageOrder === customStagesCount;
+                const foundUser = userData?.users.find((user) => user.id === stage.approver);
+                console.log("Found user:", foundUser);
+                return {
+                    key: isFinal ? "stageFinal" : `stage${stage.stageOrder}`,
+                    title: isFinal ? "Đợt cuối" : `Ký duyệt đợt ${stage.stageOrder}`,
+                    description: `Người duyệt: ${foundUser?.full_name || ""}`,
+                    content: processData
+                        ? null
+                        : (
+                            <Form.Item
+                                name={isFinal ? "stageFinal" : `stage${stage.stageOrder}`}
+                                label={`Chọn người duyệt ${isFinal ? "đợt cuối" : `đợt ${stage.stageOrder}`}`}
+                                rules={[{ required: true, message: "Vui lòng chọn người duyệt!" }]}
+                            >
+                                <Select placeholder="Chọn người duyệt">
+                                    {userData?.users.map((user) => (
+                                        <Option key={user.id} value={user.id}>
+                                            {user.full_name}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        ),
+                };
+            });
+            return steps;
+        }
+
+        // Nếu không có processData, sử dụng state tạo quy trình mới (chế độ tạo)
         const steps = [];
         for (let i = 1; i <= customStagesCount; i++) {
             steps.push({
@@ -55,7 +88,6 @@ const ApprovalProcess = () => {
                 title: (
                     <div className="flex items-center">
                         {`Ký duyệt đợt ${i}`}
-                        {/* Hiển thị icon dấu trừ nếu có hơn 1 bước */}
                         {customStagesCount > 1 && (
                             <MinusCircleOutlined
                                 className="ml-2 text-red-500 cursor-pointer"
@@ -74,7 +106,7 @@ const ApprovalProcess = () => {
                         rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
                     >
                         <Select placeholder="Chọn manager">
-                            {filteredUsers.map((manager) => (
+                            {userData?.map((manager) => (
                                 <Option key={manager.id} value={manager.id}>
                                     {manager.full_name}
                                 </Option>
@@ -84,7 +116,7 @@ const ApprovalProcess = () => {
                 ),
             });
         }
-        // Bước cuối tự động (không có icon xóa)
+        // Thêm bước cuối
         steps.push({
             key: "stageFinal",
             title: "Đợt cuối",
@@ -95,7 +127,7 @@ const ApprovalProcess = () => {
                     rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
                 >
                     <Select placeholder="Chọn manager">
-                        {filteredUsers.map((manager) => (
+                        {userData?.map((manager) => (
                             <Option key={manager.id} value={manager.id}>
                                 {manager.full_name}
                             </Option>
@@ -108,88 +140,82 @@ const ApprovalProcess = () => {
     };
 
     const stepsData = generateSteps();
-
-    // Hàm xử lý xóa 1 bước ký duyệt (chỉ áp dụng cho các bước trong customStagesCount)
+    console.log("Steps data:", stepsData);
+    // Hàm xử lý xóa 1 bước ký duyệt (áp dụng cho các bước thuộc customStagesCount)
     const handleRemoveStage = (stageNumber) => {
-        // Nếu xóa bước đang hiển thị, chuyển current về bước trước nếu cần
         let newCurrent = current;
         if (current >= stageNumber) {
             newCurrent = Math.max(0, current - 1);
             setCurrent(newCurrent);
         }
-        // Giảm số bước ký duyệt
         setCustomStagesCount((prev) => prev - 1);
-
-        // Cập nhật state approvals: xóa key tương ứng và dịch chuyển các bước sau nó
         setApprovals((prev) => {
             const newApprovals = {};
-            // Duyệt qua các bước mới sau khi xóa
             for (let i = 1; i <= customStagesCount; i++) {
                 if (i < stageNumber) {
                     newApprovals[`stage${i}`] = prev[`stage${i}`];
                 } else if (i > stageNumber) {
-                    // Dịch chuyển giá trị từ bước i sang bước i-1
                     newApprovals[`stage${i - 1}`] = prev[`stage${i}`];
                 }
             }
-            // Giữ lại stageFinal
             newApprovals.stageFinal = prev.stageFinal;
             return newApprovals;
         });
-        message.info(`Đã xóa bước ký duyệt đợt ${stageNumber}`);
     };
 
     // Xử lý bước "Tiếp tục"
-    const next = () => {
-        form
-            .validateFields()
-            .then((values) => {
-                if (current < customStagesCount) {
-                    const stageKey = `stage${current + 1}`;
-                    setApprovals((prev) => ({ ...prev, [stageKey]: values[stageKey] }));
-                    setCurrent(current + 1);
-                    form.resetFields();
-                } else {
-                    // Ở bước "Đợt cuối": lưu dữ liệu và tạo mẫu quy trình mới
-                    const stageKey = "stageFinal";
-                    setApprovals((prev) => ({ ...prev, [stageKey]: values[stageKey] }));
-                    const newProcess = {
-                        id: processes.length + 1,
-                        name: `Mẫu quy trình chuẩn ${processes.length + 1}`,
-                        customStagesCount,
-                        createdAt: new Date().toISOString(),
-                        approvals: { ...approvals, [stageKey]: values[stageKey] },
-                        summary: [...Array(customStagesCount).keys()].map((i) => {
-                            const key = `stage${i + 1}`;
-                            const manager = filteredUsers.find((m) => m.id === approvals[key]);
-                            return manager ? manager.full_name : "Chưa chọn";
-                        }).concat(
-                            (() => {
-                                const manager = filteredUsers.find((m) => m.id === values[stageKey]);
-                                return manager ? manager.full_name : "Chưa chọn";
-                            })()
-                        ),
-                    };
-                    setProcesses([...processes, newProcess]);
-                    message.success("Mẫu quy trình đã được tạo thành công!");
-                    // Reset modal
-                    setCurrent(0);
-                    setApprovals({
-                        stage1: null,
-                        stage2: null,
-                        stage3: null,
-                        stageFinal: null,
+    const next = async () => {
+        try {
+            const values = await form.validateFields();
+            if (current < customStagesCount) {
+                // Chưa đến bước cuối: lưu giá trị của bước hiện tại và chuyển sang bước kế tiếp
+                const stageKey = `stage${current + 1}`;
+                setApprovals((prev) => ({ ...prev, [stageKey]: values[stageKey] }));
+                setCurrent(current + 1);
+                form.resetFields();
+            } else {
+                // Ở bước cuối: lưu giá trị của bước cuối và tạo JSON quy trình
+                const finalStageKey = "stageFinal";
+                setApprovals((prev) => ({ ...prev, [finalStageKey]: values[finalStageKey] }));
+
+                // Xây dựng mảng stages: các bước tùy chỉnh và bước cuối
+                const stagesArray = [];
+                for (let i = 1; i <= customStagesCount; i++) {
+                    // Ưu tiên lấy giá trị đã lưu trong approvals, nếu chưa có thì lấy từ values
+                    const approverId = approvals[`stage${i}`] || values[`stage${i}`];
+                    stagesArray.push({
+                        stageOrder: i,
+                        approverId,
                     });
-                    form.resetFields();
-                    setIsModalVisible(false);
-                    // Reset số bước về mặc định (3 bước)
-                    setCustomStagesCount(3);
                 }
-            })
-            .catch((error) => {
-                console.log("Validation Failed:", error);
-            });
+                // Thêm bước cuối với stageOrder = customStagesCount + 1
+                stagesArray.push({
+                    stageOrder: customStagesCount + 1,
+                    approverId: values[finalStageKey],
+                });
+
+                // Tạo đối tượng quy trình theo mẫu BE yêu cầu
+                const newProcess = {
+                    name: `Quy trình 1`, // Hoặc lấy từ form nếu cần
+                    stages: stagesArray,
+                };
+
+                // Gọi API tạo quy trình (giả sử bạn có hook createProcess)
+                const result = await createProcess(newProcess).unwrap();
+                console.log("Final process data:", newProcess);
+                message.success("Quy trình đã được tạo thành công!");
+
+                // Reset lại form và các state liên quan sau khi tạo
+                setApprovals({ stage1: null, stageFinal: null });
+                setCustomStagesCount(1);
+                setCurrent(0);
+                form.resetFields();
+            }
+        } catch (error) {
+            console.log("Validation Failed:", error);
+        }
     };
+
 
     const prev = () => {
         setCurrent(current - 1);
@@ -215,100 +241,61 @@ const ApprovalProcess = () => {
         }
     };
 
-    // Hàm xử lý thêm đợt ký duyệt (chỉ thêm vào cuối danh sách bước ký duyệt)
+    // Hàm xử lý thêm đợt ký duyệt (thêm vào cuối danh sách)
     const handleAddStage = () => {
-        setCustomStagesCount(customStagesCount + 1);
-        setApprovals((prev) => ({ ...prev, [`stage${customStagesCount + 1}`]: null }));
+        if (customStagesCount < 5) {
+            setCustomStagesCount(customStagesCount + 1);
+            setApprovals((prev) => ({ ...prev, [`stage${customStagesCount + 1}`]: null }));
+        } else {
+            message.error("Chỉ được tạo tối đa 5 đợt ký duyệt");
+        }
     };
 
-    // Các cột của bảng mẫu quy trình
-    const columns = [
-        {
-            title: "Mã quy trình",
-            dataIndex: "id",
-            key: "id",
-        },
-        {
-            title: "Tên mẫu quy trình",
-            dataIndex: "name",
-            key: "name",
-        },
-        {
-            title: "Số bước ký duyệt",
-            dataIndex: "customStagesCount",
-            key: "customStagesCount",
-            render: (text) => `${text} đợt + 1 (đợt cuối)`,
-        },
-        {
-            title: "Ngày tạo",
-            dataIndex: "createdAt",
-            key: "createdAt",
-            render: (date) => dayjs(date).format("DD-MM-YYYY"),
-        },
-        {
-            title: "Danh sách duyệt",
-            dataIndex: "summary",
-            key: "summary",
-            render: (summary) => summary.join(" -> "),
-        },
-    ];
+    if (isLoading || isLoadingUSer) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-8">
-                <h2 className="font-bold text-2xl">Quản Lý Mẫu Quy Trình Ký Duyệt</h2>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
-                    Thêm quy trình
-                </Button>
-            </div>
-
-            {/* Bảng hiển thị danh sách mẫu quy trình */}
-            <Table dataSource={processes} columns={columns} rowKey="id" />
-
-            {/* Modal thêm mẫu quy trình */}
-            <Modal
-                title="Tạo Mẫu Quy Trình Ký Duyệt"
-                visible={isModalVisible}
-                onCancel={() => {
-                    setIsModalVisible(false);
-                    setCurrent(0);
-                    form.resetFields();
-                }}
-                footer={null}
+            <div
+                className="font-bold mb-4 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent"
+                style={{ textShadow: "8px 8px 8px rgba(0, 0, 0, 0.2)" }}
             >
-                <div className="mb-4">
-                    <h3 className="font-bold text-xl">Chọn Quy Trình Ký Duyệt</h3>
-                </div>
-                <div className="flex pb-12">
-                    {/* Steps hiển thị các bước */}
-                    <div className="mr-4 h-auto max-w-[50%]">
-                        <Steps current={current} direction="vertical" style={{ height: "100%" }} onChange={handleStepChange}>
-                            {stepsData.map((item, index) => {
-                                const stageKey = index < customStagesCount ? `stage${index + 1}` : "stageFinal";
-                                return (
-                                    <Step
-                                        key={item.key || index}
-                                        title={item.title}
-                                        description={
-                                            approvals[stageKey]
-                                                ? `Người duyệt: ${filteredUsers.find((m) => m.id === approvals[stageKey])?.full_name || ""}`
-                                                : ""
-                                        }
-                                    />
-                                );
-                            })}
-                        </Steps>
-                        <div className="flex gap-4 mt-4">
-                            <Button type="primary" onClick={handleAddStage}>
-                                Thêm đợt ký duyệt
-                            </Button>
-                            <Button>Áp dụng quy trình</Button>
-                        </div>
+                <div className="flex items-center gap-4">Quản Lý Quy Trình Ký Duyệt</div>
+            </div>
+            <div className="flex pb-12">
+                {/* Cột hiển thị Steps */}
+                <div className="mr-4 h-auto max-w-[50%]">
+                    <Steps
+                        current={current}
+                        direction="vertical"
+                        style={{ height: "100%" }}
+                        onChange={handleStepChange}
+                    >
+                        {stepsData.map((item, index) => {
+                            return (
+                                <Step
+                                    key={item.key || index}
+                                    title={item.title}
+                                    description={
+                                        item.description || ""
+                                    }
+                                />
+                            );
+                        })}
+                    </Steps>
+                    <div className="flex gap-4 mt-4">
+                        <Button type="primary" onClick={handleAddStage}>
+                            Thêm đợt ký duyệt
+                        </Button>
+                        <Button>Áp dụng quy trình</Button>
                     </div>
-                    {/* Form hiển thị nội dung bước hiện tại */}
-                    <div className="flex-1">
-                        <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
-                            {stepsData[current].content}
+                </div>
+                {/* Cột hiển thị Form của bước hiện tại */}
+                <div className="flex-1">
+                    <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
+                        {stepsData[current].content}
+                        {!processData && (
                             <div style={{ marginTop: 24 }}>
                                 {current > 0 && (
                                     <Button style={{ marginRight: 8 }} onClick={prev}>
@@ -319,10 +306,11 @@ const ApprovalProcess = () => {
                                     {current === stepsData.length - 1 ? "Hoàn thành" : "Tiếp tục"}
                                 </Button>
                             </div>
-                        </Form>
-                    </div>
+                        )}
+
+                    </Form>
                 </div>
-            </Modal>
+            </div>
         </div>
     );
 };

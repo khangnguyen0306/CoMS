@@ -67,5 +67,6 @@ export const {
     useActiveUserMutation,
     useUpdateUserMutation,
     useAddUserMutation,
+    useLazyGetAllUserQuery
 
 } = userAPI;

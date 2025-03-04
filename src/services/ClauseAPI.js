@@ -48,10 +48,10 @@ export const clauseAPI = createApi({
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
         CreateClause: builder.mutation({
-            query: ({ idType, label, value }) => ({
+            query: ({ idType, label, value, typeTermId }) => ({
                 url: `/terms/create/${idType}`,
                 method: "POST",
-                body: { label, value },
+                body: { label, value, typeTermId },
             }),
             invalidatesTags: [{ type: "Clause", id: "LIST" }],
             // providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
