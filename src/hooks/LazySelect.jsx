@@ -35,6 +35,8 @@ const LazySelect = ({
 
     // Render option với kiểm tra globalSelected
 
+console.log(globalSelected)
+
     const renderOptions = () => {
         if (children) {
             return children;

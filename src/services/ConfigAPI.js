@@ -65,5 +65,6 @@ export const ConfigAPI = createApi({
 
 export const {
     useCreateDateNofiticationMutation,
-    useGetDateNofitifationQuery
+    useGetDateNofitifationQuery,
+    useLazyGetDateNofitifationQuery
 } = ConfigAPI;

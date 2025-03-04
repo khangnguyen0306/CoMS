@@ -72,6 +72,13 @@ export const clauseAPI = createApi({
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
 
+        getTermDetail: builder.query({
+            query: (termId) => ({               // chua gan ID
+                url: `terms/get-by-id/${termId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+        }),
         // createDoctor: builder.mutation({
         //     query: (newDoctorData) => ({
         //         url: `/create`,
@@ -112,5 +119,6 @@ export const {
     useLazyGetLegalQuery,
     useLazyGetClauseManageQuery,
     useGetLegalCreateContractQuery,
-    useLazyGetLegalCreateContractQuery
+    useLazyGetLegalCreateContractQuery,
+    useLazyGetTermDetailQuery
 } = clauseAPI;
