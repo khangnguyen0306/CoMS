@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 const RealTimeNotification = () => {
     const token = useSelector(selectCurrentToken);
     const user = useSelector(selectCurrentUser);
-
+    // console.log(token);
     // Lazy initialization: lấy notifications từ sessionStorage nếu có, ngược lại là mảng rỗng
     const [notifications, setNotifications] = useState(() => {
         const stored = sessionStorage.getItem("notifications");
@@ -26,7 +26,7 @@ const RealTimeNotification = () => {
         const stompClient = new Client({
             webSocketFactory: () => socket,
             connectHeaders: {
-                Authorization: token ? `Bearer ${token}` : "",
+                Authorization: `Bearer ${token}`,
             },
             reconnectDelay: 5000,
             debug: (str) => {
@@ -39,6 +39,8 @@ const RealTimeNotification = () => {
             // Đăng ký subscribe đến kênh của user (ví dụ sử dụng user.fullName làm định danh)
             stompClient.subscribe(`/user/${user.fullName}/queue/payment`, (message) => {
                 console.log("Received message: ", message);
+                const data = JSON.parse(message.body);
+                console.log("Contract ID: ", data.contractId);
                 if (message.body) {
                     const data = JSON.parse(message.body);
                     const msg = data.message;

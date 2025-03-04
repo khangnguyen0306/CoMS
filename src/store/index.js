@@ -8,6 +8,7 @@ import { clauseAPI } from "../services/ClauseAPI";
 import { userAPI } from "../services/UserAPI";
 import { processAPI } from "../services/ProcessAPI";
 import { ConfigAPI } from "../services/ConfigAPI";
+import { notiAPI } from "../services/NotiAPI";
 import AuthReducer from "../slices/authSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
@@ -43,6 +44,8 @@ export const store = configureStore({
     user: processAPI,
     [ConfigAPI.reducerPath]: ConfigAPI.reducer,
     config: ConfigAPI,
+    [notiAPI.reducerPath]: notiAPI.reducer,
+    config: notiAPI,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -56,6 +59,7 @@ export const store = configureStore({
       clauseAPI.middleware,
       processAPI.middleware,
       ConfigAPI.middleware,
+      notiAPI.middleware,
     ),
 });
 
