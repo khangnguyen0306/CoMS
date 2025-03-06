@@ -265,7 +265,8 @@ const CreateContractForm = () => {
             await form.validateFields();
             setCurrentStep(currentStep + 1);
         } catch (errorInfo) {
-            message.error("Vui lòng kiểm tra lại các trường bắt buộc!");
+            console.log(errorInfo)
+            message.error(errorInfo.errorFields.length > 1 ? errorInfo.errorFields[0].errors[0] + " và các trường bắt buộc khác" : errorInfo.errorFields[0].errors[0]);
         }
     };
 
@@ -320,7 +321,6 @@ const CreateContractForm = () => {
 
         // Các trường đã có trong TemplateData, ta loại bỏ khỏi data chính
         const excludedFields = [
-            "templateId",
             "contractName",
             "specialTermsA",
             "specialTermsB",
@@ -353,10 +353,16 @@ const CreateContractForm = () => {
             "notifyExpiryContent"
         ];
 
-        // Loại bỏ các trường trùng lặp
+        // Loại bỏ các trường trùng lặp và format templateId
         const formattedData = Object.keys(data).reduce((acc, key) => {
             if (!excludedFields.includes(key)) {
-                acc[key] = data[key];
+                if (key === 'templateId') {
+                    acc[key] = data[key].value;
+                } else if (key === 'partnerId') {
+                    acc['partyId'] = data[key];
+                } else {
+                    acc[key] = data[key];
+                }
             }
             return acc;
         }, {});
@@ -969,7 +975,7 @@ const CreateContractForm = () => {
                                             <p>Soạn thảo nội dung hợp đồng</p>
                                             <Popover
                                                 content={
-                                                    <PreviewSection className='w-[80%]' content={content} />
+                                                    <PreviewSection className='w-[80%]' content={content} isDarkMode={isDarkMode} />
                                                 }
                                                 trigger="hover"
                                                 placement="right"
@@ -1193,6 +1199,7 @@ const CreateContractForm = () => {
                                         format="DD/MM/YYYY HH:mm"
                                         disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
+
                                         onChange={(dates) => {
                                             if (dates) {
                                                 form.setFieldsValue({
@@ -1212,6 +1219,8 @@ const CreateContractForm = () => {
                                         }}
                                     />
                                 </Form.Item>
+                                <Form.Item name="effectiveDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]} />
+                                <Form.Item name="expiryDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]} />
 
                                 <Form.Item
                                     label="Tự động gia hạn khi hết hạn mà không có khiếu nại"

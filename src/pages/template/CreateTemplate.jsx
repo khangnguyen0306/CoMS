@@ -575,7 +575,6 @@ const CreateTemplate = () => {
                     <Form.Item
                         label="Loại hợp đồng"
                         name="contractTypeId"
-                        rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}
                     >
                         <Select
                             showSearch
@@ -683,7 +682,6 @@ const CreateTemplate = () => {
                                                 label="Tiêu đề hợp đồng"
                                                 name="contractTitle"
                                                 initialValue={templateName}
-                                                rules={[{ required: true, message: "Vui lòng nhập tiêu đề hợp đồng!" }]}
                                             >
                                                 <Input
                                                     onChange={handleContractTitleChange}
@@ -742,7 +740,6 @@ const CreateTemplate = () => {
                                         <Form.Item
                                             label={"Căn phứ pháp lý"}
                                             name='legalBasis'
-                                            rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
                                         >
                                             <LazySelect
                                                 loadDataCallback={loadLegalData}
@@ -821,7 +818,6 @@ const CreateTemplate = () => {
                                             label="Soạn thảo nội dung hợp đồng "
                                             name="contractContent"
                                             className="mt-5"
-                                            rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
                                         >
                                             <RichTextEditor
                                                 output="html"
@@ -859,7 +855,6 @@ const CreateTemplate = () => {
                                             <Form.Item
                                                 label="Phần trăm VAT"
                                                 name="vatPercentage"
-                                                rules={[{ required: true, message: "Vui lòng nhập phần trăm VAT!" }]}
                                             >
                                                 <Input
                                                     type="number"
@@ -898,7 +893,6 @@ const CreateTemplate = () => {
                                             <Form.Item
                                                 label="Ngày trễ"
                                                 name="maxDateLate"
-                                                rules={[{ required: true, message: "Vui lòng nhập số ngày trễ tối đa" }]}
                                             >
                                                 <Input
                                                     type="number"
@@ -957,8 +951,6 @@ const CreateTemplate = () => {
                                         <Form.Item
                                             label={"Điều khoản chung"}
                                             name="generalTerms"
-                                            rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
-                                            className="ml-2"
                                         >
                                             <LazySelect
                                                 loadDataCallback={loadGenaralData}
@@ -1364,8 +1356,6 @@ const CreateTemplate = () => {
                                         <Form.Item
                                             label={"Điều khoản khác"}
                                             name="othersTerms"
-                                            rules={[{ required: true, message: "Vui lòng chọn điều khoản khác!" }]}
-                                            className="ml-2"
                                         >
                                             <LazySelect
                                                 loadDataCallback={loadDKKata}
@@ -1414,7 +1404,6 @@ const CreateTemplate = () => {
                                                 </div>
                                             }
                                             name="specialTermsA"
-                                        // rules={[{ required: true, message: "Vui lòng chọn điều khoản đặc biệt bên A!" }]} // Changed to optional
                                         >
                                             <TextArea rows={4}
                                                 placeholder="Nhập điều khoản bên A"
@@ -1428,7 +1417,6 @@ const CreateTemplate = () => {
                                                 </div>
                                             }
                                             name="specialTermsB"
-                                        // rules={[{ required: true, message: "Vui lòng chọn điều khoản đặc biệt bên B!" }]} // Changed to optional
                                         >
                                             <TextArea rows={4}
                                                 placeholder="Nhập điều khoản bên B"
@@ -1539,9 +1527,9 @@ const CreateTemplate = () => {
                         <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                     </div>
                     <div className=" px-4 pt-[100px] flex flex-col gap-2">
-                        {form.getFieldValue("legalBasis") ? form.getFieldValue("legalBasis").map(term => <p><i>- {term.title}</i></p>) : null}
+                        {form.getFieldValue("legalBasis") ? form.getFieldValue("legalBasis").map(term => <p><i>- {term.title}</i></p>) : "chưa chọn căn cứ pháp lý"}
                     </div>
-                    <div className={`  p-4 rounded-md `}>
+                    <div className={`  p-4 pl-1 rounded-md `}>
                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
                         <p className=" "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
                         <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
@@ -1550,7 +1538,7 @@ const CreateTemplate = () => {
                         <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
                         <p className=""><b>Email:</b> {bsInfor?.email}</p>
                     </div>
-                    <div className={` p-4 rounded-md `}>
+                    <div className={` p-4 pl-1 rounded-md `}>
                         <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
                         <p className=" "><b>Tên công ty: </b>....................................................................................................................................</p>
                         <p className=""><b>Địa chỉ trụ sở chính:</b> .......................................................................................................................</p>
