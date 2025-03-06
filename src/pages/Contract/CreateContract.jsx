@@ -25,6 +25,7 @@ import PreviewContract from "../../components/ui/PreviewContract";
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import { VietnameseProvinces } from "../../utils/Province";
 import { useLazyGetDateNofitifationQuery } from "../../services/ConfigAPI";
+import { useSelector } from "react-redux";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -57,6 +58,7 @@ const CreateContractForm = () => {
     const [isTransferEnabled, setIsTransferEnabled] = useState(false);
     const [isSuspend, setIsSuspend] = useState(false);
     const [isViolate, setIsisViolate] = useState(false);
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery()
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery()
     const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListQuery()
@@ -985,12 +987,12 @@ const CreateContractForm = () => {
                                         content={content}
                                         onChangeContent={onValueChange}
                                         extensions={extensions}
-                                        dark={false}
+                                        dark={isDarkMode}
                                         hideBubble={true}
                                         dense={false}
                                         removeDefaultWrapper
                                         placeholder="Nhập nội dung hợp đồng tại đây..."
-                                        contentClass="max-h-[400px] overflow-auto"
+                                        contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
                                     />
 
                                 </Form.Item>

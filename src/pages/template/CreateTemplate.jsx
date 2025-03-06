@@ -828,11 +828,12 @@ const CreateTemplate = () => {
                                                 content={content}
                                                 onChangeContent={onValueChange}
                                                 extensions={extensions}
-                                                dark={false}
+                                                dark={isDarkMode}
                                                 hideBubble={true}
                                                 dense={false}
                                                 removeDefaultWrapper
                                                 placeholder="Nhập nội dung hợp đồng tại đây..."
+                                                contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
                                             />
                                         </Form.Item>
 
