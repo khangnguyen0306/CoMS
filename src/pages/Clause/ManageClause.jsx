@@ -41,7 +41,7 @@ const ManageClause = () => {
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
-    console.log(clauseData?.data?.totalElements);
+    // console.log(clauseData?.data?.totalElements);
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -452,7 +452,7 @@ const ManageClause = () => {
                                         <Card
                                             bordered
                                             className="shadow-lg rounded-lg"
-                                            style={{ width: 320, backgroundColor: "#f9fafb", borderColor: "#d1d5db" }}
+                                            style={{ width: 320,  borderColor: "#d1d5db" }}
                                         >
                                             <Title level={4} className="text-blue-600">Chi tiết điều khoản</Title>
                                             <div className="mt-2 space-y-1">
@@ -697,7 +697,7 @@ const ManageClause = () => {
                                         <Card
                                             bordered
                                             className="shadow-lg rounded-lg"
-                                            style={{ width: 320, backgroundColor: "#f9fafb", borderColor: "#d1d5db" }}
+                                            style={{ width: 320, borderColor: "#d1d5db" }}
                                         >
                                             <Title level={4} className="text-blue-600">Chi tiết căn cứ</Title>
                                             <div className="mt-2 space-y-1">
@@ -741,7 +741,7 @@ const ManageClause = () => {
                                                             handleUpdateLegal(clause.clauseCode);
                                                         }}
                                                     >
-                                                        <GrUpdate />
+                                                        <EditFilled/>
                                                     </Button>
                                                     <Button
                                                         danger

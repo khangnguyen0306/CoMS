@@ -18,7 +18,7 @@ const Setting = () => {
     useEffect(() => {
         if (dateNotifi) {
             setSettings({
-                notificationDays: parseInt(dateNotifi[0].value) || 0
+                notificationDays: parseInt(dateNotifi[0]?.value) || "chưa có"
             });
         }
     }, [dateNotifi]);
@@ -28,7 +28,7 @@ const Setting = () => {
         try {
             let formData = {
                 key: "1",
-                value: values.notificationDays.toString(),
+                value: values?.notificationDays.toString(),
                 description: "Số ngày thông báo mặc định trước đợt thanh toán"
             }
 

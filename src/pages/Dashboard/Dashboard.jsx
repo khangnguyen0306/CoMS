@@ -3,11 +3,14 @@ import { Row, Col, Card, Statistic, Table, Button, Input, Space } from "antd";
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, Tooltip, Cell } from "recharts";
+import { GlowingEffectDemoSecond, GridItem, GridItemCustom } from "../../components/ui/ComponentEffect";
+import { useSelector } from "react-redux";
 
 const Home = () => {
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
     const searchInput = useRef(null);
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
         setSearchText(selectedKeys[0]);
@@ -315,65 +318,153 @@ const Home = () => {
     ];
 
     return (
-        <div >
+        <div className={`${isDarkMode ? 'dark' : ''}`}>
             {/* Thống kê */}
-            <Row gutter={16} >
+            <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
+                >THỐNG KÊ
+                </p>
+            <Row gutter={[16, 16]} className="mb-5 ">
                 {statisticsData.map((stat, index) => (
-                    <Col className="mb-4" span={6} key={index}>
-                        <Card className="flex items-center justify-center border-gray-300">
-                            <h3 className="text-sm font-medium">{stat.title}</h3>
-                            <a
-                                href="/desired-link"
-                                className="flex items-center justify-center text-2xl font-bold text-blue-500 hover:underline"
-                            >
-                                {stat.count}
-                            </a>
-                            <span className="text-gray-600 text-sm flex items-center justify-center">{stat.value}</span>
-                        </Card>
+                    <Col
+                        key={index}
+                        xs={24}
+                        sm={12}
+                        md={12}
+                        lg={6}
+                    >
+                        <GridItemCustom
+                            icon={null}
+                            title={stat?.title}
+                            description={
+                                <div className={`${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                                    <a
+                                        href="/desired-link"
+                                        className={`flex items-center justify-center text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-500'
+                                            } hover:underline`}
+                                    >
+                                        {stat.count}
+                                    </a>
+                                    <span className={`text-sm flex items-center justify-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                        }`}>
+                                        {stat.value}
+                                    </span>
+                                </div>
+                            }
+                            className={`${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}
+                        />
                     </Col>
                 ))}
             </Row>
-            <div className="flex flex-wrap gap-4 mb-4">
+            <Row gutter={[16, 16]} className="mb-4 flex gap-5 justify-center">
                 {/* Biểu dồ đường */}
-                <div className="p-4 bg-white rounded shadow-[0px_-4px_10px_rgba(0,0,0,0.1),0px_4px_10px_rgba(0,0,0,0.1)] flex-1">
-                    <h3 className="text-xl font-semibold mb-4">Tổng số lượng hợp đồng theo thời gian</h3>
-                    <LineChart
-                        width={660}
-                        height={300}
-                        data={lineData}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="contracts" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    </LineChart>
-                </div>
+                <GridItem
+                    description={
+                        <Col xs={24} md={12} lg={12}>
+                            <div className={`p-4 rounded ${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}>
+                                <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                    }`}>
+                                    Tổng số lượng hợp đồng theo thời gian
+                                </h3>
+                                <LineChart
+                                    width={500}
+                                    height={300}
+                                    data={lineData}
+                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke={isDarkMode ? "#404040" : "#e5e5e5"}
+                                    />
+                                    <XAxis
+                                        dataKey="month"
+                                        stroke={isDarkMode ? "#d1d5db" : "#666"}
+                                        tick={{ fill: isDarkMode ? "#d1d5db" : "#666" }}
+                                    />
+                                    <YAxis
+                                        stroke={isDarkMode ? "#d1d5db" : "#666"}
+                                        tick={{ fill: isDarkMode ? "#d1d5db" : "#666" }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: isDarkMode ? '#1f1f1f' : '#fff',
+                                            border: isDarkMode ? '1px solid #404040' : '1px solid #e5e5e5',
+                                            borderRadius: '4px',
+                                            color: isDarkMode ? '#d1d5db' : '#666'
+                                        }}
+                                    />
+                                    <Legend
+                                        wrapperStyle={{
+                                            color: isDarkMode ? "#d1d5db" : "#666"
+                                        }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="contracts"
+                                        stroke={isDarkMode ? "#60a5fa" : "#8884d8"}
+                                        activeDot={{ r: 8 }}
+                                    />
+                                </LineChart>
+                            </div>
+                        </Col>
+                    } />
 
                 {/* Biểu đồ hình tròn */}
-                <div className="p-4 bg-white rounded shadow-[0px_-4px_10px_rgba(0,0,0,0.1),0px_4px_10px_rgba(0,0,0,0.1)] flex-1">
-                    <h3 className="text-xl font-semibold mb-4">Tỷ lệ trạng thái hợp đồng</h3>
-                    <PieChart width={500} height={350}>
-                        <Pie
-                            data={pieData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={150}
-                            label
-                        >
-                            {pieData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend layout="vertical" align="right" className="ml-10" verticalAlign="middle" />
-                    </PieChart>
-                </div>
-            </div>
+                <GridItem
+                    description={
+                        <Col xs={24} md={12} lg={12}>
+                            <div className={`p-4 rounded  ${isDarkMode ? 'bg-dark-card' : 'bg-white'
+                                }`}>
+                                <h3 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                    }`}>
+                                    Tỷ lệ trạng thái hợp đồng
+                                </h3>
+                                <PieChart width={500} height={350}>
+                                    <Pie
+                                        data={pieData}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={150}
+                                        label={{
+                                            fill: isDarkMode ? '#d1d5db' : '#666',
+                                        }}
+
+                                    >
+                                        {pieData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={isDarkMode ?
+                                                    DARK_COLORS[index % DARK_COLORS.length] :
+                                                    COLORS[index % COLORS.length]
+                                                }
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: isDarkMode ? '#fff' : '#fff',
+                                            border: isDarkMode ? '1px solid #404040' : '1px solid #e5e5e5',
+                                            borderRadius: '4px',
+                                            color: isDarkMode ? '#d1d5db' : '#666'
+                                        }}
+                                    />
+                                    <Legend
+                                        layout="vertical"
+                                        align="right"
+                                        verticalAlign="top"
+                                        wrapperStyle={{
+                                            color: isDarkMode ? '#d1d5db' : '#666'
+                                        }}
+                                    />
+                                </PieChart>
+                            </div>
+                        </Col>
+                    } />
+
+
+            </Row>
+
 
 
             {/* Bảng dữ liệu */}
@@ -382,15 +473,18 @@ const Home = () => {
                 dataSource={tableData}
                 bordered
                 pagination={false}
+                className={isDarkMode ? 'dark-table' : ''}
                 components={{
                     body: {
                         cell: (props) => (
                             <td
                                 {...props}
                                 style={{
-                                    borderColor: '#89c4d9',
+                                    borderColor: isDarkMode ? '#404040' : '#89c4d9',
                                     borderStyle: 'solid',
-                                    borderWidth: '1px'
+                                    borderWidth: '1px',
+                                    backgroundColor: isDarkMode ? '#141414' : undefined,
+                                    color: isDarkMode ? '#d1d5db' : undefined
                                 }}
                             />
                         )
@@ -401,12 +495,10 @@ const Home = () => {
                                 {...props}
                                 style={{
                                     backgroundColor: props.className?.includes('special-header')
-                                        ? '#8dd4ff '
-                                        : '#cdf2ff',
-                                    color: props.className?.includes('special-header')
-                                        ? '#004d80'
-                                        : '#005580',
-                                    borderColor: '#89c4d9',
+                                        ? isDarkMode ? '#1f1f1f' : '#8dd4ff'
+                                        : isDarkMode ? '#141414' : '#cdf2ff',
+                                    color: isDarkMode ? '#d1d5db' : '#005580',
+                                    borderColor: isDarkMode ? '#404040' : '#89c4d9',
                                     borderStyle: 'solid',
                                     borderWidth: '1px'
                                 }}
@@ -415,8 +507,13 @@ const Home = () => {
                     }
                 }}
             />
-        </div>
+
+        </div >
+
     );
 };
+
+// Thêm màu sắc cho dark mode
+const DARK_COLORS = ["#60a5fa", "#34d399", "#fbbf24", "#fb923c"];
 
 export default Home;

@@ -10,6 +10,7 @@ import { processAPI } from "../services/ProcessAPI";
 import { ConfigAPI } from "../services/ConfigAPI";
 import { notiAPI } from "../services/NotiAPI";
 import AuthReducer from "../slices/authSlice";
+import themeReducer from "../slices/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import sessionStorage from 'redux-persist/lib/storage/session'
@@ -46,6 +47,7 @@ export const store = configureStore({
     config: ConfigAPI,
     [notiAPI.reducerPath]: notiAPI.reducer,
     config: notiAPI,
+    theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(

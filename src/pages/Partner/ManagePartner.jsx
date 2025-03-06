@@ -17,13 +17,14 @@ import { PlusOutlined, EditFilled, DeleteFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation } from '../../services/PartnerAPI';
 import { validationPatterns } from "../../utils/ultil";
+import { useSelector } from "react-redux";
 
 const { Link } = Typography;
 const { Search } = Input;
 
 const ManagePartner = () => {
     const navigate = useNavigate();
-
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     // --- State cho search & phân trang ---
     const [searchText, setSearchText] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -292,7 +293,7 @@ const ManagePartner = () => {
     ];
 
     return (
-        <div>
+        <div className="min-h-[100vh]">
             <p
                 className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent'
                 style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
@@ -462,9 +463,11 @@ const ManagePartner = () => {
                             <td
                                 {...props}
                                 style={{
-                                    borderColor: '#89c4d9',
+                                    borderColor: isDarkMode ? '#404040' : '#89c4d9',
                                     borderStyle: 'solid',
-                                    borderWidth: '1px'
+                                    borderWidth: '1px',
+                                    backgroundColor: isDarkMode ? '#141414' : undefined,
+                                    color: isDarkMode ? '#d1d5db' : undefined
                                 }}
                             />
                         )
@@ -475,12 +478,10 @@ const ManagePartner = () => {
                                 {...props}
                                 style={{
                                     backgroundColor: props.className?.includes('special-header')
-                                        ? '#8dd4ff '
-                                        : '#cdf2ff',
-                                    color: props.className?.includes('special-header')
-                                        ? '#004d80'
-                                        : '#005580',
-                                    borderColor: '#89c4d9',
+                                        ? isDarkMode ? '#1f1f1f' : '#8dd4ff'
+                                        : isDarkMode ? '#1f1f1f' : '#cdf2ff',
+                                    color: isDarkMode ? '#d1d5db' : '#005580',
+                                    borderColor: isDarkMode ? '#404040' : '#89c4d9',
                                     borderStyle: 'solid',
                                     borderWidth: '1px'
                                 }}
