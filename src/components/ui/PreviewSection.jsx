@@ -25,9 +25,12 @@ export const PreviewSection = ({ content,isDarkMode }) => {
 
       <div
         ref={containerRef}
-        className={`overflow-y-auto transition-all duration-300 ${
-          isDarkMode ? 'text-white' : ''
-        }`}
+        className={`overflow-y-auto transition-all duration-300 
+          [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block 
+          [&::-webkit-scrollbar]:w-2 
+          [&::-webkit-scrollbar-thumb]:bg-gray-500 
+          [&::-webkit-scrollbar-track]:bg-gray-200
+          ${isDarkMode ? 'text-white [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-track]:bg-gray-800' : ''}`}
         style={{ maxHeight: isExpanded ? 'none' : '300px' }}
       >
         <div
