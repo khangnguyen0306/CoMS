@@ -5,12 +5,14 @@ import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import dayjs from 'dayjs';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
+import { useSelector } from 'react-redux';
 
 const { Title, Text } = Typography;
 
 const PreviewContract = ({ form, partnerId }) => {
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [groupedTerms, setGroupedTerms] = useState({
         Common: [],
         A: [],
@@ -24,7 +26,7 @@ const PreviewContract = ({ form, partnerId }) => {
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
     const formValues = form.getFieldsValue(true);
-    console.log(formValues);
+
 
     // Load term details for legal basis
     useEffect(() => {
@@ -227,24 +229,24 @@ const PreviewContract = ({ form, partnerId }) => {
     const organizedCommonTerms = organizeCommonTermsByType();
 
     return (
-        <div className="bg-[#f5f5f5] shadow-md p-4 pb-16 rounded-md">
-            <div className=" text-center">
-                <p className="font-bold text-xl pt-8 ">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-                <p className="font-bold text-lg mt-2"> Độc lập - Tự do - Hạnh phúc</p>
-                <p>---------------------------------</p>
-                <p className="text-right mr-[10%]">
-                   <i> {formValues?.contractLocation},  Ngày  {formValues?.signingDate?.format('DD')} Tháng {formValues?.signingDate?.format('MM')} Năm {formValues?.signingDate?.format('YYYY')}</i>
+        <div className={`${isDarkMode ? 'bg-gray-[#141414] text-white' : 'bg-[#f5f5f5]'} shadow-md p-4 pb-16 rounded-md`}>
+            <div className="text-center">
+                <p className={`font-bold text-xl pt-8 ${isDarkMode ? 'text-white' : ''}`}>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                <p className={`font-bold text-lg mt-2 ${isDarkMode ? 'text-white' : ''}`}>Độc lập - Tự do - Hạnh phúc</p>
+                <p className={isDarkMode ? 'text-gray-400' : ''}>---------------------------------</p>
+                <p className={`text-right mr-[10%] ${isDarkMode ? 'text-gray-300' : ''}`}>
+                    <i>{formValues?.contractLocation}, Ngày {formValues?.signingDate?.format('DD')} Tháng {formValues?.signingDate?.format('MM')} Năm {formValues?.signingDate?.format('YYYY')}</i>
                 </p>
-                <p className="text-3xl font-bold mt-5">{formValues.contractName ? formValues.contractName.toUpperCase() : ''}</p>
-                <p className="mt-3 text-base"><b>Số:</b> {formValues?.contractNumber}</p>
+                <p className={`text-3xl font-bold mt-5 ${isDarkMode ? 'text-white' : ''}`}>{formValues.contractName ? formValues.contractName.toUpperCase() : ''}</p>
+                <p className={`mt-3 text-base ${isDarkMode ? 'text-white' : ''}`}><b>Số:</b> {formValues?.contractNumber}</p>
             </div>
 
-            <div className=" px-4 flex pl-10 flex-col gap-2 mt-10">
+            <div className="px-4 flex pl-10 flex-col gap-2 mt-10">
                 {renderLegalBasisTerms()}
             </div>
 
             <Row gutter={16} className='flex flex-col mt-5 pl-10 gap-5' justify={"center"}>
-                <Col className="flex flex-col gap-2 " md={10} sm={24} >
+                <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
                     <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
                     <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
                     <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
@@ -253,7 +255,7 @@ const PreviewContract = ({ form, partnerId }) => {
                     <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
                     <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
                 </Col>
-                <Col className="flex flex-col gap-2" md={10} sm={24}>
+                <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
                     <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
                     <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
                     <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
@@ -263,7 +265,7 @@ const PreviewContract = ({ form, partnerId }) => {
                     <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
                     <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
                 </Col>
-                <div className='pl-2'>
+                <div className={`pl-2 ${isDarkMode ? 'text-gray-300' : ''}`}>
                     <p>Sau khi bàn bạc và thống nhất chúng tôi cùng thỏa thuận ký kết bản hợp đồng với nội dung và các điều khoản sau: </p>
                     <p className="font-bold text-lg mt-4 mb-3"><u>NỘI DUNG HỢP ĐỒNG</u></p>
 
@@ -328,7 +330,7 @@ const PreviewContract = ({ form, partnerId }) => {
                             )}
 
                             {/* Hiển thị nhóm điều khoản A */}
-                            {groupedTerms.A.length > 0 || formValues?.specialTermsA && (
+                            {(groupedTerms.A.length > 0 || formValues?.specialTermsA) && (
                                 <div className="term-group mb-2">
                                     <p className='font-bold' >ĐIỀU KHOẢN RIÊNG BÊN A</p>
                                     {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
@@ -338,7 +340,7 @@ const PreviewContract = ({ form, partnerId }) => {
 
 
                             {/* Hiển thị nhóm điều khoản B */}
-                            {groupedTerms.B.length > 0 || formValues?.specialTermsB && (
+                            {(groupedTerms.B.length > 0 || formValues?.specialTermsB) && (
                                 <div className="term-group mb-2">
                                     <p className='font-bold' >ĐIỀU KHOẢN RIÊNG BÊN B</p>
                                     {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}

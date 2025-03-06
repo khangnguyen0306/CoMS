@@ -30,6 +30,13 @@ const { Step } = Steps;
 const { Option } = Select;
 const { TextArea } = Input;
 
+// Thêm các constant cho nội dung thông báo mặc định
+const DEFAULT_NOTIFICATIONS = {
+    effective: "Hợp đồng sẽ có hiệu lực vào ngày",
+    expiry: "Hợp đồng sẽ hết hiệu lực vào ngày",
+    payment: "Đến hạn thanh toán đợt"
+};
+
 const CreateContractForm = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
@@ -63,6 +70,33 @@ const CreateContractForm = () => {
 
     const [createClause] = useCreateClauseMutation();
 
+    // Thêm state để quản lý danh sách thông báo
+    const [notifications, setNotifications] = useState([]);
+
+    // Hàm thêm một thông báo mới
+    const addNotification = () => {
+        setNotifications([
+            ...notifications,
+            {
+                id: Date.now(),
+                date: null,
+                content: ''
+            }
+        ]);
+    };
+
+    // Hàm xóa một thông báo
+    const removeNotification = (id) => {
+        setNotifications(notifications.filter(notif => notif.id !== id));
+    };
+
+    // Hàm cập nhật nội dung thông báo
+    const updateNotification = (id, field, value) => {
+        setNotifications(notifications.map(notif =>
+            notif.id === id ? { ...notif, [field]: value } : notif
+        ));
+    };
+
     // Thêm useEffect để lấy số ngày thông báo từ API
     useEffect(() => {
         const fetchNotificationDays = async () => {
@@ -70,14 +104,14 @@ const CreateContractForm = () => {
                 const response = await getDateNotification().unwrap();
                 console.log(response);
                 if (response) {
-                    setNotificationDays(response[0].value);
+                    setNotificationDays(response[0].value || 0);
                 }
             } catch (error) {
                 console.error('Error fetching notification days:', error);
-                message.error('Không thể lấy được số ngày thông báo, sử dụng giá trị mặc định');
+                // message.error('Không thể lấy được số ngày thông báo, sử dụng giá trị mặc định');
             }
         };
-        
+
         fetchNotificationDays();
     }, []);
 
@@ -214,7 +248,6 @@ const CreateContractForm = () => {
     };
 
 
-
     const handleChange = (value) => {
         if (value) {
             setTextValue(numberToVietnamese(value));
@@ -222,8 +255,6 @@ const CreateContractForm = () => {
             setTextValue("");
         }
     };
-
-
 
     // Xử lý chuyển bước
     const next = async () => {
@@ -242,9 +273,103 @@ const CreateContractForm = () => {
 
     // Submit toàn bộ form
     const onFinish = (values) => {
-        console.log("Form values: ", values);
-        message.success("Hợp đồng đã được tạo thành công!");
-        // Gửi values xuống backend theo yêu cầu
+        const data = form.getFieldsValue(true);
+
+        // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
+        const additionalConfig = Object.keys(data)
+            .filter(key => !isNaN(key)) // Chỉ lấy các key là số (1,2,3,...)
+            .reduce((acc, key) => {
+                const { A, B, Common } = data[key];
+
+                if (A.length > 0 || B.length > 0 || Common.length > 0) {
+                    acc[key] = {
+                        ...(A.length > 0 && { A }),
+                        ...(B.length > 0 && { B }),
+                        ...(Common.length > 0 && { Common }),
+                    };
+                }
+                return acc;
+            }, {});
+
+        // Format TemplateData
+        const templateData = {
+            contractTitle: data.contractName,
+            specialTermsA: data.specialTermsA,
+            specialTermsB: data.specialTermsB,
+            appendixEnabled: data.appendixEnabled,
+            transferEnabled: data.transferEnabled,
+            violate: data.violate,
+            suspend: data.suspend,
+            suspendContent: data.suspendContent,
+            contractContent: data.contractContent,
+            autoAddVAT: data.autoAddVAT,
+            vatPercentage: data.vatPercentage,
+            isDateLateChecked: data.isDateLateChecked,
+            maxDateLate: data.maxDateLate,
+            autoRenew: data.autoRenew,
+            legalBasisTerms: data.legalBasis,
+            generalTerms: data.generalTerms,
+            additionalTerms: data.additionalTerms,
+            contractTypeId: data.contractType?.value,
+            additionalConfig,
+            originalTemplateId: null,
+            duplicateVersion: null,
+        };
+
+        // Các trường đã có trong TemplateData, ta loại bỏ khỏi data chính
+        const excludedFields = [
+            "templateId",
+            "contractName",
+            "specialTermsA",
+            "specialTermsB",
+            "appendixEnabled",
+            "transferEnabled",
+            "violate",
+            "suspend",
+            "suspendContent",
+            "contractContent",
+            "autoAddVAT",
+            "vatPercentage",
+            "isDateLateChecked",
+            "maxDateLate",
+            "autoRenew",
+            "legalBasis",
+            "generalTerms",
+            "additionalTerms",
+            "contractType",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "effectiveDate&expiryDate",
+            "notifyEffectiveDate",
+            "notifyExpiryDate",
+            "notifyEffectiveContent",
+            "notifyExpiryContent"
+        ];
+
+        // Loại bỏ các trường trùng lặp
+        const formattedData = Object.keys(data).reduce((acc, key) => {
+            if (!excludedFields.includes(key)) {
+                acc[key] = data[key];
+            }
+            return acc;
+        }, {});
+
+        // Thêm TemplateData vào
+        formattedData.TemplateData = templateData;
+
+        console.log("Formatted Data:", formattedData);
+
+        // Gửi formattedData xuống backend
+        // fetch("API_ENDPOINT", {
+        //     method: "POST",
+        //     headers: { "Content-Type": "application/json" },
+        //     body: JSON.stringify(formattedData),
+        // });
     };
 
 
@@ -291,6 +416,7 @@ const CreateContractForm = () => {
         }
 
     };
+
     function debounce(func, wait) {
         let timeout;
         return function (...args) {
@@ -298,6 +424,7 @@ const CreateContractForm = () => {
             timeout = setTimeout(() => func.apply(this, args), wait);
         }
     }
+
     const onValueChange = useCallback(debounce((value) => {
         setContent(value);
         form.setFieldsValue({ contractContent: value });
@@ -631,7 +758,7 @@ const CreateContractForm = () => {
             loadData: loadBMData,
         }
     };
-    
+
     const generateContractNumber = (contractName, signingDate) => {
         if (!contractName || !signingDate) return '';
 
@@ -1321,25 +1448,26 @@ const CreateContractForm = () => {
                 <div className="p-4 space-y-4">
                     <h3 className="font-bold">Thiết lập thời gian thông báo cho các mốc</h3>
 
-                    {/* Hiển thị và chọn ngày thông báo cho Ngày có hiệu lực */}
+                    {/* Ngày có hiệu lực */}
                     <Row gutter={16} justify={"center"}>
                         <Col span={6}>
                             <Form.Item
                                 label="Ngày có hiệu lực (đã chọn)"
                                 name="effectiveDate"
                             >
-                                <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
+                                <DatePicker className="w-full" disabled format="DD/MM/YYYY " />
                             </Form.Item>
                         </Col>
                         <Col span={6}>
                             <Form.Item
                                 label="Ngày thông báo"
                                 name="notifyEffectiveDate"
-                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo cho ngày có hiệu lực!" }]}
+                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
                             >
-                                <DatePicker 
-                                    className="w-full" 
-                                    format="DD/MM/YYYY"
+                                <DatePicker
+                                    className="w-full"
+                                    format="DD/MM/YYYY HH:mm:ss"
+                                    showTime
                                     disabledDate={(current) => {
                                         const effectiveDate = form.getFieldValue('effectiveDate');
                                         return !current || current > effectiveDate || current < dayjs().startOf('day');
@@ -1349,7 +1477,7 @@ const CreateContractForm = () => {
                                             const effectiveDate = form.getFieldValue('effectiveDate');
                                             if (effectiveDate) {
                                                 form.setFieldsValue({
-                                                    notifyEffectiveDate: effectiveDate.subtract(notificationDays, 'days')
+                                                    notifyEffectiveDate: calculateNotificationDate(effectiveDate, notificationDays)
                                                 });
                                             }
                                         }
@@ -1357,9 +1485,22 @@ const CreateContractForm = () => {
                                 />
                             </Form.Item>
                         </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                label="Nội dung thông báo"
+                                name="notifyEffectiveContent"
+                                initialValue={`${DEFAULT_NOTIFICATIONS.effective}`}
+                                rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+                            >
+                                <Input.TextArea
+                                    rows={2}
+                                    placeholder="Nhập nội dung thông báo"
+                                />
+                            </Form.Item>
+                        </Col>
                     </Row>
 
-                    {/* Hiển thị và chọn ngày thông báo cho Ngày hết hiệu lực */}
+                    {/* Ngày hết hiệu lực */}
                     <Row gutter={16} justify={"center"}>
                         <Col span={6}>
                             <Form.Item
@@ -1373,11 +1514,12 @@ const CreateContractForm = () => {
                             <Form.Item
                                 label="Ngày thông báo"
                                 name="notifyExpiryDate"
-                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo cho ngày hết hiệu lực!" }]}
+                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
                             >
-                                <DatePicker 
-                                    className="w-full" 
-                                    format="DD/MM/YYYY"
+                                <DatePicker
+                                    className="w-full"
+                                    format="DD/MM/YYYY HH:mm:ss"
+                                    showTime
                                     disabledDate={(current) => {
                                         const expiryDate = form.getFieldValue('expiryDate');
                                         return !current || current > expiryDate || current < dayjs().startOf('day');
@@ -1387,7 +1529,7 @@ const CreateContractForm = () => {
                                             const expiryDate = form.getFieldValue('expiryDate');
                                             if (expiryDate) {
                                                 form.setFieldsValue({
-                                                    notifyExpiryDate: expiryDate.subtract(notificationDays, 'days')
+                                                    notifyExpiryDate: calculateNotificationDate(expiryDate, notificationDays)
                                                 });
                                             }
                                         }
@@ -1395,14 +1537,27 @@ const CreateContractForm = () => {
                                 />
                             </Form.Item>
                         </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                label="Nội dung thông báo"
+                                name="notifyExpiryContent"
+                                rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+                                initialValue={`${DEFAULT_NOTIFICATIONS.expiry}`}
+                            >
+                                <Input.TextArea
+                                    rows={2}
+                                    placeholder="Nhập nội dung thông báo"
+                                />
+                            </Form.Item>
+                        </Col>
                     </Row>
 
-                    {/* Các đợt thanh toán: Mỗi đợt được hiển thị trong 1 row gồm ngày thanh toán và ngày thông báo tương ứng */}
+                    {/* Các đợt thanh toán */}
                     <Form.List name="payments">
                         {(fields, { add, remove }) => (
                             <>
                                 {fields.map(({ key, name, ...restField }, index) => (
-                                    <div key={key} className="border p-3 rounded mb-4 ">
+                                    <div key={key} className="border p-3 rounded mb-4">
                                         <h4 className="font-bold">Đợt thanh toán {index + 1}</h4>
                                         <Row gutter={16} justify={"center"}>
                                             <Col span={6}>
@@ -1419,11 +1574,12 @@ const CreateContractForm = () => {
                                                     {...restField}
                                                     label="Ngày thông báo"
                                                     name={[name, "notifyPaymentDate"]}
-                                                    rules={[{ required: true, message: "Vui lòng chọn ngày thông báo cho đợt thanh toán!" }]}
+                                                    rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
                                                 >
-                                                    <DatePicker 
-                                                        className="w-full" 
-                                                        format="DD/MM/YYYY"
+                                                    <DatePicker
+                                                        className="w-full"
+                                                        format="DD/MM/YYYY HH:mm:ss"
+                                                        showTime
                                                         disabledDate={(current) => {
                                                             const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
                                                             return !current || current > paymentDate || current < dayjs().startOf('day');
@@ -1435,7 +1591,7 @@ const CreateContractForm = () => {
                                                                     form.setFieldsValue({
                                                                         payments: {
                                                                             [name]: {
-                                                                                notifyPaymentDate: paymentDate.subtract(notificationDays, 'days')
+                                                                                notifyPaymentDate: calculateNotificationDate(paymentDate, notificationDays)
                                                                             }
                                                                         }
                                                                     });
@@ -1445,37 +1601,67 @@ const CreateContractForm = () => {
                                                     />
                                                 </Form.Item>
                                             </Col>
+                                            <Col span={12}>
+                                                <Form.Item
+                                                    {...restField}
+                                                    label="Nội dung thông báo"
+                                                    name={[name, "notifyPaymentContent"]}
+                                                    initialValue={`${DEFAULT_NOTIFICATIONS.payment} ${index + 1}`}
+                                                    rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+                                                >
+                                                    <Input.TextArea
+                                                        rows={2}
+                                                        placeholder="Nhập nội dung thông báo"
+                                                    />
+                                                </Form.Item>
+                                            </Col>
                                         </Row>
+
                                     </div>
                                 ))}
                             </>
                         )}
                     </Form.List>
-                </div>
-            ),
-        },
-        {
-            title: "Quy trình ký duyệt",
-            content: (
-                <div className="p-4 space-y-4">
-                    <h3 className="font-bold">Chọn quy trình ký duyệt</h3>
-                    <Form.Item
-                        label="Quy trình ký duyệt"
-                        name="approvalProcess"
-                        rules={[{ required: true, message: "Vui lòng chọn quy trình ký duyệt!" }]}
-                    >
-                        <Select placeholder="Chọn quy trình ký duyệt" allowClear>
-                            <Option value="sequential">Theo thứ tự (Sequential)</Option>
-                            <Option value="parallel">Song song (Parallel)</Option>
-                        </Select>
+                    <Form.Item >
+                        {notifications.map(notification => (
+                            <div key={notification.id} style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                                <DatePicker
+                                    style={{ width: '200px' }}
+                                    value={notification.date}
+                                    showTime
+                                    onChange={(date) => updateNotification(notification.id, 'date', date)}
+                                    placeholder="Chọn ngày thông báo"
+                                />
+                                <Input
+                                    style={{ flex: 1 }}
+                                    value={notification.content}
+                                    onChange={(e) => updateNotification(notification.id, 'content', e.target.value)}
+                                    placeholder="Nhập nội dung thông báo"
+                                />
+                                <Button
+                                    type="text"
+                                    danger
+                                    icon={<DeleteFilled />}
+                                    onClick={() => removeNotification(notification.id)}
+                                />
+                            </div>
+                        ))}
+                        <Button
+                            type="dashed"
+                            onClick={addNotification}
+                            icon={<PlusOutlined />}
+                        >
+                            Thêm thông báo
+                        </Button>
                     </Form.Item>
                 </div>
             ),
         },
+
     ];
 
     return (
-        <div>
+        <div className="min-h-[100vh]">
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 <Steps current={currentStep} className="mb-8">
                     {steps.map((item, index) => (
@@ -1532,7 +1718,6 @@ const CreateContractForm = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-
 
         </div>
     );

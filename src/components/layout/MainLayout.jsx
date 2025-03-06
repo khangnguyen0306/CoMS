@@ -1,10 +1,10 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge } from "antd";
+import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge, Button } from "antd";
 import { BellOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled } from "@ant-design/icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
-import { MdDashboard } from "react-icons/md";
+import { MdDashboard, MdOutlineDarkMode } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { SiAuth0 } from "react-icons/si";
 import { FaFileContract } from "react-icons/fa";
@@ -27,10 +27,14 @@ import { FaFileCirclePlus } from "react-icons/fa6";
 import { FcProcess } from "react-icons/fc";
 import RealTimeNotification from "../../pages/Noti/RealTimeNotification";
 import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
-
+import { MdLightMode } from "react-icons/md";
 import { List } from "antd/es/form/Form";
+import { MdDarkMode } from "react-icons/md";
+import { toggleTheme } from "../../slices/themeSlice";
+import "./button.css"
 const MainLayout = () => {
   const dispatch = useDispatch();
+  const isDarkMode = useSelector((state) => state.theme.isDarkMode);
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser);
@@ -221,6 +225,10 @@ const MainLayout = () => {
     }
   };
 
+  const handleToggleTheme = () => {
+    dispatch(toggleTheme());
+  };
+
 
   return (
     <Layout>
@@ -265,7 +273,7 @@ const MainLayout = () => {
             position: 'fixed',
             width: '100vw',
             zIndex: 100,
-            backgroundColor: '#1f1f1f',
+            backgroundColor: isDarkMode ? '#1f1f1f' : "#ffffff",
             padding: '0 20px',
           }}
         >
@@ -279,11 +287,33 @@ const MainLayout = () => {
               onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : user?.roles[0] == "ROLE_MANAGER" ? "/manager/dashboard" : '/contract')}
               alt="Logo"
             />
-            <p className="ml-2 text-white">Quản lý hợp đồng CoMS</p>
+            <p className={`ml-2 ${isDarkMode ? "text-white" : "text-black"}`}>Quản lý hợp đồng CoMS</p>
           </div>
-          <div className="flex items-center mr-36">
-            <p className="text-white mr-4">{user?.fullName}</p>
+          <div className="flex justify-center items-center mr-36">
+            <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p>
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
+            <label className="switch ml-6" >
+              <input
+                checked={!isDarkMode}
+                id="checkbox"
+                type="checkbox"
+                onChange={handleToggleTheme}
+              />
+              <span className="slider">
+                <div className="star star_1"></div>
+                <div className="star star_2"></div>
+                <div className="star star_3"></div>
+                <svg viewBox="0 0 16 16" className="cloud_1 cloud">
+                  <path
+                    transform="matrix(.77976 0 0 .78395-299.99-418.63)"
+                    fill="#fff"
+                    d="m391.84 540.91c-.421-.329-.949-.524-1.523-.524-1.351 0-2.451 1.084-2.485 2.435-1.395.526-2.388 1.88-2.388 3.466 0 1.874 1.385 3.423 3.182 3.667v.034h12.73v-.006c1.775-.104 3.182-1.584 3.182-3.395 0-1.747-1.309-3.186-2.994-3.379.007-.106.011-.214.011-.322 0-2.707-2.271-4.901-5.072-4.901-2.073 0-3.856 1.202-4.643 2.925"
+                  ></path>
+                </svg>
+              </span>
+            </label>
+
+
             {/* coi lại chỗ này sau khi test được real time notification */}
           </div>
         </Header>
