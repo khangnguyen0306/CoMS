@@ -252,14 +252,14 @@ const ManageTemplate = () => {
                                     <p className="font-bold text-[22px] leading-7">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                     <p className="font-bold text-[18px] mt-1"> Độc lập - Tự do - Hạnh phúc</p>
                                     <p>-------------------</p>
-                                    <p className="text-right mr-[10%] py-4">Ngày .... Tháng .... Năm ......</p>
+                                    <p className="text-right mr-[10%] py-4"> ................, Ngày ..... Tháng ..... Năm .........</p>
                                     <p className="text-[28px] font-bold mt-3  leading-8">{templateDetail?.data.contractTitle?.toUpperCase() || "Tên hợp đồng không có"}</p>
                                     <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                                 </div>
                                 <div className=" px-4 pt-[100px] flex flex-col gap-2">
                                     {templateDetail?.data.legalBasisTerms ? (
                                         templateDetail.data.legalBasisTerms?.map((term, index) => <p key={index}><i>- {term.value}</i></p>)
-                                    ) : null}
+                                    ) : "Chưa có căn cứ pháp ly"}
                                 </div>
                                 <div className="p-4 rounded-md flex flex-col gap-4">
                                     <div className="flex flex-col gap-2 " md={10} sm={24} >
@@ -547,14 +547,14 @@ const ManageTemplate = () => {
                                 <p className="font-bold text-[22px] leading-7">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                 <p className="font-bold text-[18px] mt-1"> Độc lập - Tự do - Hạnh phúc</p>
                                 <p>-------------------</p>
-                                <p className="text-right mr-[10%] py-4">Ngày .... Tháng .... Năm ......</p>
+                                <p className="text-right mr-[1%] py-4">......................, Ngày ..... Tháng ..... Năm .........</p>
                                 <p className="text-[28px] font-bold mt-3  leading-8">{templateDetail?.data.contractTitle?.toUpperCase() || "Tên hợp đồng không có"}</p>
                                 <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                             </div>
                             <div className=" px-4 pt-[100px] flex flex-col gap-2">
                                 {templateDetail?.data.legalBasis ? (
                                     templateDetail.data.datalegalBasis.map((term, index) => <p key={index}><i>- {term.value}</i></p>)
-                                ) : null}
+                                ) : "Chưa chọn căn cứ pháp lý"}
                             </div>
                             <div className="p-4 rounded-md flex flex-col gap-4">
                                 <div className="flex flex-col gap-2 " md={10} sm={24} >
