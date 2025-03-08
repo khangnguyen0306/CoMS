@@ -1,15 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Modal, Popover, Switch, Collapse, ConfigProvider } from "antd";
 import dayjs from "dayjs";
-import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
-import { useNavigate } from "react-router-dom";
-import { useLazyGetAllTemplateQuery, useLazyGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
-import { FcNext } from "react-icons/fc";
-import { useGetPartnerInfoDetailQuery, useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
-import LazySelectPartner from "../../hooks/LazySelectPartner";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEditTemplateMutation, useGetAllTemplateQuery, useLazyGetAllTemplateQuery, useLazyGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
-import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
-import { DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
+import { useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
+import { EyeFilled, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetLegalQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
@@ -19,12 +15,9 @@ import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
 import { extensions } from "../../utils/textEditor";
 import { PreviewSection } from "../../components/ui/PreviewSection";
-import { numberToVietnamese } from "../../utils/ConvertMoney";
 import { TermSection } from "../../config/TermConfig";
 import PreviewContract from "../../components/ui/PreviewContract";
-import { VietnameseProvinces } from "../../utils/Province";
-import { useLazyGetDateNofitifationQuery } from "../../services/ConfigAPI";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -37,18 +30,19 @@ const DEFAULT_NOTIFICATIONS = {
     payment: "Đến hạn thanh toán đợt"
 };
 
-const CreateContractForm = () => {
+const EditTemplate = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
+    const { id } = useParams();
     const inputRef = useRef(null);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const dispatch= useDispatch();
     const [newTypeCreate, setNewTypeCreate] = useState('')
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [templateDataSelected, setTemplateDataSelected] = useState(null);
     const [isAddLegalModalOpen, setIsAddLegalModalOpen] = useState(false);
     const [newLegalBasis, setNewLegalBasis] = useState({ name: '', content: '' });
     const [content, setContent] = useState('')
-    const [textValue, setTextValue] = useState("");
     const [isVATChecked, setIsVATChecked] = useState(false);
     const [isDateLateChecked, setIsDateLateChecked] = useState(false);
     const [isAutoRenew, setIsAutoRenew] = useState(false);
@@ -60,143 +54,16 @@ const CreateContractForm = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery()
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery()
-    const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListQuery()
     const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation()
-    const [getTemplateDetail] = useLazyGetTemplateDataDetailQuery();
+    const [getTemplateDetail, { data }] = useLazyGetTemplateDataDetailQuery();
     const [getContractLegal] = useLazyGetLegalCreateContractQuery();
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
-    const [getDateNotification] = useLazyGetDateNofitifationQuery();
-    const [notificationDays, setNotificationDays] = useState(null);
 
     const [createClause] = useCreateClauseMutation();
-    const [createContract, { isLoading: loadingCreateContract, isError: CreateError }] = useCreateContractMutation();
-
-    // Thêm state để quản lý danh sách thông báo
-    const [notifications, setNotifications] = useState([]);
-
-    // Hàm thêm một thông báo mới
-    const addNotification = () => {
-        setNotifications([
-            ...notifications,
-            {
-                id: Date.now(),
-                date: null,
-                content: ''
-            }
-        ]);
-    };
-
-    // Hàm xóa một thông báo
-    const removeNotification = (id) => {
-        setNotifications(notifications.filter(notif => notif.id !== id));
-    };
-
-    // Hàm cập nhật nội dung thông báo
-    const updateNotification = (id, field, value) => {
-        setNotifications(notifications.map(notif =>
-            notif.id === id ? { ...notif, [field]: value } : notif
-        ));
-    };
+    const [editTemplate, { isLoading: loadingEdit }] = useEditTemplateMutation();
+    const { data: templatedata,refetch:refetchDataTable } = useGetAllTemplateQuery();
 
     // Thêm useEffect để lấy số ngày thông báo từ API
-    useEffect(() => {
-        const fetchNotificationDays = async () => {
-            try {
-                const response = await getDateNotification().unwrap();
-                // console.log(response);
-                if (response) {
-                    setNotificationDays(response[0].value || 0);
-                }
-            } catch (error) {
-                console.error('Error fetching notification days:', error);
-                // message.error('Không thể lấy được số ngày thông báo, sử dụng giá trị mặc định');
-            }
-        };
-
-        fetchNotificationDays();
-    }, []);
-
-    // Thêm hàm helper để tính toán ngày thông báo an toàn
-    const calculateNotificationDate = (targetDate) => {
-        if (!targetDate) return null;
-        const notifyDate = targetDate.clone().subtract(notificationDays, 'days');
-        const today = dayjs().startOf('day');
-        return notifyDate.isBefore(today) ? targetDate.clone() : notifyDate;
-    };
-
-    // Cập nhật useEffect theo dõi thay đổi của các ngày
-    useEffect(() => {
-        // Lắng nghe sự thay đổi của ngày hiệu lực
-        const effectiveDate = form.getFieldValue('effectiveDate');
-        if (effectiveDate) {
-            form.setFieldsValue({
-                notifyEffectiveDate: calculateNotificationDate(effectiveDate)
-            });
-        }
-
-        // Lắng nghe sự thay đổi của ngày hết hiệu lực
-        const expiryDate = form.getFieldValue('expiryDate');
-        if (expiryDate) {
-            form.setFieldsValue({
-                notifyExpiryDate: calculateNotificationDate(expiryDate)
-            });
-        }
-
-        // Lắng nghe sự thay đổi của các ngày thanh toán
-        const payments = form.getFieldValue('payments') || [];
-        if (payments.length > 0) {
-            const updatedPayments = payments.map(payment => {
-                if (payment?.paymentDate) {
-                    return {
-                        ...payment,
-                        notifyPaymentDate: calculateNotificationDate(payment.paymentDate)
-                    };
-                }
-                return payment;
-            });
-            form.setFieldsValue({ payments: updatedPayments });
-        }
-    }, [form.getFieldValue('effectiveDate'), form.getFieldValue('expiryDate'), form.getFieldValue('payments'), notificationDays]);
-
-    // Cập nhật các hàm xử lý sự kiện
-    const handleEffectiveDateChange = (date) => {
-        if (date) {
-            form.setFieldsValue({
-                notifyEffectiveDate: calculateNotificationDate(date)
-            });
-        }
-    };
-
-    const handleExpiryDateChange = (date) => {
-        if (date) {
-            form.setFieldsValue({
-                notifyExpiryDate: calculateNotificationDate(date)
-            });
-        }
-    };
-
-    const handlePaymentDateChange = (date, name) => {
-        if (date) {
-            const notifyDate = calculateNotificationDate(date);
-            const payments = form.getFieldValue('payments') || [];
-            const updatedPayments = [...payments];
-            updatedPayments[name] = {
-                ...updatedPayments[name],
-                notifyPaymentDate: notifyDate
-            };
-            form.setFieldsValue({ payments: updatedPayments });
-        }
-    };
-
-    // chuyển trang tạo template
-    const handleCreateTemplate = () => {
-        navigate("/createtemplate")
-    }
-
-    // chuyển trang tạo partner
-    const handleCreatePartner = () => {
-        navigate("/partner")
-    }
 
     const loadLegalData = async ({ page, size, keyword }) => {
         return getContractLegal({ page, size, keyword }).unwrap();
@@ -225,16 +92,6 @@ const CreateContractForm = () => {
     const loadBMData = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 7 }).unwrap();
     };
-    const loadDKKata = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
-    };
-    const loadTemplateData = async ({ page, size, keyword }) => {
-        return getTemplateData({ page, size, keyword }).unwrap();
-    };
-
-    const loadPartnerData = async ({ page, size, keyword }) => {
-        return getPartnerData({ page, size, keyword }).unwrap();
-    };
 
     const loadContractTypeData = async () => {
         return getContractTypeData().unwrap();
@@ -248,14 +105,6 @@ const CreateContractForm = () => {
         form.setFieldsValue({ generalTerms: newValues });
     };
 
-
-    const handleChange = (value) => {
-        if (value) {
-            setTextValue(numberToVietnamese(value));
-        } else {
-            setTextValue("");
-        }
-    };
 
     // Xử lý chuyển bước
     const next = async () => {
@@ -273,114 +122,58 @@ const CreateContractForm = () => {
         setCurrentStep(currentStep - 1);
     };
 
-    // Submit toàn bộ form
-    const onFinish = async (values) => {
+    const onFinish = async () => {
         const data = form.getFieldsValue(true);
-    console.log(data);
-
-        // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
+        // console.log(data)
+        // Xử lý additionalConfig: chuyển các key số thành "additionalPropX"
         const additionalConfig = Object.keys(data)
-            .filter(key => !isNaN(key)) // Chỉ lấy các key là số (1,2,3,...)
+            .filter(key => !isNaN(key)) // Lọc các key là số
             .reduce((acc, key) => {
-                const { A, B, Common } = data[key];
+                const { A = [], B = [], Common = [] } = data[key];
 
                 if (A.length > 0 || B.length > 0 || Common.length > 0) {
                     acc[key] = {
-                        ...(A.length > 0 && { A }),
-                        ...(B.length > 0 && { B }),
-                        ...(Common.length > 0 && { Common }),
+                        ...(Common.length > 0 && { Common: Common.map(id => ({ id })) }),
+                        ...(A.length > 0 && { A: A.map(id => ({ id })) }),
+                        ...(B.length > 0 && { B: B.map(id => ({ id })) }),
                     };
                 }
                 return acc;
             }, {});
 
-        // Format TemplateData
-        const templateData = {
-            contractTitle: data.contractName,
-            specialTermsA: data.specialTermsA,
-            specialTermsB: data.specialTermsB,
+        // Xây dựng object template theo đúng định dạng yêu cầu
+        const template = {
+            templateId: parseInt(id, 10),
+            contractTitle: data.contractTitle,
+            contractTypeId: data.contractType,
+            legalBasisTerms: data.legalBasis ? data.legalBasis.map(item => item) : [],
             appendixEnabled: data.appendixEnabled,
             transferEnabled: data.transferEnabled,
             violate: data.violate,
             suspend: data.suspend,
             suspendContent: data.suspendContent,
+            generalTerms: data.generalTerms ? data.generalTerms.map(item => item) : [],
+            additionalTerms: data.additionalTerms ? data.additionalTerms.map(item => item) : [],
+            otherTerms: data.otherTerms ? data.otherTerms.map(item => item) : [],
+            additionalConfig: additionalConfig,
+            specialTermsA: data.specialTermsA,
+            specialTermsB: data.specialTermsB,
             contractContent: data.contractContent,
             autoAddVAT: data.autoAddVAT,
             vatPercentage: data.vatPercentage,
             isDateLateChecked: data.isDateLateChecked,
             maxDateLate: data.maxDateLate,
             autoRenew: data.autoRenew,
-            legalBasisTerms: data.legalBasis,
-            generalTerms: data.generalTerms,
-            additionalTerms: data.additionalTerms,
-            contractTypeId: data.contractType?.value,
-            additionalConfig,
-            originalTemplateId: null,
-            duplicateVersion: null,
         };
-
-        // Các trường đã có trong TemplateData, ta loại bỏ khỏi data chính
-        const excludedFields = [
-            "contractName",
-            "specialTermsA",
-            "specialTermsB",
-            "appendixEnabled",
-            "transferEnabled",
-            "violate",
-            "suspend",
-            "suspendContent",
-            "contractContent",
-            "autoAddVAT",
-            "vatPercentage",
-            "isDateLateChecked",
-            "maxDateLate",
-            "autoRenew",
-            "legalBasis",
-            "generalTerms",
-            "additionalTerms",
-            "contractType",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "effectiveDate&expiryDate",
-            "notifyEffectiveDate",
-            "notifyExpiryDate",
-            "notifyEffectiveContent",
-            "notifyExpiryContent"
-        ];
-
-        // Loại bỏ các trường trùng lặp và format templateId
-        const formattedData = Object.keys(data).reduce((acc, key) => {
-            if (!excludedFields.includes(key)) {
-                if (key === 'templateId') {
-                    acc[key] = data[key].value;
-                } else if (key === 'partnerId') {
-                    acc['partyId'] = data[key];
-                } else {
-                    acc[key] = data[key];
-                }
-            }
-            return acc;
-        }, {});
-
-        // Thêm TemplateData vào
-        formattedData.TemplateData = templateData;
-
-        // console.log("Formatted Data:", formattedData);
-
-        const response = await createContract(formattedData).unwrap();
-        if (response.status == "CREATED") {
+        const response = await editTemplate(template).unwrap();
+        if (response.status === "CREATED") {
             form.resetFields();
-            message.success("Tạo hợp đồng thành công!");
-            navigate('/contract')
+            navigate('/managetemplate');
+            message.success("Cập nhật hợp đồng thành công!");
         } else {
             message.error(response.message);
         }
-     
+        await refetchDataTable()
     };
 
 
@@ -414,7 +207,6 @@ const CreateContractForm = () => {
         let content = form.getFieldValue('legalContent') || '';
         try {
             const result = await createClause({ idType: 8, label: name, value: content }).unwrap();
-            // console.log(result);
             if (result.status === "CREATED") {
                 message.success("Tạo điều khoản thành công");
             }
@@ -443,8 +235,8 @@ const CreateContractForm = () => {
 
 
     useEffect(() => {
-        if (selectedTemplate) {
-            loadContractTemplateDetail(selectedTemplate)
+        if (id) {
+            loadContractTemplateDetail(id)
                 .then((data) => {
 
                     setTemplateDataSelected(data.data);
@@ -458,6 +250,12 @@ const CreateContractForm = () => {
                     setIsSuspend(data.data?.suspend)
                     setIsisViolate(data.data?.violate)
                     form.setFieldsValue({
+                        contractTitle: data.data.contractTitle,
+                        specialTermsA: data.data?.specialTermsA,
+                        specialTermsB: data.data?.specialTermsB,
+                        appendixEnabled: data.data?.appendixEnabled,
+                        transferEnabled: data.data?.transferEnabled,
+                        contractType: data.data?.contractTypeId,
                         legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
                         // contractContent: data.data.contractContent,
                         generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
@@ -513,7 +311,7 @@ const CreateContractForm = () => {
                     });
                 });
         }
-    }, [selectedTemplate]);
+    }, [id]);
 
 
     const hanldeOpenAddLegalModal = () => {
@@ -802,45 +600,8 @@ const CreateContractForm = () => {
             content: (
                 <div className="space-y-4">
                     <Form.Item
-                        label="Chọn mẫu hợp đồng"
-                        name="templateId"
-                        rules={[{ required: true, message: "Vui lòng chọn mẫu hợp đồng!" }]}
-                    >
-                        <LazySelectContractTemplate
-                            onChange={handleSelectTemplate}
-                            loadDataCallback={loadTemplateData}
-                            options={templateData?.data.content}
-                            showSearch
-                            labelInValue
-                            placeholder="Chọn mẫu hợp đồng"
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Chọn đối tác"
-                        name="partnerId"
-                        rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}
-                    >
-                        <LazySelectPartner
-                            loadDataCallback={loadPartnerData}
-                            options={partnerData?.data.content}
-                            showSearch
-                            placeholder="Chọn thông tin khách hàng"
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider style={{ margin: "8px 0" }} />
-                                    <Space style={{ padding: "0 8px 4px" }}>
-                                        <Button type="primary" icon={FcNext} onClick={handleCreatePartner}>
-                                            Thêm thông tin khách hàng
-                                        </Button>
-                                    </Space>
-                                </>
-                            )}
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Tên hợp đồng"
-                        name="contractName"
+                        label="Tên mẫu hợp đồng"
+                        name="contractTitle"
                         rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}
                     >
                         <Input placeholder="Nhập tên hợp đồng" />
@@ -855,7 +616,7 @@ const CreateContractForm = () => {
                             loadDataCallback={loadContractTypeData}
                             options={contractTypeData}
                             showSearch
-                            labelInValue
+                            // labelInValue
                             placeholder="chọn loại hợp đồng"
                             dropdownRender={(menu) => (
                                 <>
@@ -893,43 +654,6 @@ const CreateContractForm = () => {
                     >
                         <Collapse defaultActiveKey={['1']} >
                             <Collapse.Panel header="Thông tin cơ bản " key="1">
-                                <Form.Item
-                                    style={{ display: 'none' }}
-                                    name="contractNumber"
-                                />
-                                <Form.Item
-                                    className="mt-5"
-                                    label="Ngày ký kết"
-                                    name="signingDate"
-                                    rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
-                                >
-                                    <DatePicker
-                                        className="w-full"
-                                        format="DD/MM/YYYY"
-                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                    />
-                                </Form.Item>
-
-                                <Form.Item
-                                    label="Nơi ký kết"
-                                    name="contractLocation"
-                                    rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}
-                                >
-                                    <Select
-                                        showSearch
-                                        placeholder="Chọn nơi ký kết"
-                                        optionFilterProp="children"
-                                        filterOption={(input, option) =>
-                                            (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
-                                        }
-                                    >
-                                        {VietnameseProvinces.map(province => (
-                                            <Option key={province} value={province}>
-                                                {province}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
                                 <Form.Item
                                     className="w-full"
                                     label={
@@ -1000,109 +724,8 @@ const CreateContractForm = () => {
                                     />
 
                                 </Form.Item>
-
-
-                                <Form.Item
-                                    label="Tổng giá trị hợp đồng"
-                                    name="totalValue"
-                                    rules={[{ required: true, message: "Vui lòng nhập tổng giá trị hợp đồng!" }]}
-                                >
-
-                                    <InputNumber
-                                        style={{ width: "100%" }}
-                                        placeholder="Nhập tổng giá trị hợp đồng"
-                                        min={0}
-                                        max={1000000000000000}
-                                        formatter={(value) =>
-                                            value
-                                                ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
-                                                : ""
-                                        }
-                                        parser={(value) => value.replace(/\D/g, "")}
-                                        onChange={handleChange}
-                                    />
-
-
-                                </Form.Item>
-                                {textValue && (
-                                    <div className="mt-1 ml-1">
-                                        <Typography.Text type="secondary">
-                                            (Bằng chữ: <span className="font-bold">{textValue}</span>)
-                                        </Typography.Text>
-                                    </div>
-                                )}
-
                                 <Divider orientation="center">Thanh toán</Divider>
                                 {/* Sử dụng Form.List để cho phép thêm nhiều lần thanh toán */}
-                                <Form.List
-                                    name="payments"
-                                    rules={[
-                                        {
-                                            validator: async (_, payments) => {
-                                                if (!payments || payments.length < 1) {
-                                                    return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
-                                                }
-                                            },
-                                        },
-                                    ]}
-                                >
-                                    {(fields, { add, remove }) => (
-                                        <>
-                                            {fields.map(({ key, name, ...restField }) => (
-                                                <Space key={key} align="baseline" style={{ display: "flex", marginBottom: 8 }}>
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, "amount"]}
-                                                        rules={[{ required: true, message: "Nhập số tiền thanh toán" }]}
-                                                    >
-                                                        <InputNumber
-                                                            style={{ width: "100%" }}
-                                                            placeholder="Số tiền"
-                                                            min={0}
-                                                            max={1000000000000000}
-                                                            formatter={(value) =>
-                                                                value
-                                                                    ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
-                                                                    : ""
-                                                            }
-                                                            parser={(value) => value.replace(/\D/g, "")}
-                                                        />
-                                                    </Form.Item>
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, "paymentDate"]}
-                                                        rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
-                                                    >
-                                                        <DatePicker
-                                                            style={{ width: 150 }}
-                                                            placeholder="Ngày thanh toán"
-                                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                                            format="DD/MM/YYYY"
-                                                            onChange={(date) => handlePaymentDateChange(date, name)}
-                                                        />
-                                                    </Form.Item>
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, "paymentMethod"]}
-                                                        rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}
-                                                    >
-                                                        <Select placeholder="Phương thức thanh toán" style={{ width: 200 }}>
-                                                            <Option value="transfer">Chuyển khoản</Option>
-                                                            <Option value="cash">Tiền mặt</Option>
-                                                            <Option value="creditCard">Thẻ tín dụng</Option>
-                                                        </Select>
-                                                    </Form.Item>
-                                                    <Button type="primary" onClick={() => remove(name)} danger>
-                                                        <DeleteFilled />
-                                                    </Button>
-                                                </Space>
-                                            ))}
-                                            <Button icon={<PlusOutlined />} type="primary" onClick={() => add()} block>
-                                                Thêm đợt thanh toán
-                                            </Button>
-                                        </>
-                                    )}
-                                </Form.List>
 
                                 <div className="flex items-center gap-5 mt-[50px]">
                                     <Form.Item name="autoAddVAT" valuePropName="checked">
@@ -1184,42 +807,6 @@ const CreateContractForm = () => {
 
                             <Collapse.Panel header="Thời gian và hiệu lực" key="2">
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
-
-                                <Form.Item
-                                    label="Thời gian hiệu lực hợp đồng"
-                                    required
-                                    className="mb-4"
-                                    name="effectiveDate&expiryDate"
-                                >
-                                    <DatePicker.RangePicker
-                                        className="w-full"
-                                        showTime={{ format: 'HH:mm' }}
-                                        format="DD/MM/YYYY HH:mm"
-                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                        placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
-
-                                        onChange={(dates) => {
-                                            if (dates) {
-                                                form.setFieldsValue({
-                                                    effectiveDate: dates[0],
-                                                    expiryDate: dates[1]
-                                                });
-                                                handleEffectiveDateChange(dates[0]);
-                                                handleExpiryDateChange(dates[1]);
-                                            } else {
-                                                form.setFieldsValue({
-                                                    effectiveDate: null,
-                                                    expiryDate: null,
-                                                    notifyEffectiveDate: null,
-                                                    notifyExpiryDate: null
-                                                });
-                                            }
-                                        }}
-                                    />
-                                </Form.Item>
-                                <Form.Item name="effectiveDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]} />
-                                <Form.Item name="expiryDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]} />
-
                                 <Form.Item
                                     label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
                                     name="autoRenew"
@@ -1269,7 +856,7 @@ const CreateContractForm = () => {
                                         loadDataCallback={loadGenaralData}
                                         options={generalData?.data.content}
                                         showSearch
-                                        // labelInValue
+                                        labelInValue
                                         mode="multiple"
                                         placeholder="Chọn điều khoản chung"
                                         onChange={handleSelectChange}
@@ -1451,222 +1038,6 @@ const CreateContractForm = () => {
                 </div>
             ),
         },
-        {
-            title: " Thời gian thông báo",
-            content: (
-                <div className="p-4 space-y-4">
-                    <h3 className="font-bold">Thiết lập thời gian thông báo cho các mốc</h3>
-
-                    {/* Ngày có hiệu lực */}
-                    <Row gutter={16} justify={"center"}>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày có hiệu lực (đã chọn)"
-                                name="effectiveDate"
-                            >
-                                <DatePicker className="w-full" disabled format="DD/MM/YYYY " />
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày thông báo"
-                                name="notifyEffectiveDate"
-                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
-                            >
-                                <DatePicker
-                                    className="w-full"
-                                    format="DD/MM/YYYY HH:mm:ss"
-                                    showTime
-                                    disabledDate={(current) => {
-                                        const effectiveDate = form.getFieldValue('effectiveDate');
-                                        return !current || current > effectiveDate || current < dayjs().startOf('day');
-                                    }}
-                                    onChange={(date) => {
-                                        if (!date) {
-                                            const effectiveDate = form.getFieldValue('effectiveDate');
-                                            if (effectiveDate) {
-                                                form.setFieldsValue({
-                                                    notifyEffectiveDate: calculateNotificationDate(effectiveDate, notificationDays)
-                                                });
-                                            }
-                                        }
-                                    }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                label="Nội dung thông báo"
-                                name="notifyEffectiveContent"
-                                initialValue={`${DEFAULT_NOTIFICATIONS.effective}`}
-                                rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
-                            >
-                                <Input.TextArea
-                                    rows={2}
-                                    placeholder="Nhập nội dung thông báo"
-                                />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    {/* Ngày hết hiệu lực */}
-                    <Row gutter={16} justify={"center"}>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày hết hiệu lực (đã chọn)"
-                                name="expiryDate"
-                            >
-                                <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày thông báo"
-                                name="notifyExpiryDate"
-                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
-                            >
-                                <DatePicker
-                                    className="w-full"
-                                    format="DD/MM/YYYY HH:mm:ss"
-                                    showTime
-                                    disabledDate={(current) => {
-                                        const expiryDate = form.getFieldValue('expiryDate');
-                                        return !current || current > expiryDate || current < dayjs().startOf('day');
-                                    }}
-                                    onChange={(date) => {
-                                        if (!date) {
-                                            const expiryDate = form.getFieldValue('expiryDate');
-                                            if (expiryDate) {
-                                                form.setFieldsValue({
-                                                    notifyExpiryDate: calculateNotificationDate(expiryDate, notificationDays)
-                                                });
-                                            }
-                                        }
-                                    }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                label="Nội dung thông báo"
-                                name="notifyExpiryContent"
-                                rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
-                                initialValue={`${DEFAULT_NOTIFICATIONS.expiry}`}
-                            >
-                                <Input.TextArea
-                                    rows={2}
-                                    placeholder="Nhập nội dung thông báo"
-                                />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    {/* Các đợt thanh toán */}
-                    <Form.List name="payments">
-                        {(fields, { add, remove }) => (
-                            <>
-                                {fields.map(({ key, name, ...restField }, index) => (
-                                    <div key={key} className="border p-3 rounded mb-4">
-                                        <h4 className="font-bold">Đợt thanh toán {index + 1}</h4>
-                                        <Row gutter={16} justify={"center"}>
-                                            <Col span={6}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Ngày thanh toán (đã chọn)"
-                                                    name={[name, "paymentDate"]}
-                                                >
-                                                    <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={6}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Ngày thông báo"
-                                                    name={[name, "notifyPaymentDate"]}
-                                                    rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
-                                                >
-                                                    <DatePicker
-                                                        className="w-full"
-                                                        format="DD/MM/YYYY HH:mm:ss"
-                                                        showTime
-                                                        disabledDate={(current) => {
-                                                            const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
-                                                            return !current || current > paymentDate || current < dayjs().startOf('day');
-                                                        }}
-                                                        onChange={(date) => {
-                                                            if (!date) {
-                                                                const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
-                                                                if (paymentDate) {
-                                                                    form.setFieldsValue({
-                                                                        payments: {
-                                                                            [name]: {
-                                                                                notifyPaymentDate: calculateNotificationDate(paymentDate, notificationDays)
-                                                                            }
-                                                                        }
-                                                                    });
-                                                                }
-                                                            }
-                                                        }}
-                                                    />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={12}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Nội dung thông báo"
-                                                    name={[name, "notifyPaymentContent"]}
-                                                    initialValue={`${DEFAULT_NOTIFICATIONS.payment} ${index + 1}`}
-                                                    rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
-                                                >
-                                                    <Input.TextArea
-                                                        rows={2}
-                                                        placeholder="Nhập nội dung thông báo"
-                                                    />
-                                                </Form.Item>
-                                            </Col>
-                                        </Row>
-
-                                    </div>
-                                ))}
-                            </>
-                        )}
-                    </Form.List>
-                    <Form.Item >
-                        {notifications.map(notification => (
-                            <div key={notification.id} style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                                <DatePicker
-                                    style={{ width: '200px' }}
-                                    value={notification.date}
-                                    showTime
-                                    onChange={(date) => updateNotification(notification.id, 'date', date)}
-                                    placeholder="Chọn ngày thông báo"
-                                />
-                                <Input
-                                    style={{ flex: 1 }}
-                                    value={notification.content}
-                                    onChange={(e) => updateNotification(notification.id, 'content', e.target.value)}
-                                    placeholder="Nhập nội dung thông báo"
-                                />
-                                <Button
-                                    type="text"
-                                    danger
-                                    icon={<DeleteFilled />}
-                                    onClick={() => removeNotification(notification.id)}
-                                />
-                            </div>
-                        ))}
-                        <Button
-                            type="dashed"
-                            onClick={addNotification}
-                            icon={<PlusOutlined />}
-                        >
-                            Thêm thông báo
-                        </Button>
-                    </Form.Item>
-                </div>
-            ),
-        },
-
     ];
 
     return (
@@ -1686,7 +1057,7 @@ const CreateContractForm = () => {
                         <Button type="primary" onClick={next}>Tiếp theo</Button>
                     )}
                     {currentStep === steps.length - 1 && (
-                        <Button type="primary" htmlType="submit" loading={loadingCreateContract}>Gửi hợp đồng</Button>
+                        <Button type="primary" htmlType="submit">Gửi hợp đồng</Button>
                     )}
                 </div>
             </Form>
@@ -1732,4 +1103,4 @@ const CreateContractForm = () => {
     );
 };
 
-export default CreateContractForm;
+export default EditTemplate;

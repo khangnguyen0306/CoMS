@@ -27,10 +27,18 @@ export const ContractAPI = createApi({
                     : [{ type: "ContractType", id: 'UNKNOWN_ID' }],
         }),
         getAllContract: builder.query({
-            query: () => `https://mocki.io/v1/791ec81c-b150-440d-9c3c-07fcfe5cc6da`,
+            query: (params) => ({
+                url: `contracts`,
+                params: {
+                    page: params?.page || 0,
+                    size: params?.size || 10,
+                    keyword: params?.keyword || '',
+                    status: params?.status || ''
+                },
+            }),
             providesTags: (result) =>
                 result
-                    ? result.map(({ id }) => ({ type: "Contract", id }))
+                    ? result.data.content.map(({ id }) => ({ type: "Contract", id }))
                     : [{ type: "Contract", id: id }],
         }),
         getAllContractPartner: builder.query({
@@ -39,6 +47,13 @@ export const ContractAPI = createApi({
                 result
                     ? result.map(({ id }) => ({ type: "Contract", id }))
                     : [{ type: "Contract", id: id }],
+        }),
+        getContractDetail: builder.query({
+            query: (contractId) => ({
+                url: `contracts/${contractId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
 
         createContractType: builder.mutation({
@@ -49,7 +64,14 @@ export const ContractAPI = createApi({
             }),
             invalidatesTags: [{ type: "ContractType", id: "LIST" }],
         }),
-
+        createContract: builder.mutation({
+            query: (contractData) => ({
+                url: `/contracts`,
+                method: "POST",
+                body: contractData,
+            }),
+            invalidatesTags: [{ type: "DoctorList", id: "LIST" }],
+        }),
 
         editContractType: builder.mutation({
             query: ({ name, id }) => ({
@@ -60,12 +82,20 @@ export const ContractAPI = createApi({
             invalidatesTags: (result, error, { id }) => [{ type: "ContractType", id: id }],
         }),
 
-       deleteContractType: builder.mutation({
+        deleteContractType: builder.mutation({
             query: (contractTypeId) => ({
-                url: `contract-types/${contractTypeId}/delete-status?isDeleted=${true}`, 
+                url: `contract-types/${contractTypeId}/delete-status?isDeleted=${true}`,
                 method: "PATCH",
             }),
-            invalidatesTags: (result, error, contractTypeId) => [{ type: "DoctorList", id: contractTypeId }],
+            invalidatesTags: (result, error, contractTypeId) => [{ type: "ContractType", id: contractTypeId }],
+        }),
+        duplicateContract: builder.mutation({
+            query: (contractId) => ({
+                url: `contracts/${contractId}/duplicate`,
+                method: "POST",
+                body: contractId,
+            }),
+            invalidatesTags: [{ type: "Contract", id: "LIST" }],
         }),
 
         // getPartnerInfoDetail: builder.query({
@@ -112,6 +142,9 @@ export const {
     useGetAllContractPartnerQuery,
     useCreateContractTypeMutation,
     useEditContractTypeMutation,
-    useDeleteContractTypeMutation
+    useDeleteContractTypeMutation,
+    useCreateContractMutation,
+    useGetContractDetailQuery,
+    useDuplicateContractMutation
     // useGetContractByPartnerQuery
 } = ContractAPI;

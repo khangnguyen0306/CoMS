@@ -1804,7 +1804,7 @@ const CreateTemplate = () => {
             const transformedData = {
                 contractTitle,
                 partyInfo,
-                legalBasis: legalBasis.map(item => (item.value)),
+                legalBasisTerms: legalBasis.map(item => (item.value)),
                 appendixEnabled,
                 transferEnabled,
                 violate,

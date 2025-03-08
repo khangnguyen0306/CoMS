@@ -18,6 +18,7 @@ module.exports = {
       },
       animation: {
         aurora: "aurora 60s linear infinite",
+        'typing-animation': 'typing 1s steps(10) infinite',
       },
       keyframes: {
         aurora: {
@@ -27,6 +28,10 @@ module.exports = {
           to: {
             backgroundPosition: "350% 50%, 350% 50%",
           },
+        },
+        'typing': {
+          '0%': { opacity: 0.5 },
+          '100%': { opacity: 1 },
         },
       },
       fontFamily: {

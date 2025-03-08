@@ -12,39 +12,86 @@ import { FaPhone } from "react-icons/fa";
 import { FaEnvelope } from "react-icons/fa";
 import { FaSave } from "react-icons/fa";
 import { useSelector } from 'react-redux';
+import { useEditPartnerMutation, useGetPartnerInfoDetailQuery } from '../../services/PartnerAPI';
+import { PlusOutlined } from '@ant-design/icons';
 const BussinessInfor = () => {
     const [isEditing, setIsEditing] = useState(false);
+    const [bankAccounts, setBankAccounts] = useState([{ bankName: '', backAccountNumber: '' }]);
     const [form] = Form.useForm();
-    const { data: Data, isLoading } = useGetBussinessInformatinQuery();
-    const initialValues = Data || {};
+    const { data: Data, isLoading, refetch } = useGetPartnerInfoDetailQuery({ id: 1 });
+    const initialValues = Data?.data || {};
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const [updateInformation] = useEditPartnerMutation();
+
     useEffect(() => {
         if (Data) {
             form.setFieldsValue({
-                businessName: Data.businessName || '',
-                taxCode: Data.taxCode || '',
-                address: Data.address || '',
-                businessField: Data.businessField || '',
-                representativeName: Data.representativeName || '',
-                representativeTitle: Data.representativeTitle || '',
-                phone: Data.phone || '',
-                email: Data.email || '',
+                businessName: Data.data.partnerName || '',
+                taxCode: Data.data.taxCode || '',
+                address: Data.data.address || '',
+                representativeName: Data.data.spokesmanName || '',
+                representativeTitle: Data.data.position || '', // sử dụng 'position' thay vì representativeTitle
+                phone: Data.data.phone || '',
+                email: Data.data.email || '',
+                bankAccounts: Data.data.banking || [{ bankName: '', backAccountNumber: '' }],
             });
+            setBankAccounts(Data.data.banking || [{ bankName: '', backAccountNumber: '' }]);
         }
     }, [Data, form]);
+
 
     const handleEdit = () => {
         setIsEditing(true);
     };
 
-    const handleSave = (values) => {
-        {/* thêm api nha bây */ }
-        message.success('Thông tin đã được cập nhật thành công!');
-        console.log('Saved values:', values);
-        setIsEditing(false);
+    const handleSave = async () => {
+        // Lấy toàn bộ giá trị từ form
+        const values = form.getFieldsValue(true);
 
+        // Chuyển đổi dữ liệu từ form sang định dạng mà API mong đợi
+        const payload = {
+            partnerName: values.businessName,               // chuyển businessName thành partnerName
+            taxCode: values.taxCode,
+            address: values.address,
+            spokesmanName: values.representativeName,         // chuyển representativeName thành spokesmanName
+            phone: values.phone,
+            email: values.email,
+            banking: values.bankAccounts,                     // sử dụng key banking thay vì bankAccounts
+            // Nếu không có partnerType trong form, có thể lấy từ initialValues hoặc gán mặc định (ví dụ: PARTY_B)
+            partnerType: initialValues.partnerType || 'PARTY_B'
+        };
+
+        console.log("Payload:", payload);
+
+        try {
+            const result = await updateInformation({ id: 1, ...payload }).unwrap();
+            if (result.status === "OK") {
+                message.success('Thông tin đã được cập nhật thành công!');
+                refetch();
+                form.resetFields()
+                setIsEditing(false);
+            } else {
+                message.error(result.data.message)
+            }
+
+        } catch (error) {
+            console.error("Update error:", error);
+            message.error("Có lỗi xảy ra khi cập nhật thông tin!");
+        }
+    };
+    const addBankAccount = () => {
+        const newBankAccounts = [...bankAccounts, { bankName: '', backAccountNumber: '' }];
+        setBankAccounts(newBankAccounts);
+        form.setFieldsValue({ bankAccounts: newBankAccounts });
     };
 
+    const handleBankChange = (index, field, value) => {
+        const newBankAccounts = bankAccounts.map((account, i) =>
+            i === index ? { ...account, [field]: value } : account
+        );
+        setBankAccounts(newBankAccounts);
+        form.setFieldsValue({ bankAccounts: newBankAccounts });
+    };
     if (isLoading) {
         return <Skeleton active />;
     }
@@ -84,10 +131,6 @@ const BussinessInfor = () => {
                                 <FaMapMarkerAlt fontSize={20} /> Địa chỉ trụ sở chính:</p>} name="address">
                                 <Input placeholder="Địa chỉ liên lạc chính thức" />
                             </Form.Item>
-                            <Form.Item label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                <FaIndustry fontSize={20} />Lĩnh vực kinh doanh:</p>} name="businessField">
-                                <Input placeholder="Lĩnh vực kinh doanh chính của doanh nghiệp" />
-                            </Form.Item>
                             <Row gutter={16}>
                                 <Col xs={24} md={12}>
                                     <Form.Item
@@ -114,6 +157,28 @@ const BussinessInfor = () => {
                                 <FaEnvelope fontSize={20} /> Email:</p>} name="email">
                                 <Input placeholder="Email chính thức" />
                             </Form.Item>
+                            <div className='mb-4'>
+                                <h4>Ngân hàng</h4>
+                                {bankAccounts.map((bank, index) => (
+                                    <div key={index} style={{ marginBottom: '10px' }}>
+                                        <Form.Item className="mt-2">
+                                            <div className="flex flex-col gap-2 w-[70%] ml-[10px]">
+                                                <Input
+                                                    placeholder="Tên ngân hàng"
+                                                    value={bank.bankName}
+                                                    onChange={(e) => handleBankChange(index, 'bankName', e.target.value)}
+                                                />
+                                                <Input
+                                                    placeholder="Số tài khoản"
+                                                    value={bank.backAccountNumber}
+                                                    onChange={(e) => handleBankChange(index, 'backAccountNumber', e.target.value)}
+                                                />
+                                            </div>
+                                        </Form.Item>
+                                    </div>
+                                ))}
+                                <Button icon={<PlusOutlined />} onClick={addBankAccount}>Thêm ngân hàng</Button>
+                            </div>
                             <Form.Item>
                                 <Button type="primary" htmlType="submit" className="w-full" icon={<FaSave />}>
                                     Lưu thông tin
@@ -139,7 +204,7 @@ const BussinessInfor = () => {
                                             <FaHouseUser fontSize={20} /> Tên doanh nghiệp:
                                         </p>
                                         <p className={`ml-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            {initialValues.businessName || 'Chưa có thông tin'}
+                                            {initialValues.partnerName || 'Chưa có thông tin'}
                                         </p>
                                     </div>
                                     <div>
@@ -160,10 +225,10 @@ const BussinessInfor = () => {
                                     </div>
                                     <div>
                                         <p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                            <FaIndustry fontSize={20} /> Ngành nghề kinh doanh:
+                                            <FaUserTie fontSize={20} /> Người đại diện pháp luật:
                                         </p>
                                         <p className={`ml-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            {initialValues.businessField || 'Chưa có thông tin'}
+                                            {initialValues.spokesmanName || 'Chưa có thông tin'}
                                         </p>
                                     </div>
 
@@ -194,14 +259,28 @@ const BussinessInfor = () => {
                                             {initialValues.email || 'Chưa có thông tin'}
                                         </p>
                                     </div>
-                                    <div>
-                                        <p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                            <FaUserTie fontSize={20} /> Người đại diện pháp luật:
-                                        </p>
-                                        <p className={`ml-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            {initialValues.representativeName || 'Chưa có thông tin'}
-                                        </p>
-                                    </div>
+                                    {/* <div>
+                                        <h4>Ngân hàng</h4>
+                                        {bankAccounts.map((bank, index) => (
+                                            <div key={index} style={{ marginBottom: '10px' }}>
+                                                <Form.Item className="mt-2">
+                                                    <div className="flex flex-col gap-2 w-[70%] ml-[10px]">
+                                                        <Input
+                                                            placeholder="Tên ngân hàng"
+                                                            value={bank.bankName}
+                                                            onChange={(e) => handleBankChange(index, 'bankName', e.target.value)}
+                                                        />
+                                                        <Input
+                                                            placeholder="Số tài khoản"
+                                                            value={bank.backAccountNumber}
+                                                            onChange={(e) => handleBankChange(index, 'backAccountNumber', e.target.value)}
+                                                        />
+                                                    </div>
+                                                </Form.Item>
+                                            </div>
+                                        ))}
+                                        <Button icon={<PlusOutlined />} onClick={addBankAccount}>Thêm ngân hàng</Button>
+                                    </div> */}
                                 </Col>
                             </Row>
                         </div>

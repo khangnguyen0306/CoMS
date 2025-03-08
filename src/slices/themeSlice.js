@@ -31,4 +31,5 @@ const themeSlice = createSlice({
 });
 
 export const { toggleTheme, setTheme } = themeSlice.actions;
+export const isDarkMode = (state) => state.auth.isDarkMode;
 export default themeSlice.reducer;
