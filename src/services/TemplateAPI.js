@@ -19,7 +19,15 @@ export const TemplateAPI = createApi({
     endpoints: (builder) => ({
 
         getAllTemplate: builder.query({
-            query: ({ page, size }) => `templates?page=${page}&size=${size}&sortBy=id&order=asc`,
+            query: (params) => ({
+                url: `templates`,
+                params: {
+                    page: params?.page || 0,
+                    size: params?.size || 10,
+                    keyword: params?.keyword || '',
+                    status: params?.status || ''
+                },
+            }),
             providesTags: (result) =>
                 result
                     ? result.data.content.map(({ id }) => ({ type: "Template", id }))
@@ -57,7 +65,21 @@ export const TemplateAPI = createApi({
             }),
             invalidatesTags: [{ type: "Template", id: "LIST" }],
         }),
-
+        editTemplate: builder.mutation({
+            query: ({ templateId, ...templateData }) => ({
+                url: `/templates/update/${templateId}`,
+                method: "POST",
+                body: templateData,
+            }),
+            invalidatesTags: (result, error, { templateId }) => [{ type: "Template", id: templateId }],
+        }),
+        deleteTemplate: builder.mutation({
+            query: (templateId) => ({
+                url: `/templates/soft-delete/${templateId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: (result, error, templateId) => [{ type: "Template", id: templateId }],
+        }),
         // editDoctor: builder.mutation({
         //     query: ({ userId, ...updatedDoctorData }) => ({
         //         url: `/update/${userId}`, // Sử dụng userId để phù hợp với tài liệu API
@@ -85,6 +107,8 @@ export const {
     useLazyGetTemplateDataDetailQuery,
     useGetAllDeletedTemplateQuery,
     useCreateTemplateMutation,
-    useDuplicateTemplateMutation
+    useDuplicateTemplateMutation,
+    useEditTemplateMutation,
+    useDeleteTemplateMutation
     // useGetContractByPartnerQuery
 } = TemplateAPI;
