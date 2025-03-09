@@ -17,7 +17,10 @@ const ManageClause = () => {
     const [searchTermClause, setSearchTermClause] = useState('');
     const [searchTermLegal, setSearchTermLegal] = useState('');
     const [selectedType, setSelectedType] = useState('');
+
     const [sortOrderClause, setSortOrderClause] = useState('desc');
+    const [sortByClause, setSortByClause] = useState('id');
+
     const [sortOrderLegal, setSortOrderLegal] = useState('desc');
     const [activeTab, setActiveTab] = useState("1");
     const [pageClause, setPageClause] = useState(0);
@@ -34,6 +37,7 @@ const ManageClause = () => {
         page: pageClause,
         size: pageSizeClause,
         order: sortOrderClause,
+        sortBy: sortByClause
     });
     const { data: legalData, isLoading: loadingLegal, refetch: refetchLegal } = useGetLegalQuery({ page: pageLegal, size: pageSizeLegal, keyword: searchTermLegal, order: sortOrderLegal });
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
@@ -41,7 +45,7 @@ const ManageClause = () => {
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
-    // console.log(clauseData?.data?.totalElements);
+    console.log(typeData);
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -103,7 +107,6 @@ const ManageClause = () => {
         ?.slice()
         .filter(item => !item.isDelete)
 
-    console.log("Total items:", sortedClause || 0);
 
     const sortedLegal = legalData?.data?.content
         ?.slice()
@@ -166,7 +169,7 @@ const ManageClause = () => {
     const handleSubmitAddClause = async (values) => {
         console.log('Form data:', values);
         try {
-            const result = await createClause({ idType: values.type, label: values.label, value: values.value }).unwrap();
+            const result = await createClause({ typeTermId: values.type, label: values.label, value: values.value }).unwrap();
             message.success("Tạo điều khoản thành công");
             refetchClause();
             refetchLegal();
@@ -180,15 +183,34 @@ const ManageClause = () => {
         }
     };
 
+    const getTypeTermId = (typeValue) => {
+        // Nếu typeValue là chuỗi "Căn cứ pháp lí", trả về số 8
+        if (typeof typeValue === "string" && typeValue.trim() === "Căn cứ pháp lí") {
+            return 8;
+        }
+        // Nếu typeValue là một object (sử dụng labelInValue), lấy thuộc tính value
+        if (typeof typeValue === "object" && typeValue !== null) {
+            return typeValue.value;
+        }
+        // Nếu typeValue có thể chuyển thành số, chuyển nó
+        if (!isNaN(typeValue)) {
+            return Number(typeValue);
+        }
+        // Nếu typeValue là chuỗi khác, tìm trong typeData dựa trên trường name
+        const found = typeData?.data?.find((item) => item.name === typeValue);
+        return found ? found.original_term_id : typeValue;
+    };
+
     const handleSubmitUpdateClause = async (values) => {
         console.log('Form data:', values);
         try {
-            const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: values.type }).unwrap();
+            const typeTermId = getTypeTermId(values.type);
+            console.log('Type term ID:', typeTermId);
+            const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: typeTermId }).unwrap();
             console.log(updatedData);
             message.success("Cập nhật điều khoản thành công!");
             refetchClause();
             console.log(pageClause)
-            console
             refetchLegal();
             setIsModalOpenClause(false);
             setIsModalOpenLegal(false);
@@ -196,10 +218,13 @@ const ManageClause = () => {
         } catch (error) {
             console.error("Lỗi cập nhật điều khoản:", error);
             message.error("Có lỗi xảy ra khi cập nhật điều khoản!");
+            setIsModalOpenClause(false);
+            setIsModalOpenLegal(false);
         }
     };
 
     const handleDelete = async (contractId) => {
+        console.log("Delete contract ID:", contractId);
         Modal.confirm({
             title: 'Bạn có chắc muốn xóa không?',
             onOk: async () => {
@@ -224,8 +249,16 @@ const ManageClause = () => {
 
     const handleSortByCreatedAt = () => {
         console.log("Sort order:", sortOrderClause);
+        setSortByClause('id');
         setSortOrderClause(sortOrderClause === 'asc' ? 'desc' : 'asc');
     };
+
+    const handleSortByContractCount = () => {
+
+        setSortByClause('contractCount');
+        setSortOrderClause(sortOrderClause === 'asc' ? 'desc' : 'asc');
+    };
+
     const handleSortByCreatedAtLegal = () => {
         setSortOrderLegal(sortOrderLegal === 'asc' ? 'desc' : 'asc');
     };
@@ -322,6 +355,23 @@ const ManageClause = () => {
                                     {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                                 </span>
                             </button>
+                            <button
+                                onClick={handleSortByContractCount}
+                                className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortByClause === 'contractCount'
+                                    ? sortOrderClause === 'asc'
+                                        ? 'bg-red-500 hover:bg-red-600'
+                                        : 'bg-blue-500 hover:bg-blue-600'
+                                    : 'bg-gray-300 hover:bg-gray-400'
+                                    }`}
+                            >
+                                <span className="text-white">
+                                    {sortByClause === 'contractCount'
+                                        ? sortOrderClause === 'asc'
+                                            ? 'Ít hợp đồng nhất'
+                                            : 'Nhiều hợp đồng nhất'
+                                        : 'Sắp xếp theo số hợp đồng'}
+                                </span>
+                            </button>
                         </div>
 
                         <Modal
@@ -409,7 +459,10 @@ const ManageClause = () => {
                                     <Input placeholder="Nhập tên điều khoản" />
                                 </Form.Item>
 
-                                <Form.Item name="type" label="Loại điều khoản">
+                                <Form.Item
+                                    name="type"
+                                    label="Loại điều khoản"
+                                >
                                     <Select placeholder="Chọn loại điều khoản">
                                         {typeData?.data.map(item => (
                                             <Option key={item.original_term_id} value={item.original_term_id}>
@@ -452,7 +505,7 @@ const ManageClause = () => {
                                         <Card
                                             bordered
                                             className="shadow-lg rounded-lg"
-                                            style={{ width: 320,  borderColor: "#d1d5db" }}
+                                            style={{ width: 320, borderColor: "#d1d5db" }}
                                         >
                                             <Title level={4} className="text-blue-600">Chi tiết điều khoản</Title>
                                             <div className="mt-2 space-y-1">
@@ -486,7 +539,7 @@ const ManageClause = () => {
                                 >
                                     <List.Item
                                         style={{ cursor: 'default' }}
-                                        onClick={() => showModal(clause)}
+                                        // onClick={() => showModal(clause)}
                                         className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
                                         actions={[
                                             <div className="flex flex-col items-center gap-2 mr-3">
@@ -516,6 +569,9 @@ const ManageClause = () => {
                                                 </div>
                                                 <div className="text-center">
                                                     <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-sm mb-2">Có {clause.contractCount} hợp đồng đang dùng điều khoản này</p>
                                                 </div>
                                             </div>
 
@@ -611,6 +667,10 @@ const ManageClause = () => {
                                     type: 8,
                                 }}
                             >
+                                <Form.Item name="type" hidden>
+                                    <Input />
+                                </Form.Item>
+
                                 <Form.Item
                                     name="label"
                                     label="Tên căn cứ"
@@ -647,16 +707,21 @@ const ManageClause = () => {
                                 form={form}
                                 layout="vertical"
                                 onFinish={(values) => {
-                                    form.resetFields();
                                     handleSubmitUpdateClause(values)
+                                    form.resetFields();
                                 }}
                                 initialValues={{
                                     type: 8,
                                 }}
                             >
+                                <Form.Item name="type" hidden>
+                                    <Input type="hidden" />
+                                </Form.Item>
+
                                 <Form.Item
                                     name="id"
                                 />
+
                                 <Form.Item
                                     name="label"
                                     label="Tên căn cứ"
@@ -729,33 +794,44 @@ const ManageClause = () => {
                                     trigger="hover"
                                 >
                                     <List.Item
-                                        onClick={() => showModal(clause)}
+                                        // onClick={() => showModal(clause)}
                                         className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
                                         actions={[
-                                            <div className="flex flex-col justify-center gap-y-2">
-                                                <div className="flex gap-2">
+                                            <div className="flex flex-col items-center gap-2 mr-3">
+                                                <div className="flex gap-3 mb-3">
                                                     <Button
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleUpdateLegal(clause.clauseCode);
                                                         }}
+                                                        className="flex items-center justify-center"
+
                                                     >
-                                                        <EditFilled/>
+                                                        <EditFilled />
                                                     </Button>
                                                     <Button
                                                         danger
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleDelete(clause.original_term_id);
+                                                            handleDelete(clause.id);
                                                         }}
+                                                        className="flex items-center justify-center"
+
                                                     >
                                                         <DeleteFilled />
                                                     </Button>
                                                 </div>
-                                                <p>Xóa {clause.daysDeleted} ngày trước</p>
+                                                <div className="text-center">
+                                                    <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-sm mb-2">Có {clause.contractCount} hợp đồng đang dùng căn cứ này</p>
+                                                </div>
                                             </div>,
+
+
                                         ]}
                                     >
                                         <List.Item.Meta

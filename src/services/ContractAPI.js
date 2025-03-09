@@ -41,6 +41,7 @@ export const ContractAPI = createApi({
                     ? result.data.content.map(({ id }) => ({ type: "Contract", id }))
                     : [{ type: "Contract", id: id }],
         }),
+
         getAllContractPartner: builder.query({
             query: () => `https://mocki.io/v1/510fa7fd-5caa-4cfa-b858-5c6ea74cc683`,
             providesTags: (result) =>
