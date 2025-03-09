@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from 'antd';
 
-export const PreviewSection = ({ content }) => {
+export const PreviewSection = ({ content,isDarkMode }) => {
   const containerRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -18,16 +18,23 @@ export const PreviewSection = ({ content }) => {
   };
 
   return (
-    <div className="mt-4 p-4 bg-[#f5f5f5] rounded shadow-md">
+    <div className={`mt-4 p-4 rounded shadow-md ${
+      isDarkMode ? 'bg-[#222222] text-white' : 'bg-[#f5f5f5]'
+    }`}>
       <h4 className="font-bold text-lg mb-2">Xem trước nội dung hợp đồng:</h4>
 
       <div
         ref={containerRef}
-        className="overflow-y-auto transition-all duration-300"
+        className={`overflow-y-auto transition-all duration-300 
+          [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block 
+          [&::-webkit-scrollbar]:w-2 
+          [&::-webkit-scrollbar-thumb]:bg-gray-500 
+          [&::-webkit-scrollbar-track]:bg-gray-200
+          ${isDarkMode ? 'text-white [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-track]:bg-gray-800' : ''}`}
         style={{ maxHeight: isExpanded ? 'none' : '300px' }}
       >
         <div
-          className="p-4 "
+          className="p-4"
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </div>

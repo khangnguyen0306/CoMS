@@ -1,16 +1,50 @@
 import React, { useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled } from "@ant-design/icons";
-import { useGetAllContractQuery } from "../../services/ContractAPI";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined } from "@ant-design/icons";
+import { useDuplicateContractMutation, useGetAllContractQuery } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
-import { Link } from "react-router-dom";
+import dayjs from "dayjs";
+import { Link, useNavigate } from "react-router-dom";
+import { BiDuplicate } from "react-icons/bi";
 const { Search } = Input;
 
 const ManageContracts = () => {
-    const { data: contracts, isLoading, isError } = useGetAllContractQuery();
     const [searchText, setSearchText] = useState("");
+    const [selectedContract, setSelectedContract] = useState(null)
+    const navigate = useNavigate()
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0
+    });
+    const [status, setStatus] = useState(null);
+    const [duplicateContract] = useDuplicateContractMutation();
+    const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
+        page: pagination.current - 1,
+        size: pagination.pageSize,
+        keyword: searchText,
+        status: status
+    });
 
+    // console.log(selectedContract)
+    const handleDuplicate = async (contractId) => {
+        try {
+            const result = await duplicateContract(contractId).unwrap();
+            console.log(result);
+            if (result.status === "OK") {
+                message.success("Nhân bản hợp đồng thành công!");
+                refetch()
+            }
+
+        } catch (error) {
+            console.error("Error duplicating template:", error);
+            message.error("Lỗi khi nhân bản hợp đồng!");
+        }
+    };
+    const handleNavigate = () => {
+        navigate(`/manager/ContractDetail/${selectedContract.id}`)
+    }
     const handleDelete = (record) => {
         if (record.status === "đang hiệu lực" || record.status === "đã thanh toán") {
             message.warning("Không thể xóa hợp đồng đang hiệu lực hoặc đã thanh toán.");
@@ -19,68 +53,91 @@ const ManageContracts = () => {
         message.success("Xóa hợp đồng thành công!");
     };
     const statusContract = {
-        'Đang tạo': <Tag color="default"> Đang tạo </Tag>,
-        'Đang hiệu lực': <Tag color="processing"> Đang hiệu lực </Tag>,
-        'Đã thanh toán': <Tag color="success"> Đã thanh toán </Tag>,
-        'Đã hủy': <Tag color="red-inverse"> Đã hủy </Tag>,
-        'Chưa thanh toán': <Tag color="gold">Chưa thanh toán</Tag>,
-        'Chờ phê duyệt': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
-        'Đối tác ký': <Tag color="geekblue">Đối tác ký</Tag>,
-        'Chưa thanh lý': <Tag color="lime">Chưa thanh lý</Tag>,
-        'Đã thanh lý': <Tag color="pink">Đã thanh lý</Tag>,
-        'Hết hiệu lực': <Tag color="red">Hết hiệu lực</Tag>,
-
+        'DRAFT': <Tag color="default">Đang tạo</Tag>,
+        'CREATED': <Tag color="default">Đã tạo</Tag>,
+        'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
+        'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
+        'PENDING': <Tag color="warning">Đang chờ</Tag>,
+        'REJECTED': <Tag color="red">Từ chối</Tag>,
+        'SIGNED': <Tag color="geekblue">Đã ký</Tag>,
+        'ACTIVE': <Tag color="processing">Đang hiệu lực</Tag>,
+        'COMPLETED': <Tag color="success">Hoàn thành</Tag>,
+        'EXPIRED': <Tag color="red">Hết hiệu lực</Tag>,
+        'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
+        'ENDED': <Tag color="default">Đã kết thúc</Tag>
     };
     const columns = [
         {
             title: "Mã hợp đồng",
-            dataIndex: "contract_code",
-            key: "contract_code",
+            dataIndex: "contractNumber",
+            key: "contractNumber",
+            sorter: (a, b) => a.contractNumber.localeCompare(b.contractNumber),
         },
         {
             title: "Ngày tạo",
-            dataIndex: "created_at",
-            key: "created_at",
-            sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
-            render: (text) => new Date(text).toLocaleDateString("vi-VN"),
+            dataIndex: "createdAt",
+            key: "createdAt",
+            sorter: (a, b) => {
+                const dateA = new Date(a.createdAt[0], a.createdAt[1] - 1, a.createdAt[2]);
+                const dateB = new Date(b.createdAt[0], b.createdAt[1] - 1, b.createdAt[2]);
+                return dateB - dateA;
+            },
+            render: (dateArray) => {
+                const [year, month, day] = dateArray;
+                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+            },
             defaultSortOrder: 'ascend',
         },
         {
             title: "Người tạo",
-            dataIndex: "creator",
-            key: "creator",
+            dataIndex: "user",
+            key: "user",
+            filters: [...new Set(contracts?.data.content.map(contract => contract.user.full_name))].map(name => ({
+                text: name,
+                value: name,
+            })),
+            render: (user) => <Link className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",
-            dataIndex: "contract_name",
-            key: "name",
-            sorter: (a, b) => a.contract_name.localeCompare(b.contract_name),
-            render: (text) => <Link className="font-bold text-[#228eff]">{text}</Link>,
+            dataIndex: "title",
+            key: "title",
+            sorter: (a, b) => a.title.localeCompare(b.title),
+            render: (text, record) => (
+                <Link to={`/manager/ContractDetail/${record.id}`} className="font-bold text-[#228eff] cursor-pointer">
+                    {text}
+                </Link>
+            ),
         },
         {
             title: "Loại hợp đồng",
-            dataIndex: "contract_type",
-            key: "contract_type",
-            render: (type) => <Tag color="blue">{type}</Tag>,
-            filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
+            dataIndex: "contractType",
+            key: "contractType",
+            render: (type) => <Tag color="blue">{type.name}</Tag>,
+            filters: [...new Set(contracts?.data.content.map(contract => contract.contractType.name))].map(type => ({
                 text: type,
                 value: type,
             })),
-            onFilter: (value, record) => record.contract_type === value,
+            onFilter: (value, record) => record.contractType === value,
         },
         {
             title: "Đối tác",
-            dataIndex: "partner",
-            key: "partner",
-            sorter: (a, b) => a.partner.localeCompare(b.partner),
+            dataIndex: "party",
+            key: "party",
+            render: (party) => <p>{party.partnerName}</p>,
+            filters: [...new Set(contracts?.data.content.map(contract => contract.party.partnerName))].map(type => ({
+                text: type,
+                value: type,
+            })),
+            sorter: (a, b) => a.party.partnerName.localeCompare(b.party.partnerName),
         },
-     
+
         {
             title: "Giá trị",
-            dataIndex: "value",
-            key: "value",
+            dataIndex: "amount",
+            key: "amount",
             render: (value) => value.toLocaleString("vi-VN") + " VND",
-            sorter: (a, b) => a.value - b.value,
+            sorter: (a, b) => a.amount - b.amount,
         },
         {
             title: "Trạng thái",
@@ -107,6 +164,12 @@ const ManageContracts = () => {
                                     icon: <EditFilled style={{ color: '#228eff' }} />,
                                     label: "Sửa",
                                     onClick: () => message.info("Cập nhật hợp đồng!"),
+                                },
+                                {
+                                    key: "duplicate",
+                                    icon: <BiDuplicate style={{ color: '#228eff' }} />,
+                                    label: "Nhân bản",
+                                    onClick: () => handleDuplicate(record.id),
                                 },
                                 {
                                     key: "updateStatus",
@@ -137,32 +200,54 @@ const ManageContracts = () => {
         },
     ];
 
+    const handleTableChange = (pagination, filters, sorter) => {
+        setPagination(pagination);
+        if (filters.status && filters.status.length > 0) {
+            setStatus(filters.status[0]);
+        } else {
+            setStatus(null);
+        }
+    };
+
     return (
-        <div className="flex flex-col md:flex-row">
+        <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                   QUẢN LÝ HỢP ĐỒNG
+                    QUẢN LÝ HỢP ĐỒNG
                 </p>
-                <Space style={{ marginBottom: 16 }}>
+                <Space className="mb-[16px] flex items-center justify-between" >
                     <Search
                         placeholder="Nhập tên hợp đồng, tên partner hoặc tên người tạo"
                         allowClear
                         onSearch={setSearchText}
                         style={{ width: "100%", minWidth: 500, maxWidth: 1200, marginBottom: 20 }}
+                        className="block"
                         enterButton="Tìm kiếm"
                         disabled={isLoading}
                     />
+                    <div>
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                        >
+                            <Link to={'/createContract'}> Tạo hợp đồng</Link>
+                        </Button>
+                    </div>
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.filter(item =>
-                        item.contract_name.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item.partner.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item.creator.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item.contract_code.toLowerCase().includes(searchText.toLowerCase())
-                    )}
+                    dataSource={contracts?.data.content}
                     rowKey="id"
                     loading={isLoading}
+                    pagination={{
+                        current: pagination.current,
+                        pageSize: pagination.pageSize,
+                        total: contracts?.data.totalElements || 0,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        showTotal: (total) => `Tổng ${total} hợp đồng`,
+                    }}
+                    onChange={handleTableChange}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
             </div>

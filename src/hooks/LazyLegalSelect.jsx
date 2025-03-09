@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Select, Spin, Popover } from "antd";
 import { useLazyLoadSelect } from "./CustomHook";
 
@@ -6,7 +6,7 @@ const LazyLegalSelect = ({
     loadDataCallback,
     globalSelected = [],
     options: initialOptions = [],
-    defaultValue=[],
+    defaultValue = [],
     ...restProps
 }) => {
 
@@ -33,10 +33,8 @@ const LazyLegalSelect = ({
         }, []);
     }, [data, keyword, initialOptions]);
 
-    // Render option với kiểm tra globalSelected
-
     const renderOptions = () => {
- 
+
 
         return mergedOptions?.map((dk) => {
             const isGloballySelected = globalSelected.includes(dk.original_term_id);
@@ -62,8 +60,8 @@ const LazyLegalSelect = ({
             );
         });
     };
-   
-console.log(defaultValue)
+
+    console.log(defaultValue)
     return (
         <>
             <Select

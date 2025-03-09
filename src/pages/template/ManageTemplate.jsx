@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table, Input, Select, Space, Button, Popconfirm, message, Dropdown, Menu, Spin, Image, Modal, Tag } from "antd";
 import { EditOutlined, DeleteOutlined, CopyOutlined, EyeOutlined, SettingOutlined, FullscreenOutlined, SearchOutlined, FileSearchOutlined, EditFilled, CopyFilled, DeleteFilled } from "@ant-design/icons";
-import { useDuplicateTemplateMutation, useGetAllTemplateQuery, useGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
+import { useDeleteTemplateMutation, useDuplicateTemplateMutation, useGetAllTemplateQuery, useGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import pressBtIcon from "../../assets/Image/press-button.svg"
 import dayjs from "dayjs";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 const { Search } = Input;
-
+const { confirm } = Modal;
 const ManageTemplate = () => {
-
+    const navigate = useNavigate();
     const [selectedTemplateId, setSelectedTemplateId] = useState(null);
     const { data: bsInfor, isLoadingBSInfo, isError: BsDataError } = useGetBussinessInformatinQuery()
     const { data: templateDetail, isLoading: isLoadingTemplateDetail, isError: isErrorTemplateDetail } =
@@ -19,6 +20,7 @@ const ManageTemplate = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [duplicateTemplate] = useDuplicateTemplateMutation();
+    const [deleteTemplate] = useDeleteTemplateMutation();
     // currentPage được lưu dạng 1-based để hiển thị trên UI
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -27,6 +29,9 @@ const ManageTemplate = () => {
         page: currentPage - 1,
         size: pageSize,
     });
+    useEffect(() => {
+        refetch();
+    }, []);
     const showModal = () => {
         setIsModalVisible(true);
     };
@@ -57,13 +62,22 @@ const ManageTemplate = () => {
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     // Xóa template
-    const handleDelete = async (id) => {
-        try {
-            //   await deleteTemplate(id).unwrap();
-            message.success("Xóa hợp đồng thành công!");
-        } catch (error) {
-            message.error("Lỗi khi xóa hợp đồng!");
-        }
+    const showDeleteConfirm = async (id) => {
+        confirm({
+            title: 'Bạn có chắc chắn muốn xóa không?',
+            content: 'Hành động này sẽ không thể hoàn tác.',
+            okText: 'Có',
+            okType: 'danger',
+            cancelText: 'Không',
+            onOk() {
+                deleteTemplate(id).unwrap();
+                refetch();
+                message.success("Xóa hợp đồng thành công!");
+            },
+            onCancel() {
+                // console.log('Đã hủy xóa');
+            },
+        });
     };
     const generateColor = (id) => {
         // Sử dụng HSL để tạo màu
@@ -159,7 +173,8 @@ const ManageTemplate = () => {
                                     key: "edit",
                                     icon: <EditFilled style={{ color: 'blue' }} />,
                                     label: "Sửa",
-                                    onClick: () => console.log("Sửa:", record)
+                                    onClick: () => navigate(`/EditTemplate/${record.id}`)
+
                                 },
                                 {
                                     key: "duplicate",
@@ -172,7 +187,7 @@ const ManageTemplate = () => {
                                     icon: <DeleteFilled />,
                                     label: "Xóa",
                                     danger: true,
-                                    onClick: () => handleDelete(record.id)
+                                    onClick: () => showDeleteConfirm(record.id)
                                 }
                             ]
                         }}
@@ -191,7 +206,7 @@ const ManageTemplate = () => {
     }
 
     return (
-        <div className="flex flex-col md:flex-row">
+        <div className="flex flex-col md:flex-row min-h-[100vh]">
             {/* Left Section */}
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
@@ -252,14 +267,14 @@ const ManageTemplate = () => {
                                     <p className="font-bold text-[22px] leading-7">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                     <p className="font-bold text-[18px] mt-1"> Độc lập - Tự do - Hạnh phúc</p>
                                     <p>-------------------</p>
-                                    <p className="text-right mr-[10%] py-4">Ngày .... Tháng .... Năm ......</p>
+                                    <p className="text-right mr-[10%] py-4"> ................, Ngày ..... Tháng ..... Năm .........</p>
                                     <p className="text-[28px] font-bold mt-3  leading-8">{templateDetail?.data.contractTitle?.toUpperCase() || "Tên hợp đồng không có"}</p>
                                     <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                                 </div>
                                 <div className=" px-4 pt-[100px] flex flex-col gap-2">
                                     {templateDetail?.data.legalBasisTerms ? (
                                         templateDetail.data.legalBasisTerms?.map((term, index) => <p key={index}><i>- {term.value}</i></p>)
-                                    ) : null}
+                                    ) : "Chưa có căn cứ pháp lý"}
                                 </div>
                                 <div className="p-4 rounded-md flex flex-col gap-4">
                                     <div className="flex flex-col gap-2 " md={10} sm={24} >
@@ -547,14 +562,14 @@ const ManageTemplate = () => {
                                 <p className="font-bold text-[22px] leading-7">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                 <p className="font-bold text-[18px] mt-1"> Độc lập - Tự do - Hạnh phúc</p>
                                 <p>-------------------</p>
-                                <p className="text-right mr-[10%] py-4">Ngày .... Tháng .... Năm ......</p>
+                                <p className="text-right mr-[1%] py-4">......................, Ngày ..... Tháng ..... Năm .........</p>
                                 <p className="text-[28px] font-bold mt-3  leading-8">{templateDetail?.data.contractTitle?.toUpperCase() || "Tên hợp đồng không có"}</p>
                                 <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                             </div>
                             <div className=" px-4 pt-[100px] flex flex-col gap-2">
-                                {templateDetail?.data.legalBasis ? (
-                                    templateDetail.data.datalegalBasis.map((term, index) => <p key={index}><i>- {term.value}</i></p>)
-                                ) : null}
+                                {templateDetail?.data.legalBasisTerms ? (
+                                    templateDetail.data.legalBasisTerms.map((term, index) => <p key={index}><i>- {term.value}</i></p>)
+                                ) : "Chưa chọn căn cứ pháp lý"}
                             </div>
                             <div className="p-4 rounded-md flex flex-col gap-4">
                                 <div className="flex flex-col gap-2 " md={10} sm={24} >

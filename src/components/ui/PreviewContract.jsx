@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Descriptions, Divider, Typography, Table, Row, Col, Spin } from 'antd';
+import { Card, Descriptions, Divider, Typography, Table, Row, Col, Spin, Button } from 'antd';
 import { useGetPartnerInfoDetailQuery } from '../../services/PartnerAPI';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import dayjs from 'dayjs';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
+import { useSelector } from 'react-redux';
+import ChatModalWrapper from './ChatModal';
+import { htmlToText } from 'html-to-text';
 
 const { Title, Text } = Typography;
 
-const PreviewContract = ({ form, partnerId }) => {
+const PreviewContract = ({ form, partnerId, data }) => {
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [groupedTerms, setGroupedTerms] = useState({
         Common: [],
         A: [],
@@ -18,13 +22,13 @@ const PreviewContract = ({ form, partnerId }) => {
     });
     // Lưu thông tin về loại của điều khoản Common
     const [termTypesMap, setTermTypesMap] = useState({});
-
+    const [promtData, setPromtData] = useState("")
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: partnerId });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
-    const formValues = form.getFieldsValue(true);
-    console.log(formValues);
+    const formValues = data || (form ? form.getFieldsValue(true) : {});
+
 
     // Load term details for legal basis
     useEffect(() => {
@@ -215,6 +219,97 @@ const PreviewContract = ({ form, partnerId }) => {
         return organizedTerms;
     };
 
+    const getPlainTextContent = (htmlContent) => {
+        try {
+            return htmlToText(htmlContent, {
+                wordwrap: false
+            });
+        } catch (error) {
+            console.error("Error converting HTML to text:", error);
+            return htmlContent;
+        }
+    };
+
+    // Tạo payload chứa đầy đủ thông tin hợp đồng cho AI
+    const generateContractPayloadForAI = () => {
+        const plainTextContent = getPlainTextContent(formValues.contractContent || '');
+        const contractPayload = {
+            contractNumber: formValues.contractNumber,
+            contractName: formValues.contractName,
+            contractContent: plainTextContent,
+            legalBasis: formValues.legalBasis
+                ? formValues.legalBasis.map(termId => termsData[termId]?.value || '')
+                : [],
+            additionalTerms: formValues.additionalTerms
+                ? formValues.additionalTerms.map(termId => termsData[termId]?.value || '')
+                : [],
+            specialTerms: {
+                A: formValues.specialTermsA,
+                B: formValues.specialTermsB
+            },
+            commonTerms: {},
+            payments: formValues.payments || [],
+            totalValue: formValues.totalValue,
+            effectiveDate: formValues.effectiveDate,
+            expiryDate: formValues.expiryDate,
+            notifyEffectiveContent: formValues.notifyEffectiveContent,
+            notifyExpiryContent: formValues.notifyExpiryContent
+            // Các trường khác nếu cần
+        };
+
+        // Tổ chức các điều khoản chung theo nhóm loại
+        const organizedCommonTerms = organizeCommonTermsByType();
+        Object.keys(organizedCommonTerms).forEach(typeKey => {
+            contractPayload.commonTerms[organizedCommonTerms[typeKey].typeName] =
+                organizedCommonTerms[typeKey].terms.map(termId => termsData[termId]?.value || '');
+        });
+
+        return contractPayload;
+    };
+
+    // Tạo prompt gửi cho AI dựa trên payload hợp đồng
+    const generateAIPrompt = () => {
+        const payload = generateContractPayloadForAI();
+        let prompt = `Hợp đồng số ${payload.contractNumber} với tên "${payload.contractName}" có nội dung như sau:\n\n`;
+        prompt += `${payload.contractContent}\n\n`;
+        prompt += `Các căn cứ pháp lý:\n`;
+        if (payload.legalBasis.length > 0) {
+            payload.legalBasis.forEach((item, index) => {
+                prompt += `${index + 1}. ${item}\n`;
+            });
+        } else {
+            prompt += "Không có căn cứ pháp lý nào được chọn.\n";
+        }
+        prompt += `\nCác điều khoản bổ sung:\n`;
+        if (payload.additionalTerms.length > 0) {
+            payload.additionalTerms.forEach((item, index) => {
+                prompt += `${index + 1}. ${item}\n`;
+            });
+        } else {
+            prompt += "Không có điều khoản bổ sung nào được chọn.\n";
+        }
+        prompt += `\nCác điều khoản chung theo nhóm:\n`;
+        Object.keys(payload.commonTerms).forEach(typeName => {
+            prompt += `\nNhóm ${typeName}:\n`;
+            payload.commonTerms[typeName].forEach((item, index) => {
+                prompt += `${index + 1}. ${item}\n`;
+            });
+        });
+        prompt += `\nCác điều khoản riêng của các bên:\n`;
+        prompt += `- Bên A: ${payload.specialTerms.A || 'Không có'}\n`;
+        prompt += `- Bên B: ${payload.specialTerms.B || 'Không có'}\n`;
+        prompt += `\nVui lòng kiểm tra hợp đồng trên và đề xuất các cải tiến. Đối với mỗi đề xuất, hãy **in đậm** đề xuất cải tiến và giải thích ngắn gọn lý do của từng đề xuất.`;
+
+        return prompt;
+    };
+
+
+    const handleGenerateAIPrompt = () => {
+        const prompt = generateAIPrompt();
+        setPromtData(prompt);
+    };
+
+
     if (isLoadingBsData || isLoadingInfoPartner) {
         return (
             <div className='flex justify-center items-center'>
@@ -227,24 +322,27 @@ const PreviewContract = ({ form, partnerId }) => {
     const organizedCommonTerms = organizeCommonTermsByType();
 
     return (
-        <div className="bg-[#f5f5f5] shadow-md p-4 pb-16 rounded-md">
-            <div className=" text-center">
-                <p className="font-bold text-xl pt-8 ">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-                <p className="font-bold text-lg mt-2"> Độc lập - Tự do - Hạnh phúc</p>
-                <p>---------------------------------</p>
-                <p className="text-right mr-[10%]">
-                   <i> {formValues?.contractLocation},  Ngày  {formValues?.signingDate?.format('DD')} Tháng {formValues?.signingDate?.format('MM')} Năm {formValues?.signingDate?.format('YYYY')}</i>
+        <div className={`${isDarkMode ? 'bg-gray-[#141414] text-white' : 'bg-[#f5f5f5]'} shadow-md p-4 pb-16 rounded-md`}>
+            <div className='fixed bottom-10 right-20 z-50'>
+                <ChatModalWrapper  generatedPrompt={promtData} handleGenerateAIPrompt={handleGenerateAIPrompt} />
+            </div>
+            <div className="text-center">
+                <p className={`font-bold text-xl pt-8 ${isDarkMode ? 'text-white' : ''}`}>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                <p className={`font-bold text-lg mt-2 ${isDarkMode ? 'text-white' : ''}`}>Độc lập - Tự do - Hạnh phúc</p>
+                <p className={isDarkMode ? 'text-gray-400' : ''}>---------------------------------</p>
+                <p className={`text-right mr-[10%] ${isDarkMode ? 'text-gray-300' : ''}`}>
+                    {/* <i>{formValues?.contractLocation}, Ngày {formValues?.signingDate?.format('DD')} Tháng {formValues?.signingDate?.format('MM')} Năm {formValues?.signingDate?.format('YYYY')}</i> */}
                 </p>
-                <p className="text-3xl font-bold mt-5">{formValues.contractName ? formValues.contractName.toUpperCase() : ''}</p>
-                <p className="mt-3 text-base"><b>Số:</b> {formValues?.contractNumber}</p>
+                <p className={`text-3xl font-bold mt-5 ${isDarkMode ? 'text-white' : ''}`}>{formValues.contractName ? formValues.contractName.toUpperCase() : ''}</p>
+                <p className={`mt-3 text-base ${isDarkMode ? 'text-white' : ''}`}><b>Số:</b> {formValues?.contractNumber}</p>
             </div>
 
-            <div className=" px-4 flex pl-10 flex-col gap-2 mt-10">
+            <div className="px-4 flex pl-10 flex-col gap-2 mt-10">
                 {renderLegalBasisTerms()}
             </div>
 
             <Row gutter={16} className='flex flex-col mt-5 pl-10 gap-5' justify={"center"}>
-                <Col className="flex flex-col gap-2 " md={10} sm={24} >
+                <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
                     <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
                     <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
                     <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
@@ -253,7 +351,7 @@ const PreviewContract = ({ form, partnerId }) => {
                     <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
                     <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
                 </Col>
-                <Col className="flex flex-col gap-2" md={10} sm={24}>
+                <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
                     <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
                     <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
                     <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
@@ -263,7 +361,7 @@ const PreviewContract = ({ form, partnerId }) => {
                     <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
                     <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
                 </Col>
-                <div className='pl-2'>
+                <div className={`pl-2 ${isDarkMode ? 'text-gray-300' : ''}`}>
                     <p>Sau khi bàn bạc và thống nhất chúng tôi cùng thỏa thuận ký kết bản hợp đồng với nội dung và các điều khoản sau: </p>
                     <p className="font-bold text-lg mt-4 mb-3"><u>NỘI DUNG HỢP ĐỒNG</u></p>
 
@@ -291,9 +389,9 @@ const PreviewContract = ({ form, partnerId }) => {
                             </div>
                         )}
                         <div>
-                        {formValues?.isDateLateChecked && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {formValues?.maxDateLate} (ngày) </p>}
+                            {formValues?.isDateLateChecked && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {formValues?.maxDateLate} (ngày) </p>}
                             {formValues?.autoAddVAT && <p className="mt-3">- Thuế VAT được tính ({formValues?.vatPercentage}%)</p>}
-      
+
 
                         </div>
 
@@ -306,7 +404,7 @@ const PreviewContract = ({ form, partnerId }) => {
                                     <p>- Ngày chấm dứt hiệu lực: {dayjs(formValues.expiryDate).format('HH:mm')}  ngày <b>{dayjs(formValues.expiryDate).format('DD/MM/YYYY')} </b></p>
                                 </div>
                             )}
-                                                  {formValues?.autoRenew && <p className="mt-3">- Tự động gia hạn khi hợp đồng hết hạn nếu không có bất kỳ phản hồi nào từ các phía</p>}
+                            {formValues?.autoRenew && <p className="mt-3">- Tự động gia hạn khi hợp đồng hết hạn nếu không có bất kỳ phản hồi nào từ các phía</p>}
                             {formValues?.appendixEnabled && <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực </p>}
 
                         </div>
@@ -328,7 +426,7 @@ const PreviewContract = ({ form, partnerId }) => {
                             )}
 
                             {/* Hiển thị nhóm điều khoản A */}
-                            {groupedTerms.A.length > 0 || formValues?.specialTermsA && (
+                            {(groupedTerms.A.length > 0 || formValues?.specialTermsA) && (
                                 <div className="term-group mb-2">
                                     <p className='font-bold' >ĐIỀU KHOẢN RIÊNG BÊN A</p>
                                     {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
@@ -338,7 +436,7 @@ const PreviewContract = ({ form, partnerId }) => {
 
 
                             {/* Hiển thị nhóm điều khoản B */}
-                            {groupedTerms.B.length > 0 || formValues?.specialTermsB && (
+                            {(groupedTerms.B.length > 0 || formValues?.specialTermsB) && (
                                 <div className="term-group mb-2">
                                     <p className='font-bold' >ĐIỀU KHOẢN RIÊNG BÊN B</p>
                                     {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
@@ -383,6 +481,11 @@ const PreviewContract = ({ form, partnerId }) => {
                     <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                 </div>
             </div>
+            {/* <div className="flex justify-center mt-6">
+                <Button type="primary" onClick={handleGenerateAIPrompt}>
+                    Phân tích hợp đồng (Gửi cho AI)
+                </Button>
+            </div> */}
         </div>
     );
 };

@@ -30,6 +30,9 @@ const ContractApproval = Loadable({ loader: () => import("../pages/ApprovalProce
 const ManagerContractApproval = Loadable({ loader: () => import("../pages/ApprovalProcess/ManageContractApproval") });
 const PreviewContract = Loadable({ loader: () => import("../pages/ApprovalProcess/PreviewContract") });
 const Approve = Loadable({ loader: () => import("../pages/ApprovalProcess/Approve") });
+const ContractDetail = Loadable({ loader: () => import("../pages/Contract/ContractDetail") });
+const EditTemplate = Loadable({ loader: () => import("../pages/template/EditTemplate") });
+const ChatTest = Loadable({ loader: () => import("../components/AI-Gen/ChatTest") });
 
 
 
@@ -39,6 +42,10 @@ export const router = createBrowserRouter([
         index: true,
         path: "/login",
         element: Login,
+    },
+    {
+        path: "/chat",
+        element: ChatTest,
     },
     {
         path: "/",
@@ -111,6 +118,10 @@ export const router = createBrowserRouter([
                     {
                         path: "contractsApproval",
                         element: ContractApproval,
+                    },
+                    {
+                        path: "EditTemplate/:id",
+                        element: EditTemplate,
                     },
                 ],
             },
@@ -215,6 +226,10 @@ export const router = createBrowserRouter([
                     {
                         path: "setting",
                         element: Setting,
+                    },
+                    {
+                        path: "ContractDetail/:id",
+                        element: ContractDetail,
                     },
                 ],
             },

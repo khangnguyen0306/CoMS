@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Select, Spin, Popover } from "antd";
 import { useLazyLoadSelect } from "./CustomHook";
 
@@ -33,9 +33,8 @@ const LazySelect = ({
         }, []);
     }, [data, keyword, initialOptions]);
 
-    // Render option với kiểm tra globalSelected
 
-console.log(globalSelected)
+
 
     const renderOptions = () => {
         if (children) {
@@ -69,7 +68,6 @@ console.log(globalSelected)
         });
     };
    
-
     return (
         <>
             <Select
