@@ -25,13 +25,13 @@ const ManageContracts = () => {
         keyword: searchText,
         status: status
     });
-
+    const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
 
-    useEffect(()=>{
+    useEffect(() => {
         refetch()
-    },[])
-    
+    }, [])
+
     // console.log(selectedContract)
     const handleDuplicate = async (contractId) => {
         try {
@@ -172,7 +172,7 @@ const ManageContracts = () => {
                                     key: "edit",
                                     icon: <EditFilled style={{ color: '#228eff' }} />,
                                     label: "Sửa",
-                                    onClick: () => message.info("Cập nhật hợp đồng!"),
+                                    onClick: () => navigate(`/EditContract/${record.id}`),
                                 },
                                 {
                                     key: "duplicate",

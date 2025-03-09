@@ -1,24 +1,27 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, Button, message, Typography, Space, Skeleton } from "antd";
+import { Modal, Form, Input, Button, message, Typography, Space, Skeleton, DatePicker } from "antd";
 import { useParams } from "react-router-dom";
 import { useGetUserByIdQuery, useUpdateUserMutation } from "../../services/UserAPI";
 import LOGO from './../../assets/Image/letterC.svg'
+import dayjs from 'dayjs';
 
 const { Title } = Typography;
 
+
+// làm lại
 const Profile = () => {
     const { id } = useParams();
-    const { data, isLoading } = useGetUserByIdQuery({ id });
+    const { data, isLoading } = useGetUserByIdQuery({ id });    
     const [updateUser] = useUpdateUserMutation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
-    console.log(data?.role.id)
+    // console.log(data?.role.id)
     const handleUpdateClick = () => {
         // Set các giá trị hiện có vào form
         form.setFieldsValue({
             full_name: data?.full_name,
             department: data?.position,
-            date_of_birth: data?.date_of_birth,
+            date_of_birth: data?.date_of_birth ? dayjs(data.date_of_birth) : null,
             phone_number: data?.phone_number,
             address: data?.address,
             email: data?.email,
@@ -36,7 +39,7 @@ const Profile = () => {
                 email: values.email,
                 address: values.address,
                 phone_number: values.phone_number,
-                date_of_birth: values.date_of_birth,
+                date_of_birth: values.date_of_birth.format('YYYY-MM-DD'),
                 full_name: values.full_name,
                 is_ceo: data.is_ceo,
                 role_id: data.role.id,
@@ -175,8 +178,25 @@ const Profile = () => {
                         <Form.Item
                             name="date_of_birth"
                             label="Năm Sinh"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Vui lòng chọn năm sinh!",
+                                },
+                                {
+                                    validator: (_, value) => {
+                                        if (!value || (dayjs().year() - value.year() < 18)) {
+                                            return Promise.reject(new Error("Tuổi không thể nhỏ hơn 18!"));
+                                        }
+                                        return Promise.resolve();
+                                    },
+                                },
+                            ]}
                         >
-                            <Input placeholder="Nhập năm sinh" />
+                            <DatePicker
+                                placeholder="Chọn ngày sinh"
+                                disabledDate={(current) => current && current > dayjs().endOf('day')}
+                            />
                         </Form.Item>
                         <Form.Item
                             name="phone_number"

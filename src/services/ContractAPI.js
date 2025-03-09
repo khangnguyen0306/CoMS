@@ -124,6 +124,14 @@ export const ContractAPI = createApi({
             invalidatesTags: (result, error, { contractId }) => [{ type: "Contract", id: contractId }],
         }),
 
+        updateContract: builder.mutation({
+            query: ({ contractId, ...contractData }) => ({
+                url: `/contracts/update/${contractId}`, 
+                method: "PUT",
+                body: contractData,
+            }),
+            invalidatesTags: (result, error, { contractId }) => [{ type: "Contract", id: contractId }],
+        }),
 
         deleteContract: builder.mutation({
             query: (contractId) => ({
@@ -184,7 +192,9 @@ export const {
     useReStoreContractMutation,
     useSoftDeleteContractMutation,
     useDeleteContractMutation,
-    useGetContractPorcessQuery,
+    useLazyGetContractDetailQuery,
+    useUpdateContractMutation,
+    useGetContractPorcessQuery
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

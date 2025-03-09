@@ -269,7 +269,7 @@ const Process = ({ contractId, onProcessApplied }) => {
         }) || [];
 
     return (
-        <div>
+        <div className='min-h-[100vh]'>
             <div className="flex flex-col gap-2 border-2 border-gray-500 p-4 rounded-xl shadow-lg">
                 <div className="flex items-center cursor-pointer">
                     <Radio checked={selection === "auto"} onChange={handleChange} value="auto">

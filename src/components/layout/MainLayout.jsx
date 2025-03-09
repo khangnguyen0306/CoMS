@@ -27,11 +27,9 @@ import { FaFileCirclePlus } from "react-icons/fa6";
 import { FcApproval, FcProcess } from "react-icons/fc";
 import RealTimeNotification from "../../pages/Noti/RealTimeNotiPay";
 import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
-import { MdLightMode } from "react-icons/md";
-import { List } from "antd/es/form/Form";
-import Profile from "../../pages/Profile/Profile";
-import { MdDarkMode } from "react-icons/md";
+
 import { toggleTheme } from "../../slices/themeSlice";
+import { HiMiniClipboardDocumentCheck } from "react-icons/hi2";
 import "./button.css"
 const MainLayout = () => {
   const dispatch = useDispatch();
@@ -170,14 +168,16 @@ const MainLayout = () => {
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Clause', key: "clause" },
-    { icon: FcApproval, label: 'Phê duyệt hợp đồng', key: "contractsApproval" },
+ 
     {
       icon: FaFileContract, label: 'Hợp đồng', children: [
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
-        { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
-        { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
-        { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
+        // { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
+        // { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
+        { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
+        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
+        { icon: HiMiniClipboardDocumentCheck , label: 'Phê duyệt', key: "contractsApproval" },
 
       ]
     },

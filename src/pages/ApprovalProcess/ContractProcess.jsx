@@ -119,7 +119,7 @@ const ContractProcess = () => {
     console.log(selectedRecord?.id);
 
     return (
-        <div className="flex flex-col md:flex-row">
+        <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                     PHÊ DUYỆT HỢP ĐỒNG
