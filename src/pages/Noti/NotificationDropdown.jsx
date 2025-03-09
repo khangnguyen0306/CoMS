@@ -1,34 +1,36 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Badge, Divider, Dropdown, List, Spin } from "antd";
+import { Badge, Dropdown, List } from "antd";
 import { BellFilled } from "@ant-design/icons";
 import { useLazyGetNotificationsQuery, useUpdateReadStatusMutation } from "../../services/NotiAPI";
 import dayjs from "dayjs";
+import { useDispatch, useSelector } from "react-redux";
+import { selectNotiNumber, setNotiNumber } from "../../slices/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const NotificationDropdown = () => {
-  // Quản lý trang hiện tại và kích thước trang
   const [page, setPage] = useState(0);
   const pageSize = 10;
-  // State lưu danh sách thông báo đã tải về
   const [notifications, setNotifications] = useState([]);
-  // Sử dụng lazy query để tải thông báo theo trang
-  const [fetchNotifications, { data: notiData, isFetching }] = useLazyGetNotificationsQuery();
+  const [fetchNotifications, { data: notiData, isFetching, }] = useLazyGetNotificationsQuery();
   const [update] = useUpdateReadStatusMutation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  // Lấy giá trị notiNumber từ state thông qua useSelector
+  const notiNumber = useSelector(selectNotiNumber);
 
-  // Tải trang đầu tiên khi component mount
   useEffect(() => {
     fetchNotifications({ page, size: pageSize });
   }, [page, fetchNotifications]);
 
-  // Khi dữ liệu mới được tải về, thêm vào danh sách notifications
   useEffect(() => {
     if (notiData && notiData.data && notiData.data.content) {
       setNotifications((prev) => [...prev, ...notiData.data.content]);
     }
   }, [notiData]);
 
-  // Hàm đánh dấu thông báo đã đọc
+
   const handleReadNoti = async (id) => {
     try {
       await update(id).unwrap();
@@ -37,17 +39,19 @@ const NotificationDropdown = () => {
           noti.id === id ? { ...noti, isRead: true } : noti
         )
       );
+      // Giảm số thông báo chưa đọc
+      dispatch(setNotiNumber(notiNumber - 1));
+      if (data.contractId) {
+        navigate(`/manager/ContractDetail/${data.contractId}`);
+      }
     } catch (error) {
       console.log(error);
     }
   };
 
-  // Hàm xử lý sự kiện cuộn của container
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    // Nếu đã cuộn gần dưới cùng và không đang tải dữ liệu
     if (scrollHeight - scrollTop <= clientHeight + 10 && !isFetching) {
-      // Tính số trang tổng cộng (nếu BE trả về totalElements)
       const totalPages = Math.ceil(notiData?.data?.totalElements / pageSize);
       if (page + 1 < totalPages) {
         setPage(page + 1);
@@ -55,7 +59,6 @@ const NotificationDropdown = () => {
     }
   };
 
-  // Hàm định dạng message với ngày giờ
   const formatMessage = (msg) => {
     const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
     let formattedDate = "";
@@ -75,17 +78,17 @@ const NotificationDropdown = () => {
       {notifications.length === 0 ? (
         <p className="m-0">Không có thông báo</p>
       ) : (
-        <>
-          <List
-            dataSource={notifications}
-            renderItem={(item, index) => (
-              <List.Item
-                key={index}
-                className="border-b-2 border-gray-400 py-2 flex justify-between items-center"
-                onClick={() => handleReadNoti(item.id)}
-              >
+        <List
+          dataSource={notifications}
+          renderItem={(item) => (
+            <List.Item
+              key={item.id}
+              className="border-b-2 border-gray-400 py-2"
+              onClick={() => handleReadNoti(item.id)}
+            >
+              <div className="flex justify-between items-center w-full">
                 <div
-                  className="w-[85%] whitespace-pre-line"
+                  className="w-[85%] overflow-hidden text-ellipsis whitespace-nowrap"
                   style={{ fontWeight: item.isRead ? "normal" : "bold" }}
                 >
                   {formatMessage(item.message)}
@@ -93,16 +96,10 @@ const NotificationDropdown = () => {
                 {!item.isRead && (
                   <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" />
                 )}
-                <Divider></Divider>
-              </List.Item>
-            )}
-          />
-          {isFetching && (
-            <div className="flex justify-center py-2">
-              <Spin size="small" />
-            </div>
+              </div>
+            </List.Item>
           )}
-        </>
+        />
       )}
     </div>
   );
@@ -114,10 +111,15 @@ const NotificationDropdown = () => {
         overlay={dropdownContent}
         trigger={["click"]}
         className={`p-2 rounded-full ${!isOpen ? "bg-gray-600" : "bg-slate-700"}`}
-        onOpenChange={(visible) => setIsOpen(visible)}
+        onOpenChange={(visible) => {
+          setIsOpen(visible);
+          // setPage(0);
+          fetchNotifications({ page: 0, size: pageSize });
+        }}
       >
         <Badge
-          count={notifications.filter((item) => !item.isRead).length || 0}
+          count={notiNumber}
+          // overflowCount={9}
           size="small"
           className="flex justify-center items-center"
         >

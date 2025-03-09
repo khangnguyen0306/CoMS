@@ -2,24 +2,33 @@ import React, { useEffect, useState } from "react";
 import { notification } from "antd";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import { useSelector } from "react-redux";
-import { selectCurrentToken, selectCurrentUser } from "../../slices/authSlice";
+import { useSelector, useDispatch } from "react-redux";
+import { selectCurrentToken, selectCurrentUser, setNotiNumber } from "../../slices/authSlice";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const RealTimeNotification = () => {
     const token = useSelector(selectCurrentToken);
     const user = useSelector(selectCurrentUser);
-    // console.log(token);
-    // Lazy initialization: lấy notifications từ sessionStorage nếu có, ngược lại là mảng rỗng
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    // Khởi tạo notifications từ sessionStorage nếu có
     const [notifications, setNotifications] = useState(() => {
         const stored = sessionStorage.getItem("notifications");
         return stored ? JSON.parse(stored) : [];
     });
 
-    // Mỗi khi notifications thay đổi, lưu vào sessionStorage
+    // Lưu notifications vào sessionStorage mỗi khi thay đổi
     useEffect(() => {
         sessionStorage.setItem("notifications", JSON.stringify(notifications));
     }, [notifications]);
+
+    // Hàm cập nhật notiNumber dựa trên số thông báo chưa đọc
+    const updateNotiNumber = (newNotifications) => {
+        const unreadCount = newNotifications.filter((noti) => noti.isRead == false).length;
+        dispatch(setNotiNumber(unreadCount));
+    };
 
     useEffect(() => {
         const socket = new SockJS("http://157.66.26.11:8088/ws");
@@ -36,31 +45,28 @@ const RealTimeNotification = () => {
 
         stompClient.onConnect = (frame) => {
             console.log("Connected: ", frame);
-            // Đăng ký subscribe đến kênh của user (ví dụ sử dụng user.fullName làm định danh)
+            // Subscribe kênh payment
             stompClient.subscribe(`/user/${user.fullName}/queue/payment`, (message) => {
-                console.log("Received message: ", message);
-                const data = JSON.parse(message.body);
-                console.log("Contract ID: ", data.contractId);
+                console.log("Received payment message: ", message);
                 if (message.body) {
                     const data = JSON.parse(message.body);
                     const msg = data.message;
 
-                    // Tách phần ngày giờ theo định dạng ISO (ví dụ: 2025-02-27T18:59)
                     const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
                     let formattedDate = "";
                     if (dateMatch && dateMatch[1]) {
                         formattedDate = dayjs(dateMatch[1]).format("DD/MM/YYYY HH:mm");
                     }
-                    // Chuyển "lúc" thành "Lúc" và xuống dòng trước đó
                     const displayMessage = msg.replace(/lúc\s+[\d\-T:]+/, `\nLúc ${formattedDate}`);
 
-                    // Tạo một đối tượng thông báo mới
-                    const newNotification = { message: displayMessage };
+                    const newNotification = { message: displayMessage, contractId: data.contractId, isRead: false };
 
-                    // Cập nhật state notifications và lưu vào localStorage (nhờ useEffect phía trên)
-                    setNotifications((prev) => [...prev, newNotification]);
+                    setNotifications((prev) => {
+                        const updated = [...prev, newNotification];
+                        updateNotiNumber(updated);
+                        return updated;
+                    });
 
-                    // Hiển thị thông báo sử dụng antd notification
                     notification.open({
                         message: "Thông báo",
                         description: displayMessage,
@@ -69,38 +75,33 @@ const RealTimeNotification = () => {
                         pauseOnHover: true,
                         showProgress: true,
                         type: "warning",
+
                     });
                 }
             });
-        };
 
-        stompClient.onConnect = (frame) => {
-            console.log("Connected: ", frame);
-            // Đăng ký subscribe đến kênh của user (ví dụ sử dụng user.fullName làm định danh)
-            stompClient.subscribe(`/user/${user.fullName}//queue/notifications`, (message) => {
-                console.log("Received message: ", message);
-                const data = JSON.parse(message.body);
-                console.log("Contract ID: ", data.contractId);
+            // Subscribe kênh notifications
+            stompClient.subscribe(`/user/${user.fullName}/queue/notifications`, (message) => {
+                console.log("Received notification message: ", message);
                 if (message.body) {
                     const data = JSON.parse(message.body);
                     const msg = data.message;
 
-                    // Tách phần ngày giờ theo định dạng ISO (ví dụ: 2025-02-27T18:59)
                     const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
                     let formattedDate = "";
                     if (dateMatch && dateMatch[1]) {
                         formattedDate = dayjs(dateMatch[1]).format("DD/MM/YYYY HH:mm");
                     }
-                    // Chuyển "lúc" thành "Lúc" và xuống dòng trước đó
                     const displayMessage = msg.replace(/lúc\s+[\d\-T:]+/, `\nLúc ${formattedDate}`);
 
-                    // Tạo một đối tượng thông báo mới
-                    const newNotification = { message: displayMessage };
+                    const newNotification = { message: displayMessage, contractId: data.contractId, isRead: false };
 
-                    // Cập nhật state notifications và lưu vào localStorage (nhờ useEffect phía trên)
-                    setNotifications((prev) => [...prev, newNotification]);
+                    setNotifications((prev) => {
+                        const updated = [...prev, newNotification];
+                        updateNotiNumber(updated);
+                        return updated;
+                    });
 
-                    // Hiển thị thông báo sử dụng antd notification
                     notification.open({
                         message: "Thông báo",
                         description: displayMessage,
@@ -109,6 +110,9 @@ const RealTimeNotification = () => {
                         pauseOnHover: true,
                         showProgress: true,
                         type: "warning",
+                        onClick: () => {
+                            navigate(`/manager/ContractDetail/${data.contractId}`);
+                        },
                     });
                 }
             });
@@ -119,7 +123,7 @@ const RealTimeNotification = () => {
         return () => {
             stompClient.deactivate();
         };
-    }, [token, user]);
+    }, [token, user, dispatch]);
 
     return null;
 };

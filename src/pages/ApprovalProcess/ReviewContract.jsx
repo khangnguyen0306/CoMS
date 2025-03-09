@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input } from "antd";
+import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input, Divider } from "antd";
 import { FileSearchOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { useGetContractDetailQuery } from "../../services/ContractAPI";
 import { useNavigate, useParams } from "react-router-dom";
@@ -46,114 +46,126 @@ const ReviewContract = () => {
                 {/* Thông tin hợp đồng */}
                 <Col xs={24} lg={16}>
                     <Card
-                        bordered={false}
-                        className="p-6 mb-6"
-                        style={{
-                            boxShadow: "0 0 12px 4px rgba(0, 0, 0, 0.2)",
-                        }}
+                        className="p-6 mb-6 rounded-lg shadow-[0_0_12px_4px_rgba(0,0,0,0.2)]"
                     >
-                        {/* Phần tiêu đề hợp đồng và thông tin chung */}
-                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
-                            {/* Cột trái: Mã HĐ, Người tạo, Số HĐ... */}
-                            <div className="flex flex-col gap-2 w-full md:w-1/3">
-                                <div>
-                                    <Text className="font-bold text-blue-500">Người Tạo:</Text>
-                                    <Text className="ml-2">
+                        {/* Phần tiêu đề & thông tin chung */}
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-6">
+                            {/* Cột trái: Người Tạo, Mã HĐ */}
+                            <div className="flex flex-col gap-2 md:w-1/3">
+                                <div className="text-sm">
+                                    <Text strong className="text-slate-700">
+                                        Người Tạo:
+                                    </Text>
+                                    <Text className="ml-2 text-slate-600">
                                         {contract?.user?.full_name || "Chưa cập nhật"}
                                     </Text>
                                 </div>
-                                <div>
-                                    <Text className="font-bold text-blue-500">Mã HĐ:</Text>
-                                    <Text className="ml-2">{contract?.contractNumber || "Chưa cập nhật"}</Text>
+                                <div className="text-sm">
+                                    <Text strong className="text-slate-700">
+                                        Mã HĐ:
+                                    </Text>
+                                    <Text className="ml-2 text-slate-600">
+                                        {contract?.contractNumber || "Chưa cập nhật"}
+                                    </Text>
                                 </div>
-                            </div>
-
-                            {/* Cột giữa: Tên hợp đồng, Version... */}
-                            <div className="flex-1">
                                 <div className="flex flex-col md:flex-row justify-between items-start gap-2">
-                                    <Text className="text-xl font-bold">
+                                    <Text className="text-lg md:text-xl font-bold text-slate-800">
                                         {contract?.title || "Chưa cập nhật"}
                                     </Text>
-                                    <div className="flex flex-col items-start">
-                                        <Text className="text-gray-400 text-sm md:text-base">
-                                            Version hợp đồng: 2.0
-                                        </Text>
-                                        <Button className="mt-2" icon={<FileSearchOutlined />}>
-                                            So Sánh Version Trước Đó
-                                        </Button>
-                                    </div>
+
                                 </div>
                             </div>
 
-                            {/* Cột phải: Trạng thái, Tag, ... (tuỳ ý) */}
-                            <div className="w-full md:w-1/4 flex flex-col items-start md:items-end gap-2">
-                                <div>
-                                    <Tag color="orange" className="text-base">
-                                        Đang chờ phê duyệt
-                                    </Tag>
-                                </div>
-                                <div>
-                                    <Text className="text-sm text-gray-500">
-                                        Có thể còn 1 ngày trước khi hết hạn
+
+
+                            {/* Cột phải: Trạng thái, cảnh báo... */}
+                            <div className="md:w-1/4 flex flex-col items-start md:items-end gap-2">
+                                <div className="flex flex-col items-start">
+                                    <Button onClick={handleNavigate} type="primary" icon={<FileSearchOutlined />} className="shadow mb-2">
+                                        Xem Chi Tiết Hợp Đồng
+                                    </Button>
+                                    <Text className="text-gray-500 text-sm md:text-base">
+                                        Version hợp đồng: 2.0
                                     </Text>
+                                    <Button
+                                        className="my-2"
+                                        icon={<FileSearchOutlined />}
+                                        type="default"
+                                    >
+                                        So Sánh Version Trước Đó
+                                    </Button>
+
                                 </div>
                             </div>
                         </div>
 
-                        {/* Phần nội dung chi tiết bên dưới */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <div className="mb-2">
-                                    <Text className="font-bold text-blue-500">Đối Tác:</Text>
-                                    <Text className="ml-2">{contract?.party?.partnerName || "Chưa cập nhật"}</Text>
+                        {/* Dòng kẻ ngăn cách */}
+                        <Divider className="my-4 border-t-2 border-gray-500" />
+
+                        {/* Phần nội dung chi tiết */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-600">
+                            <div className="space-y-2">
+                                <div>
+                                    <Text strong className="text-slate-700">
+                                        Đối Tác:
+                                    </Text>
+                                    <Text className="ml-2">
+                                        {contract?.party?.partnerName || "Chưa cập nhật"}
+                                    </Text>
                                 </div>
-                                <div className="mb-2">
-                                    <Text className="font-bold text-blue-500">Giá Trị:</Text>
+                                <div>
+                                    <Text strong className="text-slate-700">
+                                        Giá Trị:
+                                    </Text>
                                     <Text className="ml-2">
                                         {contract?.amount?.toLocaleString() || "Chưa cập nhật"} VND
                                     </Text>
                                 </div>
-                                <div className="mb-2">
-                                    <Text className="font-bold text-blue-500">Ngày Tạo:</Text>
+                                <div>
+                                    <Text strong className="text-slate-700">
+                                        Ngày Tạo:
+                                    </Text>
                                     <Text className="ml-2">
                                         {contract?.createdAt
                                             ? new Date(...contract.createdAt).toLocaleString()
                                             : "Chưa cập nhật"}
                                     </Text>
                                 </div>
-                                <div className="mb-2">
-                                    <Text className="font-bold text-blue-500">Ngày Ký:</Text>
-                                    <Text className="ml-2">
-                                        {contract?.signingDate
-                                            ? new Date(...contract.signingDate).toLocaleString()
-                                            : "Chưa cập nhật"}
-                                    </Text>
-                                </div>
+
                             </div>
 
-                            <div>
-                                <div className="mb-2">
-                                    <Text className="font-bold text-blue-500">Ngày Hiệu lực:</Text>
+                            <div className="ml-32 space-y-2">
+                                <div>
+                                    <Text strong className="text-slate-700">
+                                        Ngày Hiệu lực:
+                                    </Text>
                                     <Text className="ml-2">
                                         {contract?.effectiveDate
                                             ? new Date(...contract.effectiveDate).toLocaleString()
                                             : "Chưa cập nhật"}
                                     </Text>
                                 </div>
-                                <div className="mb-2">
-                                    <Text className="font-bold text-blue-500">Ngày Hết Hạn:</Text>
+                                <div>
+                                    <Text strong className="text-slate-700">
+                                        Ngày Hết Hạn:
+                                    </Text>
                                     <Text className="ml-2">
                                         {contract?.expiryDate
                                             ? new Date(...contract.expiryDate).toLocaleString()
                                             : "Chưa cập nhật"}
                                     </Text>
                                 </div>
-                                <div className="mb-2">
-                                    <Text className="font-bold text-blue-500">Địa Điểm:</Text>
+                                <div>
+                                    <Text strong className="text-slate-700">
+                                        Ngày Ký:
+                                    </Text>
                                     <Text className="ml-2">
-                                        {contract?.contractLocation || "Chưa cập nhật"}
+                                        {contract?.signingDate
+                                            ? new Date(...contract.signingDate).toLocaleString()
+                                            : "Chưa cập nhật"}
                                     </Text>
                                 </div>
+
                             </div>
                         </div>
                     </Card>

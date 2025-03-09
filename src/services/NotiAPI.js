@@ -20,7 +20,7 @@ export const notiAPI = createApi({
         // Lấy danh sách thông báo
         getNotifications: builder.query({
             query: ({ page, size }) => ({
-                url: `notifications/get-all-by-user?page=${page}&size=${size}`,
+                url: `notifications/get-all-by-user?page=${page || 0}&size=${size || 10}`,
                 method: "GET",
             }),
             providesTags: (result, error, Notifications) => [{ type: "Notifications", id: Notifications }],

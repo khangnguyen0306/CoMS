@@ -57,7 +57,7 @@ const MainLayout = () => {
     "createContract": "/createContract",
     'setting': '/manager/setting',
     "process": "/process",
-    "DeleteContract":'/DeleteContract',
+    "DeleteContract": '/DeleteContract',
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
     '4': '/combo',
@@ -297,7 +297,7 @@ const MainLayout = () => {
           <div className="flex justify-center items-center mr-36">
             <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p>
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
-            
+
             <Avatar
               size="large"
               icon={<UserOutlined />}
@@ -352,7 +352,9 @@ const MainLayout = () => {
               boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
             }}
           >
-            {user?.roles[0] === "ROLE_STAFF" && <RealTimeNotification />}
+            {(user?.roles?.includes("ROLE_STAFF") || user?.roles?.includes("ROLE_MANAGER")) && (
+              <RealTimeNotification />
+            )}
             <Outlet />
           </Content>
 
