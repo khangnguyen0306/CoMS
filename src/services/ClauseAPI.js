@@ -20,8 +20,8 @@ export const clauseAPI = createApi({
     endpoints: (builder) => ({
 
         getClauseManage: builder.query({
-            query: ({ keyword, page, size, typeTermIds }) => ({
-                url: `/terms/get-all?typeTermIds=${typeTermIds}&keyword=${keyword?.trim() || ""}&page=${page}&size=${size}`,
+            query: ({ keyword, page, size, typeTermIds, order, sortBy }) => ({
+                url: `/terms/get-all?typeTermIds=${typeTermIds}&keyword=${keyword?.trim() || ""}&page=${page}&size=${size}&sortBy=${sortBy}&order=${order}`,
                 method: "GET",
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
@@ -48,19 +48,19 @@ export const clauseAPI = createApi({
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
         CreateClause: builder.mutation({
-            query: ({ idType, label, value, typeTermId }) => ({
-                url: `/terms/create/${idType}`,
+            query: ({ label, value, typeTermId }) => ({
+                url: `/terms/create/${typeTermId}`,
                 method: "POST",
-                body: { label, value, typeTermId },
+                body: { label, value },
             }),
             invalidatesTags: [{ type: "Clause", id: "LIST" }],
             // providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
         UpdateClause: builder.mutation({
-            query: ({ termId, label, value,typeTermId }) => ({
+            query: ({ termId, label, value, typeTermId }) => ({
                 url: `/terms/update/${termId}`,
                 method: "PUT",
-                body: { label, value,typeTermId },
+                body: { label, value, typeTermId },
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),

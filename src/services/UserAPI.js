@@ -1,12 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { selectTokens } from "../slices/authSlice";
-// import { BE_API_LOCAL } from "../config";
+import { BE_API_LOCAL } from "../config/config";
 
 export const userAPI = createApi({
     reducerPath: "userManagement",
     tagTypes: ['USER', 'ROLE'],
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://localhost:8080/api/v1",
+        baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -27,6 +27,13 @@ export const userAPI = createApi({
                     ? [...result.users.map(({ id }) => ({ type: "USER", id })), { type: "USER", id: "LIST" }]
                     : [{ type: "USER", id: "LIST" }],
 
+        }),
+        getUserById: builder.query({
+            query: ({ id }) => ({
+                url: `/users/get-user/${id}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, userId) => [{ type: "USER", id: userId }],
         }),
         BanUser: builder.mutation({
             query: ({ userId }) => ({
@@ -58,6 +65,13 @@ export const userAPI = createApi({
             }),
             invalidatesTags: [{ type: "USER", id: "LIST" }],
         }),
+        GetUserStaffManager: builder.query({
+            query: () => ({
+                url: `/users/get-all-staff-and-manager`,
+                method: "GET",
+            }),
+            providesTags: (result, error, User) => [{ type: "User", id: User }],
+        }),
     }),
 });
 
@@ -67,6 +81,8 @@ export const {
     useActiveUserMutation,
     useUpdateUserMutation,
     useAddUserMutation,
-    useLazyGetAllUserQuery
+    useLazyGetAllUserQuery,
+    useGetUserStaffManagerQuery,
+    useGetUserByIdQuery,
 
 } = userAPI;

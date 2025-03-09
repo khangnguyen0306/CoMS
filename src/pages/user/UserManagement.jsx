@@ -311,6 +311,19 @@ const UserManagement = () => {
                             </Select>
                         </Form.Item>
 
+                        {/* <Form.Item
+                            name="department_id"
+                            label="Chọn phòng ban"
+                            rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
+                        >
+                            <Select placeholder="Chọn phòng ban">
+                                <Option value={1}>Phòng Kinh Doanh</Option>
+                                <Option value={2}>Phòng Marketing</Option>
+                                <Option value={3}>Phòng Nhân Sự</Option>
+                                <Option value={4}>Phòng Tài chính</Option>
+                            </Select>
+                        </Form.Item> */}
+
                         <Form.Item
                             name="is_ceo"
                             label="CEO"

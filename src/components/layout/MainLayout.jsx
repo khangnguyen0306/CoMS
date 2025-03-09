@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge, Button } from "antd";
-import { BellOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled } from "@ant-design/icons";
+import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge, Button, Avatar } from "antd";
+import { BellOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
@@ -15,7 +15,7 @@ import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
 import { AiFillIdcard } from "react-icons/ai";
 import { FaTasks } from "react-icons/fa";
-import { GoLaw } from "react-icons/go";
+import { GoChecklist, GoLaw } from "react-icons/go";
 import { FaHandshakeSimple } from "react-icons/fa6";
 import LOGO from './../../assets/Image/letterC.svg'
 import { logOut, selectCurrentUser } from "../../slices/authSlice";
@@ -24,11 +24,12 @@ const { Content, Sider } = Layout;
 import { FaUserCog } from "react-icons/fa";
 import { LuWaypoints } from "react-icons/lu";
 import { FaFileCirclePlus } from "react-icons/fa6";
-import { FcProcess } from "react-icons/fc";
-import RealTimeNotification from "../../pages/Noti/RealTimeNotification";
+import { FcApproval, FcProcess } from "react-icons/fc";
+import RealTimeNotification from "../../pages/Noti/RealTimeNotiPay";
 import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
 import { MdLightMode } from "react-icons/md";
 import { List } from "antd/es/form/Form";
+import Profile from "../../pages/Profile/Profile";
 import { MdDarkMode } from "react-icons/md";
 import { toggleTheme } from "../../slices/themeSlice";
 import "./button.css"
@@ -57,6 +58,8 @@ const MainLayout = () => {
     'setting': '/manager/setting',
     "process": "/process",
     "DeleteContract":'/DeleteContract',
+    "contractsApproval": "/contractsApproval",
+    'approvalContract': '/manager/approvalContract',
     '4': '/combo',
   }
 
@@ -85,6 +88,7 @@ const MainLayout = () => {
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
         { icon: FaTasks, label: 'Task', key: "task" },
         { icon: GoLaw, label: 'Điều khoản', key: "clause" },
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
@@ -166,7 +170,7 @@ const MainLayout = () => {
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Clause', key: "clause" },
-    { icon: FcProcess, label: 'Quy trình', key: "process" },
+    { icon: FcApproval, label: 'Phê duyệt hợp đồng', key: "contractsApproval" },
     {
       icon: FaFileContract, label: 'Hợp đồng', children: [
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
@@ -289,10 +293,17 @@ const MainLayout = () => {
             />
             <p className={`ml-2 ${isDarkMode ? "text-white" : "text-black"}`}>Quản lý hợp đồng CoMS</p>
           </div>
+
           <div className="flex justify-center items-center mr-36">
             <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p>
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
             
+            <Avatar
+              size="large"
+              icon={<UserOutlined />}
+              className="bg-slate-500 cursor-pointer ml-4"
+              onClick={() => navigate(`/profile/${user.id}`)}
+            />
             <label className="switch ml-6" >
               <input
                 checked={!isDarkMode}
@@ -315,7 +326,8 @@ const MainLayout = () => {
             </label>
 
 
-            {/* coi lại chỗ này sau khi test được real time notification */}
+
+
           </div>
         </Header>
 
