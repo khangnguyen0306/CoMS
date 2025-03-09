@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { useGetAllContractQuery } from "../../services/ContractAPI";
+import { useGetContractPorcessQuery } from "../../services/ContractAPI";
 import { Link } from "react-router-dom";
 import Process from "../Process/Process";
 import dayjs from "dayjs";
 const { Search } = Input;
 
 const ContractProcess = () => {
-    const { data: contracts, isLoading, isError } = useGetAllContractQuery();
+    const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessQuery();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
@@ -159,6 +159,7 @@ const ContractProcess = () => {
                         contractId={selectedRecord?.id}
                         onProcessApplied={() => {
                             handleCancel();
+                            refetch();
                         }}
                     />
                 </Modal>

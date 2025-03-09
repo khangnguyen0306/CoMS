@@ -5,6 +5,7 @@ const authSlice = createSlice({
     initialState: {
         token: sessionStorage.getItem("token") || null,
         user: null,
+        notiNumber: 0,
     },
     reducers: {
         setToken: (state, action) => {
@@ -13,6 +14,9 @@ const authSlice = createSlice({
         },
         setUser: (state, action) => {
             state.user = action.payload;
+        },
+        setNotiNumber: (state, action) => {
+            state.notiNumber = action.payload;
         },
         setCredentials: (state, action) => {
             const { user, accessToken } = action.payload;
@@ -32,8 +36,9 @@ const authSlice = createSlice({
     },
 });
 
-export const { setToken, setUser, setCredentials, logOut } = authSlice.actions;
+export const { setToken, setUser, setCredentials, logOut, setNotiNumber } = authSlice.actions;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectCurrentToken = (state) => state.auth.token;
+export const selectNotiNumber = (state) => state.auth.notiNumber;
 export const { selectTokens } = authSlice.selectors;
 export default authSlice.reducer;

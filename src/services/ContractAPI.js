@@ -56,7 +56,13 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
-
+        getContractPorcess: builder.query({
+            query: () => ({
+                url: `contracts?status=CREATED`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
         createContractType: builder.mutation({
             query: ({ name }) => ({
                 url: `contract-types`,
@@ -109,16 +115,16 @@ export const ContractAPI = createApi({
 
         reStoreContract: builder.mutation({
             query: (contractId) => ({
-                url: `/contracts/status/${contractId}`, 
-                params:{
-                    status:"DRAFT"
+                url: `/contracts/status/${contractId}`,
+                params: {
+                    status: "DRAFT"
                 },
                 method: "PUT",
             }),
             invalidatesTags: (result, error, { contractId }) => [{ type: "Contract", id: contractId }],
         }),
 
-        
+
         deleteContract: builder.mutation({
             query: (contractId) => ({
                 url: `/contracts/${contractId}`, // Use contractId instead of doctorId
@@ -177,7 +183,8 @@ export const {
     useDuplicateContractMutation,
     useReStoreContractMutation,
     useSoftDeleteContractMutation,
-    useDeleteContractMutation
+    useDeleteContractMutation,
+    useGetContractPorcessQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;
 
