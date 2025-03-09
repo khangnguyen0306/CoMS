@@ -24,9 +24,9 @@ const ManageClause = () => {
     const [sortOrderLegal, setSortOrderLegal] = useState('desc');
     const [activeTab, setActiveTab] = useState("1");
     const [pageClause, setPageClause] = useState(0);
-    const [pageSizeClause, setPageSizeClause] = useState("10");
+    const [pageSizeClause, setPageSizeClause] = useState(10);
     const [pageLegal, setPageLegal] = useState(0);
-    const [pageSizeLegal, setPageSizeLegal] = useState("10");
+    const [pageSizeLegal, setPageSizeLegal] = useState(10);
     const [isModalOpenClause, setIsModalOpenClause] = useState(false);
     const [isModalOpenLegal, setIsModalOpenLegal] = useState(false);
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
@@ -59,6 +59,11 @@ const ManageClause = () => {
             dateArr[5],
         );
     };
+
+    useEffect(()=>{
+        refetchClause()
+        refetchLegal()
+    },[])
 
     const calculateDaysAgo = (createdAt) => {
         const createdDate = convertToDate(createdAt);
@@ -311,7 +316,7 @@ const ManageClause = () => {
                         {/* Sửa nested <p> thành <div> */}
                         <div className='font-bold mb-10  text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
-                                Quản Lý Điều Khoản
+                               QUẢN LÝ ĐIỀU KHOẢN
                             </div>
                         </div>
                         <div className='flex w-5/5 gap-4'>
@@ -505,7 +510,7 @@ const ManageClause = () => {
                                         <Card
                                             bordered
                                             className="shadow-lg rounded-lg"
-                                            style={{ width: 320, borderColor: "#d1d5db" }}
+                                            style={{ width: 550,  borderColor: "#d1d5db" }}
                                         >
                                             <Title level={4} className="text-blue-600">Chi tiết điều khoản</Title>
                                             <div className="mt-2 space-y-1">
@@ -534,7 +539,7 @@ const ManageClause = () => {
                                         </Card>
 
                                     }
-                                    placement="top-right"
+                                    placement="bottomRight"
                                     trigger="hover"
                                 >
                                     <List.Item
@@ -621,7 +626,7 @@ const ManageClause = () => {
                     <div className="p-4 min-h-[100vh]">
                         <div className='font-bold mb-10 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
-                                Quản Lý Căn Cứ Pháp Lý
+                            QUẢN LÝ CĂN CỨ PHÁP LÝ
                             </div>
                         </div>
                         <div className='flex w-3/5 gap-4'>
@@ -762,7 +767,7 @@ const ManageClause = () => {
                                         <Card
                                             bordered
                                             className="shadow-lg rounded-lg"
-                                            style={{ width: 320, borderColor: "#d1d5db" }}
+                                            style={{ width: 550, borderColor: "#d1d5db" }}
                                         >
                                             <Title level={4} className="text-blue-600">Chi tiết căn cứ</Title>
                                             <div className="mt-2 space-y-1">
@@ -790,7 +795,7 @@ const ManageClause = () => {
                                             </div>
                                         </Card>
                                     }
-                                    placement="top-right"
+                                    placement="bottomRight"
                                     trigger="hover"
                                 >
                                     <List.Item

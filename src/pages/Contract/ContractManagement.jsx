@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
 import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined } from "@ant-design/icons";
-import { useDuplicateContractMutation, useGetAllContractQuery } from "../../services/ContractAPI";
+import { useDuplicateContractMutation, useGetAllContractQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -12,7 +12,6 @@ const { Search } = Input;
 const ManageContracts = () => {
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
-    const navigate = useNavigate()
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
@@ -27,6 +26,12 @@ const ManageContracts = () => {
         status: status
     });
 
+    const [softDelete] = useSoftDeleteContractMutation()
+
+    useEffect(()=>{
+        refetch()
+    },[])
+    
     // console.log(selectedContract)
     const handleDuplicate = async (contractId) => {
         try {
@@ -42,15 +47,19 @@ const ManageContracts = () => {
             message.error("Lỗi khi nhân bản hợp đồng!");
         }
     };
-    const handleNavigate = () => {
-        navigate(`/manager/ContractDetail/${selectedContract.id}`)
-    }
     const handleDelete = (record) => {
         if (record.status === "đang hiệu lực" || record.status === "đã thanh toán") {
             message.warning("Không thể xóa hợp đồng đang hiệu lực hoặc đã thanh toán.");
             return;
         }
-        message.success("Xóa hợp đồng thành công!");
+        Modal.confirm({
+            title: 'Bạn có chắc muốn xóa hợp đồng này không?',
+            onOk: () => {
+                softDelete(record.id).unwrap();
+                message.success("Xóa hợp đồng thành công!");
+            },
+        });
+
     };
     const statusContract = {
         'DRAFT': <Tag color="default">Đang tạo</Tag>,

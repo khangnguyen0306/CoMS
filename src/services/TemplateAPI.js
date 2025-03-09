@@ -34,10 +34,18 @@ export const TemplateAPI = createApi({
                     : [{ type: "Template", id: 'LIST' }],
         }),
         getAllDeletedTemplate: builder.query({
-            query: () => `https://mocki.io/v1/69dee311-5125-4bac-bc6d-aabed7f3d593`,
+            query: (params) => ({
+                url: `templates`,
+                params: {
+                    page: params?.page || 0,
+                    size: params?.size || 10,
+                    keyword: params?.keyword || '',
+                    status: 'DELETED'
+                }
+            }),
             providesTags: (result) =>
                 result
-                    ? result.map(({ id }) => ({ type: "Template", id }))
+                    ? result.data.content.map(({ id }) => ({ type: "Template", id }))
                     : [{ type: "Template", id: id }],
         }),
 
@@ -80,6 +88,24 @@ export const TemplateAPI = createApi({
             }),
             invalidatesTags: (result, error, templateId) => [{ type: "Template", id: templateId }],
         }),
+        deleteTemplateNotRestore: builder.mutation({
+            query: (templateId) => ({
+                url: `/templates/${templateId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: (result, error, templateId) => [{ type: "Template", id: templateId }],
+        }),
+
+        restoreTemplate: builder.mutation({
+            query: (templateId) => ({
+                url: `/templates/${templateId}/status`,
+                params: {
+                    status: "CREATED"
+                },
+                method: "PUT",
+            }),
+            invalidatesTags: (result, error, { Template }) => [{ type: "Template", id: Template }],
+        }),
         // editDoctor: builder.mutation({
         //     query: ({ userId, ...updatedDoctorData }) => ({
         //         url: `/update/${userId}`, // Sử dụng userId để phù hợp với tài liệu API
@@ -109,6 +135,9 @@ export const {
     useCreateTemplateMutation,
     useDuplicateTemplateMutation,
     useEditTemplateMutation,
-    useDeleteTemplateMutation
+    useDeleteTemplateMutation,
+    useDeleteTemplateNotRestoreMutation,
+    useRestoreTemplateMutation
+
     // useGetContractByPartnerQuery
 } = TemplateAPI;

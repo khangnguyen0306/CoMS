@@ -9,10 +9,6 @@ const ContractPartner = ({ partnerId }) => {
     const [searchText, setSearchText] = useState('');
 
 
-
-
-
-
     const filteredData = contractData?.filter(contract =>
         contract.contractName.toLowerCase().includes(searchText.toLowerCase()) ||
         contract.signDate.includes(searchText) ||

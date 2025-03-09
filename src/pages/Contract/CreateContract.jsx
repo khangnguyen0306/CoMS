@@ -112,7 +112,7 @@ const CreateContractForm = () => {
                 // message.error('Không thể lấy được số ngày thông báo, sử dụng giá trị mặc định');
             }
         };
-
+        
         fetchNotificationDays();
     }, []);
 
@@ -296,7 +296,7 @@ const CreateContractForm = () => {
 
         // Format TemplateData
         const templateData = {
-            contractTitle: data.contractName,
+       
             specialTermsA: data.specialTermsA,
             specialTermsB: data.specialTermsB,
             appendixEnabled: data.appendixEnabled,
@@ -321,7 +321,7 @@ const CreateContractForm = () => {
 
         // Các trường đã có trong TemplateData, ta loại bỏ khỏi data chính
         const excludedFields = [
-            "contractName",
+            // "contractName",
             "specialTermsA",
             "specialTermsB",
             "appendixEnabled",
@@ -360,7 +360,11 @@ const CreateContractForm = () => {
                     acc[key] = data[key].value;
                 } else if (key === 'partnerId') {
                     acc['partyId'] = data[key];
-                } else {
+                }
+                else if(key ==="contractName"){
+                    acc['contractTitle'] = data[key];
+                }
+                else {
                     acc[key] = data[key];
                 }
             }
@@ -789,7 +793,7 @@ const CreateContractForm = () => {
     useEffect(() => {
         const formValues = form.getFieldsValue(['contractName', 'signingDate']);
         const contractNumber = generateContractNumber(formValues.contractName, formValues.signingDate);
-        form.setFieldsValue({ contractNumber });
+        // form.setFieldsValue({ contractNumber });
     }, [form, form.getFieldValue('contractName'), form.getFieldValue('signingDate')]);
 
     // console.log(templateDataSelected?.legalBasisTerms)

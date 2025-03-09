@@ -18,7 +18,7 @@ const Setting = () => {
     useEffect(() => {
         if (dateNotifi) {
             setSettings({
-                notificationDays: parseInt(dateNotifi[0]?.value) || "chưa có"
+                notificationDays: parseInt(dateNotifi[0]?.value) || 0
             });
         }
     }, [dateNotifi]);
