@@ -22,7 +22,7 @@ const RealTimeNotification = () => {
     }, [notifications]);
 
     useEffect(() => {
-        const socket = new SockJS("http://localhost:8080/ws");
+        const socket = new SockJS("http://157.66.26.11:8088/ws");
         const stompClient = new Client({
             webSocketFactory: () => socket,
             connectHeaders: {

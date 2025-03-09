@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge } from "antd";
-import { BellOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled } from "@ant-design/icons";
+import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge, Avatar } from "antd";
+import { BellOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
@@ -15,7 +15,7 @@ import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
 import { AiFillIdcard } from "react-icons/ai";
 import { FaTasks } from "react-icons/fa";
-import { GoLaw } from "react-icons/go";
+import { GoChecklist, GoLaw } from "react-icons/go";
 import { FaHandshakeSimple } from "react-icons/fa6";
 import LOGO from './../../assets/Image/letterC.svg'
 import { logOut, selectCurrentUser } from "../../slices/authSlice";
@@ -24,11 +24,12 @@ const { Content, Sider } = Layout;
 import { FaUserCog } from "react-icons/fa";
 import { LuWaypoints } from "react-icons/lu";
 import { FaFileCirclePlus } from "react-icons/fa6";
-import { FcProcess } from "react-icons/fc";
+import { FcApproval, FcProcess } from "react-icons/fc";
 import RealTimeNotification from "../../pages/Noti/RealTimeNotification";
 import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
 
 import { List } from "antd/es/form/Form";
+import Profile from "../../pages/Profile/Profile";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -52,6 +53,8 @@ const MainLayout = () => {
     "createContract": "/createContract",
     'setting': '/manager/setting',
     "process": "/process",
+    "contractsApproval": "/contractsApproval",
+    'approvalContract': '/manager/approvalContract',
     '4': '/combo',
   }
 
@@ -80,6 +83,7 @@ const MainLayout = () => {
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
         { icon: FaTasks, label: 'Task', key: "task" },
         { icon: GoLaw, label: 'Điều khoản', key: "clause" },
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
@@ -162,7 +166,7 @@ const MainLayout = () => {
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Clause', key: "clause" },
-    { icon: FcProcess, label: 'Quy trình', key: "process" },
+    { icon: FcApproval, label: 'Phê duyệt hợp đồng', key: "contractsApproval" },
     {
       icon: FaFileContract, label: 'Hợp đồng', children: [
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
@@ -284,7 +288,13 @@ const MainLayout = () => {
           <div className="flex items-center mr-36">
             <p className="text-white mr-4">{user?.fullName}</p>
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
-            {/* coi lại chỗ này sau khi test được real time notification */}
+            <Avatar
+              size="large"
+              icon={<UserOutlined />}
+              className="bg-slate-500 cursor-pointer ml-4"
+              onClick={() => navigate(`/profile/${user.id}`)}
+            />
+
           </div>
         </Header>
 

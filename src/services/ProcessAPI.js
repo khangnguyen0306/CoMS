@@ -19,7 +19,7 @@ export const processAPI = createApi({
     endpoints: (builder) => ({
         getProcessTemplates: builder.query({
             query: () => ({
-                url: `/approval-workflows/get-all`,
+                url: `/approval-workflows/get-by-id/1`,
                 method: "GET",
             }),
             invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
@@ -33,10 +33,27 @@ export const processAPI = createApi({
             }),
             invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
         }),
+        updateProcess: builder.mutation({
+            query: ({ payload, id }) => ({
+                url: `/approval-workflows/update/${id}`,
+                method: "PUT",
+                body: payload,
+            }),
+            invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
+        }),
+        assignProcess: builder.mutation({
+            query: ({ contractId, workflowId }) => ({
+                url: `/approval-workflows/assign/${contractId}/${workflowId}`,
+                method: "PUT",
+            }),
+            invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
+        }),
     }),
 });
 
 export const {
     useGetProcessTemplatesQuery,
     useCreateProcessMutation,
+    useUpdateProcessMutation,
+    useAssignProcessMutation,
 } = processAPI;

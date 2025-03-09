@@ -27,12 +27,22 @@ export const ContractAPI = createApi({
                     : [{ type: "ContractType", id: 'UNKNOWN_ID' }],
         }),
         getAllContract: builder.query({
-            query: () => `https://mocki.io/v1/791ec81c-b150-440d-9c3c-07fcfe5cc6da`,
-            providesTags: (result) =>
-                result
-                    ? result.map(({ id }) => ({ type: "Contract", id }))
-                    : [{ type: "Contract", id: id }],
+            query: () => ({
+                url: `http://157.66.26.11:8088/api/v1/contracts`,
+                method: "GET",
+            }),
+
+            providesTags: (result, error, Contract) => [{ type: "Partner", id: Contract }],
         }),
+
+        getContractById: builder.query({
+            query: ({ id }) => ({
+                url: `http://157.66.26.11:8088/api/v1/contracts/${id}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Contract) => [{ type: "Partner", id: Contract }],
+        }),
+
         getAllContractPartner: builder.query({
             query: () => `https://mocki.io/v1/510fa7fd-5caa-4cfa-b858-5c6ea74cc683`,
             providesTags: (result) =>
@@ -60,9 +70,9 @@ export const ContractAPI = createApi({
             invalidatesTags: (result, error, { id }) => [{ type: "ContractType", id: id }],
         }),
 
-       deleteContractType: builder.mutation({
+        deleteContractType: builder.mutation({
             query: (contractTypeId) => ({
-                url: `contract-types/${contractTypeId}/delete-status?isDeleted=${true}`, 
+                url: `contract-types/${contractTypeId}/delete-status?isDeleted=${true}`,
                 method: "PATCH",
             }),
             invalidatesTags: (result, error, contractTypeId) => [{ type: "DoctorList", id: contractTypeId }],
@@ -112,6 +122,7 @@ export const {
     useGetAllContractPartnerQuery,
     useCreateContractTypeMutation,
     useEditContractTypeMutation,
-    useDeleteContractTypeMutation
+    useDeleteContractTypeMutation,
+    useGetContractByIdQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;

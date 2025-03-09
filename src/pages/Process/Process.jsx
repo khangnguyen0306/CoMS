@@ -1,40 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { Radio, Steps, Form, Button, Select } from 'antd';
+import { Radio, Steps, Form, Button, Select, message } from 'antd';
 import { MinusCircleOutlined } from '@ant-design/icons';
-import { useGetAllUserQuery } from "../../services/UserAPI";
-import { useCreateProcessMutation } from "../../services/ProcessAPI";
+import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
+import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation } from "../../services/ProcessAPI";
 const { Step } = Steps;
 const { Option } = Select;
 
-
-const Process = () => {
+const Process = ({ contractId }) => {
+    console.log("Contract ID:", contractId);
     const [selection, setSelection] = useState("auto");
+    const [hideAddStage, setHideAddStage] = useState(false);
+    const [selectedProcessId, setSelectedProcessId] = useState(null);
 
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
-    const { data: userData } = useGetAllUserQuery({
+    const { data: userData } = useGetUserStaffManagerQuery({
         keyword: "",
         page: 0,
         limit: 10,
     });
+    const { data: processTemplates, refetch } = useGetProcessTemplatesQuery();
     const [create] = useCreateProcessMutation();
+    const [assign] = useAssignProcessMutation();
 
 
-    // Lọc ra các user có role.id = 2 hoặc 3 (Manager)
-    const filterUsers = (users) => users.filter((user) => [2, 3].includes(user.role.id));
-    const filteredUsers = userData?.users ? filterUsers(userData.users) : [];
-
-    console.log("Filtered users:", userData);
 
     // Các state cho giao diện Steps (cho việc tạo/chỉnh sửa quy trình)
     const [current, setCurrent] = useState(0);
     const [form] = Form.useForm();
-    // Lưu các lựa chọn của từng bước; mặc định chỉ có đợt 1 và đợt cuối
     const [approvals, setApprovals] = useState({
-        stage1: null,
-        stageFinal: null,
+
     });
     // Số bước ký duyệt tự tạo (không bao gồm bước cuối) - mặc định chỉ có 1 bước (stage1)
     const [customStagesCount, setCustomStagesCount] = useState(1);
+
+    const getAvailableUsers = (currentStepKey) => {
+        // Lấy danh sách các id đã được chọn ở các bước khác (ngoại trừ bước hiện tại)
+        const selectedIds = Object.entries(approvals)
+            .filter(([key, value]) => key !== currentStepKey && value != null)
+            .map(([key, value]) =>
+                typeof value === 'object' ? value.value : value
+            );
+        // Nếu ở bước hiện tại đã có giá trị, giữ lại giá trị đó trong danh sách để hiển thị trong select
+        const currentValue = approvals[currentStepKey];
+        return (userData?.data?.content || []).filter((manager) => {
+            if (
+                currentValue &&
+                manager.id === (typeof currentValue === 'object' ? currentValue.value : currentValue)
+            ) {
+                return true;
+            }
+            return !selectedIds.includes(manager.id);
+        });
+    };
+
 
     // Hàm tạo mảng các bước (Steps) dựa trên customStagesCount hiện tại
     const generateSteps = () => {
@@ -63,7 +81,7 @@ const Process = () => {
                         rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
                     >
                         <Select placeholder="Chọn manager">
-                            {filteredUsers.map((manager) => (
+                            {getAvailableUsers(`stage${i}`).map((manager) => (
                                 <Option key={manager.id} value={manager.id}>
                                     {manager.full_name}
                                 </Option>
@@ -78,19 +96,23 @@ const Process = () => {
             key: "stageFinal",
             title: "Đợt cuối",
             content: (
-                <Form.Item
-                    name="stageFinal"
-                    label="Chọn manager duyệt đợt cuối"
-                    rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
-                >
-                    <Select placeholder="Chọn manager">
-                        {filteredUsers.map((manager) => (
-                            <Option key={manager.id} value={manager.id}>
-                                {manager.full_name}
-                            </Option>
-                        ))}
-                    </Select>
-                </Form.Item>
+                <>
+                    {!hideAddStage && (
+                        <Form.Item
+                            name="stageFinal"
+                            label="Chọn manager duyệt đợt cuối"
+                            rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
+                        >
+                            <Select placeholder="Chọn manager">
+                                {getAvailableUsers("stageFinal").map((manager) => (
+                                    <Option key={manager.id} value={manager.id}>
+                                        {manager.full_name}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+                    )}
+                </>
             ),
         });
         return steps;
@@ -100,6 +122,10 @@ const Process = () => {
 
     // Hàm xử lý xóa 1 bước ký duyệt (áp dụng cho các bước thuộc customStagesCount)
     const handleRemoveStage = (stageNumber) => {
+        if (customStagesCount <= 1) {
+            message.error("Phải có ít nhất 1 đợt ký duyệt!");
+            return;
+        }
         let newCurrent = current;
         if (current >= stageNumber) {
             newCurrent = Math.max(0, current - 1);
@@ -121,10 +147,9 @@ const Process = () => {
     };
 
     // Xử lý bước "Tiếp tục"
-    const next = () => {
-        form
-            .validateFields()
-            .then((values) => {
+    const next = async () => {
+        form.validateFields()
+            .then(async (values) => {
                 if (current < customStagesCount) {
                     const stageKey = `stage${current + 1}`;
                     setApprovals((prev) => ({ ...prev, [stageKey]: values[stageKey] }));
@@ -134,45 +159,45 @@ const Process = () => {
                     // Ở bước "Đợt cuối": hoàn thành quy trình
                     const stageKey = "stageFinal";
                     setApprovals((prev) => ({ ...prev, [stageKey]: values[stageKey] }));
+                    // Tổng số bước thực tế = customStagesCount (số bước tùy chỉnh) + 1 (bước cuối)
+                    const totalStages = customStagesCount + 1;
+                    const stagesArray = [];
+                    for (let i = 1; i <= totalStages; i++) {
+                        const key = i === totalStages ? "stageFinal" : `stage${i}`;
+                        const fieldValue = approvals[key] || values[key];
+                        const approverId =
+                            fieldValue && typeof fieldValue === 'object'
+                                ? fieldValue.value
+                                : fieldValue || 0;
+                        stagesArray.push({
+                            stageOrder: i,
+                            approverId,
+                        });
+                    }
+
                     const newProcess = {
-                        name: "Quy trình của bạn",
-                        customStagesCount,
-                        createdAt: new Date().toISOString(),
-                        approvals: { ...approvals, [stageKey]: values[stageKey] },
-                        summary: [
-                            ...Array(customStagesCount)
-                                .fill(0)
-                                .map((_, i) => {
-                                    const key = `stage${i + 1}`;
-                                    const manager = filteredUsers.find((m) => m.id === approvals[key]);
-                                    return manager ? manager.full_name : "Chưa chọn";
-                                }),
-                            // Thêm thông tin cho bước cuối
-                            (() => {
-                                const manager = filteredUsers.find((m) => m.id === values[stageKey]);
-                                return manager ? manager.full_name : "Chưa chọn";
-                            })(),
-                        ],
+                        name: "Quy trình mới",
+                        stages: stagesArray,
                     };
 
-                    console.log("New process:", newProcess);
+                    const result = await create(newProcess).unwrap();
+                    console.log("New process:", result);
                     message.success("Quy trình của bạn đã được tạo thành công!");
 
-                    // Reset lại state và form sau khi hoàn thành
-                    setApprovals({
-                        stage1: null,
-                        stageFinal: null,
-                    });
-                    setCustomStagesCount(1);
-                    setCurrent(0);
+                    // Nếu ở chế độ custom thì lưu id quy trình mới vào state
+                    setSelectedProcessId(result?.data?.id);
+
+                    // setApprovals({});
+                    // setCustomStagesCount(1);
+                    // setCurrent(0);
                     form.resetFields();
+                    setHideAddStage(true);
                 }
             })
             .catch((error) => {
                 console.log("Validation Failed:", error);
             });
     };
-
 
     const prev = () => {
         setCurrent(current - 1);
@@ -181,14 +206,11 @@ const Process = () => {
     // Xử lý chuyển bước khi click vào Steps (validate bước hiện tại)
     const handleStepChange = (newStep) => {
         if (newStep !== current) {
-            form
-                .validateFields()
+            form.validateFields()
                 .then((values) => {
-                    const stageKey =
-                        current < customStagesCount ? `stage${current + 1}` : "stageFinal";
+                    const stageKey = current < customStagesCount ? `stage${current + 1}` : "stageFinal";
                     setApprovals((prev) => ({ ...prev, [stageKey]: values[stageKey] }));
-                    const newStageKey =
-                        newStep < customStagesCount ? `stage${newStep + 1}` : "stageFinal";
+                    const newStageKey = newStep < customStagesCount ? `stage${newStep + 1}` : "stageFinal";
                     form.setFieldsValue({ [newStageKey]: approvals[newStageKey] });
                     setCurrent(newStep);
                 })
@@ -212,96 +234,110 @@ const Process = () => {
         setSelection(e.target.value);
     };
 
+    // Hàm xử lý "Áp dụng quy trình" để console.log id của quy trình
+    const handleApplyProcess = async () => {
+        const workflowId = selection === "auto" ? 1 : selectedProcessId;
+        try {
+            const result = await assign({ contractId, workflowId }).unwrap();
+            console.log("Assigned process:", result);
+        } catch (error) {
+            console.error("Assign process failed:", error);
+        }
+    };
+
+    // Lấy dữ liệu processTemplates (giả sử dữ liệu được trả về là mảng với một phần tử)
+    const process = processTemplates?.data;
+    const items =
+        process?.stages?.map((stage) => {
+            const isFinal = stage.stageOrder === process.customStagesCount;
+            const foundUser = stage.approver
+                ? userData?.data?.content?.find((user) => user.id === stage.approver)?.full_name
+                : "";
+            return {
+                title: isFinal ? "Phê duyệt đợt cuối" : `Phê duyệt đợt ${stage.stageOrder}`,
+                description: `Người duyệt: ${foundUser || ""}`,
+            };
+        }) || [];
+
     return (
         <div>
             <div className="flex flex-col gap-2 border-2 border-gray-500 p-4 rounded-xl shadow-lg">
-
                 <div className="flex items-center cursor-pointer">
-                    <Radio checked={selection === "auto"} onChange={handleChange} value="auto">Mặc định (hệ thống tự tạo)</Radio>
-                    {/* <span className="ml-2">Mặc định (hệ thống tự tạo)</span> */}
+                    <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
+                        Mặc định (Hệ thống tự tạo)
+                    </Radio>
                 </div>
 
                 <div className='ml-8 my-4'>
-                    <Steps
-                        direction="vertical"
-                        current={0}
-                        items={[
-                            {
-                                title: 'Phê duyệt đợt 1',
-                                description: 'Người duyệt: Manager'
-                            },
-                            {
-                                title: 'Phê duyệt đợt 2',
-                                description: 'Người duyệt: Manager'
-                            },
-                            {
-                                title: 'Phê duyệt đợt cuối',
-                                description: 'Người duyệt: Manager'
-                            },
-                        ]}
-                    />
+                    <Steps current={items.length - 1} items={items} />
                 </div>
 
                 <div className="flex items-center cursor-pointer">
-                    <Radio checked={selection === "custom"} onChange={handleChange} value="custom">Tùy chỉnh</Radio>
-                    {/* <span className="ml-2">Tùy chỉnh</span> */}
+                    <Radio checked={selection === "custom"} onChange={handleChange} value="custom">
+                        Tùy chỉnh (Nhân viên tự tạo 1 quy trình riêng)
+                    </Radio>
                 </div>
-                <div>
-                    <div className="flex pb-12">
-                        {/* Cột hiển thị Steps */}
-                        <div className="mr-4 h-auto max-w-[50%]">
-                            <Steps
-                                current={current}
-                                direction="vertical"
-                                style={{ height: "100%" }}
-                                onChange={handleStepChange}
-                            >
-                                {stepsData.map((item, index) => {
-                                    const stageKey =
-                                        index < customStagesCount ? `stage${index + 1}` : "stageFinal";
-                                    return (
-                                        <Step
-                                            key={item.key || index}
-                                            title={item.title}
-                                            description={
-                                                approvals[stageKey]
-                                                    ? `Người duyệt: ${filteredUsers.find((m) => m.id === approvals[stageKey])
-                                                        ?.full_name || ""}`
-                                                    : ""
-                                            }
-                                        />
-                                    );
-                                })}
-                            </Steps>
-                            <div className="flex gap-4 mt-4">
-                                <Button type="primary" onClick={handleAddStage}>
-                                    Thêm đợt ký duyệt
-                                </Button>
+                {selection === "custom" && (
+                    <div>
+                        <div className="flex-col pb-12">
+                            <div className="mx-8 mr-4 h-auto ">
+                                <Steps
+                                    current={current}
+                                    style={{ height: "100%" }}
+                                    onChange={handleStepChange}
+                                >
+                                    {stepsData.map((item, index) => {
+                                        const stageKey =
+                                            index < customStagesCount ? `stage${index + 1}` : "stageFinal";
+                                        return (
+                                            <Step
+                                                key={item.key || index}
+                                                title={item.title}
+                                                description={
+                                                    approvals[stageKey]
+                                                        ? `Người duyệt: ${userData?.data?.content?.find(
+                                                            (m) => m.id === approvals[stageKey]
+                                                        )?.full_name || ""}`
+                                                        : ""
+                                                }
+                                            />
+                                        );
+                                    })}
+                                </Steps>
+
+                            </div>
+                            <div className="flex-1">
+                                <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
+                                    {stepsData[current]?.content}
+                                    {!hideAddStage && (
+                                        <div className='flex flex-row gap-4 mt-8'>
+                                            <div className="flex gap-4 ">
+                                                <Button type="primary" onClick={handleAddStage}>
+                                                    Thêm đợt ký duyệt
+                                                </Button>
+                                            </div>
+                                            <div>
+                                                {current > 0 && (
+                                                    <Button style={{ marginRight: 8 }} onClick={prev}>
+                                                        Quay lại
+                                                    </Button>
+                                                )}
+                                                <Button type="primary" onClick={next}>
+                                                    {current === stepsData.length - 1 ? "Hoàn thành" : "Tiếp tục"}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </Form>
                             </div>
                         </div>
-                        {/* Cột hiển thị Form của bước hiện tại */}
-                        <div className="flex-1">
-                            <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
-                                {stepsData[current].content}
-                                <div style={{ marginTop: 24 }}>
-                                    {current > 0 && (
-                                        <Button style={{ marginRight: 8 }} onClick={prev}>
-                                            Quay lại
-                                        </Button>
-                                    )}
-                                    <Button type="primary" onClick={next}>
-                                        {current === stepsData.length - 1 ? "Hoàn thành" : "Tiếp tục"}
-                                    </Button>
-                                </div>
-                            </Form>
-                        </div>
                     </div>
-                </div>
-
+                )}
             </div>
             <div className="flex justify-center mt-12">
                 <Button
                     className="bg-gradient-to-r from-blue-400 to-blue-700 text-white border-0 hover:from-blue-500 hover:to-blue-800"
+                    onClick={handleApplyProcess}
                 >
                     Áp dụng quy trình
                 </Button>

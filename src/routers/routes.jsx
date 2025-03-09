@@ -26,6 +26,10 @@ const ContractPartner = Loadable({ loader: () => import("../pages/Contract/Contr
 const CreateContract = Loadable({ loader: () => import("../pages/Contract/CreateContract") });
 const Setting = Loadable({ loader: () => import("../pages/setting/Setting") });
 const Process = Loadable({ loader: () => import("../pages/Process/Process") });
+const ContractApproval = Loadable({ loader: () => import("../pages/ApprovalProcess/ContractProcess") });
+const ManagerContractApproval = Loadable({ loader: () => import("../pages/ApprovalProcess/ManageContractApproval") });
+const PreviewContract = Loadable({ loader: () => import("../pages/ApprovalProcess/PreviewContract") });
+const Approve = Loadable({ loader: () => import("../pages/ApprovalProcess/Approve") });
 
 
 
@@ -57,7 +61,7 @@ export const router = createBrowserRouter([
                         element: BussinessInfor,
                     },
                     {
-                        path: "profile",
+                        path: "profile/:id",
                         element: Profile,
                     },
                     {
@@ -104,6 +108,10 @@ export const router = createBrowserRouter([
                         path: "process",
                         element: Process,
                     },
+                    {
+                        path: "contractsApproval",
+                        element: ContractApproval,
+                    },
                 ],
             },
             {
@@ -121,6 +129,10 @@ export const router = createBrowserRouter([
                     {
                         path: "process",
                         element: ApprovalProcess,
+                    },
+                    {
+                        path: "profile/:id",
+                        element: Profile,
                     },
                 ],
             },
@@ -149,7 +161,7 @@ export const router = createBrowserRouter([
                         element: Dashboard,
                     },
                     {
-                        path: "profile",
+                        path: "profile/:id",
                         element: Profile,
                     },
                     {
@@ -187,6 +199,18 @@ export const router = createBrowserRouter([
                     {
                         path: "contractpartner",
                         element: ContractPartner,
+                    },
+                    {
+                        path: "approvalContract",
+                        element: ManagerContractApproval,
+                    },
+                    {
+                        path: "approvalContract/previewContract/:id",
+                        element: PreviewContract,
+                    },
+                    {
+                        path: "approvalContract/previewContract/:id/approve/:id",
+                        element: Approve,
                     },
                     {
                         path: "setting",
