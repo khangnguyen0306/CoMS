@@ -57,10 +57,10 @@ export const clauseAPI = createApi({
             // providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),
         UpdateClause: builder.mutation({
-            query: ({ termId, label, value }) => ({
+            query: ({ termId, label, value,typeTermId }) => ({
                 url: `/terms/update/${termId}`,
                 method: "PUT",
-                body: { label, value },
+                body: { label, value,typeTermId },
             }),
             providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
         }),

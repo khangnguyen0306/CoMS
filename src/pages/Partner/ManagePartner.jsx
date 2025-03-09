@@ -48,10 +48,16 @@ const ManagePartner = () => {
     const [bankAccounts, setBankAccounts] = useState([{ bankName: '', backAccountNumber: '' }]);
     const [editingPartner, setEditingPartner] = useState(null);
 
-    // --- Xử lý viewHistory ---
+
+
+    useEffect(()=>{
+        refetch();
+    },[])
+
     const getViewHistory = () => {
         return JSON.parse(localStorage.getItem('viewHistory')) || [];
     };
+
 
     const handleDeleteItem = (key) => {
         const currentHistory = getViewHistory();
@@ -389,7 +395,10 @@ const ManagePartner = () => {
                     <Form.Item name="partnerName" label="Tên Partner" rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="spokesmanName" label="Người đại diện" rules={[{ required: true }]}>
+                    <Form.Item name="position" label="Chức vụ" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="spokesmanName" label="Người đại diện">
                         <Input />
                     </Form.Item>
                     <Form.Item name="address" label="Địa chỉ" rules={[{ required: true }]}>

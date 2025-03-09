@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Row, Col, Card, Statistic, Table, Button, Input, Space } from "antd";
-import { SearchOutlined } from '@ant-design/icons';
+import { AreaChartOutlined, SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, Tooltip, Cell } from "recharts";
 import { GlowingEffectDemoSecond, GridItem, GridItemCustom } from "../../components/ui/ComponentEffect";
@@ -117,6 +117,8 @@ const Home = () => {
             ),
     });
     // Dữ liệu thống kê
+
+    // thiếu icon
     const statisticsData = [
         { title: "TỔNG HỢP HỢP ĐỒNG", count: 10, value: "2.278.563.100" },
         { title: "CÒN HIỆU LỰC", count: 7, value: "23.278.563" },

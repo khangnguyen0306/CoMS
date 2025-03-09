@@ -98,6 +98,34 @@ export const ContractAPI = createApi({
             invalidatesTags: [{ type: "Contract", id: "LIST" }],
         }),
 
+        softDeleteContract: builder.mutation({
+            query: (contractId) => ({
+                url: `/contracts/soft-delete/${contractId}`, // Use contractId instead of doctorId
+                method: "DELETE",
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
+
+        reStoreContract: builder.mutation({
+            query: (contractId) => ({
+                url: `/contracts/status/${contractId}`, 
+                params:{
+                    status:"DRAFT"
+                },
+                method: "PUT",
+            }),
+            invalidatesTags: (result, error, { contractId }) => [{ type: "Contract", id: contractId }],
+        }),
+
+        
+        deleteContract: builder.mutation({
+            query: (contractId) => ({
+                url: `/contracts/${contractId}`, // Use contractId instead of doctorId
+                method: "DELETE",
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
+
         // getPartnerInfoDetail: builder.query({
         //     query: (partnerId) => ({
         //         url: `9edef7db-1c09-42ed-aef8-ae8d14119f2c`,
@@ -145,6 +173,12 @@ export const {
     useDeleteContractTypeMutation,
     useCreateContractMutation,
     useGetContractDetailQuery,
-    useDuplicateContractMutation
+    useDuplicateContractMutation,
+    useReStoreContractMutation,
+    useSoftDeleteContractMutation,
+    useDeleteContractMutation
     // useGetContractByPartnerQuery
 } = ContractAPI;
+
+
+

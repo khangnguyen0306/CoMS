@@ -56,6 +56,7 @@ const MainLayout = () => {
     "createContract": "/createContract",
     'setting': '/manager/setting',
     "process": "/process",
+    "DeleteContract":'/DeleteContract',
     '4': '/combo',
   }
 
@@ -88,8 +89,7 @@ const MainLayout = () => {
           icon: FaFileContract, label: 'Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
             { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
-            { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
-            { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
+            { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
             { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
           ]
         },
@@ -97,18 +97,18 @@ const MainLayout = () => {
           icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
             { icon: MdOutlineClass, label: 'Template hợp đồng', key: "manageTemplate" },
             { icon: BsClipboard2DataFill, label: 'Tạo Template', key: "templateCreate" },
-            { icon: BsTrash3Fill, label: 'Đã xóa', key: "deletedtemplate" },
+            { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
           ]
         },
       ]
     },
-    {
-      icon: SiAuth0, key: "right", label: 'Phân quyền', children: [
-        { icon: MdDashboard, label: 'Danh mục', key: "author" },
-        { icon: SiAuth0, label: 'Phân quyền', key: "author1" },
-        { icon: IoMdSettings, label: 'Cấu hình', key: "author2" },
-      ]
-    },
+    // {
+    //   icon: SiAuth0, key: "right", label: 'Phân quyền', children: [
+    //     { icon: MdDashboard, label: 'Danh mục', key: "author" },
+    //     { icon: SiAuth0, label: 'Phân quyền', key: "author1" },
+    //     { icon: IoMdSettings, label: 'Cấu hình', key: "author2" },
+    //   ]
+    // },
     {
       icon: IoMdSettings, label: 'Cấu hình', key: "settingManagement", children: [
         { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
@@ -292,6 +292,7 @@ const MainLayout = () => {
           <div className="flex justify-center items-center mr-36">
             <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p>
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
+            
             <label className="switch ml-6" >
               <input
                 checked={!isDarkMode}

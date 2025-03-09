@@ -182,6 +182,7 @@ const PartnerDetail = () => {
                                                 phone: partnerData?.data.phone,
                                                 email: partnerData?.data.email,
                                                 note: partnerData?.data.note,
+                                                position: partnerData?.data.position
                                             }}
                                         >
                                             <Form.Item label="Tên Partner" name="partnerName" rules={[{ required: true, message: 'Vui lòng nhập tên đối tác!' }]}>
@@ -196,9 +197,9 @@ const PartnerDetail = () => {
                                             <Form.Item label="Tên đại diện" name="spokesmanName">
                                                 <Input />
                                             </Form.Item>
-                                            {/* <Form.Item label="Chức vụ đại diện" name="spokesmanPosition">
+                                            <Form.Item label="Chức vụ đại diện" name="position">
                                                 <Input />
-                                            </Form.Item> */}
+                                            </Form.Item>
                                             {/* <Form.Item label="Lĩnh vực kinh doanh" name="businessField">
                                                 <Input />
                                             </Form.Item> */}
@@ -282,7 +283,7 @@ const PartnerDetail = () => {
                                             >
                                                 {partnerData?.data.spokesmanName}
                                             </Descriptions.Item>
-                                            {/* <Descriptions.Item
+                                            <Descriptions.Item
                                                 label="Chức vụ đại diện"
                                                 style={{
                                                     border: '1px solid #89c4d9',
@@ -295,8 +296,8 @@ const PartnerDetail = () => {
                                                     },
                                                 }}
                                             >
-                                                {partnerData?.data.spokesmanPosition}
-                                            </Descriptions.Item> */}
+                                                {partnerData?.data.position || 'chưa có '}
+                                            </Descriptions.Item>
                                             {/* <Descriptions.Item
                                                 label="Lĩnh vực kinh doanh"
                                                 style={{

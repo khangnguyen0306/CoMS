@@ -65,7 +65,7 @@ const ManageTemplate = () => {
     const showDeleteConfirm = async (id) => {
         confirm({
             title: 'Bạn có chắc chắn muốn xóa không?',
-            content: 'Hành động này sẽ không thể hoàn tác.',
+            content: 'Hợp đồng sẽ được lưu trữ tại kho lưu trữ trong 30 ngày.',
             okText: 'Có',
             okType: 'danger',
             cancelText: 'Không',

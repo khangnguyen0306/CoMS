@@ -1,0 +1,62 @@
+/* From Uiverse.io by catraco */ 
+/*------ Settings ------*/
+.containerBell {
+    --color: #a5a5b0;
+    --size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    font-size: var(--size);
+    user-select: none;
+    fill: var(--color);
+  }
+  
+  .containerBell .bell-regular {
+    position: absolute;
+    animation: keyframes-fill .5s;
+  }
+  
+  .containerBell .bell-solid {
+    position: absolute;
+    display: none;
+    animation: keyframes-fill .5s;
+  }
+  
+  /* ------ On check event ------ */
+  .containerBell input:checked ~ .bell-regular {
+    display: none;
+  }
+  
+  .containerBell input:checked ~ .bell-solid {
+    display: block;
+  }
+  
+  /* ------ Hide the default checkbox ------ */
+  .containerBell input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  /* ------ Animation ------ */
+  @keyframes keyframes-fill {
+    0% {
+      opacity: 0;
+    }
+  
+    25% {
+      transform: rotate(25deg);
+    }
+  
+    50% {
+      transform: rotate(-20deg) scale(1.2);
+    }
+  
+    75% {
+      transform: rotate(15deg);
+    }
+  }

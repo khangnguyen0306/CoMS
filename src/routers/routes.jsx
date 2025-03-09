@@ -28,6 +28,7 @@ const Setting = Loadable({ loader: () => import("../pages/setting/Setting") });
 const Process = Loadable({ loader: () => import("../pages/Process/Process") });
 const ContractDetail = Loadable({ loader: () => import("../pages/Contract/ContractDetail") });
 const EditTemplate = Loadable({ loader: () => import("../pages/template/EditTemplate") });
+const DeleteContract = Loadable({ loader: () => import("../pages/Contract/DeleteContract") });
 const ChatTest = Loadable({ loader: () => import("../components/AI-Gen/ChatTest") });
 
 
@@ -114,6 +115,10 @@ export const router = createBrowserRouter([
                     {
                         path: "EditTemplate/:id",
                         element: EditTemplate,
+                    },
+                    {
+                        path: "DeleteContract",
+                        element: DeleteContract,
                     },
                 ],
             },
