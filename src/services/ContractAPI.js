@@ -109,16 +109,24 @@ export const ContractAPI = createApi({
 
         reStoreContract: builder.mutation({
             query: (contractId) => ({
-                url: `/contracts/status/${contractId}`, 
-                params:{
-                    status:"DRAFT"
+                url: `/contracts/status/${contractId}`,
+                params: {
+                    status: "DRAFT"
                 },
                 method: "PUT",
             }),
             invalidatesTags: (result, error, { contractId }) => [{ type: "Contract", id: contractId }],
         }),
 
-        
+        updateContract: builder.mutation({
+            query: ({ contractId, ...contractData }) => ({
+                url: `/contracts/update/${contractId}`, 
+                method: "PUT",
+                body: contractData,
+            }),
+            invalidatesTags: (result, error, { contractId }) => [{ type: "Contract", id: contractId }],
+        }),
+
         deleteContract: builder.mutation({
             query: (contractId) => ({
                 url: `/contracts/${contractId}`, // Use contractId instead of doctorId
@@ -177,7 +185,9 @@ export const {
     useDuplicateContractMutation,
     useReStoreContractMutation,
     useSoftDeleteContractMutation,
-    useDeleteContractMutation
+    useDeleteContractMutation,
+    useLazyGetContractDetailQuery,
+    useUpdateContractMutation
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

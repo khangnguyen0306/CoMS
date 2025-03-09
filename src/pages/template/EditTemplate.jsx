@@ -238,7 +238,6 @@ const EditTemplate = () => {
         if (id) {
             loadContractTemplateDetail(id)
                 .then((data) => {
-
                     setTemplateDataSelected(data.data);
                     setContent(data.data?.contractContent)
                     setIsVATChecked(data.data?.autoAddVAT)
