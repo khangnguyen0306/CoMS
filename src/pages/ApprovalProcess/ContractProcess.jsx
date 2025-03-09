@@ -3,6 +3,7 @@ import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from
 import { useGetAllContractQuery } from "../../services/ContractAPI";
 import { Link } from "react-router-dom";
 import Process from "../Process/Process";
+import dayjs from "dayjs";
 const { Search } = Input;
 
 const ContractProcess = () => {
@@ -29,51 +30,76 @@ const ContractProcess = () => {
     const columns = [
         {
             title: "Mã hợp đồng",
-            dataIndex: "contract_code",
-            key: "contract_code",
+            dataIndex: "id",
+            key: "id",
+            width: "10%",
         },
         {
             title: "Ngày tạo",
-            dataIndex: "created_at",
-            key: "created_at",
-            sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
-            render: (text) => new Date(text).toLocaleDateString("vi-VN"),
-            defaultSortOrder: 'ascend',
+            dataIndex: "createdAt",
+            key: "createdAt",
+            width: "12%",
+            render: (createdAt) =>
+                createdAt
+                    ? dayjs(
+                        new Date(createdAt[0], createdAt[1] - 1, createdAt[2])
+                    ).format("DD/MM/YYYY")
+                    : "Chưa cập nhật",
+            sorter: (a, b) => {
+                const dateA = new Date(a.createdAt[0], a.createdAt[1] - 1, a.createdAt[2], a.createdAt[3], a.createdAt[4], a.createdAt[5]);
+                const dateB = new Date(b.createdAt[0], b.createdAt[1] - 1, b.createdAt[2], b.createdAt[3], b.createdAt[4], b.createdAt[5]);
+                return dateA - dateB;
+            },
+            defaultSortOrder: "ascend",
         },
         {
             title: "Người tạo",
-            dataIndex: "creator",
-            key: "creator",
+            dataIndex: ["user", "full_name"],
+            key: "user?.full_name",
+            width: "10%",
         },
         {
             title: "Tên hợp đồng",
-            dataIndex: "contract_name",
-            key: "name",
-            sorter: (a, b) => a.contract_name.localeCompare(b.contract_name),
-            render: (text) => <Link className="font-bold text-[#228eff]">{text}</Link>,
+            dataIndex: "title",
+            key: "title",
+            width: "20%",
+            sorter: (a, b) => a.title.localeCompare(b.title),
+            render: (text, record) => (
+                <Link
+                    className="font-bold text-[#228eff] block truncate max-w-[200px]"
+                    to={`/manager/approvalContract/reviewContract/${record.id}`}
+                    title={text} // Hiển thị tooltip mặc định của trình duyệt
+                >
+                    {text}
+                </Link>
+            ),
         },
+
         {
             title: "Loại hợp đồng",
-            dataIndex: "contract_type",
-            key: "contract_type",
+            dataIndex: ["contractType", "name"],
+            key: "contractType.name",
+            width: "15%",
             render: (type) => <Tag color="blue">{type}</Tag>,
-            filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
-                text: type,
-                value: type,
-            })),
+            // filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
+            //     text: type,
+            //     value: type,
+            // })),
             onFilter: (value, record) => record.contract_type === value,
         },
         {
             title: "Đối tác",
-            dataIndex: "partner",
-            key: "partner",
+            dataIndex: ["party", "partnerName"],
+            key: "party.partnerName",
+            width: "18%",
             sorter: (a, b) => a.partner.localeCompare(b.partner),
         },
 
         {
             title: "Giá trị",
-            dataIndex: "value",
-            key: "value",
+            dataIndex: "amount",
+            key: "amount",
+            width: "15%",
             render: (value) => value.toLocaleString("vi-VN") + " VND",
             sorter: (a, b) => a.value - b.value,
         },
@@ -110,11 +136,10 @@ const ContractProcess = () => {
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.filter(item =>
-                        item.contract_name.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item.partner.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item.creator.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item.contract_code.toLowerCase().includes(searchText.toLowerCase())
+                    dataSource={contracts?.data?.content?.filter(item =>
+                        item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
+                        item?.party?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
+                        item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())
                     )}
                     rowKey="id"
                     loading={isLoading}
@@ -130,7 +155,12 @@ const ContractProcess = () => {
                 >
                     {/* <p>{selectedRecord ? JSON.stringify(selectedRecord) : "Không có dữ liệu"}</p> */}
 
-                    <Process contractId={selectedRecord?.id} />
+                    <Process
+                        contractId={selectedRecord?.id}
+                        onProcessApplied={() => {
+                            handleCancel();
+                        }}
+                    />
                 </Modal>
             </div>
 

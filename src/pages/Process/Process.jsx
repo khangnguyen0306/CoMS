@@ -6,7 +6,7 @@ import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcess
 const { Step } = Steps;
 const { Option } = Select;
 
-const Process = ({ contractId }) => {
+const Process = ({ contractId, onProcessApplied }) => {
     console.log("Contract ID:", contractId);
     const [selection, setSelection] = useState("auto");
     const [hideAddStage, setHideAddStage] = useState(false);
@@ -20,7 +20,7 @@ const Process = ({ contractId }) => {
     });
     const { data: processTemplates, refetch } = useGetProcessTemplatesQuery();
     const [create] = useCreateProcessMutation();
-    const [assign] = useAssignProcessMutation();
+    const [assign, { isLoading }] = useAssignProcessMutation();
 
 
 
@@ -237,9 +237,13 @@ const Process = ({ contractId }) => {
     // Hàm xử lý "Áp dụng quy trình" để console.log id của quy trình
     const handleApplyProcess = async () => {
         const workflowId = selection === "auto" ? 1 : selectedProcessId;
+        console.log("Selected workflow ID:", workflowId);
         try {
             const result = await assign({ contractId, workflowId }).unwrap();
-            console.log("Assigned process:", result);
+            message.success("Quy trình đã được áp dụng thành công!");
+            if (onProcessApplied) {
+                onProcessApplied();
+            }
         } catch (error) {
             console.error("Assign process failed:", error);
         }
@@ -338,6 +342,8 @@ const Process = ({ contractId }) => {
                 <Button
                     className="bg-gradient-to-r from-blue-400 to-blue-700 text-white border-0 hover:from-blue-500 hover:to-blue-800"
                     onClick={handleApplyProcess}
+                    loading={isLoading}
+
                 >
                     Áp dụng quy trình
                 </Button>

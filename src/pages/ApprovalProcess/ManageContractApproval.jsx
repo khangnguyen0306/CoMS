@@ -50,7 +50,7 @@ const ManageContractApproval = () => {
             render: (text, record) => (
                 <Link
                     className="font-bold text-[#228eff] block truncate max-w-[200px]"
-                    to={`/manager/approvalContract/previewContract/${record.id}`}
+                    to={`/manager/approvalContract/reviewContract/${record.id}`}
                     title={text} // Hiển thị tooltip mặc định của trình duyệt
                 >
                     {text}

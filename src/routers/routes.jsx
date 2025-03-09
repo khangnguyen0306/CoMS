@@ -28,7 +28,7 @@ const Setting = Loadable({ loader: () => import("../pages/setting/Setting") });
 const Process = Loadable({ loader: () => import("../pages/Process/Process") });
 const ContractApproval = Loadable({ loader: () => import("../pages/ApprovalProcess/ContractProcess") });
 const ManagerContractApproval = Loadable({ loader: () => import("../pages/ApprovalProcess/ManageContractApproval") });
-const PreviewContract = Loadable({ loader: () => import("../pages/ApprovalProcess/PreviewContract") });
+const PreviewContract = Loadable({ loader: () => import("../pages/ApprovalProcess/ReviewContract") });
 const Approve = Loadable({ loader: () => import("../pages/ApprovalProcess/Approve") });
 const ContractDetail = Loadable({ loader: () => import("../pages/Contract/ContractDetail") });
 const EditTemplate = Loadable({ loader: () => import("../pages/template/EditTemplate") });
@@ -216,11 +216,11 @@ export const router = createBrowserRouter([
                         element: ManagerContractApproval,
                     },
                     {
-                        path: "approvalContract/previewContract/:id",
+                        path: "approvalContract/reviewContract/:id",
                         element: PreviewContract,
                     },
                     {
-                        path: "approvalContract/previewContract/:id/approve/:id",
+                        path: "approvalContract/reviewContract/:id/approve/:id",
                         element: Approve,
                     },
                     {
