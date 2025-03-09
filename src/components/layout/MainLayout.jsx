@@ -55,7 +55,7 @@ const MainLayout = () => {
     "createContract": "/createContract",
     'setting': '/manager/setting',
     "process": "/process",
-    "DeleteContract":'/DeleteContract',
+    "DeleteContract": '/DeleteContract',
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
     '4': '/combo',
@@ -172,9 +172,10 @@ const MainLayout = () => {
     {
       icon: FaFileContract, label: 'Hợp đồng', children: [
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
-        { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
-        { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
-        { icon: BsTrash3Fill, label: 'Đã xóa', key: "contractDelete" },
+        // { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
+        // { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
+        { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
+        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
         { icon: HiMiniClipboardDocumentCheck , label: 'Phê duyệt', key: "contractsApproval" },
 
@@ -296,7 +297,7 @@ const MainLayout = () => {
           <div className="flex justify-center items-center mr-36">
             <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p>
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
-            
+
             <Avatar
               size="large"
               icon={<UserOutlined />}
@@ -351,7 +352,9 @@ const MainLayout = () => {
               boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
             }}
           >
-            {user?.roles[0] === "ROLE_STAFF" && <RealTimeNotification />}
+            {(user?.roles?.includes("ROLE_STAFF") || user?.roles?.includes("ROLE_MANAGER")) && (
+              <RealTimeNotification />
+            )}
             <Outlet />
           </Content>
 

@@ -11,9 +11,12 @@ import Cookies from "js-cookie";
 import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
 import { useLoginUserMutation } from '../../services/AuthAPI';
-import { selectCurrentToken, setToken, setUser } from '../../slices/authSlice';
+import { selectCurrentToken, selectNotiNumber, setNotiNumber, setToken, setUser } from '../../slices/authSlice';
 import ForgotPass from './ForgotPass';
 import helloIcon from "./../../assets/Image/hello.svg"
+import { useLazyGetNotificationsQuery } from '../../services/NotiAPI';
+
+
 
 
 const Login = () => {
@@ -24,11 +27,27 @@ const Login = () => {
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
     const token = useSelector(selectCurrentToken)
+    const notiNumber = useSelector(selectNotiNumber);
     const [isForgotPass, setIsForgoPass] = useState(false);
+    const [fetchNotifications, { data }] = useLazyGetNotificationsQuery();
+
+    const handleGetNotiNumber = async () => {
+        return fetchNotifications({ page: 0, pageSize: 10 }).unwrap();
+
+        // dispatch(setNotiNumber(number));
+    };
 
     useEffect(() => {
         if (token) {
-            navigate("/");
+            handleGetNotiNumber()
+                .then(result => {
+                    dispatch(setNotiNumber(result.data.content.filter(notification => notification.isRead === false).length));
+                    console.log(result.data.content.filter(notification => notification.isRead === true).length);
+                    navigate("/");
+                })
+                .catch(error => {
+                    console.error(error);
+                });
         }
     }, [token, navigate]);
 
@@ -52,6 +71,7 @@ const Login = () => {
     }, [form]);
 
     const handleLoginSuccess = (data) => {
+
         switch (data.data.roles[0]) {
             case "ROLE_ADMIN":
                 setTimeout(() => {
@@ -116,6 +136,7 @@ const Login = () => {
         try {
             const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
             console.log(result);
+
             if (result.data) {
                 handleLoginSuccess(result.data);
             } else {

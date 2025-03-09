@@ -56,7 +56,13 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
-
+        getContractPorcess: builder.query({
+            query: () => ({
+                url: `contracts?status=CREATED`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
         createContractType: builder.mutation({
             query: ({ name }) => ({
                 url: `contract-types`,
@@ -187,7 +193,8 @@ export const {
     useSoftDeleteContractMutation,
     useDeleteContractMutation,
     useLazyGetContractDetailQuery,
-    useUpdateContractMutation
+    useUpdateContractMutation,
+    useGetContractPorcessQuery
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

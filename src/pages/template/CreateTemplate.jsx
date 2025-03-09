@@ -514,7 +514,7 @@ const CreateTemplate = () => {
             return;
         }
         try {
-            const result = await createClause({ idType: typeId, label: name, value: content }).unwrap();
+            const result = await createClause({ typeTermId: typeId, label: name, value: content }).unwrap();
             if (result.status === "CREATED") {
                 message.success("Tạo điều khoản thành công");
             }

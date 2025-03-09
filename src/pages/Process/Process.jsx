@@ -9,7 +9,8 @@ const { Option } = Select;
 const Process = ({ contractId, onProcessApplied }) => {
     console.log("Contract ID:", contractId);
     const [selection, setSelection] = useState("auto");
-    const [hideAddStage, setHideAddStage] = useState(false);
+    const [hideAddStage, setHideAddStage] = useState(false)
+    const [isCreate, setIsCreate] = useState(true)
     const [selectedProcessId, setSelectedProcessId] = useState(null);
 
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
@@ -179,20 +180,20 @@ const Process = ({ contractId, onProcessApplied }) => {
                         name: "Quy trình mới",
                         stages: stagesArray,
                     };
-
                     const result = await create(newProcess).unwrap();
                     console.log("New process:", result);
-                    message.success("Quy trình của bạn đã được tạo thành công!");
 
                     // Nếu ở chế độ custom thì lưu id quy trình mới vào state
                     setSelectedProcessId(result?.data?.id);
-
+                    setIsCreate(false)
                     // setApprovals({});
                     // setCustomStagesCount(1);
                     // setCurrent(0);
                     form.resetFields();
                     setHideAddStage(true);
                 }
+
+
             })
             .catch((error) => {
                 console.log("Validation Failed:", error);
@@ -244,6 +245,10 @@ const Process = ({ contractId, onProcessApplied }) => {
             if (onProcessApplied) {
                 onProcessApplied();
             }
+            setApprovals({});
+            setCustomStagesCount(1);
+            setCurrent(0);
+            setHideAddStage(false);
         } catch (error) {
             console.error("Assign process failed:", error);
         }
@@ -264,7 +269,7 @@ const Process = ({ contractId, onProcessApplied }) => {
         }) || [];
 
     return (
-        <div>
+        <div className='min-h-[100vh]'>
             <div className="flex flex-col gap-2 border-2 border-gray-500 p-4 rounded-xl shadow-lg">
                 <div className="flex items-center cursor-pointer">
                     <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
@@ -343,7 +348,7 @@ const Process = ({ contractId, onProcessApplied }) => {
                     className="bg-gradient-to-r from-blue-400 to-blue-700 text-white border-0 hover:from-blue-500 hover:to-blue-800"
                     onClick={handleApplyProcess}
                     loading={isLoading}
-
+                    disabled={isCreate && !selection === "auto"}
                 >
                     Áp dụng quy trình
                 </Button>
