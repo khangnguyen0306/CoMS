@@ -29,7 +29,7 @@ const ManageContracts = () => {
     const [softDelete] = useSoftDeleteContractMutation()
 
     useEffect(() => {
-        refetch()
+        refetch();
     }, [])
 
     // console.log(selectedContract)

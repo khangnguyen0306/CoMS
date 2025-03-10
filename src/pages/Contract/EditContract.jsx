@@ -80,7 +80,7 @@ const EditContract = () => {
     useEffect(() => {
         if (contractData) {
             form.setFieldsValue({
-                templateId: contractData?.data.contractTypeId,
+                contractTypeId: contractData?.data.contractTypeId,
                 partnerId: contractData?.data.party.id,
                 contractName: contractData?.data.title,
                 contractType: contractData?.data.contractTypeId,
@@ -93,7 +93,7 @@ const EditContract = () => {
                 payments: contractData?.data.paymentSchedules?.map((payment, index) => ({
                     amount: payment.amount,
                     paymentDate: payment.paymentDate ? dayjs(new Date(...payment.paymentDate)) : null,
-                    paymentMethod: payment.paymentMethod,
+                    paymentMethod: payment.paymentMethod, 
                     notifyPaymentDate: payment.notifyPaymentDate ? dayjs(new Date(payment.notifyPaymentDate)) : null,
                     notifyPaymentContent: payment.notifyPaymentContent,
                 })) || [],
@@ -118,6 +118,7 @@ const EditContract = () => {
                 additionalTerms: contractData?.data.additionalTerms?.map(term => term.original_term_id) || [],
                 specialTermsA: contractData?.data.specialTermsA,
                 specialTermsB: contractData?.data.specialTermsB,
+                contractId: contractData?.data.id,
                 customNotifications: contractData?.data.customNotifications?.map(notif => ({
                     date: notif.date ? dayjs(new Date(notif.date)) : null,
                     content: notif.content,
@@ -158,15 +159,15 @@ const EditContract = () => {
                     Common: contractData?.data.additionalConfig?.["7"]?.Common?.map(item => item.original_term_id) || []
                 },
             });
-            setContent(contractData?.data.contractContent || '');
-            setIsVATChecked(contractData?.data.autoAddVAT || false);
-            setIsDateLateChecked(contractData?.data.isDateLateChecked || false);
-            setIsAutoRenew(contractData?.data.autoRenew || false);
-            setSelectedOthersTerms(contractData?.data.additionalTerms?.map(term => term.original_term_id) || []);
-            setIsAppendixEnabled(contractData?.data.appendixEnabled || false);
-            setIsTransferEnabled(contractData?.data.transferEnabled || false);
-            setIsSuspend(contractData?.data.suspend || false);
-            setIsisViolate(contractData?.data.violate || false);
+            setContent(contractData?.data.contractContent );
+            setIsVATChecked(contractData?.data.autoAddVAT);
+            setIsDateLateChecked(contractData?.data.isDateLateChecked );
+            setIsAutoRenew(contractData?.data.autoRenew );
+            setSelectedOthersTerms(contractData?.data.additionalTerms?.map(term => term.original_term_id));
+            setIsAppendixEnabled(contractData?.data.appendixEnabled );
+            setIsTransferEnabled(contractData?.data.transferEnabled);
+            setIsSuspend(contractData?.data.suspend );
+            setIsisViolate(contractData?.data.violate);
         }
     }, [contractData, form]);
 
@@ -345,10 +346,10 @@ const EditContract = () => {
             isDateLateChecked: data.isDateLateChecked,
             maxDateLate: data.maxDateLate,
             autoRenew: data.autoRenew,
-            legalBasisTerms: data.legalBasis,
+            legalBasisTerms: data.legalBasisTerms,
             generalTerms: data.generalTerms,
             additionalTerms: data.additionalTerms,
-            contractTypeId: data.contractType?.value,
+            contractTypeId: data.contractTypeId,
             additionalConfig,
             originalTemplateId: null,
             duplicateVersion: null,
@@ -359,7 +360,7 @@ const EditContract = () => {
             "suspendContent", "contractContent", "autoAddVAT", "vatPercentage", "isDateLateChecked",
             "maxDateLate", "autoRenew", "legalBasis", "generalTerms", "additionalTerms", "contractType",
             "1", "2", "3", "4", "5", "6", "7", "effectiveDate&expiryDate", "notifyEffectiveDate",
-            "notifyExpiryDate", "notifyEffectiveContent", "notifyExpiryContent"
+            "notifyExpiryDate"
         ];
 
         const formattedData = Object.keys(data).reduce((acc, key) => {
@@ -382,7 +383,7 @@ const EditContract = () => {
         console.log(formattedData)
 
         try {
-            const response = await UpdateContract({ id: id, formattedData }).unwrap();
+            const response = await UpdateContract(formattedData).unwrap();
             console.log(response)
             // if (response.status === "UPDATED") {
             //     message.success("Cập nhật hợp đồng thành công!");
@@ -663,7 +664,7 @@ const EditContract = () => {
                         </div>
                     ))
                 ) : (
-                    <div className="text-gray-500 italic">Chưa có {fieldLabels[fieldName].toLowerCase()} nào được chọn</div>
+                    <div className="text-gray-500 italic">Chưa có {fieldLabels[fieldName]?.toLowerCase()} nào được chọn</div>
                 )}
             </div>
         );
@@ -696,7 +697,7 @@ const EditContract = () => {
             title: "Thông tin cơ bản",
             content: (
                 <div className="space-y-4">
-                    <Form.Item hidden name="templateId" />
+                    <Form.Item hidden name="contractId" />
 
                     <Form.Item label="Chọn đối tác" name="partnerId" rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}>
                         <LazySelectPartner
@@ -717,7 +718,7 @@ const EditContract = () => {
                     <Form.Item label="Tên hợp đồng" name="contractName" rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}>
                         <Input placeholder="Nhập tên hợp đồng" />
                     </Form.Item>
-                    <Form.Item label="Loại hợp đồng" name="contractType" rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}>
+                    <Form.Item label="Loại hợp đồng" name="contractTypeId" rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}>
                         <LazySelectContractType loadDataCallback={loadContractTypeData} options={contractTypeData} showSearch labelInValue placeholder="Chọn loại hợp đồng" dropdownRender={(menu) => (
                             <>
                                 {menu}
@@ -754,7 +755,7 @@ const EditContract = () => {
                                         <div className="flex justify-between items-center gap-4">
                                             <p>Căn cứ pháp lý
                                             </p>
-                                            <Popover content={() => getTermsContent('legalBasis')} title="Danh sách căn cứ pháp lý đã chọn" trigger="hover" placement="right">
+                                            <Popover content={() => getTermsContent('legalBasisTerms')} title="Danh sách căn cứ pháp lý đã chọn" trigger="hover" placement="right">
                                                 <Button icon={<EyeFilled />} />
                                             </Popover>
                                         </div>}
