@@ -349,8 +349,6 @@ const CreateContractForm = () => {
             "effectiveDate&expiryDate",
             "notifyEffectiveDate",
             "notifyExpiryDate",
-            "notifyEffectiveContent",
-            "notifyExpiryContent"
         ];
 
         // Loại bỏ các trường trùng lặp và format templateId
@@ -380,7 +378,7 @@ const CreateContractForm = () => {
         if (response.status == "CREATED") {
             form.resetFields();
             message.success("Tạo hợp đồng thành công!");
-            navigate('/contract')
+            navigate('/contractsApproval')
         } else {
             message.error(response.message);
         }
