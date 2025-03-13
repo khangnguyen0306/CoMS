@@ -23,7 +23,9 @@ const generationConfig = {
   maxOutputTokens: 8192,
 };
 
-function ChatWithAI({ initialPrompt, handleGenerateAIPrompt }) {
+function ChatWithAI({ initialPrompt, handleGenerateAIPrompt,...othersProps }) {
+  console.log(othersProps)
+
   const darkMode =  useSelector(isDarkMode);
 
   const [messages, setMessages] = useState([
@@ -51,15 +53,15 @@ function ChatWithAI({ initialPrompt, handleGenerateAIPrompt }) {
   }, [messages])
 
 
-  useEffect(() => {
-    if (initialPrompt) {
-      // Sử dụng setTimeout để đảm bảo session đã sẵn sàng
-      setTimeout(() => {
-        handleSendMessageInternal(initialPrompt);
-      }, 500);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPrompt]);
+  // useEffect(() => {
+  //   if (initialPrompt) {
+  //     // Sử dụng setTimeout để đảm bảo session đã sẵn sàng
+  //     setTimeout(() => {
+  //       handleSendMessageInternal(initialPrompt);
+  //     }, 500);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [initialPrompt]);
 
 
   const handleSendMessageInternal = async (messageText) => {
@@ -93,8 +95,19 @@ function ChatWithAI({ initialPrompt, handleGenerateAIPrompt }) {
     setIsSuggestionVisible(prev => !prev);
   };
 
+  const suggestions = [
+    { label: "Gợi ý nội dung cho mẫu hợp đồng", prompt: "Hãy gợi ý nội dung cho mẫu hợp đồng" },
+    { label: "Kiểm tra lỗi sai", prompt: "Hãy kiểm tra lỗi sai của mẫu hợp đồng" },
+  ];
+  const showSuggestion = othersProps.others?.Template === "template";
+  const handleSuggestionClick = async (prompt) => {
+    await handleGenerateAIPrompt();
+    const fullPrompt = `${prompt}: ${initialPrompt}`; // Kết hợp prompt và initialValue
+    await handleSendMessageInternal(fullPrompt);
+  };
+
   return (
-    <div className="mt-20">
+    <div className="mt-20 overflow-x-hidden">
       <div className="flex-1 overflow-y-auto p-5">
         {messages.map((msg, index) => (
           <div key={index} className={`mb-4 ${msg.sender == "user" ? "text-right " : "text-left"}`}>
@@ -117,12 +130,22 @@ function ChatWithAI({ initialPrompt, handleGenerateAIPrompt }) {
         )}
         <div ref={messsageEndRef} />
       </div>
-      {isSuggestionVisible && (
+      {isSuggestionVisible || handleGenerateAIPrompt && (
         <div className="flex items-center ml-6">
           <Button onClick={handleGenerateAIPrompt}>
             Phân tích hợp đồng
             <button onClick={toggleSuggestion} className="ml-2 text-red-500"><DeleteFilled/></button>
           </Button>
+        </div>
+      )}
+      {showSuggestion && isSuggestionVisible && (
+        <div className="flex items-center ml-6 mb-4 gap-2">
+         {suggestions.map((suggestion, index) => (
+          <Button key={index} onClick={() => handleSuggestionClick(suggestion.prompt)}>
+            {suggestion.label}
+          </Button>
+          
+        ))}
 
         </div>
       )}

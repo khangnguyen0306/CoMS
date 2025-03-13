@@ -28,6 +28,7 @@ const ManageTemplate = () => {
         search: searchText,
         page: currentPage - 1,
         size: pageSize,
+        keyword: searchText,
     });
     useEffect(() => {
         refetch();
@@ -59,7 +60,7 @@ const ManageTemplate = () => {
             item.contractTitle.toLowerCase().includes(searchText.toLowerCase())
         )
         .filter((item) => (filterType ? item.contractTypeId === filterType : true))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        .sort((a, b) => new Date(b.createdAt[0],b.createdAt[1] - 1,b.createdAt[2]) - new Date(a.createdAt[0],a.createdAt[1] - 1,a.createdAt[2]));
 
     // Xóa template
     const showDeleteConfirm = async (id) => {
@@ -107,13 +108,9 @@ const ManageTemplate = () => {
             title: "Ngày tạo",
             dataIndex: "createdAt",
             key: "createdAt",
-            sorter: (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+            sorter: (a, b) => new Date(b.createdAt[0], b.createdAt[1] - 1, b.createdAt[2]) - new Date(a.createdAt[0], a.createdAt[1] - 1, a.createdAt[2]),
             render: (text) => {
-                return <p>{dayjs(new Date(
-                    text[0],
-                    text[1] - 1,
-                    text[2]
-                )).format("DD/M/YYYY")}</p>;
+                return <p>{dayjs(new Date(text[0], text[1] - 1, text[2])).format("DD/M/YYYY")}</p>;
             },
         },
         {
