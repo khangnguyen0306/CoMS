@@ -80,9 +80,9 @@ const EditContract = () => {
     useEffect(() => {
         if (contractData) {
             form.setFieldsValue({
-                status:contractData.data.status,
+                status: contractData.data.status,
                 contractTypeId: contractData?.data.contractTypeId,
-                partnerId: contractData?.data.party.id,
+                partnerId: contractData?.data.partner.id,
                 contractName: contractData?.data.title,
                 contractType: contractData?.data.contractTypeId,
                 contractNumber: contractData?.data.contractNumber,
@@ -100,7 +100,7 @@ const EditContract = () => {
                 contractContent: contractData?.data.contractContent,
                 totalValue: contractData?.data.amount,
                 payments: contractData?.data.paymentSchedules?.map((payment, index) => ({
-                    id:payment.id,
+                    id: payment.id,
                     paymentOrder: payment.paymentOrder,
                     amount: payment.amount,
                     overdueEmailSent: payment.overdueEmailSent,
@@ -377,7 +377,7 @@ const EditContract = () => {
             additionalTerms: data.additionalTerms,
             contractTypeId: data.contractTypeId,
             additionalConfig,
-            status:data.status
+            status: data.status
         };
 
         const excludedFields = [

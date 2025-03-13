@@ -22,7 +22,7 @@ const ContractDetail = () => {
         B: []
     });
 
-    // Lấy thông tin bên thuê theo party_id
+    // Lấy thông tin bên thuê theo partner_id
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
@@ -188,12 +188,12 @@ const ContractDetail = () => {
                 </Col>
                 <Col className="flex flex-col gap-2" md={10} sm={24}>
                     <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
-                    <p className="text-sm"><b>Tên công ty:</b> {contractData?.data?.party.partnerName}</p>
-                    <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data?.party.address}</p>
-                    <p className="text-sm"><b>Người đại diện:</b> {contractData?.data?.party.spokesmanName}</p>
-                    <p className="text-sm"><b>Chức vụ:</b> {/* Thiếu thông tin chức vụ */}</p>
-                    <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data?.party.taxCode}</p>
-                    <p className="text-sm"><b>Email:</b> {contractData?.data?.party.email}</p>
+                    <p className="text-sm"><b>Tên công ty:</b> {contractData?.data?.partner.partnerName}</p>
+                    <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data?.partner.address}</p>
+                    <p className="text-sm"><b>Người đại diện:</b> {contractData?.data?.partner.spokesmanName}</p>
+                    <p className="text-sm"><b>Chức vụ:</b> {contractData?.data?.partner?.position}</p>
+                    <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data?.partner.taxCode}</p>
+                    <p className="text-sm"><b>Email:</b> {contractData?.data?.partner.email}</p>
                 </Col>
                 <div className="pl-2">
                     <p>
@@ -325,7 +325,7 @@ const ContractDetail = () => {
             <div className="flex justify-center mt-10 items-center pb-24">
                 <div className="flex flex-col gap-2 px-[18%] text-center">
                     <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
-                    <p><b>{contractData?.data?.party.partnerName?.toUpperCase()}</b></p>
+                    <p><b>{contractData?.data?.partner.partnerName?.toUpperCase()}</b></p>
                     <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                 </div>
                 <div className="flex flex-col gap-2 px-[18%] text-center">

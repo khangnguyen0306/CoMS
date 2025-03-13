@@ -324,7 +324,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
     return (
         <div className={`${isDarkMode ? 'bg-gray-[#141414] text-white' : 'bg-[#f5f5f5]'} shadow-md p-4 pb-16 rounded-md`}>
             <div className='fixed bottom-10 right-20 z-50'>
-                <ChatModalWrapper  generatedPrompt={promtData} handleGenerateAIPrompt={handleGenerateAIPrompt} />
+                <ChatModalWrapper generatedPrompt={promtData} handleGenerateAIPrompt={handleGenerateAIPrompt} />
             </div>
             <div className="text-center">
                 <p className={`font-bold text-xl pt-8 ${isDarkMode ? 'text-white' : ''}`}>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
@@ -356,7 +356,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
                     <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
                     <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
                     <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName}</p></p>
-                    <p className="text-sm"><b>Chức vụ:</b> </p>
+                    <p className="text-sm"><b>Chức vụ:</b> {partnerDetail?.data.position} </p>
                     {/* ///////////////////////thiếu chức vụ  */}
                     <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
                     <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>

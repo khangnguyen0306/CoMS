@@ -278,8 +278,15 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
                     </Radio>
                 </div>
 
+
                 <div className='ml-8 my-4'>
                     <Steps current={items.length - 1} items={items} />
+                </div>
+
+                <div className="flex items-center cursor-pointer">
+                    <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
+                        Đề xuất
+                    </Radio>
                 </div>
 
                 <div className="flex items-center cursor-pointer">
