@@ -186,14 +186,14 @@ const ForgotPass = ({ setIsForgotPass }) => {
                         <Form.Item
                             label={<span className='text-white'>Mật khẩu mới</span>}
                             name="new_password"
-                            rules={[
-                                {
-                                    required: true,
-                                    pattern: validationPatterns.password.pattern,
-                                    message: validationPatterns.password.message
+                        // rules={[
+                        //     {
+                        //         required: true,
+                        //         pattern: validationPatterns.password.pattern,
+                        //         message: validationPatterns.password.message
 
-                                }
-                            ]}
+                        //     }
+                        // ]}
                         >
                             <Input.Password placeholder="Nhập mật khẩu mới" size="large" />
                         </Form.Item>

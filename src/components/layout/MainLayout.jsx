@@ -58,6 +58,7 @@ const MainLayout = () => {
     "DeleteContract": '/DeleteContract',
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
+    'approvalContractStaff': '/approvalContract',
     '4': '/combo',
   }
 
@@ -93,6 +94,7 @@ const MainLayout = () => {
             { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
             { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
             { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
+
           ]
         },
         {
@@ -168,7 +170,8 @@ const MainLayout = () => {
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Clause', key: "clause" },
- 
+    { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
+
     {
       icon: FaFileContract, label: 'Hợp đồng', children: [
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
@@ -177,7 +180,7 @@ const MainLayout = () => {
         { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
         { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
-        { icon: HiMiniClipboardDocumentCheck , label: 'Phê duyệt', key: "contractsApproval" },
+        { icon: HiMiniClipboardDocumentCheck, label: 'Phê duyệt', key: "contractsApproval" },
 
       ]
     },

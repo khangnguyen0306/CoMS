@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Typography } from "antd";
-import { useGetAllContractQuery } from "../../services/ContractAPI";
 import { Link } from "react-router-dom";
 import dayjs from "dayjs";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../slices/authSlice";
+import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
 
 const { Search } = Input;
 const { Text } = Typography;
 const ManageContractApproval = () => {
-    const { data: contracts, isLoading, isError } = useGetAllContractQuery();
+    const user = useSelector(selectCurrentUser);
+    const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessPendingQuery({ approverId: user?.id });
     const [searchText, setSearchText] = useState("");
+    console.log(contracts)
+    console.log(user?.id)
+    useEffect(() => {
+        refetch();
+    }, [contracts]);
 
     const columns = [
         {
@@ -50,18 +58,23 @@ const ManageContractApproval = () => {
             render: (text, record) => (
                 <Link
                     className="font-bold text-[#228eff] block truncate max-w-[200px]"
-                    to={`/manager/approvalContract/reviewContract/${record.id}`}
+                    to={
+                        user?.roles?.includes("ROLE_STAFF")
+                            ? `/approvalContract/reviewContract/${record.id}`
+                            : `/manager/approvalContract/reviewContract/${record.id}`
+                    }
                     title={text} // Hiển thị tooltip mặc định của trình duyệt
                 >
                     {text}
                 </Link>
-            ),
+            )
+
         },
 
         {
             title: "Loại hợp đồng",
-            dataIndex: ["contractType", "name"],
-            key: "contractType.name",
+            dataIndex: "contractTypeName",
+            key: "contractTypeName",
             width: "15%",
             render: (type) => <Tag color="blue">{type}</Tag>,
             // filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
@@ -72,8 +85,8 @@ const ManageContractApproval = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: ["party", "partnerName"],
-            key: "party.partnerName",
+            dataIndex: ["partner", "partnerName"],
+            key: "partner.partnerName",
             width: "18%",
             sorter: (a, b) => a.partner.localeCompare(b.partner),
         },
@@ -120,7 +133,7 @@ const ManageContractApproval = () => {
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.data?.content?.filter(item =>
+                    dataSource={contracts?.data?.filter(item =>
                         item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.party?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())

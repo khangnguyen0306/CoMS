@@ -118,6 +118,18 @@ export const router = createBrowserRouter([
                         element: Process,
                     },
                     {
+                        path: "approvalContract",
+                        element: ManagerContractApproval,
+                    },
+                    {
+                        path: "approvalContract/reviewContract/:id",
+                        element: PreviewContract,
+                    },
+                    {
+                        path: "approvalContract/reviewContract/:id/approve/:id",
+                        element: Approve,
+                    },
+                    {
                         path: "contractsApproval",
                         element: ContractApproval,
                     },

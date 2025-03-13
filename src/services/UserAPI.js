@@ -19,7 +19,7 @@ export const userAPI = createApi({
     endpoints: (builder) => ({
         getAllUser: builder.query({
             query: ({ keyword, page, limit }) => ({
-                url: `/users/get-all-user?page=${page}&limit=${limit}&keyword=${keyword}`,
+                url: `/users/get-all-users?page=${page}&limit=${limit}&keyword=${keyword}`,
                 method: "GET",
             }),
             providesTags: (result) =>

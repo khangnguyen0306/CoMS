@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Tag, Skeleton, Empty, Card, Popover, Modal, Form, Select, Switch, Tooltip, Radio } from "antd";
+import { Table, Input, Space, Button, Dropdown, message, Tag, Skeleton, Empty, Card, Popover, Modal, Form, Select, Switch, Tooltip, Radio, Col, Row } from "antd";
 import { EditFilled, PlusOutlined, DeleteFilled, StarFilled } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
@@ -35,10 +35,11 @@ const UserManagement = () => {
 
 
     const filterUsers = (users) => {
-        return users.filter(user => user.role.id !== 1);
+        return users?.filter(user => user.role.id !== 1);
     };
 
-    const filteredUsers = userData?.users ? filterUsers(userData.users) : [];
+    const filteredUsers = userData?.content ? filterUsers(userData?.content) : [];
+    console.log("Filtered users:", userData);
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -175,7 +176,7 @@ const UserManagement = () => {
             dataIndex: "role",
             key: "role",
             filters: userData
-                ? Array.from(new Set(userData?.users.map(user => user.role?.roleName))) // Lấy danh sách unique roles
+                ? Array.from(new Set(userData?.content?.map(user => user.role?.roleName))) // Lấy danh sách unique roles
                     .map(roleName => ({ text: roleName, value: roleName }))
                 : [],
             onFilter: (value, record) => record.role?.roleName === value,
@@ -255,87 +256,87 @@ const UserManagement = () => {
                     open={isModalVisible}
                     onCancel={() => setIsModalVisible(false)}
                     footer={null}
+                    width={850}
                 >
-                    <Form
-                        form={form}
-                        layout="vertical"
-                        onFinish={(values) => handleSubmitAddUser(values)}
-                    >
-                        <Form.Item
-                            name="full_name"
-                            label="Tên nhân sự"
-                            rules={[{ required: true, message: "Vui lòng nhập tên nhân sự!" }]}
-                        >
-                            <Input placeholder="Nhập tên nhận sự" />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="phone_number"
-                            label="Số điện thoại"
-                            rules={[{
-                                required: true,
-                                pattern: validationPatterns.phoneNumber.pattern,
-                                message: validationPatterns.phoneNumber.message
-                            }]}
-                        >
-                            <Input placeholder="Nhập sđt nhận sự" />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="email"
-                            label="Email"
-                            rules={[{
-                                required: true,
-                                pattern: validationPatterns.email.pattern,
-                                message: validationPatterns.email.message
-                            }]}                        >
-                            <Input placeholder="Nhập email nhận sự" />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="address"
-                            label="Địa chỉ"
-                            rules={[{ required: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
-                        >
-                            <Input placeholder="Nhập tên nhận sự" />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="role_id"
-                            label="Chọn vai trò"
-                            rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
-                        >
-                            <Select placeholder="Chọn vai trò">
-                                <Option value={2}>Manage</Option>
-                                <Option value={3}>Staff</Option>
-                            </Select>
-                        </Form.Item>
-
-                        {/* <Form.Item
-                            name="department_id"
-                            label="Chọn phòng ban"
-                            rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
-                        >
-                            <Select placeholder="Chọn phòng ban">
-                                <Option value={1}>Phòng Kinh Doanh</Option>
-                                <Option value={2}>Phòng Marketing</Option>
-                                <Option value={3}>Phòng Nhân Sự</Option>
-                                <Option value={4}>Phòng Tài chính</Option>
-                            </Select>
-                        </Form.Item> */}
-
-                        <Form.Item
-                            name="is_ceo"
-                            label="CEO"
-                            rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
-                        >
-                            <Radio.Group>
-                                <Radio value={true}>Có</Radio>
-                                <Radio value={false}>Không</Radio>
-                            </Radio.Group>
-                        </Form.Item>
-
-
+                    <Form form={form} layout="vertical" onFinish={handleSubmitAddUser}>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="full_name"
+                                    label="Tên nhân sự"
+                                    rules={[{ required: true, message: "Vui lòng nhập tên nhân sự!" }]}
+                                >
+                                    <Input placeholder="Nhập tên nhân sự" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="phone_number"
+                                    label="Số điện thoại"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            pattern: validationPatterns.phoneNumber.pattern,
+                                            message: validationPatterns.phoneNumber.message,
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="Nhập sđt nhân sự" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="email"
+                                    label="Email"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            pattern: validationPatterns.email.pattern,
+                                            message: validationPatterns.email.message,
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="Nhập email nhân sự" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="address"
+                                    label="Địa chỉ"
+                                    rules={[{ required: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
+                                >
+                                    <Input placeholder="Nhập địa chỉ" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="role_id"
+                                    label="Chọn vai trò"
+                                    rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
+                                >
+                                    <Select placeholder="Chọn vai trò">
+                                        <Option value={2}>Manage</Option>
+                                        <Option value={3}>Staff</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="is_ceo"
+                                    label="CEO"
+                                    rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
+                                >
+                                    <Radio.Group>
+                                        <Radio value={true}>Có</Radio>
+                                        <Radio value={false}>Không</Radio>
+                                    </Radio.Group>
+                                </Form.Item>
+                            </Col>
+                        </Row>
                         <Form.Item>
                             <div className="flex justify-center">
                                 <Button type="primary" htmlType="submit" loading={loadingAdd}>
