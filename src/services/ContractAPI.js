@@ -63,6 +63,14 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
+        getContractReject: builder.query({
+            query: () => ({
+                url: `contracts?status=REJECTED`,
+                method: "GET"
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
+
         createContractType: builder.mutation({
             query: ({ name }) => ({
                 url: `contract-types`,
@@ -126,7 +134,7 @@ export const ContractAPI = createApi({
 
         updateContract: builder.mutation({
             query: ({ contractId, ...contractData }) => ({
-                url: `/contracts/update/${contractId}`, 
+                url: `/contracts/update/${contractId}`,
                 method: "PUT",
                 body: contractData,
             }),
@@ -194,7 +202,8 @@ export const {
     useDeleteContractMutation,
     useLazyGetContractDetailQuery,
     useUpdateContractMutation,
-    useGetContractPorcessQuery
+    useGetContractPorcessQuery,
+    useGetContractRejectQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

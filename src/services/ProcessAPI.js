@@ -48,7 +48,36 @@ export const processAPI = createApi({
             }),
             invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
         }),
-    }),
+        getProcessByContractId: builder.query({
+            query: ({ contractId }) => ({
+                url: `/approval-workflows/get-by-contract-id/${contractId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, contractId) => [{ type: "ProcessList", id: contractId }],
+        }),
+        rejectProcess: builder.mutation({
+            query: ({ comment, contractId, stageId }) => ({
+                url: `/approval-workflows/reject/${contractId}/${stageId}`,
+                method: "PUT",
+                body: { comment },
+            }),
+            invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
+        }),
+        approveProcess: builder.mutation({
+            query: ({ contractId, stageId }) => ({
+                url: `/approval-workflows/approve/${contractId}/${stageId}`,
+                method: "PUT",
+            }),
+            invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
+        }),
+        getContractPorcessPending: builder.query({
+            query: ({ approverId }) => ({
+                url: `approval-workflows/get-contract-for-approver/${approverId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
+    })
 });
 
 export const {
@@ -56,4 +85,8 @@ export const {
     useCreateProcessMutation,
     useUpdateProcessMutation,
     useAssignProcessMutation,
+    useGetProcessByContractIdQuery,
+    useRejectProcessMutation,
+    useApproveProcessMutation,
+    useGetContractPorcessPendingQuery,
 } = processAPI;

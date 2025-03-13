@@ -33,21 +33,24 @@ const NotificationDropdown = () => {
 
   const handleReadNoti = async (id) => {
     try {
-      await update(id).unwrap();
-      setNotifications((prev) =>
-        prev.map((noti) =>
+      const data = await update(id).unwrap();
+      setNotifications((prev) => {
+        const updated = prev.map((noti) =>
           noti.id === id ? { ...noti, isRead: true } : noti
-        )
-      );
-      // Giảm số thông báo chưa đọc
-      dispatch(setNotiNumber(notiNumber - 1));
-      if (data.contractId) {
+        );
+        // Tính lại số lượng thông báo chưa đọc dựa trên danh sách updated
+        const newUnreadCount = updated.filter((noti) => !noti.isRead).length;
+        dispatch(setNotiNumber(newUnreadCount));
+        return updated;
+      });
+      if (data?.contractId) {
         navigate(`/manager/ContractDetail/${data.contractId}`);
       }
     } catch (error) {
       console.log(error);
     }
   };
+
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -113,8 +116,7 @@ const NotificationDropdown = () => {
         className={`p-2 rounded-full ${!isOpen ? "bg-gray-600" : "bg-slate-700"}`}
         onOpenChange={(visible) => {
           setIsOpen(visible);
-          // setPage(0);
-          fetchNotifications({ page: 0, size: pageSize });
+          fetchNotifications({ page: page, size: pageSize });
         }}
       >
         <Badge

@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { useGetContractPorcessQuery } from "../../services/ContractAPI";
-import { Link } from "react-router-dom";
+import { useGetContractPorcessQuery, useGetContractRejectQuery } from "../../services/ContractAPI";
+import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
 import dayjs from "dayjs";
 const { Search } = Input;
 
 const ContractProcess = () => {
-    const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessQuery();
+    const { data: contractsProcess, isLoading, isError, refetch } = useGetContractPorcessQuery();
+    const { data: contractsReject, isLoadingReject, isErrorReject, refetch: refetchReject } = useGetContractRejectQuery();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
 
+    const contracts = contractsProcess?.data?.content?.concat(contractsReject?.data?.content);
+    console.log(contracts);
+    const navigate = useNavigate();
     const showModal = (record) => {
         setSelectedRecord(record);
         setIsModalVisible(true);
@@ -29,10 +33,10 @@ const ContractProcess = () => {
 
     const columns = [
         {
-            title: "Mã hợp đồng",
+            title: "MHĐ",
             dataIndex: "id",
             key: "id",
-            width: "10%",
+            width: "8%",
         },
         {
             title: "Ngày tạo",
@@ -64,22 +68,33 @@ const ContractProcess = () => {
             key: "title",
             width: "20%",
             sorter: (a, b) => a.title.localeCompare(b.title),
-            render: (text, record) => (
-                <Link
-                    className="font-bold text-[#228eff] block truncate max-w-[200px]"
-                    to={`/manager/approvalContract/reviewContract/${record.id}`}
-                    title={text} // Hiển thị tooltip mặc định của trình duyệt
-                >
-                    {text}
-                </Link>
-            ),
+            render: (text, record) => {
+                if (record.status === "REJECTED") {
+                    return (
+                        <Link
+                            className="font-bold text-[#228eff] block truncate max-w-[200px]"
+                            to={`/EditContract/${record.id}`}
+                            title={text}
+                        >
+                            {text}
+                        </Link>
+                    );
+                } else if (record.status === "CREATED") {
+                    return (
+                        <span className="block truncate max-w-[200px]" title={text}>
+                            {text}
+                        </span>
+                    );
+                }
+            },
         },
+
 
         {
             title: "Loại hợp đồng",
             dataIndex: ["contractType", "name"],
             key: "contractType.name",
-            width: "15%",
+            width: "17%",
             render: (type) => <Tag color="blue">{type}</Tag>,
             // filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
             //     text: type,
@@ -89,11 +104,28 @@ const ContractProcess = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: ["party", "partnerName"],
-            key: "party.partnerName",
+            dataIndex: ["partner", "partnerName"],
+            key: "partner.partnerName",
             width: "18%",
             sorter: (a, b) => a.partner.localeCompare(b.partner),
         },
+        {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            width: "10%",
+            filters: [
+                { text: "Đã tạo", value: "CREATED" },
+                { text: "Từ chối", value: "REJECTED" },
+            ],
+            onFilter: (value, record) => record.status === value,
+            render: (status) => (
+                <Tag color={status === "REJECTED" ? "red" : "green"}>
+                    {status === "REJECTED" ? "Từ chối" : "Đã tạo"}
+                </Tag>
+            ),
+        },
+
 
         {
             title: "Giá trị",
@@ -108,15 +140,23 @@ const ContractProcess = () => {
             key: "action",
             render: (_, record) => (
                 <Space>
-                    <Button type="primary" onClick={() => showModal(record)}>
-                        Chọn quy trình
-                    </Button>
+                    {record.status !== "REJECTED" ? (
+                        <Button type="primary" onClick={() => showModal(record)}>
+                            Chọn quy trình
+                        </Button>
+                    ) : (
+                        <Button type="primary" onClick={() => navigate(`/EditContract/${record.id}`)}>
+                            Chỉnh sửa hợp đồng
+                        </Button>
+                    )}
                 </Space>
             ),
-        },
+        }
+
+
     ];
 
-    console.log(selectedRecord?.id);
+    console.log(selectedRecord?.contractType?.id);
 
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
@@ -136,7 +176,7 @@ const ContractProcess = () => {
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.data?.content?.filter(item =>
+                    dataSource={contracts?.filter(item =>
                         item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.party?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())
@@ -157,6 +197,7 @@ const ContractProcess = () => {
 
                     <Process
                         contractId={selectedRecord?.id}
+                        contractTypeId={selectedRecord?.contractType?.id}
                         onProcessApplied={() => {
                             handleCancel();
                             refetch();

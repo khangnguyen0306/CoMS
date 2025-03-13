@@ -42,7 +42,7 @@ const Login = () => {
             handleGetNotiNumber()
                 .then(result => {
                     dispatch(setNotiNumber(result.data.content.filter(notification => notification.isRead === false).length));
-                    console.log(result.data.content.filter(notification => notification.isRead === true).length);
+                    console.log(result.data.content.filter(notification => notification.isRead === false).length);
                     navigate("/");
                 })
                 .catch(error => {

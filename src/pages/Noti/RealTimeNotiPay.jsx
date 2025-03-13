@@ -13,22 +13,52 @@ const RealTimeNotification = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Khởi tạo notifications từ sessionStorage nếu có
-    const [notifications, setNotifications] = useState(() => {
-        const stored = sessionStorage.getItem("notifications");
-        return stored ? JSON.parse(stored) : [];
-    });
+    const [notifications, setNotifications] = useState([]);
 
-    // Lưu notifications vào sessionStorage mỗi khi thay đổi
-    useEffect(() => {
-        sessionStorage.setItem("notifications", JSON.stringify(notifications));
-    }, [notifications]);
 
-    // Hàm cập nhật notiNumber dựa trên số thông báo chưa đọc
-    const updateNotiNumber = (newNotifications) => {
-        const unreadCount = newNotifications.filter((noti) => noti.isRead == false).length;
-        dispatch(setNotiNumber(unreadCount));
+    const handleIncomingNotification = (data) => {
+        const msg = data.message;
+        const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
+        let formattedDate = "";
+        if (dateMatch && dateMatch[1]) {
+            formattedDate = dayjs(dateMatch[1]).format("DD/MM/YYYY HH:mm");
+        }
+        const displayMessage = msg.replace(/lúc\s+[\d\-T:]+/, `\nLúc ${formattedDate}`);
+
+        // Tạo đối tượng thông báo mới, đảm bảo có id duy nhất
+        const newNotification = {
+            id: data.id || Date.now(),
+            message: displayMessage,
+            contractId: data.contractId,
+            isRead: false
+        };
+
+        setNotifications((prev) => {
+            // Kiểm tra xem thông báo mới đã có trong danh sách chưa
+            if (prev.some(noti => noti.id === newNotification.id)) {
+                return prev;
+            }
+            const updated = [...prev, newNotification];
+            // Tính lại số lượng thông báo chưa đọc
+            const newUnreadCount = updated.filter((noti) => !noti.isRead).length;
+            dispatch(setNotiNumber(newUnreadCount));
+            return updated;
+        });
+
+        notification.open({
+            message: "Thông báo",
+            description: displayMessage,
+            duration: 10,
+            placement: "topRight",
+            pauseOnHover: true,
+            showProgress: true,
+            type: "warning",
+            onClick: () => {
+                navigate(`/manager/approvalContract/reviewContract/${data.contractId}`);
+            },
+        });
     };
+
 
     useEffect(() => {
         const socket = new SockJS("http://157.66.26.11:8088/ws");
@@ -45,77 +75,21 @@ const RealTimeNotification = () => {
 
         stompClient.onConnect = (frame) => {
             console.log("Connected: ", frame);
-            // Subscribe kênh payment
+
             stompClient.subscribe(`/user/${user.fullName}/queue/payment`, (message) => {
-                console.log("Received payment message: ", message);
                 if (message.body) {
                     const data = JSON.parse(message.body);
-                    const msg = data.message;
-
-                    const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
-                    let formattedDate = "";
-                    if (dateMatch && dateMatch[1]) {
-                        formattedDate = dayjs(dateMatch[1]).format("DD/MM/YYYY HH:mm");
-                    }
-                    const displayMessage = msg.replace(/lúc\s+[\d\-T:]+/, `\nLúc ${formattedDate}`);
-
-                    const newNotification = { message: displayMessage, contractId: data.contractId, isRead: false };
-
-                    setNotifications((prev) => {
-                        const updated = [...prev, newNotification];
-                        updateNotiNumber(updated);
-                        return updated;
-                    });
-
-                    notification.open({
-                        message: "Thông báo",
-                        description: displayMessage,
-                        duration: 10,
-                        placement: "topRight",
-                        pauseOnHover: true,
-                        showProgress: true,
-                        type: "warning",
-
-                    });
+                    handleIncomingNotification(data);
                 }
             });
 
-            // Subscribe kênh notifications
             stompClient.subscribe(`/user/${user.fullName}/queue/notifications`, (message) => {
-                console.log("Received notification message: ", message);
                 if (message.body) {
                     const data = JSON.parse(message.body);
-                    const msg = data.message;
-
-                    const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
-                    let formattedDate = "";
-                    if (dateMatch && dateMatch[1]) {
-                        formattedDate = dayjs(dateMatch[1]).format("DD/MM/YYYY HH:mm");
-                    }
-                    const displayMessage = msg.replace(/lúc\s+[\d\-T:]+/, `\nLúc ${formattedDate}`);
-
-                    const newNotification = { message: displayMessage, contractId: data.contractId, isRead: false };
-
-                    setNotifications((prev) => {
-                        const updated = [...prev, newNotification];
-                        updateNotiNumber(updated);
-                        return updated;
-                    });
-
-                    notification.open({
-                        message: "Thông báo",
-                        description: displayMessage,
-                        duration: 10,
-                        placement: "topRight",
-                        pauseOnHover: true,
-                        showProgress: true,
-                        type: "warning",
-                        onClick: () => {
-                            navigate(`/manager/ContractDetail/${data.contractId}`);
-                        },
-                    });
+                    handleIncomingNotification(data);
                 }
             });
+
         };
 
         stompClient.activate();

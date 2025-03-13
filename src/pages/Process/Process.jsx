@@ -6,8 +6,8 @@ import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcess
 const { Step } = Steps;
 const { Option } = Select;
 
-const Process = ({ contractId, onProcessApplied }) => {
-    console.log("Contract ID:", contractId);
+const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
+    console.log("Contract ID:", contractTypeId);
     const [selection, setSelection] = useState("auto");
     const [hideAddStage, setHideAddStage] = useState(false)
     const [isCreate, setIsCreate] = useState(true)
@@ -179,6 +179,7 @@ const Process = ({ contractId, onProcessApplied }) => {
                     const newProcess = {
                         name: "Quy trình mới",
                         stages: stagesArray,
+                        contractTypeId: contractTypeId,
                     };
                     const result = await create(newProcess).unwrap();
                     console.log("New process:", result);
@@ -269,7 +270,7 @@ const Process = ({ contractId, onProcessApplied }) => {
         }) || [];
 
     return (
-        <div className='min-h-[100vh]'>
+        <div >
             <div className="flex flex-col gap-2 border-2 border-gray-500 p-4 rounded-xl shadow-lg">
                 <div className="flex items-center cursor-pointer">
                     <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
