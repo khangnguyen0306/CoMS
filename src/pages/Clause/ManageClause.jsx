@@ -60,10 +60,10 @@ const ManageClause = () => {
         );
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         refetchClause()
         refetchLegal()
-    },[])
+    }, [])
 
     const calculateDaysAgo = (createdAt) => {
         const createdDate = convertToDate(createdAt);
@@ -316,10 +316,12 @@ const ManageClause = () => {
                         {/* Sửa nested <p> thành <div> */}
                         <div className='font-bold mb-10  text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
-                               QUẢN LÝ ĐIỀU KHOẢN
+                                QUẢN LÝ ĐIỀU KHOẢN
                             </div>
                         </div>
-                        <div className='flex w-5/5 gap-4'>
+                        <div className='flex justify-between w-full gap-4'>
+                          
+                            <div className='flex gap-2 w-[80%]'>
                             <Search
                                 placeholder="Tìm kiếm tên điều khoản"
                                 onSearch={setSearchTermClause}
@@ -327,20 +329,51 @@ const ManageClause = () => {
                                 allowClear
                                 className="mb-4 max-w-[350px]"
                             />
-                            <Select
-                                placeholder="Chọn loại điều khoản"
-                                value={selectedType}
-                                onChange={(value) => setSelectedType(value || "")}
-                                className="mb-4 max-w-[250px] min-w-[170px]"
-                                allowClear
-                            >
+                                <Select
+                                    placeholder="Chọn loại điều khoản"
+                                    value={selectedType}
+                                    onChange={(value) => setSelectedType(value || "")}
+                                    className="mb-4 max-w-[250px] min-w-[170px]"
+                                    allowClear
+                                >
 
-                                {typeData?.data.map(item => (
-                                    <Option key={item.original_term_id} value={item.original_term_id}>
-                                        {item.name}
-                                    </Option>
-                                ))}
-                            </Select>
+                                    {typeData?.data.map(item => (
+                                        <Option key={item.original_term_id} value={item.original_term_id}>
+                                            {item.name}
+                                        </Option>
+                                    ))}
+                                </Select>
+
+                                {/* Nút sắp xếp theo Ngày tạo */}
+                                <button
+                                    onClick={handleSortByCreatedAt}
+                                    className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortOrderClause === 'asc'
+                                        ? 'bg-red-500 hover:bg-red-600'
+                                        : 'bg-blue-500 hover:bg-blue-600'
+                                        }`}
+                                >
+                                    <span className="text-white opacity-100">
+                                        {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={handleSortByContractCount}
+                                    className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortByClause === 'contractCount'
+                                        ? sortOrderClause === 'asc'
+                                            ? 'bg-red-500 hover:bg-red-600'
+                                            : 'bg-blue-500 hover:bg-blue-600'
+                                        : 'bg-gray-300 hover:bg-gray-400'
+                                        }`}
+                                >
+                                    <span className="text-white">
+                                        {sortByClause === 'contractCount'
+                                            ? sortOrderClause === 'asc'
+                                                ? 'Ít hợp đồng nhất'
+                                                : 'Nhiều hợp đồng nhất'
+                                            : 'Sắp xếp theo số hợp đồng'}
+                                    </span>
+                                </button>
+                            </div>
                             <Button
                                 type="primary"
                                 onClick={openAddClauseModal}
@@ -348,35 +381,6 @@ const ManageClause = () => {
                             >
                                 + Thêm điều khoản
                             </Button>
-                            {/* Nút sắp xếp theo Ngày tạo */}
-                            <button
-                                onClick={handleSortByCreatedAt}
-                                className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortOrderClause === 'asc'
-                                    ? 'bg-red-500 hover:bg-red-600'
-                                    : 'bg-blue-500 hover:bg-blue-600'
-                                    }`}
-                            >
-                                <span className="text-white opacity-100">
-                                    {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
-                                </span>
-                            </button>
-                            <button
-                                onClick={handleSortByContractCount}
-                                className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortByClause === 'contractCount'
-                                    ? sortOrderClause === 'asc'
-                                        ? 'bg-red-500 hover:bg-red-600'
-                                        : 'bg-blue-500 hover:bg-blue-600'
-                                    : 'bg-gray-300 hover:bg-gray-400'
-                                    }`}
-                            >
-                                <span className="text-white">
-                                    {sortByClause === 'contractCount'
-                                        ? sortOrderClause === 'asc'
-                                            ? 'Ít hợp đồng nhất'
-                                            : 'Nhiều hợp đồng nhất'
-                                        : 'Sắp xếp theo số hợp đồng'}
-                                </span>
-                            </button>
                         </div>
 
                         <Modal
@@ -510,7 +514,7 @@ const ManageClause = () => {
                                         <Card
                                             bordered
                                             className="shadow-lg rounded-lg"
-                                            style={{ width: 550,  borderColor: "#d1d5db" }}
+                                            style={{ width: 550, borderColor: "#d1d5db" }}
                                         >
                                             <Title level={4} className="text-blue-600">Chi tiết điều khoản</Title>
                                             <div className="mt-2 space-y-1">
@@ -626,7 +630,7 @@ const ManageClause = () => {
                     <div className="p-4 min-h-[100vh]">
                         <div className='font-bold mb-10 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
-                            QUẢN LÝ CĂN CỨ PHÁP LÝ
+                                QUẢN LÝ CĂN CỨ PHÁP LÝ
                             </div>
                         </div>
                         <div className='flex w-3/5 gap-4'>

@@ -169,7 +169,7 @@ const MainLayout = () => {
   const navStaff = [
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
-    { icon: GoLaw, label: 'Clause', key: "clause" },
+    { icon: GoLaw, label: 'Quản lý điều khoản', key: "clause" },
     { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
 
     {
@@ -185,9 +185,9 @@ const MainLayout = () => {
       ]
     },
     {
-      icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
-        { icon: MdOutlineClass, label: 'Template hợp đồng', key: "manageTemplate" },
-        { icon: BsClipboard2DataFill, label: 'Tạo Template', key: "templateCreate" },
+      icon: MdLibraryBooks, label: 'Mẫu Hợp đồng', children: [
+        { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "manageTemplate" },
+        { icon: BsClipboard2DataFill, label: 'Tạo mẫu hợp đồng', key: "templateCreate" },
         { icon: BsTrash3Fill, label: 'Đã xóa', key: "deletedtemplate" },
       ]
     },

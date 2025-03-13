@@ -145,6 +145,10 @@ export const router = createBrowserRouter([
                         path: "EditContract/:id",
                         element: EditContract,
                     },
+                    {
+                        path: "ContractDetail/:id",
+                        element: ContractDetail,
+                    },
                 ],
             },
             {

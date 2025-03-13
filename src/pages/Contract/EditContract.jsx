@@ -64,7 +64,7 @@ const EditContract = () => {
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
     const [getDateNotification] = useLazyGetDateNofitifationQuery();
     const [createClause] = useCreateClauseMutation();
-    const [UpdateContract,{isLoading:loadingUpdateContract}] = useUpdateContractMutation();/////
+    const [UpdateContract, { isLoading: loadingUpdateContract }] = useUpdateContractMutation();/////
     const [getContract, { data: contractData, isLoading: isLoadingContract }] = useLazyGetContractDetailQuery();
 
     console.log(contractData)
@@ -80,29 +80,110 @@ const EditContract = () => {
     useEffect(() => {
         if (contractData) {
             form.setFieldsValue({
-                templateId: contractData?.data.contractTypeId,
+                status:contractData.data.status,
+                contractTypeId: contractData?.data.contractTypeId,
                 partnerId: contractData?.data.party.id,
                 contractName: contractData?.data.title,
                 contractType: contractData?.data.contractTypeId,
                 contractNumber: contractData?.data.contractNumber,
-                signingDate: contractData?.data.signingDate ? dayjs(new Date(...contractData.data.signingDate)) : null,
+                signingDate: contractData?.data.signingDate
+                    ? dayjs(new Date(
+                        contractData.data.signingDate[0],
+                        contractData.data.signingDate[1] - 1,
+                        contractData.data.signingDate[2],
+                        contractData.data.signingDate[3],
+                        contractData.data.signingDate[4]
+                    ))
+                    : null,
                 contractLocation: contractData?.data.contractLocation,
                 legalBasisTerms: contractData?.data.legalBasisTerms?.map(term => term.original_term_id) || [],
                 contractContent: contractData?.data.contractContent,
                 totalValue: contractData?.data.amount,
                 payments: contractData?.data.paymentSchedules?.map((payment, index) => ({
+                    id:payment.id,
+                    paymentOrder: payment.paymentOrder,
                     amount: payment.amount,
-                    paymentDate: payment.paymentDate ? dayjs(new Date(...payment.paymentDate)) : null,
+                    overdueEmailSent: payment.overdueEmailSent,
+                    reminderEmailSent: payment.reminderEmailSent,
+                    status: payment.status,
+                    paymentDate: payment.paymentDate
+                        ? dayjs(new Date(
+                            payment.paymentDate[0],
+                            payment.paymentDate[1] - 1,
+                            payment.paymentDate[2],
+                            payment.paymentDate[3],
+                            payment.paymentDate[4]
+                        ))
+                        : null,
                     paymentMethod: payment.paymentMethod,
-                    notifyPaymentDate: payment.notifyPaymentDate ? dayjs(new Date(payment.notifyPaymentDate)) : null,
+                    notifyPaymentDate: payment.notifyPaymentDate
+                        ? dayjs(new Date(
+                            payment.notifyPaymentDate[0],
+                            payment.notifyPaymentDate[1] - 1,
+                            payment.notifyPaymentDate[2],
+                            payment.notifyPaymentDate[3],
+                            payment.notifyPaymentDate[4]
+                        ))
+                        : null,
                     notifyPaymentContent: payment.notifyPaymentContent,
                 })) || [],
-                effectiveDateExpiryDate: [dayjs(new Date(...contractData?.data.expiryDate)), dayjs(new Date(...contractData?.data.effectiveDate))],
-                effectiveDate: contractData?.data.effectiveDate ? dayjs(new Date(...contractData?.data.effectiveDate)) : null,
-                expiryDate: contractData?.data.expiryDate ? dayjs(new Date(...contractData?.data.expiryDate)) : null,
-                notifyEffectiveDate: contractData?.data.notifyEffectiveDate ? dayjs(new Date(...contractData?.data.notifyEffectiveDate)) : null,
+                effectiveDateExpiryDate: [
+                    dayjs(new Date(
+                        contractData?.data.effectiveDate[0],
+                        contractData?.data.effectiveDate[1] - 1,
+                        contractData?.data.effectiveDate[2],
+                        contractData?.data.effectiveDate[3],
+                        contractData?.data.effectiveDate[4]
+                    )),
+                    dayjs(new Date(
+                        contractData?.data.expiryDate[0],
+                        contractData?.data.expiryDate[1] - 1,
+                        contractData?.data.expiryDate[2],
+                        contractData?.data.expiryDate[3],
+                        contractData?.data.expiryDate[4]
+                    ))
+
+                ],
+
+                effectiveDate: contractData?.data.effectiveDate
+                    ? dayjs(new Date(
+                        contractData.data.effectiveDate[0],
+                        contractData.data.effectiveDate[1] - 1,
+                        contractData.data.effectiveDate[2],
+                        contractData.data.effectiveDate[3],
+                        contractData.data.effectiveDate[4]
+                    ))
+                    : null,
+
+                expiryDate: contractData?.data.expiryDate
+                    ? dayjs(new Date(
+                        contractData.data.expiryDate[0],
+                        contractData.data.expiryDate[1] - 1,
+                        contractData.data.expiryDate[2],
+                        contractData.data.expiryDate[3],
+                        contractData.data.expiryDate[4]
+                    ))
+                    : null,
+
+                notifyEffectiveDate: contractData?.data.notifyEffectiveDate
+                    ? dayjs(new Date(
+                        contractData.data.notifyEffectiveDate[0],
+                        contractData.data.notifyEffectiveDate[1] - 1,
+                        contractData.data.notifyEffectiveDate[2],
+                        contractData.data.notifyEffectiveDate[3],
+                        contractData.data.notifyEffectiveDate[4]
+                    ))
+                    : null,
                 notifyEffectiveContent: contractData?.data.notifyEffectiveContent,
-                notifyExpiryDate: contractData?.data.notifyExpiryDate ? dayjs(new Date(contractData?.data.notifyExpiryDate)) : null,
+                notifyExpiryDate: contractData?.data.notifyExpiryDate
+                    ? dayjs(new Date(
+                        contractData.data.notifyExpiryDate[0],
+                        contractData.data.notifyExpiryDate[1] - 1,
+                        contractData.data.notifyExpiryDate[2],
+                        contractData.data.notifyExpiryDate[3],
+                        contractData.data.notifyExpiryDate[4]
+                    ))
+                    : null,
                 notifyExpiryContent: contractData?.data.notifyExpiryContent,
                 autoRenew: contractData?.data.autoRenew,
                 autoAddVAT: contractData?.data.autoAddVAT,
@@ -118,6 +199,7 @@ const EditContract = () => {
                 additionalTerms: contractData?.data.additionalTerms?.map(term => term.original_term_id) || [],
                 specialTermsA: contractData?.data.specialTermsA,
                 specialTermsB: contractData?.data.specialTermsB,
+                contractId: contractData?.data.id,
                 customNotifications: contractData?.data.customNotifications?.map(notif => ({
                     date: notif.date ? dayjs(new Date(notif.date)) : null,
                     content: notif.content,
@@ -158,78 +240,23 @@ const EditContract = () => {
                     Common: contractData?.data.additionalConfig?.["7"]?.Common?.map(item => item.original_term_id) || []
                 },
             });
-            setContent(contractData?.data.contractContent || '');
-            setIsVATChecked(contractData?.data.autoAddVAT || false);
-            setIsDateLateChecked(contractData?.data.isDateLateChecked || false);
-            setIsAutoRenew(contractData?.data.autoRenew || false);
-            setSelectedOthersTerms(contractData?.data.additionalTerms?.map(term => term.original_term_id) || []);
-            setIsAppendixEnabled(contractData?.data.appendixEnabled || false);
-            setIsTransferEnabled(contractData?.data.transferEnabled || false);
-            setIsSuspend(contractData?.data.suspend || false);
-            setIsisViolate(contractData?.data.violate || false);
+            setContent(contractData?.data.contractContent);
+            setIsVATChecked(contractData?.data.autoAddVAT);
+            setIsDateLateChecked(contractData?.data.isDateLateChecked);
+            setIsAutoRenew(contractData?.data.autoRenew);
+            setSelectedOthersTerms(contractData?.data.additionalTerms?.map(term => term.original_term_id));
+            setIsAppendixEnabled(contractData?.data.appendixEnabled);
+            setIsTransferEnabled(contractData?.data.transferEnabled);
+            setIsSuspend(contractData?.data.suspend);
+            setIsisViolate(contractData?.data.violate);
         }
     }, [contractData, form]);
 
-    // Fetch notification days
-    useEffect(() => {
-        const fetchNotificationDays = async () => {
-            try {
-                const response = await getDateNotification().unwrap();
-                if (response) {
-                    setNotificationDays(response[0].value || 0);
-                }
-            } catch (error) {
-                console.error('Error fetching notification days:', error);
-            }
-        };
-        fetchNotificationDays();
-    }, [getDateNotification]);
 
-    const calculateNotificationDate = (targetDate) => {
-        if (!targetDate) return null;
-        const notifyDate = targetDate.clone().subtract(notificationDays, 'days');
-        const today = dayjs().startOf('day');
-        return notifyDate.isBefore(today) ? targetDate.clone() : notifyDate;
-    };
-
-    useEffect(() => {
-        const effectiveDate = form.getFieldValue('effectiveDate');
-        if (effectiveDate) {
-            form.setFieldsValue({ notifyEffectiveDate: calculateNotificationDate(effectiveDate) });
-        }
-
-        const expiryDate = form.getFieldValue('expiryDate');
-        if (expiryDate) {
-            form.setFieldsValue({ notifyExpiryDate: calculateNotificationDate(expiryDate) });
-        }
-
-        const payments = form.getFieldValue('payments') || [];
-        if (payments.length > 0) {
-            const updatedPayments = payments.map(payment => {
-                if (payment?.paymentDate) {
-                    return { ...payment, notifyPaymentDate: calculateNotificationDate(payment.paymentDate) };
-                }
-                return payment;
-            });
-            form.setFieldsValue({ payments: updatedPayments });
-        }
-    }, [form.getFieldValue('effectiveDate'), form.getFieldValue('expiryDate'), form.getFieldValue('payments'), notificationDays]);
-
-    const handleEffectiveDateChange = (date) => {
-        if (date) {
-            form.setFieldsValue({ notifyEffectiveDate: calculateNotificationDate(date) });
-        }
-    };
-
-    const handleExpiryDateChange = (date) => {
-        if (date) {
-            form.setFieldsValue({ notifyExpiryDate: calculateNotificationDate(date) });
-        }
-    };
 
     const handlePaymentDateChange = (date, name) => {
         if (date) {
-            const notifyDate = calculateNotificationDate(date);
+            const notifyDate = date;
             const payments = form.getFieldValue('payments') || [];
             const updatedPayments = [...payments];
             updatedPayments[name] = { ...updatedPayments[name], notifyPaymentDate: notifyDate };
@@ -313,10 +340,10 @@ const EditContract = () => {
     const prev = () => {
         setCurrentStep(currentStep - 1);
     };
-
+    const formatDate = (date) => date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null;
     const onFinish = async (values) => {
         const data = form.getFieldsValue(true);
-
+        console.log(data)
         const additionalConfig = Object.keys(data)
             .filter(key => !isNaN(key))
             .reduce((acc, key) => {
@@ -345,21 +372,19 @@ const EditContract = () => {
             isDateLateChecked: data.isDateLateChecked,
             maxDateLate: data.maxDateLate,
             autoRenew: data.autoRenew,
-            legalBasisTerms: data.legalBasis,
+            legalBasisTerms: data.legalBasisTerms,
             generalTerms: data.generalTerms,
             additionalTerms: data.additionalTerms,
-            contractTypeId: data.contractType?.value,
+            contractTypeId: data.contractTypeId,
             additionalConfig,
-            originalTemplateId: null,
-            duplicateVersion: null,
+            status:data.status
         };
 
         const excludedFields = [
             "specialTermsA", "specialTermsB", "appendixEnabled", "transferEnabled", "violate", "suspend",
             "suspendContent", "contractContent", "autoAddVAT", "vatPercentage", "isDateLateChecked",
             "maxDateLate", "autoRenew", "legalBasis", "generalTerms", "additionalTerms", "contractType",
-            "1", "2", "3", "4", "5", "6", "7", "effectiveDate&expiryDate", "notifyEffectiveDate",
-            "notifyExpiryDate", "notifyEffectiveContent", "notifyExpiryContent"
+            "1", "2", "3", "4", "5", "6", "7", "effectiveDate&expiryDate",
         ];
 
         const formattedData = Object.keys(data).reduce((acc, key) => {
@@ -369,8 +394,17 @@ const EditContract = () => {
                 } else if (key === 'partnerId') {
                     acc['partyId'] = data[key];
                 } else if (key === "contractName") {
-                    acc['contractTitle'] = data[key];
-                } else {
+                    acc['title'] = data[key];
+                } else if (["effectiveDate", "expiryDate", "signingDate", "notifyEffectiveDate", "notifyExpiryDate"].includes(key)) {
+                    acc[key] = formatDate(data[key]);
+                } else if (key === "payments" && Array.isArray(data[key])) {
+                    acc[key] = data[key].map(payment => ({
+                        ...payment,
+                        paymentDate: formatDate(payment.paymentDate),
+                        notifyPaymentDate: formatDate(payment.notifyPaymentDate),
+                    }));
+                }
+                else {
                     acc[key] = data[key];
                 }
             }
@@ -382,14 +416,12 @@ const EditContract = () => {
         console.log(formattedData)
 
         try {
-            const response = await UpdateContract({ id: id, formattedData }).unwrap();
+            const response = await UpdateContract(formattedData).unwrap();
             console.log(response)
-            // if (response.status === "UPDATED") {
-            //     message.success("Cập nhật hợp đồng thành công!");
-            //     navigate('/contract');
-            // } else {
-            //     message.error(response.message);
-            // }
+            if (response.status === "OK") {
+                message.success("Cập nhật hợp đồng thành công!");
+                navigate('/contract');
+            }
         } catch (error) {
             message.error("Đã xảy ra lỗi khi lưu hợp đồng!");
             console.error(error);
@@ -446,73 +478,6 @@ const EditContract = () => {
         form.setFieldsValue({ contractContent: value });
     }, 100), []);
 
-    //     if (selectedTemplate) {
-    //         loadContractTemplateDetail(selectedTemplate).then((data) => {
-    //             setTemplateDataSelected(data.data);
-    //             setContent(data.data?.contractContent);
-    //             setIsVATChecked(data.data?.autoAddVAT);
-    //             setIsDateLateChecked(data.data?.isDateLateChecked);
-    //             setIsAutoRenew(data.data?.autoRenew);
-    //             setSelectedOthersTerms(data.data.additionalTerms?.map(term => term.original_term_id) || []);
-    //             setIsAppendixEnabled(data.data?.appendixEnabled);
-    //             setIsTransferEnabled(data.data?.transferEnabled);
-    //             setIsSuspend(data.data?.suspend);
-    //             setIsisViolate(data.data?.violate);
-    //             form.setFieldsValue({
-    //                 legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
-    //                 generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
-    //                 autoAddVAT: data.data?.autoAddVAT,
-    //                 vatPercentage: data.data?.vatPercentage,
-    //                 isDateLateChecked: data.data?.isDateLateChecked,
-    //                 maxDateLate: data.data?.maxDateLate,
-    //                 autoRenew: data.data?.autoRenew,
-    //                 additionalTerms: data.data.additionalTerms?.map(term => term.original_term_id) || [],
-    //                 specialTermsA: data.data?.specialTermsA,
-    //                 specialTermsB: data.data?.specialTermsB,
-    //                 appendixEnabled: data.data?.appendixEnabled,
-    //                 transferEnabled: data.data?.transferEnabled,
-    //                 suspend: data.data?.suspend,
-    //                 violate: data.data?.violate,
-    //                 suspendContent: data.data?.suspendContent,
-    //                 "1": {
-    //                     A: data.data.additionalConfig?.["1"]?.A?.map(item => item.original_term_id) || [],
-    //                     B: data.data.additionalConfig?.["1"]?.B?.map(item => item.original_term_id) || [],
-    //                     Common: data.data.additionalConfig?.["1"]?.Common?.map(item => item.original_term_id) || []
-    //                 },
-    //                 "2": {
-    //                     A: data.data.additionalConfig?.["2"]?.A?.map(item => item.original_term_id) || [],
-    //                     B: data.data.additionalConfig?.["2"]?.B?.map(item => item.original_term_id) || [],
-    //                     Common: data.data.additionalConfig?.["2"]?.Common?.map(item => item.original_term_id) || []
-    //                 },
-    //                 "3": {
-    //                     A: data.data.additionalConfig?.["3"]?.A?.map(item => item.original_term_id) || [],
-    //                     B: data.data.additionalConfig?.["3"]?.B?.map(item => item.original_term_id) || [],
-    //                     Common: data.data.additionalConfig?.["3"]?.Common?.map(item => item.original_term_id) || []
-    //                 },
-    //                 "4": {
-    //                     A: data.data.additionalConfig?.["4"]?.A?.map(item => item.original_term_id) || [],
-    //                     B: data.data.additionalConfig?.["4"]?.B?.map(item => item.original_term_id) || [],
-    //                     Common: data.data.additionalConfig?.["4"]?.Common?.map(item => item.original_term_id) || []
-    //                 },
-    //                 "5": {
-    //                     A: data.data.additionalConfig?.["5"]?.A?.map(item => item.original_term_id) || [],
-    //                     B: data.data.additionalConfig?.["5"]?.B?.map(item => item.original_term_id) || [],
-    //                     Common: data.data.additionalConfig?.["5"]?.Common?.map(item => item.original_term_id) || []
-    //                 },
-    //                 "6": {
-    //                     A: data.data.additionalConfig?.["6"]?.A?.map(item => item.original_term_id) || [],
-    //                     B: data.data.additionalConfig?.["6"]?.B?.map(item => item.original_term_id) || [],
-    //                     Common: data.data.additionalConfig?.["6"]?.Common?.map(item => item.original_term_id) || []
-    //                 },
-    //                 "7": {
-    //                     A: data.data.additionalConfig?.["7"]?.A?.map(item => item.original_term_id) || [],
-    //                     B: data.data.additionalConfig?.["7"]?.B?.map(item => item.original_term_id) || [],
-    //                     Common: data.data.additionalConfig?.["7"]?.Common?.map(item => item.original_term_id) || []
-    //                 }
-    //             });
-    //         });
-    //     }
-    // }, [selectedTemplate]);
 
     const hanldeOpenAddLegalModal = () => {
         setIsAddLegalModalOpen(true);
@@ -663,7 +628,7 @@ const EditContract = () => {
                         </div>
                     ))
                 ) : (
-                    <div className="text-gray-500 italic">Chưa có {fieldLabels[fieldName].toLowerCase()} nào được chọn</div>
+                    <div className="text-gray-500 italic">Chưa có {fieldLabels[fieldName]?.toLowerCase()} nào được chọn</div>
                 )}
             </div>
         );
@@ -690,13 +655,13 @@ const EditContract = () => {
         "6": { title: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", loadData: loadGQTCData },
         "7": { title: "ĐIỀU KHOẢN BẢO MẬT", loadData: loadBMData },
     };
-
+    console.log(form.getFieldsValue(true))
     const steps = [
         {
             title: "Thông tin cơ bản",
             content: (
                 <div className="space-y-4">
-                    <Form.Item hidden name="templateId" />
+                    <Form.Item hidden name="contractId" />
 
                     <Form.Item label="Chọn đối tác" name="partnerId" rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}>
                         <LazySelectPartner
@@ -717,7 +682,7 @@ const EditContract = () => {
                     <Form.Item label="Tên hợp đồng" name="contractName" rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}>
                         <Input placeholder="Nhập tên hợp đồng" />
                     </Form.Item>
-                    <Form.Item label="Loại hợp đồng" name="contractType" rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}>
+                    <Form.Item label="Loại hợp đồng" name="contractTypeId" rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}>
                         <LazySelectContractType loadDataCallback={loadContractTypeData} options={contractTypeData} showSearch labelInValue placeholder="Chọn loại hợp đồng" dropdownRender={(menu) => (
                             <>
                                 {menu}
@@ -754,7 +719,7 @@ const EditContract = () => {
                                         <div className="flex justify-between items-center gap-4">
                                             <p>Căn cứ pháp lý
                                             </p>
-                                            <Popover content={() => getTermsContent('legalBasis')} title="Danh sách căn cứ pháp lý đã chọn" trigger="hover" placement="right">
+                                            <Popover content={() => getTermsContent('legalBasisTerms')} title="Danh sách căn cứ pháp lý đã chọn" trigger="hover" placement="right">
                                                 <Button icon={<EyeFilled />} />
                                             </Popover>
                                         </div>}
@@ -792,7 +757,9 @@ const EditContract = () => {
                                                         <InputNumber style={{ width: "100%" }} placeholder="Số tiền" min={0} max={1000000000000000} formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫" : ""} parser={(value) => value.replace(/\D/g, "")} />
                                                     </Form.Item>
                                                     <Form.Item {...restField} name={[name, "paymentDate"]} rules={[{ required: true, message: "Chọn ngày thanh toán" }]}>
-                                                        <DatePicker style={{ width: 150 }} placeholder="Ngày thanh toán" disabledDate={(current) => current && current < dayjs().startOf('day')} format="DD/MM/YYYY" onChange={(date) => handlePaymentDateChange(date, name)} />
+                                                        <DatePicker style={{ width: 150 }}
+                                                            placeholder="Ngày thanh toán"
+                                                            disabledDate={(current) => current && current < dayjs().startOf('day')} format="DD/MM/YYYY HH:mm:ss" onChange={(date) => handlePaymentDateChange(date, name)} />
                                                     </Form.Item>
                                                     <Form.Item {...restField} name={[name, "paymentMethod"]} rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}>
                                                         <Select placeholder="Phương thức thanh toán" style={{ width: 200 }}>
@@ -838,15 +805,20 @@ const EditContract = () => {
                             <Collapse.Panel header="Thời gian và hiệu lực" key="2">
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
                                 <Form.Item label="Thời gian hiệu lực hợp đồng" required className="mb-4" name="effectiveDateExpiryDate">
-                                    <DatePicker.RangePicker className="w-full" showTime={{ format: 'HH:mm' }} format="DD/MM/YYYY HH:mm" disabledDate={(current) => current && current < dayjs().startOf('day')} placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]} onChange={(dates) => {
-                                        if (dates) {
-                                            form.setFieldsValue({ effectiveDate: dates[0], expiryDate: dates[1] });
-                                            handleEffectiveDateChange(dates[0]);
-                                            handleExpiryDateChange(dates[1]);
-                                        } else {
-                                            form.setFieldsValue({ effectiveDate: null, expiryDate: null, notifyEffectiveDate: null, notifyExpiryDate: null });
-                                        }
-                                    }} />
+                                    <DatePicker.RangePicker
+                                        className="w-full"
+                                        showTime={{ format: 'HH:mm:ss' }}
+                                        format="DD/MM/YYYY HH:mm:ss"
+                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                        placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]} onChange={(dates) => {
+                                            if (dates) {
+                                                form.setFieldsValue({ effectiveDate: dates[0], expiryDate: dates[1] });
+                                                // handleEffectiveDateChange(dates[0]);
+                                                // handleExpiryDateChange(dates[1]);
+                                            } else {
+                                                // form.setFieldsValue({ effectiveDate: null, expiryDate: null, notifyEffectiveDate: null, notifyExpiryDate: null });
+                                            }
+                                        }} />
                                 </Form.Item>
                                 <Form.Item name="effectiveDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]} />
                                 <Form.Item name="expiryDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]} />
@@ -951,16 +923,26 @@ const EditContract = () => {
                     <Row gutter={16} justify={"center"}>
                         <Col span={6}>
                             <Form.Item label="Ngày có hiệu lực (đã chọn)" name="effectiveDate">
-                                <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
+                                <DatePicker className="w-full" disabled format="DD/MM/YYYY HH:mm:ss" />
                             </Form.Item>
                         </Col>
                         <Col span={6}>
-                            <Form.Item label="Ngày thông báo" name="notifyEffectiveDate" rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}>
-                                <DatePicker className="w-full" format="DD/MM/YYYY HH:mm:ss" showTime disabledDate={(current) => { const effectiveDate = form.getFieldValue('effectiveDate'); return !current || current > effectiveDate || current < dayjs().startOf('day'); }} onChange={(date) => { if (!date) { const effectiveDate = form.getFieldValue('effectiveDate'); if (effectiveDate) { form.setFieldsValue({ notifyEffectiveDate: calculateNotificationDate(effectiveDate) }); } } }} />
+                            <Form.Item label="Ngày thông báo"
+                                name="notifyEffectiveDate"
+                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}>
+                                <DatePicker className="w-full"
+                                    format="DD/MM/YYYY HH:mm:ss"
+                                    showTime
+                                    disabledDate={(current) => {
+                                        const effectiveDate = form.getFieldValue('effectiveDate');
+                                        return !current || current > effectiveDate || current < dayjs().startOf('day');
+                                    }} />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label="Nội dung thông báo" name="notifyEffectiveContent" rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} initialValue={DEFAULT_NOTIFICATIONS.effective}>
+                            <Form.Item label="Nội dung thông báo"
+                                name="notifyEffectiveContent"
+                                rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} >
                                 <Input.TextArea rows={2} placeholder="Nhập nội dung thông báo" />
                             </Form.Item>
                         </Col>
@@ -973,11 +955,16 @@ const EditContract = () => {
                         </Col>
                         <Col span={6}>
                             <Form.Item label="Ngày thông báo" name="notifyExpiryDate" rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}>
-                                <DatePicker className="w-full" format="DD/MM/YYYY HH:mm:ss" showTime disabledDate={(current) => { const expiryDate = form.getFieldValue('expiryDate'); return !current || current > expiryDate || current < dayjs().startOf('day'); }} onChange={(date) => { if (!date) { const expiryDate = form.getFieldValue('expiryDate'); if (expiryDate) { form.setFieldsValue({ notifyExpiryDate: calculateNotificationDate(expiryDate) }); } } }} />
+                                <DatePicker className="w-full"
+                                    format="DD/MM/YYYY HH:mm:ss"
+                                    showTime disabledDate={(current) => {
+                                        const expiryDate = form.getFieldValue('expiryDate');
+                                        return !current || current > expiryDate || current < dayjs().startOf('day');
+                                    }} />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label="Nội dung thông báo" name="notifyExpiryContent" rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} initialValue={DEFAULT_NOTIFICATIONS.expiry}>
+                            <Form.Item label="Nội dung thông báo" name="notifyExpiryContent" rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} >
                                 <Input.TextArea rows={2} placeholder="Nhập nội dung thông báo" />
                             </Form.Item>
                         </Col>
@@ -991,16 +978,23 @@ const EditContract = () => {
                                         <Row gutter={16} justify={"center"}>
                                             <Col span={6}>
                                                 <Form.Item {...restField} label="Ngày thanh toán (đã chọn)" name={[name, "paymentDate"]}>
-                                                    <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
+                                                    <DatePicker className="w-full" disabled format="DD/MM/YYYY HH:mm:ss" />
                                                 </Form.Item>
                                             </Col>
                                             <Col span={6}>
                                                 <Form.Item {...restField} label="Ngày thông báo" name={[name, "notifyPaymentDate"]} rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}>
-                                                    <DatePicker className="w-full" format="DD/MM/YYYY HH:mm:ss" showTime disabledDate={(current) => { const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']); return !current || current > paymentDate || current < dayjs().startOf('day'); }} onChange={(date) => { if (!date) { const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']); if (paymentDate) { form.setFieldsValue({ payments: { [name]: { notifyPaymentDate: calculateNotificationDate(paymentDate) } } }); } } }} />
+                                                    <DatePicker
+                                                        className="w-full"
+                                                        format="DD/MM/YYYY HH:mm:ss"
+                                                        showTime
+                                                        disabledDate={(current) => {
+                                                            const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
+                                                            return !current || current > paymentDate || current < dayjs().startOf('day');
+                                                        }} />
                                                 </Form.Item>
                                             </Col>
                                             <Col span={12}>
-                                                <Form.Item {...restField} label="Nội dung thông báo" name={[name, "notifyPaymentContent"]} rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} initialValue={`${DEFAULT_NOTIFICATIONS.payment} ${index + 1}`}>
+                                                <Form.Item {...restField} label="Nội dung thông báo" name={[name, "notifyPaymentContent"]} rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} >
                                                     <Input.TextArea rows={2} placeholder="Nhập nội dung thông báo" />
                                                 </Form.Item>
                                             </Col>
@@ -1045,7 +1039,7 @@ const EditContract = () => {
                     {currentStep > 0 && <Button onClick={prev}>Quay lại</Button>}
                     {currentStep < steps.length - 1 && <Button type="primary" onClick={next}>Tiếp theo</Button>}
                     {currentStep === steps.length - 1 && (
-                        <Button type="primary" htmlType="submit" loading={loadingUpdateContract}>{ "Cập nhật hợp đồng" }</Button>
+                        <Button type="primary" htmlType="submit" loading={loadingUpdateContract}>{"Cập nhật hợp đồng"}</Button>
                     )}
                 </div>
             </Form>
