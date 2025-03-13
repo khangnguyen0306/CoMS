@@ -90,7 +90,7 @@ const Approve = () => {
                 >
                     Mở ô nhận xét
                 </Button>
-                {/* Chỉ hiển thị nút Đồng Ý Phê Duyệt nếu đã cuộn xuống hết */}
+                {/* kéo xuống hết thì mới able còn K disable hover vô thì hiện ra là kéo xuống cuối để thực hiện chức năng này */}
                 {scrolledToBottom && (
                     <Button className="absolute right-40" loading={approveLoading} type="primary" onClick={handleApprove}>
                         Đồng Ý Phê Duyệt
@@ -98,14 +98,14 @@ const Approve = () => {
                 )}
                 <Drawer
                     size="large"
-                    title="Đưa ra nhận xét:"
+                    title="Lý do từ chối:"
                     onClose={onClose}
                     open={open}
                 >
                     <Form form={form} layout="vertical" onFinish={handleReject}>
                         <Form.Item
                             name="comment"
-                            label="Để lại nhận xét cho Staff :"
+                            label="Đề xuất cải tiến :"
                             rules={[{ required: true, message: "Vui lòng nhập nhận xét" }]}
                         >
                             <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />

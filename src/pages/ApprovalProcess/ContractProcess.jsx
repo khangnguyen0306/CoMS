@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider } from "antd";
 import { useGetContractPorcessQuery, useGetContractRejectQuery } from "../../services/ContractAPI";
 import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
 import dayjs from "dayjs";
+import { CheckCircleFilled, EditFilled } from "@ant-design/icons";
 const { Search } = Input;
 
 const ContractProcess = () => {
@@ -116,12 +117,12 @@ const ContractProcess = () => {
             width: "10%",
             filters: [
                 { text: "Đã tạo", value: "CREATED" },
-                { text: "Từ chối", value: "REJECTED" },
+                { text: "Chưa được duyệt", value: "REJECTED" },
             ],
             onFilter: (value, record) => record.status === value,
             render: (status) => (
                 <Tag color={status === "REJECTED" ? "red" : "green"}>
-                    {status === "REJECTED" ? "Từ chối" : "Đã tạo"}
+                    {status === "REJECTED" ? "Chưa được duyệt" : "Đã tạo"}
                 </Tag>
             ),
         },
@@ -141,18 +142,28 @@ const ContractProcess = () => {
             render: (_, record) => (
                 <Space>
                     {record.status !== "REJECTED" ? (
-                        <Button type="primary" onClick={() => showModal(record)}>
-                            Chọn quy trình
-                        </Button>
+                        <ConfigProvider
+                            theme={{
+                                components: {
+                                    Button: {
+                                        colorPrimaryHover: "#00FF33	"
+                                    },
+                                },
+                            }}
+                        >
+                            <Button className="bg-green-600 hover:bg-green-900 " type="primary" icon={<CheckCircleFilled style={{ color: 'white' }} />} onClick={() => showModal(record)}>
+                                Chọn quy trình
+                            </Button>
+                        </ConfigProvider>
+
                     ) : (
-                        <Button type="primary" onClick={() => navigate(`/EditContract/${record.id}`)}>
+                        <Button type="primary" icon={<EditFilled />} onClick={() => navigate(`/EditContract/${record.id}`)}>
                             Chỉnh sửa hợp đồng
                         </Button>
                     )}
                 </Space>
             ),
         }
-
 
     ];
 
@@ -178,7 +189,7 @@ const ContractProcess = () => {
                     columns={columns}
                     dataSource={contracts?.filter(item =>
                         item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item?.party?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
+                        item?.partner?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())
                     )}
                     rowKey="id"

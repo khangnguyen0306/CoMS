@@ -135,14 +135,14 @@ const ManageContracts = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: "party",
-            key: "party",
-            render: (party) => <p>{party.partnerName}</p>,
-            filters: [...new Set(contracts?.data.content.map(contract => contract.party.partnerName))].map(type => ({
+            dataIndex: "partner",
+            key: "partner",
+            render: (partner) => <p>{partner.partnerName}</p>,
+            filters: [...new Set(contracts?.data.content.map(contract => contract.partner.partnerName))].map(type => ({
                 text: type,
                 value: type,
             })),
-            sorter: (a, b) => a.party.partnerName.localeCompare(b.party.partnerName),
+            sorter: (a, b) => a.partner.partnerName.localeCompare(b.partner.partnerName),
         },
 
         {

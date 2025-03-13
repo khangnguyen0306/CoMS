@@ -29,7 +29,7 @@ const DeletedContract = () => {
     const { data: contractData, isLoading: loadingTemplate, isError: DataError, refetch } = useGetAllContractQuery(queryParams);
     const { data: contractDetail, isLoading: isLoadingcontractDetail, isError: isErrorcontractDetail } =
         useGetContractDetailQuery(selectedContract, { skip: !selectedContract });
-        const [fetchTerms] = useLazyGetTermDetailQuery();
+    const [fetchTerms] = useLazyGetTermDetailQuery();
 
     const [deleteContract] = useDeleteContractMutation()
     const [restoreContract, { isLoading: loadingRestore }] = useReStoreContractMutation()
@@ -336,12 +336,12 @@ const DeletedContract = () => {
                             </Col>
                             <Col className="flex flex-col gap-2" md={10} sm={24}>
                                 <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
-                                <p className="text-sm"><b>Tên công ty:</b> {contractDetail?.data?.party.partnerName}</p>
-                                <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractDetail?.data?.party.address}</p>
-                                <p className="text-sm"><b>Người đại diện:</b> {contractDetail?.data?.party.spokesmanName}</p>
+                                <p className="text-sm"><b>Tên công ty:</b> {contractDetail?.data?.partner.partnerName}</p>
+                                <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractDetail?.data?.partner.address}</p>
+                                <p className="text-sm"><b>Người đại diện:</b> {contractDetail?.data?.partner.spokesmanName}</p>
                                 <p className="text-sm"><b>Chức vụ:</b> {/* Thiếu thông tin chức vụ */}</p>
-                                <p className="text-sm"><b>Mã số thuế:</b> {contractDetail?.data?.party.taxCode}</p>
-                                <p className="text-sm"><b>Email:</b> {contractDetail?.data?.party.email}</p>
+                                <p className="text-sm"><b>Mã số thuế:</b> {contractDetail?.data?.partner.taxCode}</p>
+                                <p className="text-sm"><b>Email:</b> {contractDetail?.data?.partner.email}</p>
                             </Col>
                             <div className="pl-2">
                                 <p>
@@ -473,7 +473,7 @@ const DeletedContract = () => {
                         <div className="flex justify-center mt-10 items-center pb-24">
                             <div className="flex flex-col gap-2 px-[18%] text-center">
                                 <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
-                                <p><b>{contractDetail?.data?.party.partnerName?.toUpperCase()}</b></p>
+                                <p><b>{contractDetail?.data?.partner.partnerName?.toUpperCase()}</b></p>
                                 <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                             </div>
                             <div className="flex flex-col gap-2 px-[18%] text-center">

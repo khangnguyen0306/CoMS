@@ -77,6 +77,13 @@ export const processAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
+        getProcessByContractTypeId: builder.query({
+            query: ({ contractId }) => ({
+                url: `/approval-workflows/get-by-contract-id/${contractId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, contractId) => [{ type: "ProcessList", id: contractId }],
+        }),
     })
 });
 
