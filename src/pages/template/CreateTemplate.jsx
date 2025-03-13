@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Steps, Button, Input, Checkbox, message, Form, Collapse, Skeleton, Empty, Card, Row, Col, Select, ConfigProvider, Radio, Switch, Spin, Divider, Space, Popconfirm, Modal, Timeline } from "antd";
+import { Steps, Button, Input, Checkbox, message, Form, Skeleton, Empty, Card, Row, Col, Select, Radio, Switch, Spin, Divider, Space, Popconfirm, Modal, Timeline } from "antd";
 
 import {
     BaseKit,
@@ -36,7 +36,6 @@ import { FaDeleteLeft } from "react-icons/fa6";
 import { GrNext } from "react-icons/gr";
 import { GrPrevious } from "react-icons/gr";
 import { BsSave2Fill } from "react-icons/bs";
-import checkIcon from "../../assets/Image/check.svg";
 
 const extensions = [
     BaseKit.configure({
@@ -72,7 +71,7 @@ const extensions = [
     Table,
     ImportWord.configure({
         upload: (files) => {
-            console.log("Files received for upload:", files);
+            // console.log("Files received for upload:", files);
             const f = files.map((file) => {
                 const url = URL.createObjectURL(file);
                 return {
@@ -90,23 +89,24 @@ const extensions = [
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import TextArea from "antd/es/input/TextArea";
 import { useCreateContractTypeMutation, useDeleteContractTypeMutation, useEditContractTypeMutation, useGetContractTypeQuery } from "../../services/ContractAPI";
-import { CheckCircleFilled, CheckSquareFilled, DeleteOutlined, EditFilled, PlusOutlined } from "@ant-design/icons";
-import { useCreateClauseMutation, useGetAllTypeClauseQuery, useGetClauseManageQuery, useLazyGetAllTypeClauseQuery, useLazyGetClauseManageQuery, useLazyGetLegalQuery } from "../../services/ClauseAPI";
+import { CheckCircleFilled, DeleteOutlined, EditFilled, PlusOutlined } from "@ant-design/icons";
+import { useCreateClauseMutation, useLazyGetAllTypeClauseQuery, useLazyGetClauseManageQuery, useLazyGetLegalQuery } from "../../services/ClauseAPI";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateTemplateMutation } from "../../services/TemplateAPI";
 import { useNavigate } from "react-router-dom";
 import { PreviewSection } from "../../components/ui/PreviewSection";
 import { useSelector } from "react-redux";
 import topIcon from "../../assets/Image/top.svg"
+import ChatModalWrapper from "../../components/ui/ChatModal";
 
 const { Step } = Steps;
 
 const CreateTemplate = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
-    const containerRef = useRef(null);
+
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isOverflowing, setIsOverflowing] = useState(false);
+
     const [templateName, setTemplateName] = useState("");
     const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()      ///fix rerendering
     const { data: contractType, isLoading: isLoadingType, isError: ErrorLoadingType, refetch } = useGetContractTypeQuery()
@@ -138,7 +138,7 @@ const CreateTemplate = () => {
     });
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newLegalBasis, setNewLegalBasis] = useState({ name: '', content: '' });
-
+    const [promt, setPromt] = useState()
     const [isAddGeneralModalOpen, setIsAddGeneralModalOpen] = useState(false);
     const [newGeneralTerm, setNewGeneralTerm] = useState({ name: "", typeId: null, content: "" });
 
@@ -147,11 +147,15 @@ const CreateTemplate = () => {
     const mainContentRef = useRef(null);
     const termsRef = useRef(null);
     const otherContentRef = useRef(null);
+    const containerRef = useRef(null);
+    const [isOverflowing, setIsOverflowing] = useState(false);
 
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
     const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation()
     const [editContractType, { isLoadingEditType }] = useEditContractTypeMutation()
     const [deleteContractType, { isLoadingDeleteType }] = useDeleteContractTypeMutation()
+
+
 
     const loadLegalData = async ({ page, size, keyword }) => {
         return getContractLegal({ page, size, keyword }).unwrap();
@@ -184,12 +188,7 @@ const CreateTemplate = () => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
     };
 
-    useEffect(() => {
-        if (containerRef.current) {
-            const containerHeight = containerRef.current.scrollHeight;
-            setIsOverflowing(containerHeight > 270);
-        }
-    }, [selectedlegalBasis]);
+
 
     const toggleExpand = () => {
         setIsExpanded(!isExpanded);
@@ -228,7 +227,8 @@ const CreateTemplate = () => {
                 setCurrentStep(currentStep + 1);
             })
             .catch((e) => {
-                message.error("Vui lòng kiểm tra lại các trường.");
+                // console.error(e);
+                message.error(e.errorFields[0].errors[0]);
             });
     };
 
@@ -421,7 +421,7 @@ const CreateTemplate = () => {
     }
 
     const onNewTypeChange = (e) => {
-        console.log(e)
+        // console.log(e)
         setNewTypeCreate(e.target.value);
     };
 
@@ -442,6 +442,15 @@ const CreateTemplate = () => {
         }
     };
 
+    const displayType = {
+        1: 'Điều khoản bổ sung',
+        2: 'QUYỀN VÀ NGHĨA VỤ CÁC BÊN',
+        3: 'ĐIỀU KHOẢN BẢO HÀNH VÀ BẢO TRÌ',
+        4: 'ĐIỀU KHOẢN VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI',
+        5: 'ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG',
+        6: 'ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP',
+        7: 'ĐIỀU KHOẢN BẢO MẬT'
+    }
 
     const showEditModal = (option) => {
         // setIsDropdownOpen(false)
@@ -465,7 +474,7 @@ const CreateTemplate = () => {
             refetch();
             setIsEditModalOpen(false);
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             if (error.data == "exist") {
                 message.error("Loại hợp đồng đã tồn tại!");
             } else {
@@ -483,7 +492,7 @@ const CreateTemplate = () => {
                 form.setFieldsValue({ contractType: undefined });
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             message.error("Lỗi khi xóa loại hợp đồng!");
         }
     };
@@ -496,10 +505,10 @@ const CreateTemplate = () => {
     const handleAddOk = async () => {
         let name = form.getFieldValue('legalLabel') || '';
         let content = form.getFieldValue('legalContent') || '';
-        console.log(name, content);
+        // console.log(name, content);
         try {
-            const result = await createClause({ idType: 8, label: name, value: content }).unwrap();
-            console.log(result);
+            const result = await createClause({ typeTermId: 8, label: name, value: content }).unwrap();
+            // console.log(result);
             if (result.status === "CREATED") {
                 message.success("Tạo điều khoản thành công");
             }
@@ -507,7 +516,7 @@ const CreateTemplate = () => {
             setIsAddModalOpen(false);
             form.resetFields();
         } catch (error) {
-            console.error("Lỗi tạo điều khoản:", error);
+            // console.error("Lỗi tạo điều khoản:", error);
             message.error("Có lỗi xảy ra khi tạo điều khoản");
         }
 
@@ -557,17 +566,23 @@ const CreateTemplate = () => {
                     await loadDKKata({ page: 0, size: 10 });
                     break;
                 default:
-                    console.warn("Không tìm thấy typeId phù hợp:", typeId);
+                // console.warn("Không tìm thấy typeId phù hợp:", typeId);
             }
 
             handleAddGeneralCancel();
 
         } catch (error) {
-            console.error("Lỗi tạo điều khoản:", error);
+            // console.error("Lỗi tạo điều khoản:", error);
             message.error("Có lỗi xảy ra khi tạo điều khoản");
         }
     };
 
+    useEffect(() => {
+        if (containerRef.current) {
+            const containerHeight = containerRef.current.scrollHeight;
+            setIsOverflowing(containerHeight > 270);
+        }
+    }, [selectedlegalBasis]);
 
     const scrollToSection = (sectionRef, sectionId) => {
         if (sectionRef.current) {
@@ -619,8 +634,81 @@ const CreateTemplate = () => {
         };
     }, []);
 
+    const getContractPrompt = (form, bsInfor) => {
+        const formData = form.getFieldsValue(true);
 
-    console.log(form.getFieldsValue())
+        const prompt = `
+     Tên Hợp đồng: ${formData.contractTitle || "Chưa nhập"}
+      
+      Loại hợp đồng: ${formData.contractTypeId || "Chưa nhập"}
+      
+      Thông tin các bên:
+      - Bên A:
+        - Tên công ty: ${bsInfor?.businessName || "Chưa nhập"}
+        - Địa chỉ: ${bsInfor?.address || "Chưa nhập"}
+        - Người đại diện: ${bsInfor?.representativeName || "Chưa nhập"}
+        - Chức vụ: ${bsInfor?.representativeTitle || "Chưa nhập"}
+        - Mã số thuế: ${bsInfor?.taxCode || "Chưa nhập"}
+        - Email: ${bsInfor?.email || "Chưa nhập"}
+      - Bên B:
+        - Tên công ty: ${formData.partyBName || "Chưa nhập"}
+        - Địa chỉ: ${formData.partyBAddress || "Chưa nhập"}
+        - Người đại diện: ${formData.partyBRepresentative || "Chưa nhập"}
+        - Chức vụ: ${formData.partyBTitle || "Chưa nhập"}
+        - Mã số thuế: ${formData.partyBTaxCode || "Chưa nhập"}
+        - Email: ${formData.partyBEmail || "Chưa nhập"}
+      
+      Căn cứ pháp lý:
+      ${(formData.legalBasis || []).map((item, index) => `${index + 1}. ${item.title || "Chưa nhập"}`).join("\n") || "Chưa nhập"}
+      
+      Nội dung hợp đồng:
+      ${formData.contractContent || "Chưa nhập"}
+      
+      Giá trị hợp đồng và phương thức thanh toán:
+      - Tự động thêm VAT: ${formData.autoAddVAT ? "Có" : "Không"}
+      - Phần trăm VAT: ${formData.vatPercentage || "Chưa nhập"}%
+      - Cho phép thanh toán trễ hạn: ${formData.isDateLateChecked ? "Có" : "Không"}
+      - Số ngày trễ tối đa: ${formData.maxDateLate || "Chưa nhập"} ngày
+      
+      Thời gian hiệu lực:
+      - Tự động gia hạn: ${formData.autoRenew ? "Có" : "Không"}
+      
+      Điều khoản và cam kết:
+      - Điều khoản chung:
+      ${(formData.generalTerms || []).map((item, index) => `${index + 1}. ${item.title || "Chưa nhập"}`).join("\n") || "Chưa nhập"}
+      - Các điều khoản khác:
+      ${(formData.additionalTerms || []).map((type) => {
+            const termData = formData[type] || {};
+            const commonTerms = (termData.Common || []).map((item) => item.title).join(", ") || "Chưa nhập";
+            const aTerms = (termData.A || []).map((item) => item.title).join(", ") || "Chưa nhập";
+            const bTerms = (termData.B || []).map((item) => item.title).join(", ") || "Chưa nhập";
+            return `- ${displayType[type]}:
+              - Chung: ${commonTerms}
+              - Bên A: ${aTerms}
+              - Bên B: ${bTerms}`;
+        }).join("\n") || "Chưa nhập"}
+      - Điều khoản đặc biệt Bên A: ${formData.specialTermsA || "Chưa nhập"}
+      - Điều khoản đặc biệt Bên B: ${formData.specialTermsB || "Chưa nhập"}
+      
+      Các nội dung khác:
+      - Cho phép tạo phụ lục: ${formData.appendixEnabled ? "Có" : "Không"}
+      - Cho phép chuyển nhượng hợp đồng: ${formData.transferEnabled ? "Có" : "Không"}
+      - Cho phép đơn phương hủy hợp đồng nếu vi phạm: ${formData.violate ? "Có" : "Không"}
+      - Cho phép tạm ngưng hợp đồng: ${formData.suspend ? "Có" : "Không"}
+      - Nội dung tạm ngưng: ${formData.suspendContent || "Chưa nhập"}
+        `;
+
+        return prompt;
+    };
+
+    const handleSendTemplateToAI = async () => {
+        const prompt = getContractPrompt(form, bsInfor);
+        // console.log(prompt)
+        setPromt(prompt);
+    };
+
+    // console.log(promt)
+    // console.log(form.getFieldsValue())
 
     const steps = [
         {
@@ -718,12 +806,11 @@ const CreateTemplate = () => {
             content: (
                 <Form form={form} layout="vertical" className="flex flex-col gap-3" onFinish={(values) => handleSubmit(values)}>
                     <Row gutter={16}>
-                        {/* Timeline Column */}
-                        <Col xs={24} md={5} className="sticky" style={{ top: '90px', maxHeight: 'calc(100vh - 40px)', overflow: 'auto' ,marginRight:'25px' }}>
+                        <Col xs={24} md={5} className="sticky" style={{ top: '90px', maxHeight: 'calc(100vh - 40px)', overflow: 'auto', marginRight: '25px' }}>
                             <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-4 pb-1 rounded-md shadow-md mb-4`}>
                                 <Timeline
                                     mode="left"
-                                    className="mt-8"
+                                    className="mt-8 "
                                     items={[
                                         {
                                             color: 'green',
@@ -734,18 +821,18 @@ const CreateTemplate = () => {
                                                     </p>
                                                     <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
                                                         <div className="mt-1 cursor-pointer">
-                                                            {templateName ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :<p className="mr-[5px]"></p>}
+                                                            {templateName ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
                                                             1. Tiêu đề hợp đồng
                                                         </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                            {templateName ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):<p className="mr-[5px]"></p>}
+                                                            {templateName ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
                                                             2. Thông tin các bên
                                                         </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                        {selectedlegalBasis.length>0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {selectedlegalBasis.length > 0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             3. Căn cứ pháp lý
-                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ),
@@ -761,20 +848,20 @@ const CreateTemplate = () => {
                                                     </p>
                                                     <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
                                                         <div className="mt-1 cursor-pointer">
-                                                        {content ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {content ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             4. Nội dung hợp đồng
-                                                            </div>
+                                                        </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                        {(isVATChecked || isDateLateChecked) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {(isVATChecked || isDateLateChecked) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             5. Giá trị và thanh toán
-                                                            </div>
+                                                        </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                        {isAutoRenew ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {isAutoRenew ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             6. Thời gian hiệu lực
-                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ),
@@ -791,20 +878,20 @@ const CreateTemplate = () => {
                                                     </p>
                                                     <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
                                                         <div className="mt-1 cursor-pointer">
-                                                        {selectedGeneralTerms.length>0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {selectedGeneralTerms.length > 0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             7. Điều khoản chung
-                                                            </div>
+                                                        </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                        {selectedOtherTypeTerms.length> 0  ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {selectedOtherTypeTerms.length > 0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             8. Điều khoản khác
-                                                            </div>
+                                                        </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                        {selectedOthersTerms.length> 0  ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {selectedOthersTerms.length > 0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             9. Điều khoản đặc biệt
-                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ),
@@ -821,15 +908,15 @@ const CreateTemplate = () => {
                                                     </p>
                                                     <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
                                                         <div className="mt-1 cursor-pointer">
-                                                        {isAppendixEnabled ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {isAppendixEnabled ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             10. Phụ lục
-                                                            </div>
+                                                        </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                        {(isAutoRenew || isTransferEnabled || isViolate)  ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />):
-                                                        <span className="mr-[20px]"></span>}
+                                                            {(isAutoRenew || isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
                                                             11. Trường hợp đặc biệt
-                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ),
@@ -931,6 +1018,7 @@ const CreateTemplate = () => {
                                             )}
                                         />
                                     </Form.Item>
+
                                     <div className={`${isDarkMode ? 'mt-4 shadow-md ml-2 mb-3 bg-[#1f1f1f]' : 'mt-4 shadow-md ml-2 mb-3 bg-[#f5f5f5]'} p-4 rounded-md`}>
                                         <div
                                             ref={containerRef}
@@ -1176,7 +1264,6 @@ const CreateTemplate = () => {
                                                 <div className="mt-4">
                                                     <h4 className="font-bold">ĐIỀU KHOẢN BỔ SUNG</h4>
                                                     {["Common", "A", "B"].map((key, index) => {
-                                                        // Tính toán các giá trị đã chọn từ các trường còn lại trong cùng loại
                                                         const otherSelectedValues = [];
                                                         ["Common", "A", "B"].forEach((k) => {
                                                             if (k !== key) {
@@ -1192,6 +1279,7 @@ const CreateTemplate = () => {
                                                                 key={index}
                                                                 label={displayLabels["1"][key]}
                                                                 name={["1", key]}
+                                                                rules={[{ required: key == "Common" && true, message: "Vui lòng chọn điều khoản!" }]}
                                                             >
                                                                 <LazySelect
                                                                     loadDataCallback={loadDKBSData}
@@ -1240,6 +1328,7 @@ const CreateTemplate = () => {
                                                                 key={index}
                                                                 label={displayLabels['2'][key]}
                                                                 name={['2', key]}
+                                                                rules={[{ required: key == "Common" && true, message: "Vui lòng chọn điều khoản!" }]}
                                                             >
                                                                 <LazySelect
                                                                     loadDataCallback={loadQVNVCBData}
@@ -1287,6 +1376,7 @@ const CreateTemplate = () => {
                                                                 key={index}
                                                                 label={displayLabels['3'][key]}
                                                                 name={['3', key]}
+                                                                rules={[{ required: key == "Common" && true, message: "Vui lòng chọn điều khoản!" }]}
                                                             >
                                                                 <LazySelect
                                                                     loadDataCallback={loadBHVBTData}
@@ -1334,6 +1424,7 @@ const CreateTemplate = () => {
                                                                 key={index}
                                                                 label={displayLabels['4'][key]}
                                                                 name={['4', key]}
+                                                                rules={[{ required: key == "Common" && true, message: "Vui lòng chọn điều khoản!" }]}
                                                             >
                                                                 <LazySelect
                                                                     loadDataCallback={loadVPBTTHData}
@@ -1381,6 +1472,7 @@ const CreateTemplate = () => {
                                                                 key={index}
                                                                 label={displayLabels['5'][key]}
                                                                 name={['5', key]}
+                                                                rules={[{ required: key == "Common" && true, message: "Vui lòng chọn điều khoản!" }]}
                                                             >
                                                                 <LazySelect
                                                                     loadDataCallback={loadCDHDData}
@@ -1428,6 +1520,7 @@ const CreateTemplate = () => {
                                                                 key={index}
                                                                 label={displayLabels['6'][key]}
                                                                 name={['6', key]}
+                                                                rules={[{ required: key == "Common" && true, message: "Vui lòng chọn điều khoản!" }]}
                                                             >
                                                                 <LazySelect
                                                                     loadDataCallback={loadGQTCData}
@@ -1475,6 +1568,7 @@ const CreateTemplate = () => {
                                                                 key={index}
                                                                 label={displayLabels['7'][key]}
                                                                 name={['7', key]}
+                                                                rules={[{ required: key == "Common" && true, message: "Vui lòng chọn điều khoản!" }]}
                                                             >
                                                                 <LazySelect
                                                                     loadDataCallback={loadBMData}
@@ -1659,10 +1753,18 @@ const CreateTemplate = () => {
                             </div>
                         </Col>
                         {showScroll && (
-                            <button onClick={scrollToTop} type="button" style={{ position: 'fixed', bottom: '20px', right: '20px' }}>
-                                <img src={topIcon} width={40} height={40}/>
+                            <button onClick={scrollToTop} type="button" style={{ position: 'fixed', bottom: '100px', right: '20px' }}>
+                                <img src={topIcon} width={40} height={40} />
                             </button>
                         )}
+                        <div
+                            style={{ position: 'fixed', bottom: '10px', right: '0px', zIndex: 100 }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                            }}>
+                            <ChatModalWrapper generatedPrompt={promt} handleGenerateAIPrompt={handleSendTemplateToAI} Template={"template"} />
+                        </div>
+
                     </Row>
 
                 </Form>
@@ -1987,7 +2089,7 @@ const CreateTemplate = () => {
                 additionalConfig
             };
 
-            console.log("Transformed Data:", transformedData);
+            // console.log("Transformed Data:", transformedData);
 
             const response = await CreateTemplate(transformedData).unwrap();
             if (response.status == "CREATED") {
@@ -2000,7 +2102,7 @@ const CreateTemplate = () => {
 
 
         } catch (error) {
-            console.error("Error:", error);
+            // console.error("Error:", error);
             message.error(error.data.message);
         }
     };

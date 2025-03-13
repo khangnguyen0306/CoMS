@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline } from "antd";
 import dayjs from "dayjs";
 import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
@@ -9,9 +9,9 @@ import { useGetPartnerInfoDetailQuery, useLazyGetPartnerListQuery } from "../../
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
-import { DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
+import { CheckCircleFilled, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
-import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetLegalQuery } from "../../services/ClauseAPI";
+import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetLegalQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
 import RichTextEditor, {
 } from 'reactjs-tiptap-editor';
@@ -25,7 +25,8 @@ import PreviewContract from "../../components/ui/PreviewContract";
 import { VietnameseProvinces } from "../../utils/Province";
 import { useLazyGetDateNofitifationQuery } from "../../services/ConfigAPI";
 import { useSelector } from "react-redux";
-
+import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
+import topIcon from "../../assets/Image/top.svg"
 const { Step } = Steps;
 const { Option } = Select;
 const { TextArea } = Input;
@@ -58,6 +59,22 @@ const CreateContractForm = () => {
     const [isSuspend, setIsSuspend] = useState(false);
     const [isViolate, setIsisViolate] = useState(false);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const [loadingTerms, setLoadingTerms] = useState({});
+    const [changeCCPL, setChangeCCPL] = useState(false);
+    const [showScroll, setShowScroll] = useState(false)
+    const [isOverflowing, setIsOverflowing] = useState(false);
+
+    const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
+    const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
+
+    const [activeSection, setActiveSection] = useState('general');
+    const generalInfoRef = useRef(null);
+    const mainContentRef = useRef(null);
+    const containerRef = useRef(null)
+    const termsRef = useRef(null);
+    const otherContentRef = useRef(null);
+
+
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery()
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery()
     const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListQuery()
@@ -67,10 +84,10 @@ const CreateContractForm = () => {
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
     const [getDateNotification] = useLazyGetDateNofitifationQuery();
     const [notificationDays, setNotificationDays] = useState(null);
-
+    const [fetchTerms] = useLazyGetTermDetailQuery();
     const [createClause] = useCreateClauseMutation();
     const [createContract, { isLoading: loadingCreateContract, isError: CreateError }] = useCreateContractMutation();
-
+    const [termsData, setTermsData] = useState({});
     // Thêm state để quản lý danh sách thông báo
     const [notifications, setNotifications] = useState([]);
 
@@ -103,16 +120,14 @@ const CreateContractForm = () => {
         const fetchNotificationDays = async () => {
             try {
                 const response = await getDateNotification().unwrap();
-                // console.log(response);
                 if (response) {
                     setNotificationDays(response[0].value || 0);
                 }
             } catch (error) {
                 console.error('Error fetching notification days:', error);
-                // message.error('Không thể lấy được số ngày thông báo, sử dụng giá trị mặc định');
             }
         };
-        
+
         fetchNotificationDays();
     }, []);
 
@@ -276,7 +291,7 @@ const CreateContractForm = () => {
     // Submit toàn bộ form
     const onFinish = async (values) => {
         const data = form.getFieldsValue(true);
-    console.log(data);
+        console.log(data);
 
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
         const additionalConfig = Object.keys(data)
@@ -296,7 +311,7 @@ const CreateContractForm = () => {
 
         // Format TemplateData
         const templateData = {
-       
+
             specialTermsA: data.specialTermsA,
             specialTermsB: data.specialTermsB,
             appendixEnabled: data.appendixEnabled,
@@ -346,9 +361,7 @@ const CreateContractForm = () => {
             "5",
             "6",
             "7",
-            "effectiveDate&expiryDate",
-            "notifyEffectiveDate",
-            "notifyExpiryDate",
+            "effectiveDate&expiryDate"
         ];
 
         // Loại bỏ các trường trùng lặp và format templateId
@@ -359,7 +372,7 @@ const CreateContractForm = () => {
                 } else if (key === 'partnerId') {
                     acc['partyId'] = data[key];
                 }
-                else if(key ==="contractName"){
+                else if (key === "contractName") {
                     acc['contractTitle'] = data[key];
                 }
                 else {
@@ -382,7 +395,7 @@ const CreateContractForm = () => {
         } else {
             message.error(response.message);
         }
-     
+
     };
 
 
@@ -415,8 +428,8 @@ const CreateContractForm = () => {
         let name = form.getFieldValue('legalLabel') || '';
         let content = form.getFieldValue('legalContent') || '';
         try {
-            const result = await createClause({ idType: 8, label: name, value: content }).unwrap();
-            // console.log(result);
+            const result = await createClause({ label: name, value: content, typeTermId: 8 }).unwrap();
+            console.log(result);
             if (result.status === "CREATED") {
                 message.success("Tạo điều khoản thành công");
             }
@@ -521,8 +534,8 @@ const CreateContractForm = () => {
     const hanldeOpenAddLegalModal = () => {
         setIsAddLegalModalOpen(true);
     };
+
     const getAllAdditionalTermsContent = () => {
-        // Ánh xạ termId với tiêu đề tương ứng
         const termTitles = {
             1: 'ĐIỀU KHOẢN BỔ SUNG',
             2: 'QUYỀN VÀ NGHĨA VỤ CÁC BÊN',
@@ -530,16 +543,14 @@ const CreateContractForm = () => {
             4: 'ĐIỀU KHOẢN VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI',
             5: 'ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG',
             6: 'ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP',
-            7: 'ĐIỀU KHOẢN BẢO MẬT'
+            7: 'ĐIỀU KHOẢN BẢO MẬT',
         };
 
-        // Hàm hỗ trợ kết hợp và loại bỏ các mục trùng lặp
         const combineUniqueTerms = (formTerms, templateTerms) => {
             const uniqueTerms = new Map();
 
-            // Thêm các mục từ template
             if (templateTerms && templateTerms.length > 0) {
-                templateTerms.forEach(term => {
+                templateTerms.forEach((term) => {
                     const termId = term.original_term_id;
                     if (termId && !uniqueTerms.has(termId)) {
                         uniqueTerms.set(termId, term);
@@ -547,12 +558,11 @@ const CreateContractForm = () => {
                 });
             }
 
-            // Thêm các mục từ form nếu chưa có
             if (formTerms && formTerms.length > 0) {
-                formTerms.forEach(term => {
-                    const termId = term.value || term.original_term_id;
+                formTerms.forEach((term) => {
+                    const termId = term.value || term.original_term_id || term;
                     if (termId && !uniqueTerms.has(termId)) {
-                        uniqueTerms.set(termId, term);
+                        uniqueTerms.set(termId, termsData[termId] || { original_term_id: termId });
                     }
                 });
             }
@@ -560,39 +570,32 @@ const CreateContractForm = () => {
             return Array.from(uniqueTerms.values());
         };
 
-        // Hàm giúp hiển thị một loại điều khoản
         const renderTermSection = (termId) => {
-            // Chỉ hiển thị các điều khoản đã chọn
             if (!selectedOthersTerms.includes(termId)) {
                 return null;
             }
 
-            // Lấy dữ liệu từ form
             const formData = form.getFieldValue(String(termId)) || {
                 A: [],
                 B: [],
-                Common: []
+                Common: [],
             };
-
-            // Lấy dữ liệu từ template
             const templateData = templateDataSelected?.additionalConfig?.[String(termId)] || {
                 A: [],
                 B: [],
-                Common: []
+                Common: [],
             };
 
-            // Kết hợp dữ liệu từ form và template, loại bỏ trùng lặp
             const commonTerms = combineUniqueTerms(formData.Common, templateData.Common);
             const aTerms = combineUniqueTerms(formData.A, templateData.A);
             const bTerms = combineUniqueTerms(formData.B, templateData.B);
 
-            // Kiểm tra xem có dữ liệu nào để hiển thị không
             const hasCommonTerms = commonTerms.length > 0;
             const hasATerms = aTerms.length > 0;
             const hasBTerms = bTerms.length > 0;
             const hasNoTerms = !hasCommonTerms && !hasATerms && !hasBTerms;
 
-            if (hasNoTerms) {
+            if (hasNoTerms && !termsData[termId]) {
                 return null;
             }
 
@@ -600,12 +603,22 @@ const CreateContractForm = () => {
                 <div key={termId} className="mb-6 border-b pb-4">
                     <div className="font-bold text-lg mb-3">{termTitles[termId]}</div>
 
+                    {loadingTerms[termId] ? (
+                        <div>Loading...</div>
+                    ) : termsData[termId] ? (
+                        <div className="mb-4">
+                            <div className="text-gray-600">1. {termsData[termId].label}</div>
+                        </div>
+                    ) : null}
+
                     {hasCommonTerms && (
                         <div className="mb-4">
                             <div className="font-semibold border-b pb-1 mb-2">Điều khoản chung</div>
                             {commonTerms.map((term, index) => (
                                 <div key={`common-${index}`} className="mb-2 pl-3">
-                                    {term?.label && <div className="text-gray-600">{index + 1}. {term.label}</div>}
+                                    {term?.label && (
+                                        <div className="text-gray-600">{index + 1}. {term.label}</div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -616,7 +629,9 @@ const CreateContractForm = () => {
                             <div className="font-semibold border-b pb-1 mb-2">Điều khoản riêng bên A</div>
                             {aTerms.map((term, index) => (
                                 <div key={`a-${index}`} className="mb-2 pl-3">
-                                    {term?.label && <div className="text-gray-600">{index + 1}. {term.label}</div>}
+                                    {term?.label && (
+                                        <div className="text-gray-600">{index + 1}. {term.label}</div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -627,7 +642,9 @@ const CreateContractForm = () => {
                             <div className="font-semibold border-b pb-1 mb-2">Điều khoản riêng bên B</div>
                             {bTerms.map((term, index) => (
                                 <div key={`b-${index}`} className="mb-2 pl-3">
-                                    {term?.label && <div className="text-gray-600">{index + 1}. {term.label}</div>}
+                                    {term?.label && (
+                                        <div className="text-gray-600">{index + 1}. {term.label}</div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -636,9 +653,8 @@ const CreateContractForm = () => {
             );
         };
 
-        // Hiển thị tất cả các loại điều khoản đã chọn
-        const allTermSections = Object.keys(termTitles).map(termId => renderTermSection(Number(termId)));
-        const hasAnyTerms = allTermSections.some(section => section !== null);
+        const allTermSections = Object.keys(termTitles).map((termId) => renderTermSection(Number(termId)));
+        const hasAnyTerms = allTermSections.some((section) => section !== null);
 
         return (
             <div className="max-w-2xl max-h-[500px] overflow-auto px-4">
@@ -649,6 +665,7 @@ const CreateContractForm = () => {
             </div>
         );
     };
+
     const getTermsContent = (fieldName) => {
         const fieldLabels = {
             legalBasis: 'Căn cứ pháp lý',
@@ -794,8 +811,118 @@ const CreateContractForm = () => {
         // form.setFieldsValue({ contractNumber });
     }, [form, form.getFieldValue('contractName'), form.getFieldValue('signingDate')]);
 
-    // console.log(templateDataSelected?.legalBasisTerms)
-    // console.log(form.getFieldsValue())
+
+    const scrollToSection = (sectionRef, sectionId) => {
+        if (sectionRef.current) {
+            sectionRef.current.scrollIntoView({ behavior: 'smooth' });
+            setActiveSection(sectionId);
+        }
+    };
+
+    const scrollToTop = (e) => {
+        e.stopPropagation();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+
+    // Check which section is visible when scrolling
+
+
+    // Add scroll event listener
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    useEffect(() => {
+        const legalBasis = form.getFieldValue('legalBasis');
+        if (legalBasis && legalBasis.length > 0) {
+            legalBasis.forEach(termId => {
+                loadTermDetail(termId);
+            });
+        }
+    }, [form.getFieldValue('legalBasis'), changeCCPL]);
+
+    useEffect(() => {
+        if (containerRef.current) {
+            const containerHeight = containerRef.current.scrollHeight;
+            setIsOverflowing(containerHeight > 270);
+        }
+    }, [form.getFieldValue('legalBasis')]);
+    // Render the legal basis terms
+    const handleScroll = () => {
+        const scrollPosition = window.scrollY + 50;
+
+        // Get positions of each section
+        const generalInfoPosition = generalInfoRef.current?.offsetTop || 0;
+        const mainContentPosition = mainContentRef.current?.offsetTop || 0;
+        const termsPosition = termsRef.current?.offsetTop || 0;
+        const otherContentPosition = otherContentRef.current?.offsetTop || 0;
+
+        // vị trí
+        if (scrollPosition >= otherContentPosition) {
+            setActiveSection('other');
+        } else if (scrollPosition >= termsPosition) {
+            setActiveSection('terms');
+        } else if (scrollPosition >= mainContentPosition) {
+            setActiveSection('main');
+        } else {
+            setActiveSection('general');
+        }
+
+        // nút scrol 
+        if (window.scrollY > 400) {
+            setShowScroll(true);
+        } else {
+            setShowScroll(false);
+        }
+    };
+
+
+    const renderLegalBasisTerms = () => {
+        if (!form.getFieldValue('legalBasis') || form.getFieldValue('legalBasis').length === 0) {
+            return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
+        }
+
+        return form.getFieldValue('legalBasis').map((termId, index) => {
+            const term = termsData[termId];
+            if (!term) {
+                return (
+                    <div key={termId} className="term-item p-1">
+                        <Spin size="small" />
+                    </div>
+                );
+            }
+
+            return (
+                <p key={index} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                    <i>- {term.value}</i>
+                </p>
+            );
+        });
+    };
+
+    // Tải chi tiết điều khoản
+    const loadTermDetail = async (termId) => {
+        if (!termsData[termId]) {
+            setLoadingTerms(prev => ({ ...prev, [termId]: true }));
+            try {
+                const response = await fetchTerms(termId).unwrap();
+                setTermsData(prev => ({
+                    ...prev,
+                    [termId]: response.data
+                }));
+            } catch (error) {
+                console.error(`Error loading term ${termId}:`, error);
+            } finally {
+                setLoadingTerms(prev => ({ ...prev, [termId]: false }));
+            }
+        }
+    };
+
+    console.log(form.getFieldsValue())
 
     // Các bước của form
     const steps = [
@@ -886,71 +1013,199 @@ const CreateContractForm = () => {
             title: "Chi tiết hợp đồng",
             content: (
                 <div className="space-y-4 w-full">
-                    <ConfigProvider
-                        theme={{
-                            components: {
+                    <Row gutter={16}>
+                        <Col xs={24} md={5} className="sticky" style={{ top: '90px', maxHeight: 'calc(100vh - 40px)', overflow: 'auto', marginRight: '25px' }}>
+                            <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-4 pb-1 rounded-md shadow-md mb-4`}>
+                                <Timeline
+                                    mode="left"
+                                    className="mt-8 "
+                                    items={[
+                                        {
+                                            color: 'green',
+                                            children: (
+                                                <div onClick={() => scrollToSection(generalInfoRef, 'general')}>
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'general' ? 'font-bold text-blue-500' : ''}`}>
+                                                        I. THÔNG TIN CHUNG
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {form.getFieldValue('contractName') ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
+                                                            1. Tiêu đề hợp đồng
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('contractLocation') && form.getFieldValue('signingDate')) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
+                                                            2. Địa điểm, ngày ký
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {form.getFieldValue('partnerId') ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
+                                                            2. Thông tin các bên
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {form.getFieldValue('legalBasis') && form.getFieldValue('legalBasis').length > 0 ? (
+                                                                <CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />
+                                                            ) : (
+                                                                <span className="mr-[20px]"></span>
+                                                            )}
+                                                            3. Căn cứ pháp lý
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            color: 'blue',
+                                            children: (
+                                                <div
+                                                    onClick={() => scrollToSection(mainContentRef, 'main')}
+                                                >
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'main' ? 'font-bold text-blue-500' : ''}`}>
+                                                        II. NỘI DUNG CHÍNH
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {content ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            4. Nội dung hợp đồng
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('totalValue') && form.getFieldValue('payments') && form.getFieldValue('payments').length > 0) ? (
+                                                                <CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />
+                                                            ) : (
+                                                                <span className="mr-[20px]"></span>
+                                                            )}
+                                                            5. Giá trị và thanh toán
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('effectiveDate') && form.getFieldValue('expiryDate')) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            6. Thời gian hiệu lực
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            color: 'red',
+                                            children: (
+                                                <div
 
-                            },
-                        }}
-                    >
-                        <Collapse defaultActiveKey={['1']} >
-                            <Collapse.Panel header="Thông tin cơ bản " key="1">
-                                <Form.Item
-                                    style={{ display: 'none' }}
-                                    name="contractNumber"
-                                />
-                                <Form.Item
-                                    className="mt-5"
-                                    label="Ngày ký kết"
-                                    name="signingDate"
-                                    rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
-                                >
-                                    <DatePicker
-                                        className="w-full"
-                                        format="DD/MM/YYYY"
-                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                    />
-                                </Form.Item>
+                                                    onClick={() => scrollToSection(termsRef, 'terms')}
+                                                >
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'terms' ? 'font-bold text-blue-500' : ''}`}>
+                                                        III. ĐIỀU KHOẢN VÀ CAM KẾT
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('generalTerms') && form.getFieldValue('generalTerms').length > 0) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            7. Điều khoản chung
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {selectedOthersTerms.length > 0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            8. Điều khoản khác
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            color: 'gray',
+                                            children: (
+                                                <div
 
-                                <Form.Item
-                                    label="Nơi ký kết"
-                                    name="contractLocation"
-                                    rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}
-                                >
-                                    <Select
-                                        showSearch
-                                        placeholder="Chọn nơi ký kết"
-                                        optionFilterProp="children"
-                                        filterOption={(input, option) =>
-                                            (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                                                    onClick={() => scrollToSection(otherContentRef, 'other')}
+                                                >
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'other' ? 'font-bold text-blue-500' : ''}`}>
+                                                        IV. CÁC NỘI DUNG KHÁC
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {isAppendixEnabled ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            10. Phụ lục
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(isAutoRenew || isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            11. Trường hợp đặc biệt
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            children: <p className="cursor-pointer mt-6" onClick={() => scrollToSection(otherContentRef, 'other')}> Hoàn thành  </p>,
                                         }
-                                    >
-                                        {VietnameseProvinces.map(province => (
-                                            <Option key={province} value={province}>
-                                                {province}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
+                                    ]}
+                                />
+                            </div>
+
+                        </Col>
+                        <Col xs={24} md={18}>
+                            <div ref={generalInfoRef}>
+                                <div className="relative mt-[70px]">
+                                    <div className="absolute flex items-center top-[30%] right-5 gap-3">
+                                        <Form.Item
+                                            label="Nơi ký kết"
+                                            name="contractLocation"
+                                            rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}
+                                        >
+                                            <Select
+                                                showSearch
+                                                placeholder="Chọn nơi ký kết"
+                                                optionFilterProp="children"
+                                                filterOption={(input, option) =>
+                                                    (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                                                }
+                                            >
+                                                {VietnameseProvinces.map(province => (
+                                                    <Option key={province} value={province}>
+                                                        {province}
+                                                    </Option>
+                                                ))}
+                                            </Select>
+                                        </Form.Item>
+                                        <Form.Item
+                                            style={{ display: 'none' }}
+                                            name="contractNumber"
+                                        />
+                                        <Form.Item
+                                            label="Ngày ký kết"
+                                            name="signingDate"
+                                            rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
+                                        >
+                                            <DatePicker
+                                                className="w-full"
+                                                format="DD/MM/YYYY"
+                                                disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                            />
+                                        </Form.Item>
+
+
+                                    </div>
+                                    <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-4 py-10 rounded-md text-center mt-[-70px]`}>
+                                        <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                                        <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
+                                        <p>-------------------</p>
+                                        {/* <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm .......</p> */}
+                                        <p className="text-2xl font-bold mt-10">{form.getFieldValue('contractName')?.toUpperCase()}</p>
+                                        <p className="mt-3"><b>Số:</b> Ngày tháng năm - STT -Tên HD viết tắt  </p>
+                                    </div>
+                                </div>
                                 <Form.Item
-                                    className="w-full"
+
+                                    className="w-full mt-3"
                                     label={
                                         <div className="flex justify-between items-center gap-4">
                                             <p>Căn phứ pháp lý</p>
-                                            <Popover
-                                                content={() => getTermsContent('legalBasis')}
-                                                title="Danh sách căn cứ pháp lý đã chọn"
-                                                trigger="hover"
-                                                placement="right"
-                                            >
-                                                <Button icon={<EyeFilled />} />
-                                            </Popover>
                                         </div>
                                     }
                                     name='legalBasis'
                                     rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
                                 >
                                     <LazyLegalSelect
+                                        onChange={() => setChangeCCPL(!changeCCPL)}
                                         loadDataCallback={loadLegalData}
                                         showSearch
                                         mode="multiple"
@@ -969,6 +1224,33 @@ const CreateContractForm = () => {
                                         )}
                                     />
                                 </Form.Item>
+
+                                <div className={`px-4 pt-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                                    {renderLegalBasisTerms()}
+                                </div>
+
+                                <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
+                                    <div className="flex flex-col gap-2 pl-4 " md={10} sm={24} >
+                                        <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
+                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
+                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
+                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
+                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
+                                        <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                                    </div>
+                                    <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
+                                        <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
+                                        <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
+                                        <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
+                                        <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName}</p></p>
+                                        <p className="text-sm"><b>Chức vụ: {partnerDetail?.data.position}</b> </p>
+                                        <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
+                                        <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ref={mainContentRef}>
                                 <Form.Item
                                     label={
                                         <div className="flex justify-between items-center gap-4">
@@ -1027,7 +1309,7 @@ const CreateContractForm = () => {
 
                                 </Form.Item>
                                 {textValue && (
-                                    <div className="mt-1 ml-1">
+                                    <div className="mt-1 ml-1" ref={mainContentRef}>
                                         <Typography.Text type="secondary">
                                             (Bằng chữ: <span className="font-bold">{textValue}</span>)
                                         </Typography.Text>
@@ -1035,7 +1317,6 @@ const CreateContractForm = () => {
                                 )}
 
                                 <Divider orientation="center">Thanh toán</Divider>
-                                {/* Sử dụng Form.List để cho phép thêm nhiều lần thanh toán */}
                                 <Form.List
                                     name="payments"
                                     rules={[
@@ -1181,10 +1462,10 @@ const CreateContractForm = () => {
                                         </Form.Item>
                                     )}
                                 </div>
-                            </Collapse.Panel>
 
 
-                            <Collapse.Panel header="Thời gian và hiệu lực" key="2">
+
+
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
 
                                 <Form.Item
@@ -1240,11 +1521,10 @@ const CreateContractForm = () => {
                                         <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
                                     </div>
                                 </Form.Item>
-                            </Collapse.Panel>
 
-
-                            <Collapse.Panel header="Điều khoản & Cam kết" key="3">
-                                <Divider orientation="center" className="text-lg">Điều khoản & Cam kết</Divider>
+                            </div>
+                            <div ref={termsRef}>
+                                <Divider ref={termsRef} orientation="center" className="text-lg">Điều khoản & Cam kết</Divider>
                                 <div className=" ml-2 my-3 ">
                                     <p className="font-bold text-[16px] mb-1"> Điều khoản chung</p>
                                     <p className="">Mô tả: (Điều khoản được áp dụng cho cả 2 bên) </p>
@@ -1271,7 +1551,6 @@ const CreateContractForm = () => {
                                         loadDataCallback={loadGenaralData}
                                         options={generalData?.data.content}
                                         showSearch
-                                        // labelInValue
                                         mode="multiple"
                                         placeholder="Chọn điều khoản chung"
                                         onChange={handleSelectChange}
@@ -1364,10 +1643,9 @@ const CreateContractForm = () => {
                                         placeholder="Nhập điều khoản bên B"
                                     />
                                 </Form.Item>
+                            </div>
 
-                            </Collapse.Panel>
-
-                            <Collapse.Panel header="Phụ lục & các loại khác" key="4">
+                            <div ref={otherContentRef} className="py-[100px]">
                                 <Divider orientation="center">Các nội dung khác</Divider>
 
                                 <Form.Item name="appendixEnabled" valuePropName="checked">
@@ -1439,9 +1717,15 @@ const CreateContractForm = () => {
                                         />
                                     </Form.Item>
                                 )}
-                            </Collapse.Panel>
-                        </Collapse>
-                    </ConfigProvider>
+                            </div>
+                        </Col>
+
+                    </Row>
+                    {showScroll && (
+                        <button onClick={scrollToTop} type="button" style={{ position: 'fixed', bottom: '100px', right: '20px', zIndex: 100 }}>
+                            <img src={topIcon} width={40} height={40} />
+                        </button>
+                    )}
                 </div>
             ),
         },

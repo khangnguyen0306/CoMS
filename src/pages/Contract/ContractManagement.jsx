@@ -7,6 +7,8 @@ import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
 import { Link, useNavigate } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../slices/authSlice";
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -27,6 +29,8 @@ const ManageContracts = () => {
     });
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
+    const user = useSelector(selectCurrentUser)
+
 
     useEffect(() => {
         refetch();
@@ -113,7 +117,7 @@ const ManageContracts = () => {
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
-                <Link to={`/manager/ContractDetail/${record.id}`} className="font-bold text-[#228eff] cursor-pointer">
+                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
                     {text}
                 </Link>
             ),

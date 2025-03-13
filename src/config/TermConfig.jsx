@@ -1,9 +1,11 @@
 import { Button, Divider, Form, Input, message, Modal, Space } from "antd";
 import LazySelect from "../hooks/LazySelect";
 import { PlusOutlined } from "@ant-design/icons";
-import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalQuery } from "../services/ClauseAPI";
-import { useState } from "react";
+import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalQuery, useLazyGetTermDetailQuery } from "../services/ClauseAPI";
+import { useCallback, useEffect, useState } from "react";
 import TextArea from "antd/es/input/TextArea";
+import { isDarkMode } from "../slices/themeSlice";
+import { useSelector } from "react-redux";
 
 
 
@@ -11,11 +13,101 @@ import TextArea from "antd/es/input/TextArea";
 
 
 export const TermSection = ({ termId, title, form, loadDataCallback }) => {
-
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [newGeneralTerm, setNewGeneralTerm] = useState({ name: "", typeId: null, content: "" });
     const [isAddGeneralModalOpen, setIsAddGeneralModalOpen] = useState(false);
+    const [isChange, SetIsChange] = useState(false);
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery({ typeTermIds: 9 });
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
+
+    const [fetchTermDetail] = useLazyGetTermDetailQuery();
+    const [groupedTerms, setGroupedTerms] = useState({ Common: [], A: [], B: [] });
+    const [termTypesMap, setTermTypesMap] = useState({});
+    const [termDetails, setTermDetails] = useState({});
+    const formValues = Form.useWatch([], form);
+    const typeNames = {
+        "1": "ĐIỀU KHOẢN BỔ SUNG",
+        "2": "QUYỀN VÀ NGHĨA VỤ CÁC BÊN",
+        "3": "ĐIỀU KHOẢN BẢO HÀNH VÀ BẢO TRÌ",
+        "4": "ĐIỀU KHOẢN VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI",
+        "5": "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG",
+        "6": "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP",
+        "7": "ĐIỀU KHOẢN BẢO MẬT"
+    };
+
+    const loadTermDetail = async (termId) => {
+        if (!termDetails[termId]) {
+            const { data } = await fetchTermDetail(termId);
+            if (data) {
+                setTermDetails(prev => ({
+                    ...prev,
+                    [termId]: data
+                }));
+            }
+        }
+    };
+    const processFormValues = useCallback((formValues) => {
+        const allGrouped = { Common: [], A: [], B: [] };
+        const typesMap = {};
+
+        for (let typeKey = 1; typeKey <= 7; typeKey++) {
+            const typeData = formValues[typeKey];
+            if (typeData) {
+                if (typeData.Common?.length) {
+                    typeData.Common.forEach(termId => {
+                        allGrouped.Common.push(termId);
+                        typesMap[termId] = {
+                            typeKey: typeKey.toString(),
+                            typeName: typeNames[typeKey]
+                        };
+                    });
+                }
+
+                ['A', 'B'].forEach(group => {
+                    if (typeData[group]?.length) {
+                        allGrouped[group].push(...typeData[group]);
+                    }
+                });
+            }
+        }
+
+        allGrouped.A = [...new Set(allGrouped.A)];
+        allGrouped.B = [...new Set(allGrouped.B)];
+
+        setGroupedTerms(allGrouped);
+        setTermTypesMap(typesMap);
+
+        const allIds = [
+            ...allGrouped.Common,
+            ...allGrouped.A,
+            ...allGrouped.B,
+            ...(formValues.additionalTerms || [])
+        ];
+
+        [...new Set(allIds)].forEach(loadTermDetail);
+    }, [loadTermDetail]);
+
+    // Theo dõi thay đổi form
+
+    useEffect(() => {
+        if (formValues) {
+            processFormValues(formValues);
+        }
+    }, [formValues]);
+
+    // Nhóm Common
+    const groupedCommon = groupedTerms.Common.reduce((acc, termId) => {
+        const typeKey = termTypesMap[termId]?.typeKey;
+        if (typeKey) {
+            acc[typeKey] = acc[typeKey] || {
+                typeName: typeNames[typeKey],
+                terms: []
+            };
+            acc[typeKey].terms.push(termId);
+        }
+        return acc;
+    }, {});
+
     const displayLabels = {
         '1': {
             "Common": "Điều khoản bổ sung chung",
@@ -141,9 +233,10 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
             message.error("Có lỗi xảy ra khi tạo điều khoản");
         }
     };
+
     const handleChildSelectChange = (typeKey, fieldKey, newValues) => {
         const currentFormValues = form.getFieldsValue(true);
-    
+        SetIsChange(!isChange)
         // Lấy các field con khác trong cùng loại (ngoại trừ field hiện tại) với giá trị là mảng số nguyên
         const otherFieldsInSameType = ["Common", "A", "B"].filter((key) => key !== fieldKey);
         const selectedValuesInSameType = otherFieldsInSameType.reduce((acc, key) => {
@@ -151,12 +244,12 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
             acc[key] = values;
             return acc;
         }, {});
-    
+
         // Kiểm tra xem giá trị nào trong newValues đã tồn tại ở các field con khác không
         const duplicateValues = newValues.filter((item) =>
             Object.entries(selectedValuesInSameType).some(([otherField, values]) => values.includes(item))
         );
-    
+
         if (duplicateValues.length > 0) {
             duplicateValues.forEach((dup) => {
                 // Tìm field nào đã chứa giá trị trùng
@@ -170,12 +263,12 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
                     );
                 }
             });
-    
+
             // Lọc bỏ các giá trị trùng
             const validValues = newValues.filter(
                 (item) => !Object.values(selectedValuesInSameType).flat().includes(item)
             );
-    
+
             // Cập nhật form với giá trị đã lọc
             form.setFieldsValue({
                 [typeKey]: {
@@ -193,7 +286,7 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
             });
         }
     };
-    
+
     const otherSelectedValues = [];
 
     // Calculate values already selected in other sections
@@ -212,11 +305,72 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
         }
         return "Thêm điều khoản";
     };
-    
-   
+
+    const TermItem = ({ term, loading }) => {
+        if (loading) {
+            return (
+                <div className="term-item loading">
+                    Đang tải thông tin...
+                </div>
+            );
+        }
+
+        return (
+            <div className="term-item">
+                {/* <div className="term-label">{term?.data.label}</div> */}
+                <div className="term-content ml-2">- {term?.data.value}</div>
+            </div>
+        );
+    };
+
+
 
     return (
-        <div className="mt-4">
+        <div className="mt-4 ">
+
+            <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} mb-5 rounded-lg max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200`}>
+                {termId === 1 && (
+                    <div className="p-5 mb-4">
+                        {Object.values(groupedCommon).map((group, index) => (
+                            <div key={group.typeName} className="term-group flex flex-col gap-1 mt-3">
+                                <h3 className="group-title font-bold">{index + 1}. {group.typeName}</h3>
+                                {group.terms.map(termId => (
+                                    <TermItem
+                                        key={termId}
+                                        term={termDetails[termId]}
+                                        loading={!termDetails[termId]}
+                                    />
+                                ))}
+                            </div>
+                        ))}
+                        {groupedTerms.A.length > 0 && (
+                            <div className="party-group">
+                                <h3 className="party-title font-bold mt-5">QUYỀN VÀ NGHĨA VỤ RIÊNG BÊN A</h3>
+                                {groupedTerms.A.map(termId => (
+                                    <TermItem
+                                        key={termId}
+                                        term={termDetails[termId]}
+                                        loading={!termDetails[termId]}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        {groupedTerms.B.length > 0 && (
+                            <div className="party-group mt-5">
+                                <h3 className="party-title font-bold">QUYỀN VÀ NGHĨA VỤ RIÊNG BÊN B</h3>
+                                {groupedTerms.B.map(termId => (
+                                    <TermItem
+                                        key={termId}
+                                        term={termDetails[termId]}
+                                        loading={!termDetails[termId]}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+            </div>
             <h4 className="font-bold">{title}</h4>
             {["Common", "A", "B"].map((key, index) => {
                 // Remove the current section's values from otherSelectedValues
@@ -290,11 +444,11 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
                     </Form.Item>
                 </Form>
             </Modal>
+
         </div>
     );
 };
 
-// 2. Create a mapping of term IDs to their configurations
 
 
 

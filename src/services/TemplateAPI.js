@@ -76,7 +76,7 @@ export const TemplateAPI = createApi({
         editTemplate: builder.mutation({
             query: ({ templateId, ...templateData }) => ({
                 url: `/templates/update/${templateId}`,
-                method: "POST",
+                method: "PUT",
                 body: templateData,
             }),
             invalidatesTags: (result, error, { templateId }) => [{ type: "Template", id: templateId }],

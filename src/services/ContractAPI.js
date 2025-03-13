@@ -127,7 +127,7 @@ export const ContractAPI = createApi({
         updateContract: builder.mutation({
             query: ({ contractId, ...contractData }) => ({
                 url: `/contracts/update/${contractId}`, 
-                method: "POST",
+                method: "PUT",
                 body: contractData,
             }),
             invalidatesTags: (result, error, { contractId }) => [{ type: "Contract", id: contractId }],
