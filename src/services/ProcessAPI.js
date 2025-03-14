@@ -96,4 +96,5 @@ export const {
     useRejectProcessMutation,
     useApproveProcessMutation,
     useGetContractPorcessPendingQuery,
+    useLazyGetProcessByContractIdQuery
 } = processAPI;

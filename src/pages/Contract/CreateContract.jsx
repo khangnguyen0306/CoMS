@@ -61,12 +61,13 @@ const CreateContractForm = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [loadingTerms, setLoadingTerms] = useState({});
     const [changeCCPL, setChangeCCPL] = useState(false);
-    const [showScroll, setShowScroll] = useState(false)
+   
     const [isOverflowing, setIsOverflowing] = useState(false);
 
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
 
+    const [showScroll, setShowScroll] = useState(false)
     const [activeSection, setActiveSection] = useState('general');
     const generalInfoRef = useRef(null);
     const mainContentRef = useRef(null);
@@ -202,11 +203,6 @@ const CreateContractForm = () => {
             form.setFieldsValue({ payments: updatedPayments });
         }
     };
-
-    // chuyển trang tạo template
-    const handleCreateTemplate = () => {
-        navigate("/createtemplate")
-    }
 
     // chuyển trang tạo partner
     const handleCreatePartner = () => {
@@ -823,10 +819,6 @@ const CreateContractForm = () => {
         e.stopPropagation();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-
-
-    // Check which section is visible when scrolling
-
 
     // Add scroll event listener
     useEffect(() => {
