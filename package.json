@@ -19,6 +19,7 @@
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
+    "dayjs-plugin-utc": "^0.1.2",
     "framer-motion": "^11.16.2",
     "html-to-text": "^9.0.5",
     "js-cookie": "^3.0.5",
