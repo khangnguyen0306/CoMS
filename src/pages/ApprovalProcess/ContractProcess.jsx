@@ -4,7 +4,7 @@ import { useGetContractPorcessQuery, useGetContractRejectQuery } from "../../ser
 import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
 import dayjs from "dayjs";
-import { CheckCircleFilled, EditFilled } from "@ant-design/icons";
+import { CheckCircleFilled, EditFilled, ReloadOutlined, SettingOutlined } from "@ant-design/icons";
 const { Search } = Input;
 
 const ContractProcess = () => {
@@ -31,6 +31,10 @@ const ContractProcess = () => {
         setIsModalVisible(false);
         setSelectedRecord(null);
     };
+    const resendProcess = (record) => {
+        console.log(record);
+    };
+
 
     const columns = [
         {
@@ -141,29 +145,56 @@ const ContractProcess = () => {
             key: "action",
             render: (_, record) => (
                 <Space>
-                    {record.status !== "REJECTED" ? (
-                        <ConfigProvider
-                            theme={{
-                                components: {
-                                    Button: {
-                                        colorPrimaryHover: "#00FF33	"
-                                    },
+                    <Dropdown menu={{
+                        items: record.status === "REJECTED"
+                            ? [
+                                {
+                                    key: "resend-process",
+                                    icon: <ReloadOutlined style={{ color: "#F59E0B" }} />, // Màu vàng cho nút gửi lại
+                                    label: (
+                                        <span onClick={() => resendProcess(record)}>
+                                            Gửi lại yêu cầu phê duyệt
+                                        </span>
+                                    ),
                                 },
-                            }}
-                        >
-                            <Button className="bg-green-600 hover:bg-green-900 " type="primary" icon={<CheckCircleFilled style={{ color: 'white' }} />} onClick={() => showModal(record)}>
-                                Chọn quy trình
-                            </Button>
-                        </ConfigProvider>
+                                {
+                                    key: "edit-contract",
+                                    icon: <EditFilled style={{ color: "#228eff" }} />,
+                                    label: (
+                                        <span onClick={() => navigate(`/EditContract/${record.id}`)}>
+                                            Chỉnh sửa hợp đồng
+                                        </span>
 
-                    ) : (
-                        <Button type="primary" icon={<EditFilled />} onClick={() => navigate(`/EditContract/${record.id}`)}>
-                            Chỉnh sửa hợp đồng
-                        </Button>
-                    )}
-                </Space>
+                                    ),
+                                },
+                            ]
+                            : [
+                                {
+                                    key: "update-contract",
+                                    icon: <EditFilled style={{ color: "#228eff" }} />,
+                                    label: (
+                                        <span onClick={() => navigate(`/EditContract/${record.id}`)}>
+                                            Cập nhật hợp đồng
+                                        </span>
+                                    ),
+                                },
+                                {
+                                    key: "select-process",
+                                    icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                    label: (
+                                        <span onClick={() => showModal(record)}>
+                                            Yêu cầu phê duyệt
+                                        </span>
+                                    ),
+                                },
+                            ],
+                    }} trigger={["hover"]}>
+                        <Button icon={<SettingOutlined />} />
+                    </Dropdown>
+                </Space >
             ),
         }
+
 
     ];
 

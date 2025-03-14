@@ -30,7 +30,7 @@ const RealTimeNotification = () => {
             id: data.id || Date.now(),
             message: displayMessage,
             contractId: data.contractId,
-            isRead: false
+            isRead: false,
         };
 
         setNotifications((prev) => {

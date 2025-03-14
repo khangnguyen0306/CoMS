@@ -1,6 +1,6 @@
 import React from "react";
 import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input, Divider, Timeline } from "antd";
-import { FileSearchOutlined, CheckCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { FileSearchOutlined, CheckCircleOutlined, ClockCircleOutlined, LoadingOutlined, CheckOutlined, CloseOutlined, ForwardOutlined, SmallDashOutlined } from "@ant-design/icons";
 import { useGetContractDetailQuery } from "../../services/ContractAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetProcessByContractIdQuery } from "../../services/ProcessAPI";
@@ -32,15 +32,6 @@ const ReviewContract = () => {
     const users = userData?.content || [];
 
     console.log(stages);
-    // Map stages => stages kèm full_name
-    const stagesWithFullName = stages?.map(stage => {
-        const user = users.find(u => u.id === stage.approver);
-        return {
-            ...stage,
-            approverName: user ? user.full_name : "Chưa rõ",
-        };
-    });
-    console.log(currentUser?.roles);
 
     const matchingStage = stages.find(stage => stage.approver === currentUser?.id);
     const StageIdMatching = matchingStage?.stageId;
@@ -97,6 +88,12 @@ const ReviewContract = () => {
                             {/* Cột trái */}
                             <div className="flex flex-col gap-2">
                                 <div>
+                                    <Text strong className="text-gray-700">Version hợp đồng: </Text>
+                                    <Text className="text-gray-500 text-sm">
+                                        {contract?.version ? `${contract.version}.0.0` : "Chưa cập nhật"}
+                                    </Text>
+                                </div>
+                                <div>
                                     <Text strong className="text-gray-700">Người Tạo:</Text>
                                     <Text className="ml-2 text-gray-600">
                                         {contract?.user?.full_name || "Chưa cập nhật"}
@@ -127,9 +124,7 @@ const ReviewContract = () => {
                                 >
                                     Xem Chi Tiết Hợp Đồng
                                 </Button>
-                                <Text className="text-gray-500 text-sm">
-                                    Version hợp đồng: {contract?.version ? `${contract.version}.0.0` : "Chưa cập nhật"}
-                                </Text>
+
                                 <Button icon={<ClockCircleOutlined />} type="default" className="rounded-lg">
                                     So Sánh Version Trước Đó
                                 </Button>
@@ -203,14 +198,47 @@ const ReviewContract = () => {
                         }}
                     >
                         <Title className="-mt-2 pb-4" level={4}>Danh Sách Phê Duyệt</Title>
-                        <Timeline className="-mb-14">
-                            {stagesWithFullName.map((stage) => (
-                                <Timeline.Item key={stage.stageId} className="mb-2">
-                                    <div className="flex justify-between">
-                                        <Text strong>{stage.approverName}</Text>
-                                        {/* Nếu bạn có thông tin vai trò, thay thế "Vai trò" bằng thông tin đó */}
-                                        {/* <Text type="secondary">Vai trò</Text> */}
-                                    </div>
+                        <Timeline mode="left" className="-mb-14">
+                            {stages?.map((stage) => (
+                                <Timeline.Item
+                                    children={stage.approverName}
+                                    label={
+                                        stage.status === "APPROVING"
+                                            ? `${new Date(
+                                                stage.startDate[0],
+                                                stage.startDate[1] - 1,
+                                                stage.startDate[2]
+                                            ).toLocaleDateString("vi-VN")} - ${new Date(
+                                                stage.endDate[0],
+                                                stage.endDate[1] - 1,
+                                                stage.endDate[2]
+                                            ).toLocaleDateString("vi-VN")}`
+                                            : stage.status === "APPROVED" && stage.approvedAt
+                                                ? new Date(
+                                                    stage.approvedAt[0],
+                                                    stage.approvedAt[1] - 1,
+                                                    stage.approvedAt[2]
+                                                ).toLocaleDateString("vi-VN")
+                                                : ""
+                                    }
+                                    dot={
+                                        stage.status === "APPROVING" ? (
+                                            <LoadingOutlined spin className="timeline-clock-icon" />
+                                        ) : stage.status === "APPROVED" ? (
+                                            <CheckOutlined className="timeline-clock-icon" style={{ color: 'green' }} />
+                                        ) : stage.status === "REJECTED" ? (
+                                            <CloseOutlined className="timeline-clock-icon" style={{ color: 'red' }} />
+                                        ) : stage.status === "SKIPPED" ? (
+                                            <ForwardOutlined className="timeline-clock-icon" style={{ color: 'orange' }} />
+                                        ) : stage.status === "NOT_STARTED" ? (
+                                            <SmallDashOutlined className="timeline-clock-icon" style={{ color: 'gray' }} />
+                                        ) : (
+                                            <ClockCircleOutlined className="timeline-clock-icon" />
+                                        )
+
+                                    }
+                                >
+
                                 </Timeline.Item>
                             ))}
                         </Timeline>

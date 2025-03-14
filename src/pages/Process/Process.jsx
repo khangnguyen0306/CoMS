@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Radio, Steps, Form, Button, Select, message } from 'antd';
+import { Radio, Steps, Form, Button, Select, message, Timeline, Card } from 'antd';
 import { MinusCircleOutlined } from '@ant-design/icons';
 import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
-import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation } from "../../services/ProcessAPI";
+import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation, useGetProcessByContractTypeIdQuery } from "../../services/ProcessAPI";
 const { Step } = Steps;
 const { Option } = Select;
 
@@ -10,7 +10,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
     console.log("Contract ID:", contractTypeId);
     const [selection, setSelection] = useState("auto");
     const [hideAddStage, setHideAddStage] = useState(false)
-    const [isCreate, setIsCreate] = useState(true)
+    const [isCreate, setIsCreate] = useState(false)
     const [selectedProcessId, setSelectedProcessId] = useState(null);
 
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
@@ -19,11 +19,12 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
         page: 0,
         limit: 10,
     });
+    const { data: approvalData } = useGetProcessByContractTypeIdQuery({ contractTypeId: contractTypeId });
     const { data: processTemplates, refetch } = useGetProcessTemplatesQuery();
     const [create] = useCreateProcessMutation();
     const [assign, { isLoading }] = useAssignProcessMutation();
 
-
+    console.log(approvalData)
 
     // Các state cho giao diện Steps (cho việc tạo/chỉnh sửa quy trình)
     const [current, setCurrent] = useState(0);
@@ -33,6 +34,8 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
     });
     // Số bước ký duyệt tự tạo (không bao gồm bước cuối) - mặc định chỉ có 1 bước (stage1)
     const [customStagesCount, setCustomStagesCount] = useState(1);
+
+
 
     const getAvailableUsers = (currentStepKey) => {
         // Lấy danh sách các id đã được chọn ở các bước khác (ngoại trừ bước hiện tại)
@@ -186,7 +189,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
 
                     // Nếu ở chế độ custom thì lưu id quy trình mới vào state
                     setSelectedProcessId(result?.data?.id);
-                    setIsCreate(false)
+                    setIsCreate(true)
                     // setApprovals({});
                     // setCustomStagesCount(1);
                     // setCurrent(0);
@@ -234,6 +237,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
 
     const handleChange = (e) => {
         setSelection(e.target.value);
+
     };
 
     // Hàm xử lý "Áp dụng quy trình" để console.log id của quy trình
@@ -249,6 +253,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
             setApprovals({});
             setCustomStagesCount(1);
             setCurrent(0);
+            setSelectedProcessId(null);
             setHideAddStage(false);
         } catch (error) {
             console.error("Assign process failed:", error);
@@ -257,7 +262,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
 
     // Lấy dữ liệu processTemplates (giả sử dữ liệu được trả về là mảng với một phần tử)
     const process = processTemplates?.data;
-    const items =
+    const item =
         process?.stages?.map((stage) => {
             const isFinal = stage.stageOrder === process.customStagesCount;
             const foundUser = stage.approver
@@ -269,9 +274,43 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
             };
         }) || [];
 
+    const formattedData = approvalData?.data?.map((process) => {
+        return {
+            id: process.id,
+            name: process.name,
+            customStagesCount: process.customStagesCount,
+            createdAt: process.createdAt,
+            stages: process.stages.map((stage) => {
+                const foundUser = userData?.data?.content.find((user) => user.id === stage.approver)?.full_name;
+                return {
+                    stageId: stage.stageId,
+                    stageOrder: stage.stageOrder,
+                    approver: stage.approver,
+                    approverName: foundUser || "Chưa xác định",
+                    status: stage.status,
+                    approvedAt: stage.approvedAt,
+                    comment: stage.comment,
+                };
+            }),
+        };
+    }) || [];
+
+    console.log("Formatted Data:", formattedData);
+
+    const handleRadioChange = (e) => {
+        setSelectedProcessId(e.target.value);
+        console.log("Selected Process ID:", e.target.value);
+    };
+    const handleCardSelect = (id) => {
+        if (selection === "recomment") {
+            setSelectedProcessId(id);
+            console.log("Selected Process ID:", id);
+        }
+    };
+
     return (
         <div >
-            <div className="flex flex-col gap-2 border-2 border-gray-500 p-4 rounded-xl shadow-lg">
+            <div className="flex flex-col gap-2                  p-4 rounded-xl shadow-lg">
                 <div className="flex items-center cursor-pointer">
                     <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
                         Mặc định (Hệ thống tự tạo)
@@ -280,16 +319,50 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
 
 
                 <div className='ml-8 my-4'>
-                    <Steps current={items.length - 1} items={items} />
+                    <Steps current={item.length - 1} items={item} />
                 </div>
 
-                <div className="flex items-center cursor-pointer">
-                    <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
-                        Đề xuất
+                {/* <div className="flex items-center cursor-pointer">
+                    <Radio checked={selection === "recomment"} onChange={handleChange} value="recomment">
+                        Chọn quy trình đã có trước đó
                     </Radio>
-                </div>
+                </div> */}
+                <div>
+                    {/* Radio "Đề xuất" */}
+                    <div className="flex items-center cursor-pointer mb-4">
+                        <input
+                            type="radio"
+                            value="recomment"
+                            checked={selection === "recomment"}
+                            onChange={(e) => setSelection(e.target.value)}
+                        />
+                        <span className="ml-2">Đề xuất</span>
+                    </div>
 
-                <div className="flex items-center cursor-pointer">
+                    <div className="flex gap-4">
+                        {formattedData.map((process) => (
+                            <Card
+                                key={process.id}
+                                className={`mt-4 w-80 min-w-[355px] shadow-md cursor-pointer ${selection !== "recomment" ? "opacity-50 cursor-not-allowed" : ""
+                                    } ${selectedProcessId === process.id ? "bg-green-100" : ""}`}
+                                onClick={() => handleCardSelect(process.id)}
+                            >
+                                <Timeline
+                                    items={process.stages.map((stage) => ({
+                                        color: "blue",
+                                        children: (
+                                            <div>
+                                                <strong>{`Phê duyệt đợt ${stage.stageOrder}`}</strong>
+                                                <p>{`Người duyệt: ${stage.approverName}`}</p>
+                                            </div>
+                                        ),
+                                    }))}
+                                />
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+                <div className="flex items-center cursor-pointer mt-8">
                     <Radio checked={selection === "custom"} onChange={handleChange} value="custom">
                         Tùy chỉnh (Nhân viên tự tạo 1 quy trình riêng)
                     </Radio>
@@ -356,7 +429,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
                     className="bg-gradient-to-r from-blue-400 to-blue-700 text-white border-0 hover:from-blue-500 hover:to-blue-800"
                     onClick={handleApplyProcess}
                     loading={isLoading}
-                    disabled={isCreate && !selection === "auto"}
+                    disabled={selectedProcessId === null}
                 >
                     Áp dụng quy trình
                 </Button>

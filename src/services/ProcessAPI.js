@@ -78,8 +78,15 @@ export const processAPI = createApi({
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
         getProcessByContractTypeId: builder.query({
+            query: ({ contractTypeId }) => ({
+                url: `/approval-workflows/get-by-contract-type-id/${contractTypeId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, contractId) => [{ type: "ProcessList", id: contractId }],
+        }),
+        getcomment: builder.query({
             query: ({ contractId }) => ({
-                url: `/approval-workflows/get-by-contract-id/${contractId}`,
+                url: `/approval-workflows/get-contract-comments/${contractId}`,
                 method: "GET",
             }),
             providesTags: (result, error, contractId) => [{ type: "ProcessList", id: contractId }],
@@ -97,4 +104,6 @@ export const {
     useApproveProcessMutation,
     useGetContractPorcessPendingQuery,
     useLazyGetProcessByContractIdQuery
+    useGetProcessByContractTypeIdQuery,
+    useGetcommentQuery,
 } = processAPI;
