@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Drawer } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLazyGetAllTemplateQuery } from "../../services/TemplateAPI";
@@ -23,6 +23,7 @@ import PreviewContract from "../../components/ui/PreviewContract";
 import { VietnameseProvinces } from "../../utils/Province";
 import { useLazyGetDateNofitifationQuery } from "../../services/ConfigAPI";
 import { useSelector } from "react-redux";
+import { useGetcommentQuery } from "../../services/ProcessAPI";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -54,6 +55,7 @@ const EditContract = () => {
     const [isTransferEnabled, setIsTransferEnabled] = useState(false);
     const [isSuspend, setIsSuspend] = useState(false);
     const [isViolate, setIsisViolate] = useState(false);
+    const [drawerVisible, setDrawerVisible] = useState(false);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [notificationDays, setNotificationDays] = useState(null);
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery();
@@ -66,8 +68,9 @@ const EditContract = () => {
     const [createClause] = useCreateClauseMutation();
     const [UpdateContract, { isLoading: loadingUpdateContract }] = useUpdateContractMutation();/////
     const [getContract, { data: contractData, isLoading: isLoadingContract }] = useLazyGetContractDetailQuery();
-
+    const { data: cmtData, error } = useGetcommentQuery({ contractId: id });
     console.log(contractData)
+    console.log(cmtData)
 
     // Fetch contract data in edit mode
     useEffect(() => {
@@ -75,6 +78,12 @@ const EditContract = () => {
             getContract(id);
         }
     }, [id]);
+    const showDrawer = () => {
+        setDrawerVisible(true);
+    };
+    const closeDrawer = () => {
+        setDrawerVisible(false);
+    };
 
     // Populate form with contract data
     useEffect(() => {
@@ -341,6 +350,18 @@ const EditContract = () => {
         setCurrentStep(currentStep - 1);
     };
     const formatDate = (date) => date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null;
+    const arrayToDate = (dateArray) => {
+        if (!dateArray || dateArray.length < 6) return null;
+        return new Date(
+            dateArray[0],
+            dateArray[1] - 1, // Vì tháng trong JS tính từ 0
+            dateArray[2],
+            dateArray[3],
+            dateArray[4],
+            dateArray[5]
+        );
+    };
+
     const onFinish = async (values) => {
         const data = form.getFieldsValue(true);
         console.log(data)
@@ -1031,6 +1052,12 @@ const EditContract = () => {
         <div className="min-h-[100vh]">
             {isLoadingContract && <Spin tip="Đang tải dữ liệu hợp đồng..." />}
             <Form form={form} layout="vertical" onFinish={onFinish}>
+                {cmtData?.data[0] && (
+                    <div className="flex justify-end mb-4">
+                        <Button onClick={showDrawer}>Xem bình luận</Button>
+                    </div>
+                )
+                }
                 <Steps current={currentStep} className="mb-8">
                     {steps.map((item, index) => <Step key={index} title={item.title} />)}
                 </Steps>
@@ -1053,6 +1080,44 @@ const EditContract = () => {
                     </Form.Item>
                 </Form>
             </Modal>
+            <Drawer
+                title="Bình luận hợp đồng"
+                placement="right"
+                onClose={closeDrawer}
+                open={drawerVisible}
+                width={600}
+            >
+                <div className="p-4 bg-gray-50 min-h-full">
+                    {cmtData?.data ? (
+                        cmtData?.data?.map((cmt, index) => (
+                            <div className="bg-white rounded-md shadow-sm p-4 border border-gray-200">
+                                {/* Tên người bình luận */}
+                                <div className="font-semibold text-gray-800 text-base mb-2">
+                                    {cmt.commenter}
+                                </div>
+
+                                {/* Thời gian bình luận */}
+                                <div className="text-xs text-gray-500 mb-4">
+                                    {formatDate(arrayToDate(cmt.commentedAt))}
+                                </div>
+
+                                {/* Nội dung bình luận (hiển thị trong textarea) */}
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Nội dung
+                                </label>
+                                <textarea
+                                    className="w-full h-24 resize-none border border-gray-300 rounded p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    readOnly
+                                    value={cmt.comment}
+                                />
+                            </div>
+                        ))
+
+                    ) : (
+                        <p className="text-gray-500">Không có bình luận nào</p>
+                    )}
+                </div>
+            </Drawer>
         </div>
     );
 };
