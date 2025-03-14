@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLazyGetAllTemplateQuery } from "../../services/TemplateAPI";
@@ -8,9 +8,9 @@ import { useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractDetailQuery, useLazyGetContractTypeQuery, useUpdateContractMutation } from "../../services/ContractAPI";
-import { DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
+import { CheckCircleFilled, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
-import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery } from "../../services/ClauseAPI";
+import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
 import RichTextEditor from 'reactjs-tiptap-editor';
 import 'reactjs-tiptap-editor/style.css';
@@ -23,16 +23,13 @@ import PreviewContract from "../../components/ui/PreviewContract";
 import { VietnameseProvinces } from "../../utils/Province";
 import { useLazyGetDateNofitifationQuery } from "../../services/ConfigAPI";
 import { useSelector } from "react-redux";
+import topIcon from "../../assets/Image/top.svg"
+import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 
 const { Step } = Steps;
 const { Option } = Select;
 const { TextArea } = Input;
 
-const DEFAULT_NOTIFICATIONS = {
-    effective: "Hợp đồng sẽ có hiệu lực vào ngày",
-    expiry: "Hợp đồng sẽ hết hiệu lực vào ngày",
-    payment: "Đến hạn thanh toán đợt"
-};
 
 const EditContract = () => {
     const { id } = useParams()
@@ -56,6 +53,8 @@ const EditContract = () => {
     const [isViolate, setIsisViolate] = useState(false);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [notificationDays, setNotificationDays] = useState(null);
+    const [termsData, setTermsData] = useState({});
+
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery();
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery();
     const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListQuery();
@@ -66,8 +65,19 @@ const EditContract = () => {
     const [createClause] = useCreateClauseMutation();
     const [UpdateContract, { isLoading: loadingUpdateContract }] = useUpdateContractMutation();/////
     const [getContract, { data: contractData, isLoading: isLoadingContract }] = useLazyGetContractDetailQuery();
+    const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
+    const [fetchTerms] = useLazyGetTermDetailQuery();
 
-    console.log(contractData)
+    const [showScroll, setShowScroll] = useState(false)
+    const [activeSection, setActiveSection] = useState('general');
+    const generalInfoRef = useRef(null);
+    const mainContentRef = useRef(null);
+    const containerRef = useRef(null)
+    const termsRef = useRef(null);
+    const otherContentRef = useRef(null);
+    const [isOverflowing, setIsOverflowing] = useState(false);
+    const [changeCCPL, setChangeCCPL] = useState(false);
+    const [loadingTerms, setLoadingTerms] = useState({});
 
     // Fetch contract data in edit mode
     useEffect(() => {
@@ -340,84 +350,82 @@ const EditContract = () => {
     const prev = () => {
         setCurrentStep(currentStep - 1);
     };
-    const formatDate = (date) => date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null;
+
     const onFinish = async (values) => {
         const data = form.getFieldsValue(true);
-        console.log(data)
+        console.log(data);
+        const formatDateArray = (date) => {
+            if (!date) return null;
+            const d = new Date(date);
+            return [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()];
+        };
+
+        // Xử lý additionalConfig
         const additionalConfig = Object.keys(data)
             .filter(key => !isNaN(key))
             .reduce((acc, key) => {
                 const { A, B, Common } = data[key];
                 if (A.length > 0 || B.length > 0 || Common.length > 0) {
                     acc[key] = {
-                        ...(A.length > 0 && { A }),
-                        ...(B.length > 0 && { B }),
-                        ...(Common.length > 0 && { Common }),
+                        ...(A.length > 0 && { A: A.map(id => ({ id })) }),
+                        ...(B.length > 0 && { B: B.map(id => ({ id })) }),
+                        ...(Common.length > 0 && { Common: Common.map(id => ({ id })) }),
                     };
                 }
                 return acc;
             }, {});
 
-        const templateData = {
+        const formattedData = {
+            contractTypeId: data.contractTypeId,
+            contractId: data.contractId,
+            title: data.contractName,
+            contractNumber: data.contractNumber,
+            signingDate: formatDateArray(data.signingDate),
+            contractLocation: data.contractLocation,
+            amount: data.totalValue,
+            effectiveDate: formatDateArray(data.effectiveDate),
+            expiryDate: formatDateArray(data.expiryDate),
+            notifyEffectiveDate: formatDateArray(data.notifyEffectiveDate),
+            notifyExpiryDate: formatDateArray(data.notifyExpiryDate),
+            notifyEffectiveContent: data.notifyEffectiveContent,
+            notifyExpiryContent: data.notifyExpiryContent,
             specialTermsA: data.specialTermsA,
             specialTermsB: data.specialTermsB,
+            contractContent: data.contractContent,
             appendixEnabled: data.appendixEnabled,
             transferEnabled: data.transferEnabled,
-            violate: data.violate,
-            suspend: data.suspend,
-            suspendContent: data.suspendContent,
-            contractContent: data.contractContent,
             autoAddVAT: data.autoAddVAT,
             vatPercentage: data.vatPercentage,
             isDateLateChecked: data.isDateLateChecked,
             maxDateLate: data.maxDateLate,
             autoRenew: data.autoRenew,
+            violate: data.violate,
+            suspend: data.suspend,
+            suspendContent: data.suspendContent,
+            status: data.status,
+            payments: data.payments.map(payment => ({
+                id: payment.id,
+                paymentOrder: payment.paymentOrder,
+                amount: payment.amount,
+                notifyPaymentDate: formatDateArray(payment.notifyPaymentDate),
+                paymentDate: formatDateArray(payment.paymentDate),
+                status: payment.status,
+                paymentMethod: payment.paymentMethod,
+                notifyPaymentContent: payment.notifyPaymentContent,
+                reminderEmailSent: payment.reminderEmailSent,
+                overdueEmailSent: payment.overdueEmailSent,
+            })),
             legalBasisTerms: data.legalBasisTerms,
             generalTerms: data.generalTerms,
+            otherTerms: data.otherTerms || [],
             additionalTerms: data.additionalTerms,
-            contractTypeId: data.contractTypeId,
             additionalConfig,
-            status: data.status
         };
 
-        const excludedFields = [
-            "specialTermsA", "specialTermsB", "appendixEnabled", "transferEnabled", "violate", "suspend",
-            "suspendContent", "contractContent", "autoAddVAT", "vatPercentage", "isDateLateChecked",
-            "maxDateLate", "autoRenew", "legalBasis", "generalTerms", "additionalTerms", "contractType",
-            "1", "2", "3", "4", "5", "6", "7", "effectiveDate&expiryDate",
-        ];
-
-        const formattedData = Object.keys(data).reduce((acc, key) => {
-            if (!excludedFields.includes(key)) {
-                if (key === 'templateId') {
-                    acc[key] = data[key].value;
-                } else if (key === 'partnerId') {
-                    acc['partyId'] = data[key];
-                } else if (key === "contractName") {
-                    acc['title'] = data[key];
-                } else if (["effectiveDate", "expiryDate", "signingDate", "notifyEffectiveDate", "notifyExpiryDate"].includes(key)) {
-                    acc[key] = formatDate(data[key]);
-                } else if (key === "payments" && Array.isArray(data[key])) {
-                    acc[key] = data[key].map(payment => ({
-                        ...payment,
-                        paymentDate: formatDate(payment.paymentDate),
-                        notifyPaymentDate: formatDate(payment.notifyPaymentDate),
-                    }));
-                }
-                else {
-                    acc[key] = data[key];
-                }
-            }
-            return acc;
-        }, {});
-
-        formattedData.TemplateData = templateData;
-        formattedData.customNotifications = data.customNotifications;
-        console.log(formattedData)
+        console.log("Formatted Data:", formattedData);
 
         try {
             const response = await UpdateContract(formattedData).unwrap();
-            console.log(response)
             if (response.status === "OK") {
                 message.success("Cập nhật hợp đồng thành công!");
                 navigate('/contract');
@@ -655,6 +663,112 @@ const EditContract = () => {
         "6": { title: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", loadData: loadGQTCData },
         "7": { title: "ĐIỀU KHOẢN BẢO MẬT", loadData: loadBMData },
     };
+
+    const scrollToSection = (sectionRef, sectionId) => {
+        if (sectionRef.current) {
+            sectionRef.current.scrollIntoView({ behavior: 'smooth' });
+            setActiveSection(sectionId);
+        }
+    };
+
+    const scrollToTop = (e) => {
+        e.stopPropagation();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        const legalBasis = form.getFieldValue('legalBasisTerms');
+        if (legalBasis && legalBasis.length > 0) {
+            legalBasis.forEach(termId => {
+                loadTermDetail(termId);
+            });
+        }
+    }, [form.getFieldValue('legalBasisTerms'), changeCCPL]);
+
+    const handleScroll = () => {
+        const scrollPosition = window.scrollY + 50;
+
+        // Get positions of each section
+        const generalInfoPosition = generalInfoRef.current?.offsetTop || 0;
+        const mainContentPosition = mainContentRef.current?.offsetTop || 0;
+        const termsPosition = termsRef.current?.offsetTop || 0;
+        const otherContentPosition = otherContentRef.current?.offsetTop || 0;
+
+        // vị trí
+        if (scrollPosition >= otherContentPosition) {
+            setActiveSection('other');
+        } else if (scrollPosition >= termsPosition) {
+            setActiveSection('terms');
+        } else if (scrollPosition >= mainContentPosition) {
+            setActiveSection('main');
+        } else {
+            setActiveSection('general');
+        }
+
+        // nút scrol 
+        if (window.scrollY > 400) {
+            setShowScroll(true);
+        } else {
+            setShowScroll(false);
+        }
+    };
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+
+    const renderLegalBasisTerms = () => {
+        if (!form.getFieldValue('legalBasisTerms') || form.getFieldValue('legalBasisTerms').length === 0) {
+            return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
+        }
+
+        return form.getFieldValue('legalBasisTerms').map((termId, index) => {
+            const term = termsData[termId];
+            if (!term) {
+                return (
+                    <div key={termId} className="term-item p-1">
+                        <Spin size="small" />
+                    </div>
+                );
+            }
+
+            return (
+                <p key={index} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                    <i>- {term.value}</i>
+                </p>
+            );
+        });
+    };
+
+    useEffect(() => {
+        if (containerRef.current) {
+            const containerHeight = containerRef.current.scrollHeight;
+            setIsOverflowing(containerHeight > 50);
+        }
+    }, [form.getFieldValue('legalBasis')]);
+
+    const loadTermDetail = async (termId) => {
+        if (!termsData[termId]) {
+            setLoadingTerms(prev => ({ ...prev, [termId]: true }));
+            try {
+                const response = await fetchTerms(termId).unwrap();
+                setTermsData(prev => ({
+                    ...prev,
+                    [termId]: response.data
+                }));
+            } catch (error) {
+                console.error(`Error loading term ${termId}:`, error);
+            } finally {
+                setLoadingTerms(prev => ({ ...prev, [termId]: false }));
+            }
+        }
+    };
+
+
     console.log(form.getFieldsValue(true))
     const steps = [
         {
@@ -701,27 +815,163 @@ const EditContract = () => {
             title: "Chi tiết hợp đồng",
             content: (
                 <div className="space-y-4 w-full">
-                    <ConfigProvider>
-                        <Collapse defaultActiveKey={['1']}>
-                            <Collapse.Panel header="Thông tin cơ bản" key="1">
+                    <Row gutter={16}>
+                        <Col xs={24} md={5} className="sticky" style={{ top: '90px', maxHeight: 'calc(100vh - 40px)', overflow: 'auto', marginRight: '25px' }}>
+                            <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-4 pb-1 rounded-md shadow-md mb-4`}>
+                                <Timeline
+                                    mode="left"
+                                    className="mt-8 "
+                                    items={[
+                                        {
+                                            color: 'green',
+                                            children: (
+                                                <div onClick={() => scrollToSection(generalInfoRef, 'general')}>
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'general' ? 'font-bold text-blue-500' : ''}`}>
+                                                        I. THÔNG TIN CHUNG
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {form.getFieldValue('contractName') ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
+                                                            1. Tiêu đề hợp đồng
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('contractLocation') && form.getFieldValue('signingDate')) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
+                                                            2. Địa điểm, ngày ký
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {form.getFieldValue('partnerId') ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) : <p className="mr-[5px]"></p>}
+                                                            2. Thông tin các bên
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {form.getFieldValue('legalBasisTerms') && form.getFieldValue('legalBasisTerms').length > 0 ? (
+                                                                <CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />
+                                                            ) : (
+                                                                <span className="mr-[20px]"></span>
+                                                            )}
+                                                            3. Căn cứ pháp lý
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            color: 'blue',
+                                            children: (
+                                                <div
+                                                    onClick={() => scrollToSection(mainContentRef, 'main')}
+                                                >
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'main' ? 'font-bold text-blue-500' : ''}`}>
+                                                        II. NỘI DUNG CHÍNH
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {content ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            4. Nội dung hợp đồng
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('totalValue') && form.getFieldValue('payments') && form.getFieldValue('payments').length > 0) ? (
+                                                                <CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />
+                                                            ) : (
+                                                                <span className="mr-[20px]"></span>
+                                                            )}
+                                                            5. Giá trị và thanh toán
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('effectiveDate') && form.getFieldValue('expiryDate')) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            6. Thời gian hiệu lực
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            color: 'red',
+                                            children: (
+                                                <div
+
+                                                    onClick={() => scrollToSection(termsRef, 'terms')}
+                                                >
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'terms' ? 'font-bold text-blue-500' : ''}`}>
+                                                        III. ĐIỀU KHOẢN VÀ CAM KẾT
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(form.getFieldValue('generalTerms') && form.getFieldValue('generalTerms').length > 0) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            7. Điều khoản chung
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {selectedOthersTerms.length > 0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            8. Điều khoản khác
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            color: 'gray',
+                                            children: (
+                                                <div
+
+                                                    onClick={() => scrollToSection(otherContentRef, 'other')}
+                                                >
+                                                    <p className={`cursor-pointer font-bold ${activeSection === 'other' ? 'font-bold text-blue-500' : ''}`}>
+                                                        IV. CÁC NỘI DUNG KHÁC
+                                                    </p>
+                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {isAppendixEnabled ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            10. Phụ lục
+                                                        </div>
+                                                        <div className="mt-1 cursor-pointer">
+                                                            {(isAutoRenew || isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                                <span className="mr-[20px]"></span>}
+                                                            11. Trường hợp đặc biệt
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            children: <p className="cursor-pointer mt-6" onClick={() => scrollToSection(otherContentRef, 'other')}> Hoàn thành  </p>,
+                                        }
+                                    ]}
+                                />
+                            </div>
+
+                        </Col>
+                        <Col xs={24} md={18} className="mb-[50px]">
+                            <div ref={generalInfoRef}>
                                 <Form.Item style={{ display: 'none' }} name="contractNumber" />
-                                <Form.Item className="mt-5" label="Ngày ký kết" name="signingDate" rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}>
-                                    <DatePicker className="w-full" format="DD/MM/YYYY" disabledDate={(current) => current && current < dayjs().startOf('day')} />
-                                </Form.Item>
-                                <Form.Item label="Nơi ký kết" name="contractLocation" rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}>
-                                    <Select showSearch placeholder="Chọn nơi ký kết" optionFilterProp="children" filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())}>
-                                        {VietnameseProvinces.map(province => <Option key={province} value={province}>{province}</Option>)}
-                                    </Select>
-                                </Form.Item>
+
+                                <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-4 py-10 rounded-md text-center relative`}>
+                                    <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                                    <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
+                                    <p>-------------------</p>
+                                    {/* <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm .......</p> */}
+                                    <p className="text-2xl font-bold mt-10">{form.getFieldValue('contractName')?.toUpperCase()}</p>
+                                    <p className="mt-3"><b>Số:</b> {form.getFieldValue('contractNumber')}  </p>
+                                    <div className="absolute flex items-center top-[70px] right-9 gap-3">
+                                        <Form.Item label="Nơi ký kết" name="contractLocation" rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}>
+                                            <Select showSearch placeholder="Chọn nơi ký kết" optionFilterProp="children" filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())}>
+                                                {VietnameseProvinces.map(province => <Option key={province} value={province}>{province}</Option>)}
+                                            </Select>
+                                        </Form.Item>
+                                        <Form.Item label="Ngày ký kết" name="signingDate" rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}>
+                                            <DatePicker className="w-full" format="DD/MM/YYYY" disabledDate={(current) => current && current < dayjs().startOf('day')} />
+                                        </Form.Item>
+                                    </div>
+                                </div>
                                 <Form.Item
-                                    className="w-full"
+                                    className="w-full mt-6"
                                     label={
                                         <div className="flex justify-between items-center gap-4">
                                             <p>Căn cứ pháp lý
                                             </p>
-                                            <Popover content={() => getTermsContent('legalBasisTerms')} title="Danh sách căn cứ pháp lý đã chọn" trigger="hover" placement="right">
-                                                <Button icon={<EyeFilled />} />
-                                            </Popover>
                                         </div>}
                                     name='legalBasisTerms'
                                     rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}>
@@ -740,6 +990,32 @@ const EditContract = () => {
                                             </>
                                         )} />
                                 </Form.Item>
+                                <div className={`px-4 pt-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                                    {renderLegalBasisTerms()}
+                                </div>
+
+                                <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
+                                    <div className="flex flex-col gap-2 pl-4 " md={10} sm={24} >
+                                        <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
+                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
+                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
+                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
+                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
+                                        <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                                    </div>
+                                    <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
+                                        <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
+                                        <p className="text-sm "><b>Tên công ty: </b>{contractData?.data.partner.partnerName}</p>
+                                        <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{contractData?.data.partner.address}</p>
+                                        <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {contractData?.data.partner.spokesmanName}</p></p>
+                                        <p className="text-sm"><b>Chức vụ: {contractData?.data.partner.position}</b> </p>
+                                        <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {contractData?.data.partner.taxCode}</p></p>
+                                        <p className="text-sm"><b>Email:</b> {contractData?.data.partner.email}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ref={mainContentRef}>
                                 <Form.Item label={<div className="flex justify-between items-center gap-4"><p>Soạn thảo nội dung hợp đồng</p><Popover content={<PreviewSection className='w-[80%]' content={content} isDarkMode={isDarkMode} />} trigger="hover" placement="right"><Button icon={<EyeFilled />} /></Popover></div>} name="contractContent" className="mt-5" rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}>
                                     <RichTextEditor output="html" content={content} onChangeContent={onValueChange} extensions={extensions} dark={isDarkMode} hideBubble={true} dense={false} removeDefaultWrapper placeholder="Nhập nội dung hợp đồng tại đây..." contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200" />
                                 </Form.Item>
@@ -801,8 +1077,8 @@ const EditContract = () => {
                                         </Form.Item>
                                     )}
                                 </div>
-                            </Collapse.Panel>
-                            <Collapse.Panel header="Thời gian và hiệu lực" key="2">
+
+
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
                                 <Form.Item label="Thời gian hiệu lực hợp đồng" required className="mb-4" name="effectiveDateExpiryDate">
                                     <DatePicker.RangePicker
@@ -828,8 +1104,8 @@ const EditContract = () => {
                                         <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
                                     </div>
                                 </Form.Item>
-                            </Collapse.Panel>
-                            <Collapse.Panel header="Điều khoản & Cam kết" key="3">
+                            </div>
+                            <div ref={termsRef}>
                                 <Divider orientation="center" className="text-lg">Điều khoản & Cam kết</Divider>
                                 <div className="ml-2 my-3">
                                     <p className="font-bold text-[16px] mb-1">Điều khoản chung</p>
@@ -869,8 +1145,8 @@ const EditContract = () => {
                                 <Form.Item label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN B</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên B)</p></div>} name="specialTermsB">
                                     <TextArea rows={4} placeholder="Nhập điều khoản bên B" />
                                 </Form.Item>
-                            </Collapse.Panel>
-                            <Collapse.Panel header="Phụ lục & các loại khác" key="4">
+                            </div>
+                            <div ref={otherContentRef} className="pt-[50px] pb-[400px]">
                                 <Divider orientation="center">Các nội dung khác</Divider>
                                 <Form.Item name="appendixEnabled" valuePropName="checked">
                                     <div className="flex items-center">
@@ -901,9 +1177,14 @@ const EditContract = () => {
                                         <TextArea className="w-[450px]" placeholder="Nhập nội dung" rows={4} />
                                     </Form.Item>
                                 )}
-                            </Collapse.Panel>
-                        </Collapse>
-                    </ConfigProvider>
+                            </div>
+                        </Col>
+                    </Row>
+                    {showScroll && (
+                        <button onClick={scrollToTop} type="button" style={{ position: 'fixed', bottom: '100px', right: '20px', zIndex: 100 }}>
+                            <img src={topIcon} width={40} height={40} />
+                        </button>
+                    )}
                 </div>
             ),
         },

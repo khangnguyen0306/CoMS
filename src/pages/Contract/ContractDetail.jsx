@@ -1,21 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useGetContractDetailQuery } from '../../services/ContractAPI';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Col, Row, Spin } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
+import { BookOutlined, EditFilled, HistoryOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { useLazyGetAllAuditTrailByContractQuery } from '../../services/AuditTrailAPI';
+import { useGetContractDetailQuery } from '../../services/ContractAPI';
+import AuditTrailDisplay from '../../components/ui/Audittrail/AuditTrail';
+import { useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from '../../services/ProcessAPI';
 
 const ContractDetail = () => {
+
     const { id } = useParams();
+    const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-
-    // Nhóm các điều khoản từ additional_config (dùng cho bổ sung chung, riêng bên A, B)
+    const [visible, setVisible] = useState(false);
+    const [auditTrails, setAuditTrails] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 20;
+    const [hasMore, setHasMore] = useState(true);
     const [groupedTerms, setGroupedTerms] = useState({
         Common: [],
         A: [],
@@ -26,6 +35,10 @@ const ContractDetail = () => {
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
+    const [fetchAudittrail, { data: auditTrailData, isLoading: loadingAuditTrail }] = useLazyGetAllAuditTrailByContractQuery();
+    const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
+
+    console.log(auditTrailData)
     // Hàm tải chi tiết điều khoản dựa theo termId (original_term_id)
     const loadTermDetail = async (termId) => {
         if (!termsData[termId]) {
@@ -145,6 +158,64 @@ const ContractDetail = () => {
         return new Date(year, month - 1, day, hour, minute);
     };
 
+    const showDrawer = () => {
+        setVisible(true);
+    };
+
+    const onClose = () => {
+        setVisible(false);
+    };
+
+    function convertCreatedAt(createdAtArray) {
+        if (!createdAtArray || !Array.isArray(createdAtArray) || createdAtArray.length < 6) {
+            return "Không có dữ liệu";
+        }
+        const [year, month, day, hour, minute, second] = createdAtArray;
+        // Tạo đối tượng Date; chú ý tháng phải trừ 1 vì tháng trong JavaScript tính từ 0
+        const date = new Date(year, month - 1, day, hour, minute, second);
+        return dayjs(date).format("DD-MM-YYYY vào lúc HH:mm:ss");
+    }
+
+    // Hàm để xử lý khi tab được thay đổi
+    const loadAuditTrailPage = async (page) => {
+        try {
+            // Gọi API với tham số: { id, page, size }
+            const response = await fetchAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
+            // Giả sử response.data là mảng các bản ghi audit trail
+            if (page === 1) {
+                setAuditTrails(response.data.content);
+            } else {
+                setAuditTrails((prev) => [...prev, ...response.data.content]);
+            }
+            // Nếu số lượng trả về ít hơn pageSize thì không còn dữ liệu
+            if (response.data.content.length < pageSize) {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error("Lỗi tải audit trail:", error);
+        }
+    };
+
+    // Add a new button to load more data
+    const loadMoreData = () => {
+        if (hasMore && !loadingAuditTrail) {
+            const nextPage = currentPage + 1;
+            setCurrentPage(nextPage);
+            loadAuditTrailPage(nextPage);
+        }
+    };
+
+    // Khi chuyển tab sang "Lịch sử thay đổi"
+    const handleTabChange = (key) => {
+        if (key === "2") {
+            // Reset lại dữ liệu (nếu cần)
+            setAuditTrails([]);
+            setCurrentPage(1);
+            setHasMore(true);
+            loadAuditTrailPage(1);
+        }
+    };
+
     // Trong trường hợp không có dữ liệu, hiển thị loading
     if (isLoadingBsData || loadingDataContract) {
         return (
@@ -155,8 +226,69 @@ const ContractDetail = () => {
     }
 
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} shadow-md p-4 pb-16 rounded-md`}>
-            <div className="text-center">
+        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} relative shadow-md p-4 pb-16 rounded-md`}>
+            <div className="flex justify-between">
+                <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
+                    Sửa hợp đồng
+                </Button>
+                <Button type='link' onClick={showDrawer}>
+                    <InfoCircleOutlined style={{ fontSize: 30 }} />
+                </Button>
+            </div>
+
+            <Drawer
+                title="Thông tin chi tiết"
+                placement="right"
+                onClose={onClose}
+                open={visible}
+            >
+                <Tabs defaultActiveKey="1" centered onChange={handleTabChange}>
+                    <Tabs.TabPane icon={<BookOutlined />} tab="Thông tin chung" key="1">
+                        <div className='flex gap-2 flex-col justify-center'>
+                            <p> <b>Người tạo:</b> {contractData?.data.user.full_name}</p>
+                            <p><b>Được tạo vào:</b> {convertCreatedAt(contractData?.data.createdAt)}</p>
+                            <p><b>Lần chỉnh sửa cuối cùng</b> {convertCreatedAt(contractData?.data.updatedAt)}</p>
+                            <p><b>Trạng thái:</b> <Tag color='orange'>{contractData?.data.status}</Tag></p>
+                        </div>
+                        {loadingDataProcess ? (
+                            <div className='flex justify-center items-center'>
+                                <Spin />
+                            </div>
+                        ) :
+                            (
+
+                                <>
+                                    <p><b>Trạng thái quy trình:</b> {processData?.status}</p>
+                                    <p><b>Ngày bắt đầu:</b> {dayjs(processData?.startDate).format('DD-MM-YYYY')}</p>
+                                    <p><b>Ngày kết thúc:</b> {dayjs(processData?.endDate).format('DD-MM-YYYY')}</p>
+                                </>
+                            )}
+                    </Tabs.TabPane>
+                    <Tabs.TabPane icon={<HistoryOutlined />} tab="Lịch sử thay đổi" key="2">
+                        <div
+                            id="scrollableDiv"
+                            style={{ height: '100%', overflow: 'auto', padding: '0 16px' }}
+                        >
+                            {auditTrails.length === 0 && loadingAuditTrail ? (
+                                <Spin />
+                            ) : (
+                                <div className="audit-trail-item">
+                                    <AuditTrailDisplay auditTrails={auditTrails} />
+                                </div>
+                            )}
+                            {loadingAuditTrail && <Spin style={{ textAlign: 'center', marginTop: 10 }} />}
+                            {!hasMore && <p style={{ textAlign: 'center' }}>Không còn dữ liệu</p>}
+                        </div>
+                        <div className='flex justify-center'>
+                            <Button onClick={loadMoreData} disabled={!hasMore || loadingAuditTrail} style={{ marginTop: '10px' }}>
+                                {loadingAuditTrail ? 'Đang tải...' : 'Xem thêm'}
+                            </Button>
+                        </div>
+                    </Tabs.TabPane>
+                </Tabs>
+            </Drawer>
+
+            <div className="text-center mt-9">
                 <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                 <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
                 <p>---------------------------------</p>
@@ -172,7 +304,7 @@ const ContractDetail = () => {
 
             </div>
 
-            <div className="px-4 flex pl-10 flex-col gap-2 mt-10">
+            <div className="px-4 flex pl-10 flex-col gap-2 mt-[100px]">
                 {renderLegalBasisTerms()}
             </div>
 
@@ -280,14 +412,18 @@ const ContractDetail = () => {
                                 <div className="term-group mb-2">
                                     <p className="font-bold">Điều khoản riêng bên A</p>
                                     {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
-                                    <p className="text-sm">- {contractData.data.specialTermsA}</p>
+                                    {contractData.data.specialTermsA && contractData.data.specialTermsA.trim() !== "" && (
+                                        <p className="text-sm">- {contractData.data.specialTermsA}</p>
+                                    )}
                                 </div>
                             )}
                             {groupedTerms.B.length > 0 && (
                                 <div className="term-group mb-2">
                                     <p className="font-bold">Điều khoản riêng bên B</p>
                                     {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
-                                    <p className="text-sm">- {contractData.data.specialTermsB}</p>
+                                    {contractData.data.specialTermsB && contractData.data.specialTermsB.trim() !== "" && (
+                                        <p className="text-sm">- {contractData.data.specialTermsB}</p>
+                                    )}
                                 </div>
                             )}
                         </div>

@@ -149,6 +149,7 @@ export const ContractAPI = createApi({
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
 
+
         // getPartnerInfoDetail: builder.query({
         //     query: (partnerId) => ({
         //         url: `9edef7db-1c09-42ed-aef8-ae8d14119f2c`,

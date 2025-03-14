@@ -9,6 +9,7 @@ import { userAPI } from "../services/UserAPI";
 import { processAPI } from "../services/ProcessAPI";
 import { ConfigAPI } from "../services/ConfigAPI";
 import { notiAPI } from "../services/NotiAPI";
+import { AuditTrailAPI } from "../services/AuditTrailAPI";
 import AuthReducer from "../slices/authSlice";
 import themeReducer from "../slices/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
@@ -46,7 +47,9 @@ export const store = configureStore({
     [ConfigAPI.reducerPath]: ConfigAPI.reducer,
     config: ConfigAPI,
     [notiAPI.reducerPath]: notiAPI.reducer,
-    config: notiAPI,
+    notifi: notiAPI,
+    [AuditTrailAPI.reducerPath]: AuditTrailAPI.reducer,
+    auditrail: AuditTrailAPI,
     theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -62,6 +65,7 @@ export const store = configureStore({
       processAPI.middleware,
       ConfigAPI.middleware,
       notiAPI.middleware,
+      AuditTrailAPI.middleware,
     ),
 });
 
