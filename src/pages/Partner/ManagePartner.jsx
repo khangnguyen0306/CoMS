@@ -50,9 +50,9 @@ const ManagePartner = () => {
 
 
 
-    useEffect(()=>{
+    useEffect(() => {
         refetch();
-    },[])
+    }, [])
 
     const getViewHistory = () => {
         return JSON.parse(localStorage.getItem('viewHistory')) || [];
@@ -286,11 +286,14 @@ const ManagePartner = () => {
             render: (_, record) => (
                 <Space className="flex justify-center">
                     <Button
-                        icon={<EditFilled style={{ color: '#2196f3' }} />}
+                        type="primary"
+                        icon={<EditFilled />}
                         onClick={() => showEditModal(record)}
                     />
                     <Button
-                        icon={<DeleteFilled style={{ color: '#2196f3' }} />}
+                        type="primary"
+                        danger
+                        icon={<DeleteFilled />}
                         onClick={() => handleDelete(record.partyId)}
                     />
                 </Space>

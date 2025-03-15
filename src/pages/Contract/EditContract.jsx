@@ -80,6 +80,7 @@ const EditContract = () => {
     const [isOverflowing, setIsOverflowing] = useState(false);
     const [changeCCPL, setChangeCCPL] = useState(false);
     const [loadingTerms, setLoadingTerms] = useState({});
+    const formatDate = (date) => date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null;
     console.log(cmtData)
 
     // Fetch contract data in edit mode
@@ -752,6 +753,7 @@ const EditContract = () => {
             );
         });
     };
+    
 
     useEffect(() => {
         if (containerRef.current) {
@@ -1367,7 +1369,7 @@ const EditContract = () => {
 
                                 {/* Thời gian bình luận */}
                                 <div className="text-xs text-gray-500 mb-4">
-                                    {formatDate(arrayToDate(cmt.commentedAt))}
+                                    {formatDate(cmt.commentedAt)}
                                 </div>
 
                                 {/* Nội dung bình luận (hiển thị trong textarea) */}
