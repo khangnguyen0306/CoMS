@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Timeline, Divider } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
@@ -10,13 +10,15 @@ import { BookOutlined, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFi
 import { useLazyGetAllAuditTrailByContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery } from '../../services/ContractAPI';
 import AuditTrailDisplay from '../../components/ui/Audittrail/AuditTrail';
-import { useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from '../../services/ProcessAPI';
+import { useApproveProcessMutation, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
+import { selectCurrentUser } from '../../slices/authSlice';
 
 const ContractDetail = () => {
 
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
+
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -30,6 +32,16 @@ const ContractDetail = () => {
         A: [],
         B: []
     });
+    const user = useSelector(selectCurrentUser);
+    const location = useLocation();
+    const { StageIdMatching } = location.state || {};
+    const [form] = Form.useForm();
+
+    const [openAprove, setOpenAprove] = useState(false);
+    const [scrolledToBottom, setScrolledToBottom] = useState(false);
+    const [rejectProcess, { isLoading: rejectLoading }] = useRejectProcessMutation();
+    const [approveProcess, { isLoading: approveLoading }] = useApproveProcessMutation();
+
 
     // Lấy thông tin bên thuê theo partner_id
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
@@ -165,6 +177,13 @@ const ContractDetail = () => {
     const onClose = () => {
         setVisible(false);
     };
+    const showDrawerAprove = () => {
+        setOpenAprove(true);
+    };
+
+    const onCloseDrawerAprove = () => {
+        setOpenAprove(false);
+    };
 
     function convertCreatedAt(createdAtArray) {
         if (!createdAtArray || !Array.isArray(createdAtArray) || createdAtArray.length < 6) {
@@ -217,6 +236,53 @@ const ContractDetail = () => {
         }
     };
 
+    const handleScrollContainer = (e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        // Check if scrolled to the bottom
+        if (scrollTop + clientHeight >= scrollHeight - 1) { // Adjusted threshold to -1
+            setScrolledToBottom(true);
+        } else {
+            setScrolledToBottom(false);
+        }
+    };
+
+    // Ví dụ chuyển hướng khi ấn nút Đồng Ý Phê Duyệt
+    const handleApprove = async () => {
+        try {
+            await approveProcess({ contractId: id, stageId: StageIdMatching }).unwrap();
+            message.success("Đã đồng ý phê duyệt thành công!");
+            onClose();
+            if (user?.roles?.includes("ROLE_STAFF")) {
+                navigate(`/approvalContract`);
+            } else if (user?.roles?.includes("ROLE_MANAGER")) {
+                navigate(`/manager/approvalContract`);
+            }
+        } catch (error) {
+            console.log(error);
+            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+        }
+    };
+    const handleReject = async (values) => {
+        // Lấy comment từ form
+        const { comment } = values;
+        try {
+            // Gọi mutation reject process với dữ liệu nhận được (ví dụ có thêm id hoặc thông tin cần thiết)
+            console.log(comment);
+            await rejectProcess({ comment: comment, contractId: id, stageId: StageIdMatching }).unwrap();
+            message.success("Đã từ chối phê duyệt và gửi nhận xét thành công!");
+            form.resetFields();
+            onClose();
+            if (user?.roles[0]?.includes("ROLE_STAFF")) {
+                navigate(`/approvalContract`);
+            } else if (user?.roles[0]?.includes("ROLE_MANAGER")) {
+                navigate(`/manager/approvalContract`);
+            }
+        } catch (error) {
+            console.log(error);
+            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+        }
+    };
+
     // Trong trường hợp không có dữ liệu, hiển thị loading
     if (isLoadingBsData || loadingDataContract) {
         return (
@@ -228,14 +294,51 @@ const ContractDetail = () => {
 
     return (
         <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} relative shadow-md p-4 pb-16 rounded-md`}>
-            <div className="flex justify-between">
-                <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
-                    Sửa hợp đồng
-                </Button>
+            <div className="flex justify-between relative">
+                {user.roles[0] != "ROLE_MANAGER" ? (
+                    <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
+                        Sửa hợp đồng
+                    </Button>
+                ) : (
+
+                    <Button
+                        type="primary"
+                        className="fixed right-0 top-20"
+                        onClick={showDrawerAprove}
+                    >
+                        Thêm nhận xét
+                    </Button>
+                )
+                }
                 <Button type='link' onClick={showDrawer}>
                     <InfoCircleOutlined style={{ fontSize: 30 }} />
                 </Button>
             </div>
+
+            <Drawer
+                size="large"
+                title="Lý do từ chối:"
+                onClose={onCloseDrawerAprove}
+                open={openAprove}
+            >
+                <Form form={form} layout="vertical" onFinish={handleReject}>
+                    <Form.Item
+                        name="comment"
+                        label="Đề xuất cải tiến :"
+                        rules={[{ required: true, message: "Vui lòng nhập nhận xét" }]}
+                    >
+                        <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Space style={{ display: "flex", justifyContent: "space-around" }}>
+                            <Button danger type="primary" loading={rejectLoading} htmlType="submit" >
+                                Từ Chối Phê Duyệt
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Drawer>
 
             <Drawer
                 title="Thông tin chi tiết"
@@ -338,188 +441,194 @@ const ContractDetail = () => {
                     </Tabs.TabPane>
                 </Tabs>
             </Drawer>
-
-            <div className="text-center mt-9">
-                <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-                <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
-                <p>---------------------------------</p>
-                <p className='place-self-end mr-10'>
-                    {contractData.data.contractLocation}, Ngày {dayjs(parseDate(contractData.data.createdAt)).format('DD')} Tháng {dayjs(parseDate(contractData.data.createdAt)).format('MM')} năm {dayjs(parseDate(contractData.data.createdAt)).format('YYYY')}
-                </p>
-                <p className="text-3xl font-bold mt-5">
-                    {contractData.data.title ? contractData.data.title.toUpperCase() : ''}
-                </p>
-                <p className="mt-3 text-base">
-                    <b>Số:</b> {contractData.data.contractNumber}
-                </p>
-
-            </div>
-
-            <div className="px-4 flex pl-10 flex-col gap-2 mt-[100px]">
-                {renderLegalBasisTerms()}
-            </div>
-
-            <Row gutter={16} className="flex flex-col mt-5 pl-10 gap-5" justify="center">
-                <Col className="flex flex-col gap-2" md={10} sm={24}>
-                    <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                    <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                    <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                    <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.representativeName}</p>
-                    <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                    <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.taxCode}</p>
-                    <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
-                </Col>
-                <Col className="flex flex-col gap-2" md={10} sm={24}>
-                    <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
-                    <p className="text-sm"><b>Tên công ty:</b> {contractData?.data?.partner.partnerName}</p>
-                    <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data?.partner.address}</p>
-                    <p className="text-sm"><b>Người đại diện:</b> {contractData?.data?.partner.spokesmanName}</p>
-                    <p className="text-sm"><b>Chức vụ:</b> {contractData?.data?.partner?.position}</p>
-                    <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data?.partner.taxCode}</p>
-                    <p className="text-sm"><b>Email:</b> {contractData?.data?.partner.email}</p>
-                </Col>
-                <div className="pl-2">
-                    <p>
-                        Sau khi bàn bạc và thống nhất, chúng tôi cùng thỏa thuận ký kết hợp đồng với nội dung và các điều khoản sau:
+            <div onScroll={handleScrollContainer}>
+                <div className="text-center mt-9">
+                    <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                    <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
+                    <p>---------------------------------</p>
+                    <p className='place-self-end mr-10'>
+                        {contractData.data.contractLocation}, Ngày {dayjs(parseDate(contractData.data.createdAt)).format('DD')} Tháng {dayjs(parseDate(contractData.data.createdAt)).format('MM')} năm {dayjs(parseDate(contractData.data.createdAt)).format('YYYY')}
                     </p>
-                    <p className="font-bold text-lg mt-4 mb-3"><u>NỘI DUNG HỢP ĐỒNG</u></p>
-                    <div
-                        className="ml-1"
-                        dangerouslySetInnerHTML={{ __html: contractData.data.contractContent || "Chưa nhập" }}
-                    />
-                    <div className="mt-4">
-                        <h4 className="font-bold text-lg"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
-                        <p className="mt-4">
-                            - Tổng giá trị hợp đồng: <b>{new Intl.NumberFormat('vi-VN').format(contractData.data.amount)} VND</b>
-                            <span className="text-gray-600"> ( {numberToVietnamese(contractData.data.amount)} )</span>
+                    <p className="text-3xl font-bold mt-5">
+                        {contractData.data.title ? contractData.data.title.toUpperCase() : ''}
+                    </p>
+                    <p className="mt-3 text-base">
+                        <b>Số:</b> {contractData.data.contractNumber}
+                    </p>
+
+                </div>
+
+                <div className="px-4 flex pl-10 flex-col gap-2 mt-[100px]">
+                    {renderLegalBasisTerms()}
+                </div>
+
+                <Row gutter={16} className="flex flex-col mt-5 pl-10 gap-5" justify="center">
+                    <Col className="flex flex-col gap-2" md={10} sm={24}>
+                        <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                        <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.businessName}</p>
+                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
+                        <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.representativeName}</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
+                        <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.taxCode}</p>
+                        <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                    </Col>
+                    <Col className="flex flex-col gap-2" md={10} sm={24}>
+                        <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
+                        <p className="text-sm"><b>Tên công ty:</b> {contractData?.data?.partner.partnerName}</p>
+                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data?.partner.address}</p>
+                        <p className="text-sm"><b>Người đại diện:</b> {contractData?.data?.partner.spokesmanName}</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data?.partner?.position}</p>
+                        <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data?.partner.taxCode}</p>
+                        <p className="text-sm"><b>Email:</b> {contractData?.data?.partner.email}</p>
+                    </Col>
+                    <div className="pl-2">
+                        <p>
+                            Sau khi bàn bạc và thống nhất, chúng tôi cùng thỏa thuận ký kết hợp đồng với nội dung và các điều khoản sau:
                         </p>
-                        {contractData.data?.payments && contractData.data.payments.length > 0 && (
-                            <div className="mt-5 ml-2">
-                                <p className="font-bold text-base">
-                                    Thanh toán qua {contractData.data.payments.length} đợt:
-                                </p>
-                                {contractData.data.payments.map((payment, index) => (
-                                    <div key={index} className="mt-2 ml-6 flex flex-col gap-2">
-                                        <p><b>Đợt {index + 1}:</b></p>
-                                        <p>- <b>Số tiền:</b> {payment.amount.toLocaleString()} ₫</p>
-                                        <p>- <b>Ngày thanh toán:</b> {dayjs(payment.paymentDate).format('DD/MM/YYYY')}</p>
+                        <p className="font-bold text-lg mt-4 mb-3"><u>NỘI DUNG HỢP ĐỒNG</u></p>
+                        <div
+                            className="ml-1"
+                            dangerouslySetInnerHTML={{ __html: contractData.data.contractContent || "Chưa nhập" }}
+                        />
+                        <div className="mt-4">
+                            <h4 className="font-bold text-lg"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
+                            <p className="mt-4">
+                                - Tổng giá trị hợp đồng: <b>{new Intl.NumberFormat('vi-VN').format(contractData.data.amount)} VND</b>
+                                <span className="text-gray-600"> ( {numberToVietnamese(contractData.data.amount)} )</span>
+                            </p>
+                            {contractData.data?.payments && contractData.data.payments.length > 0 && (
+                                <div className="mt-5 ml-2">
+                                    <p className="font-bold text-base">
+                                        Thanh toán qua {contractData.data.payments.length} đợt:
+                                    </p>
+                                    {contractData.data.payments.map((payment, index) => (
+                                        <div key={index} className="mt-2 ml-6 flex flex-col gap-2">
+                                            <p><b>Đợt {index + 1}:</b></p>
+                                            <p>- <b>Số tiền:</b> {payment.amount.toLocaleString()} ₫</p>
+                                            <p>- <b>Ngày thanh toán:</b> {dayjs(payment.paymentDate).format('DD/MM/YYYY')}</p>
+                                            <p>
+                                                - <b>Phương thức thanh toán:</b> {payment.paymentMethod === 'cash'
+                                                    ? 'Tiền mặt'
+                                                    : payment.paymentMethod === 'creditCard'
+                                                        ? 'Thẻ tín dụng'
+                                                        : 'Chuyển khoản'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <div>
+                                {contractData.data?.isDateLateChecked && (
+                                    <p className="mt-3">
+                                        - Trong quá trình thanh toán cho phép trễ hạn tối đa {contractData.data.maxDateLate} (ngày)
+                                    </p>
+                                )}
+                                {contractData.data?.autoAddVAT && (
+                                    <p className="mt-3">
+                                        - Thuế VAT được tính ({contractData.data.vatPercentage}%)
+                                    </p>
+                                )}
+                            </div>
+                            <div className="mt-4">
+                                <h4 className="font-bold text-lg"><u>THỜI GIAN HIỆU LỰC LIÊN QUAN</u></h4>
+                                {contractData.data?.effectiveDate && contractData.data?.expiryDate && (
+                                    <div className="mt-3">
                                         <p>
-                                            - <b>Phương thức thanh toán:</b> {payment.paymentMethod === 'cash'
-                                                ? 'Tiền mặt'
-                                                : payment.paymentMethod === 'creditCard'
-                                                    ? 'Thẻ tín dụng'
-                                                    : 'Chuyển khoản'}
+                                            - Ngày bắt đầu hiệu lực: {dayjs(parseDate(contractData.data.effectiveDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.effectiveDate)).format('DD/MM/YYYY')}</b>
+                                        </p>
+                                        <p>
+                                            - Ngày chấm dứt hiệu lực: {dayjs(parseDate(contractData.data.expiryDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.expiryDate)).format('DD/MM/YYYY')}</b>
                                         </p>
                                     </div>
-                                ))}
+                                )}
+                                {contractData.data?.autoRenew && (
+                                    <p className="mt-3">
+                                        - Tự động gia hạn khi hợp đồng hết hạn nếu không có phản hồi từ các phía
+                                    </p>
+                                )}
+                                {contractData.data?.appendixEnabled && (
+                                    <p className="mt-3">
+                                        - Cho phép tạo phụ lục khi hợp đồng có hiệu lực
+                                    </p>
+                                )}
                             </div>
-                        )}
-                        <div>
-                            {contractData.data?.isDateLateChecked && (
-                                <p className="mt-3">
-                                    - Trong quá trình thanh toán cho phép trễ hạn tối đa {contractData.data.maxDateLate} (ngày)
-                                </p>
-                            )}
-                            {contractData.data?.autoAddVAT && (
-                                <p className="mt-3">
-                                    - Thuế VAT được tính ({contractData.data.vatPercentage}%)
-                                </p>
-                            )}
                         </div>
-                        <div className="mt-4">
-                            <h4 className="font-bold text-lg"><u>THỜI GIAN HIỆU LỰC LIÊN QUAN</u></h4>
-                            {contractData.data?.effectiveDate && contractData.data?.expiryDate && (
-                                <div className="mt-3">
-                                    <p>
-                                        - Ngày bắt đầu hiệu lực: {dayjs(parseDate(contractData.data.effectiveDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.effectiveDate)).format('DD/MM/YYYY')}</b>
-                                    </p>
-                                    <p>
-                                        - Ngày chấm dứt hiệu lực: {dayjs(parseDate(contractData.data.expiryDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.expiryDate)).format('DD/MM/YYYY')}</b>
-                                    </p>
-                                </div>
-                            )}
-                            {contractData.data?.autoRenew && (
-                                <p className="mt-3">
-                                    - Tự động gia hạn khi hợp đồng hết hạn nếu không có phản hồi từ các phía
-                                </p>
-                            )}
-                            {contractData.data?.appendixEnabled && (
-                                <p className="mt-3">
-                                    - Cho phép tạo phụ lục khi hợp đồng có hiệu lực
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="mt-2">
-                        <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
-                        <div className="ml-5 mt-3 flex flex-col gap-3">
-                            {groupedTerms.Common.length > 0 && (
-                                <div className="term-group mb-2">
-                                    <p className="text-base font-bold">Điều khoản chung</p>
-                                    {groupedTerms.Common.map((termId, index) => renderTerm(termId, index))}
-                                </div>
-                            )}
-                            {groupedTerms.A.length > 0 && (
-                                <div className="term-group mb-2">
-                                    <p className="font-bold">Điều khoản riêng bên A</p>
-                                    {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
-                                    {contractData.data.specialTermsA && contractData.data.specialTermsA.trim() !== "" && (
-                                        <p className="text-sm">- {contractData.data.specialTermsA}</p>
-                                    )}
-                                </div>
-                            )}
-                            {groupedTerms.B.length > 0 && (
-                                <div className="term-group mb-2">
-                                    <p className="font-bold">Điều khoản riêng bên B</p>
-                                    {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
-                                    {contractData.data.specialTermsB && contractData.data.specialTermsB.trim() !== "" && (
-                                        <p className="text-sm">- {contractData.data.specialTermsB}</p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        <div className="mt-4">
-                            {(contractData.data?.appendixEnabled ||
-                                contractData.data?.transferEnabled ||
-                                contractData.data?.violate ||
-                                contractData.data?.suspend) && (
-                                    <div>
-                                        <h4 className="font-bold text-lg"><u>CÁC THÔNG TIN KHÁC</u></h4>
-                                        {contractData.data?.appendixEnabled && (
-                                            <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
-                                        )}
-                                        {contractData.data?.transferEnabled && (
-                                            <p className="mt-3">- Cho phép chuyển nhượng hợp đồng</p>
-                                        )}
-                                        {contractData.data?.violate && (
-                                            <p className="mt-3">
-                                                - Cho phép đơn phương hủy hợp đồng nếu 1 trong 2 vi phạm các quy định trong điều khoản
-                                            </p>
-                                        )}
-                                        {contractData.data?.suspend && (
-                                            <div>
-                                                <p className="mt-3">
-                                                    - Cho phép tạm ngưng hợp đồng trong trường hợp bất khả kháng: {contractData.data.suspendContent}
-                                                </p>
-                                            </div>
+                        <div className="mt-2">
+                            <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
+                            <div className="ml-5 mt-3 flex flex-col gap-3">
+                                {groupedTerms.Common.length > 0 && (
+                                    <div className="term-group mb-2">
+                                        <p className="text-base font-bold">Điều khoản chung</p>
+                                        {groupedTerms.Common.map((termId, index) => renderTerm(termId, index))}
+                                    </div>
+                                )}
+                                {groupedTerms.A.length > 0 && (
+                                    <div className="term-group mb-2">
+                                        <p className="font-bold">Điều khoản riêng bên A</p>
+                                        {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
+                                        {contractData.data.specialTermsA && contractData.data.specialTermsA.trim() !== "" && (
+                                            <p className="text-sm">- {contractData.data.specialTermsA}</p>
                                         )}
                                     </div>
                                 )}
+                                {groupedTerms.B.length > 0 && (
+                                    <div className="term-group mb-2">
+                                        <p className="font-bold">Điều khoản riêng bên B</p>
+                                        {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
+                                        {contractData.data.specialTermsB && contractData.data.specialTermsB.trim() !== "" && (
+                                            <p className="text-sm">- {contractData.data.specialTermsB}</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-4">
+                                {(contractData.data?.appendixEnabled ||
+                                    contractData.data?.transferEnabled ||
+                                    contractData.data?.violate ||
+                                    contractData.data?.suspend) && (
+                                        <div>
+                                            <h4 className="font-bold text-lg"><u>CÁC THÔNG TIN KHÁC</u></h4>
+                                            {contractData.data?.appendixEnabled && (
+                                                <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
+                                            )}
+                                            {contractData.data?.transferEnabled && (
+                                                <p className="mt-3">- Cho phép chuyển nhượng hợp đồng</p>
+                                            )}
+                                            {contractData.data?.violate && (
+                                                <p className="mt-3">
+                                                    - Cho phép đơn phương hủy hợp đồng nếu 1 trong 2 vi phạm các quy định trong điều khoản
+                                                </p>
+                                            )}
+                                            {contractData.data?.suspend && (
+                                                <div>
+                                                    <p className="mt-3">
+                                                        - Cho phép tạm ngưng hợp đồng trong trường hợp bất khả kháng: {contractData.data.suspendContent}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                            </div>
                         </div>
                     </div>
+                </Row>
+                <div className="flex justify-center mt-10 items-center pb-24">
+                    <div className="flex flex-col gap-2 px-[18%] text-center">
+                        <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
+                        <p><b>{contractData?.data?.partner.partnerName?.toUpperCase()}</b></p>
+                        <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
+                    </div>
+                    <div className="flex flex-col gap-2 px-[18%] text-center">
+                        <p className="text-lg"><b>ĐẠI DIỆN BÊN B</b></p>
+                        <p><b>{bsInfor?.representativeName?.toUpperCase()}</b></p>
+                        <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
+                    </div>
                 </div>
-            </Row>
-            <div className="flex justify-center mt-10 items-center pb-24">
-                <div className="flex flex-col gap-2 px-[18%] text-center">
-                    <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
-                    <p><b>{contractData?.data?.partner.partnerName?.toUpperCase()}</b></p>
-                    <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
-                </div>
-                <div className="flex flex-col gap-2 px-[18%] text-center">
-                    <p className="text-lg"><b>ĐẠI DIỆN BÊN B</b></p>
-                    <p><b>{bsInfor?.representativeName?.toUpperCase()}</b></p>
-                    <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
-                </div>
+                {scrolledToBottom && (
+                    <Button loading={approveLoading} type="primary" onClick={handleApprove}>
+                        Đồng Ý Phê Duyệt
+                    </Button>
+                )}
             </div>
         </div>
     );

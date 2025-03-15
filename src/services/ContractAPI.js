@@ -5,7 +5,7 @@ import { BE_API_LOCAL } from "../config/config";
 
 export const ContractAPI = createApi({
     reducerPath: "contractManagement",
-    tagTypes: ["Contract,ContractType"],
+    tagTypes: ["Contract", "Compare", "ContractType"],
     baseQuery: fetchBaseQuery({
         baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
@@ -157,6 +157,19 @@ export const ContractAPI = createApi({
         }),
 
 
+        getDataContractCompareVersion: builder.query({
+            query: (params) => ({
+                url: `contracts/compare-versions`,
+                params: {
+                    originalContractId: params?.contractId || '',
+                    version1: params?.version1 || '',
+                    version2: params?.version2 || ''
+                },
+                method: "GET",
+            }),
+            providesTags: (result, error, Compare) => [{ type: "Compare", id: Compare }],
+        }),
+
         // getPartnerInfoDetail: builder.query({
         //     query: (partnerId) => ({
         //         url: `9edef7db-1c09-42ed-aef8-ae8d14119f2c`,
@@ -212,6 +225,7 @@ export const {
     useUpdateContractMutation,
     useGetContractPorcessQuery,
     useGetContractRejectQuery,
+    useGetDataContractCompareVersionQuery,
     useGetContractUpdateQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;

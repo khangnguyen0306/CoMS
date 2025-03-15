@@ -7,10 +7,11 @@ import { selectCurrentUser } from "../../slices/authSlice";
 
 const Approve = () => {
     const { id } = useParams();
+
     const user = useSelector(selectCurrentUser);
     const location = useLocation();
     const { StageIdMatching } = location.state || {};
-    console.log(StageIdMatching, id);
+
     const [form] = Form.useForm();
 
     const navigate = useNavigate();

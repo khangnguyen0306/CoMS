@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input, Divider, Timeline } from "antd";
+import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input, Divider, Timeline, ConfigProvider } from "antd";
 import { FileSearchOutlined, CheckCircleOutlined, ClockCircleOutlined, LoadingOutlined, CheckOutlined, CloseOutlined, ForwardOutlined, SmallDashOutlined } from "@ant-design/icons";
 import { useGetContractDetailQuery } from "../../services/ContractAPI";
 import { useNavigate, useParams } from "react-router-dom";
@@ -62,7 +62,7 @@ const ReviewContract = () => {
 
 
     return (
-        <div className='container mx-auto'>
+        <div className='container mx-auto min-h-[100vh]'>
             <p
                 className='font-bold text-[34px] flex justify-center pb-7 bg-custom-gradient bg-clip-text text-transparent'
                 style={{ textShadow: '0 0 8px rgba(0, 0, 0, 0.1' }}
@@ -73,122 +73,108 @@ const ReviewContract = () => {
             <Row gutter={[16, 16]}>
                 {/* Thông tin hợp đồng */}
                 <Col xs={24} lg={16}>
-                    <Card style={{ boxShadow: "0 0 12px 4px rgba(0, 0, 0, 0.2)", }} className="p-6 mb-6 rounded-2xl border border-gray-200">
-                        {/* Tiêu đề và thông tin chung */}
-                        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                            {/* Cột trái */}
-                            <div className="flex flex-col gap-2">
-                                <div>
-                                    <Text strong className="text-gray-700">Version hợp đồng: </Text>
-                                    <Text className="text-gray-500 text-sm">
-                                        {contract?.version ? `${contract.version}.0.0` : "Chưa cập nhật"}
-                                    </Text>
-                                </div>
-                                <div>
-                                    <Text strong className="text-gray-700">Người Tạo:</Text>
-                                    <Text className="ml-2 text-gray-600">
-                                        {contract?.user?.full_name || "Chưa cập nhật"}
-                                    </Text>
-                                </div>
-                                <div>
-                                    <Text strong className="text-gray-700">Mã HĐ:</Text>
-                                    <Text className="ml-2 text-gray-600">
-                                        {contract?.contractNumber || "Chưa cập nhật"}
-                                    </Text>
-                                </div>
-                                <Title
-                                    level={4}
-                                    className="text-[#222] mt-2 break-words max-w-full"
-                                >
-                                    {contract?.title || "Chưa cập nhật"}
-                                </Title>
+                    <ConfigProvider
+                        theme={{
+                            components: {
+                                Card: {
+                                    headerBg: ""
+                                },
+                            },
+                        }}
+                    >
+                        <Card className="p-6 mb-6 shadow-lg relative"
+                            title={
+                                <p className="text-lg break-words text-blue-600">  {contract?.title.toUpperCase() || "Chưa cập nhật"} - {contract?.contractNumber || "Chưa cập nhật"}
+                                </p>
+                            }
+                        >
+                            <Tag className="w-fit top-4 right-4 absolute">
+                                Phiên bản: {contract?.version ? `${contract.version}.0.0` : "Chưa cập nhật"}
+                            </Tag>
 
-                            </div>
-
-                            {/* Cột phải */}
-                            <div className="flex flex-col items-start md:items-end gap-3">
-                                <Button
-                                    onClick={handleNavigate}
-                                    type="primary"
-                                    icon={<FileSearchOutlined />}
-                                    className="rounded-lg shadow-md"
-                                >
-                                    Xem Chi Tiết Hợp Đồng
-                                </Button>
-
-                                <Button icon={<ClockCircleOutlined />} type="default" className="rounded-lg">
-                                    So Sánh Version Trước Đó
-                                </Button>
-                            </div>
-                        </div>
-
-                        <Divider className="my-4 border-t border-gray-300" />
-
-                        {/* Nội dung chi tiết */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                            <div className="space-y-3">
-                                <div>
-                                    <Text strong className="text-gray-700">Đối Tác:</Text>
-                                    <Text className="ml-2">{contract?.party?.partnerName || "Chưa cập nhật"}</Text>
-                                </div>
-                                <div>
-                                    <Text strong className="text-gray-700">Giá Trị:</Text>
-                                    <Text className="ml-2">
-                                        {contract?.amount?.toLocaleString() || "Chưa cập nhật"} VND
+                            <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                                {/* Cột trái */}
+                                <div className="flex flex-col gap-2">
+                                    <div>
+                                        <Text strong className="">Ngày Tạo:</Text>
+                                        <Text className="ml-2">
+                                            {contract?.createdAt
+                                                ? new Date(...contract.createdAt).toLocaleString()
+                                                : "Chưa cập nhật"}
+                                        </Text>
+                                    </div>
+                                    <Text >
+                                        <b>Người Tạo:</b>  {contract?.user?.full_name || "Chưa cập nhật"}
                                     </Text>
+                                    <div>
+                                        <Text strong className="">Đối Tác:</Text>
+                                        <Text className="ml-2">{contract?.party?.partnerName || "Chưa cập nhật"}</Text>
+                                    </div>
+                                    <div>
+                                        <Text strong className="">Giá Trị:</Text>
+                                        <Text className="ml-2">
+                                            {contract?.amount?.toLocaleString() || "Chưa cập nhật"} VND
+                                        </Text>
+                                    </div>
+                                    {/* 
+                                    <div>
+                                        <Text strong className="">Ngày Hiệu lực:</Text>
+                                        <Text className="ml-2">
+                                            {contract?.effectiveDate
+                                                ? new Date(...contract.effectiveDate).toLocaleString()
+                                                : "Chưa cập nhật"}
+                                        </Text>
+                                    </div>
+                                    <div>
+                                        <Text strong className="">Ngày Hết Hạn:</Text>
+                                        <Text className="ml-2">
+                                            {contract?.expiryDate
+                                                ? new Date(...contract.expiryDate).toLocaleString()
+                                                : "Chưa cập nhật"}
+                                        </Text>
+                                    </div> */}
+                                    <div>
+                                        <Text strong className="">Ngày Ký:</Text>
+                                        <Text className="ml-2">
+                                            {contract?.signingDate
+                                                ? new Date(...contract.signingDate).toLocaleString()
+                                                : "Chưa cập nhật"}
+                                        </Text>
+                                    </div>
                                 </div>
-                                <div>
-                                    <Text strong className="text-gray-700">Ngày Tạo:</Text>
-                                    <Text className="ml-2">
-                                        {contract?.createdAt
-                                            ? new Date(...contract.createdAt).toLocaleString()
-                                            : "Chưa cập nhật"}
-                                    </Text>
-                                </div>
-                            </div>
 
-                            <div className="space-y-3">
-                                <div>
-                                    <Text strong className="text-gray-700">Ngày Hiệu lực:</Text>
-                                    <Text className="ml-2">
-                                        {contract?.effectiveDate
-                                            ? new Date(...contract.effectiveDate).toLocaleString()
-                                            : "Chưa cập nhật"}
-                                    </Text>
-                                </div>
-                                <div>
-                                    <Text strong className="text-gray-700">Ngày Hết Hạn:</Text>
-                                    <Text className="ml-2">
-                                        {contract?.expiryDate
-                                            ? new Date(...contract.expiryDate).toLocaleString()
-                                            : "Chưa cập nhật"}
-                                    </Text>
-                                </div>
-                                <div>
-                                    <Text strong className="text-gray-700">Ngày Ký:</Text>
-                                    <Text className="ml-2">
-                                        {contract?.signingDate
-                                            ? new Date(...contract.signingDate).toLocaleString()
-                                            : "Chưa cập nhật"}
-                                    </Text>
+                                {/* Cột phải */}
+                                <div className="flex flex-col items-start md:items-end gap-3">
+                                    <Button
+                                        onClick={handleNavigate}
+                                        type="primary"
+                                        icon={<FileSearchOutlined />}
+                                        className="rounded-lg shadow-md"
+                                    >
+                                        Xem Chi Tiết Hợp Đồng
+                                    </Button>
+                                    {contract.version != 1 && (
+                                        <Button icon={<ClockCircleOutlined />} onClick={() => navigate(`/compare/${contracts?.data.originalContractId}/${contracts?.data.version}/${contracts?.data.version - 1}`)} type="default" className="rounded-lg">
+                                            So Sánh với phiên bản trước
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
-                        </div>
-                    </Card>
+                        </Card>
+                    </ConfigProvider>
+
                 </Col>
 
                 {/* Quy trình phê duyệt & Trạng thái */}
                 <Col xs={24} lg={8}>
                     {/* Danh Sách Phê Duyệt */}
                     <Card
-                        bordered={false}
                         style={{
                             padding: "14px",
-                            boxShadow: "0 0 12px 4px rgba(0, 0, 0, 0.2)",
                             marginBottom: "20px"
                         }}
                     >
-                        <Title className="-mt-2 pb-4" level={4}>Danh Sách Phê Duyệt</Title>
+                        <p className="mx-3 text-base font-bold mb-6" >Danh Sách Phê Duyệt</p>
                         <Timeline mode="left" className="-mb-14">
                             {stages?.map((stage) => (
                                 <Timeline.Item
@@ -236,23 +222,6 @@ const ReviewContract = () => {
                     </Card>
 
                     {/* Trạng Thái Phê Duyệt */}
-                    <Card
-                        bordered={false}
-                        style={{
-                            paddingTop: "0px",
-                            padding: "14px",
-                            boxShadow: "0 0 12px 4px rgba(0, 0, 0, 0.2)",
-                        }}
-                    >
-                        <Title className="-mt-4" level={4}>Trạng Thái Phê Duyệt</Title>
-                        <Tag
-                            icon={<CheckCircleOutlined />}
-                            color="orange"
-                            className="text-base -mb-14"
-                        >
-                            {contract.status}
-                        </Tag>
-                    </Card>
                 </Col>
             </Row>
         </div>
