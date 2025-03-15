@@ -15,10 +15,11 @@ const Setting = () => {
     const [settings, setSettings] = useState(null);
 
     // Update settings when dateNotifi data is received
+    console.log(dateNotifi?.length)
     useEffect(() => {
         if (dateNotifi) {
             setSettings({
-                notificationDays: parseInt(dateNotifi[0]?.value) || 0
+                notificationDays: parseInt(dateNotifi[dateNotifi?.length -1]?.value) || 0
             });
         }
     }, [dateNotifi]);

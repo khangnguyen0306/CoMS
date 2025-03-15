@@ -85,8 +85,8 @@ const MainLayout = () => {
       icon: MdDashboard, key: "all", label: 'Danh mục', children: [
         { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
-        { icon: FaTasks, label: 'Task', key: "task" },
-        { icon: GoLaw, label: 'Điều khoản', key: "clause" },
+        // { icon: FaTasks, label: 'Task', key: "task" },
+        { icon: GoLaw, label: 'Điều khoản và loại hợp đồng', key: "clause" },
         { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract" },
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
