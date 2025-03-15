@@ -30,7 +30,7 @@ const ManageContracts = () => {
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
     const user = useSelector(selectCurrentUser)
-
+    // console.log(contracts?.data?.content[0].status)
 
     useEffect(() => {
         refetch();
@@ -41,7 +41,7 @@ const ManageContracts = () => {
         try {
             const result = await duplicateContract(contractId).unwrap();
             console.log(result);
-            if (result.status === "OK") {
+            if (result?.status === "OK") {
                 message.success("Nhân bản hợp đồng thành công!");
                 refetch()
             }
@@ -52,7 +52,7 @@ const ManageContracts = () => {
         }
     };
     const handleDelete = (record) => {
-        if (record.status === "đang hiệu lực" || record.status === "đã thanh toán") {
+        if (record?.status === "đang hiệu lực" || record?.status === "đã thanh toán") {
             message.warning("Không thể xóa hợp đồng đang hiệu lực hoặc đã thanh toán.");
             return;
         }
@@ -65,19 +65,46 @@ const ManageContracts = () => {
         });
 
     };
+
+    const generateColor = (id) => {
+        // Sử dụng HSL để tạo màu
+        // Hue: 0-360 độ trên vòng màu
+        // Saturation: 65% để có màu vừa đủ sống động
+        // Lightness: 75% để màu không quá tối hoặc quá sáng
+        const hue = (id * 137.508) % 360; // 137.508 là góc vàng, giúp phân bố màu đều
+        return `hsl(${hue}, 65%, 75%)`;
+    };
+
+    const statusToId = {
+        'DRAFT': 1,
+        'CREATED': 2,
+        'APPROVAL_PENDING': 3,
+        'APPROVED': 4,
+        'UPDATED': 5,
+        'PENDING': 6,
+        'REJECTED': 7,
+        'SIGNED': 8,
+        'ACTIVE': 9,
+        'COMPLETED': 10,
+        'EXPIRED': 11,
+        'CANCELLED': 12,
+        'ENDED': 13
+    };
+
     const statusContract = {
-        'DRAFT': <Tag color="default">Đang tạo</Tag>,
-        'CREATED': <Tag color="default">Đã tạo</Tag>,
-        'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
-        'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
-        'PENDING': <Tag color="warning">Đang chờ</Tag>,
-        'REJECTED': <Tag color="red">Từ chối</Tag>,
-        'SIGNED': <Tag color="geekblue">Đã ký</Tag>,
-        'ACTIVE': <Tag color="processing">Đang hiệu lực</Tag>,
-        'COMPLETED': <Tag color="success">Hoàn thành</Tag>,
-        'EXPIRED': <Tag color="red">Hết hiệu lực</Tag>,
-        'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
-        'ENDED': <Tag color="default">Đã kết thúc</Tag>
+        'DRAFT': <Tag style={{ backgroundColor: generateColor(statusToId['DRAFT']) }}>Đang tạo</Tag>,
+        'CREATED': <Tag style={{ backgroundColor: generateColor(statusToId['CREATED']) }}>Đã tạo</Tag>,
+        'APPROVAL_PENDING': <Tag style={{ backgroundColor: generateColor(statusToId['APPROVAL_PENDING']) }}>Chờ phê duyệt</Tag>,
+        'APPROVED': <Tag style={{ backgroundColor: generateColor(statusToId['APPROVED']) }}>Chờ ký</Tag>,
+        'UPDATED': <Tag style={{ backgroundColor: generateColor(statusToId['UPDATED']) }}>Đã cập nhật</Tag>,
+        'PENDING': <Tag style={{ backgroundColor: generateColor(statusToId['PENDING']) }}>Đang chờ</Tag>,
+        'REJECTED': <Tag style={{ backgroundColor: generateColor(statusToId['REJECTED']) }}>Từ chối</Tag>,
+        'SIGNED': <Tag style={{ backgroundColor: generateColor(statusToId['SIGNED']) }}>Đã ký</Tag>,
+        'ACTIVE': <Tag style={{ backgroundColor: generateColor(statusToId['ACTIVE']) }}>Đang hiệu lực</Tag>,
+        'COMPLETED': <Tag style={{ backgroundColor: generateColor(statusToId['COMPLETED']) }}>Hoàn thành</Tag>,
+        'EXPIRED': <Tag style={{ backgroundColor: generateColor(statusToId['EXPIRED']) }}>Hết hiệu lực</Tag>,
+        'CANCELLED': <Tag style={{ backgroundColor: generateColor(statusToId['CANCELLED']) }}>Đã hủy</Tag>,
+        'ENDED': <Tag style={{ backgroundColor: generateColor(statusToId['ENDED']) }}>Đã kết thúc</Tag>
     };
     const columns = [
         {
@@ -161,7 +188,7 @@ const ManageContracts = () => {
                 value: status,
             })),
             onFilter: (value, record) => record.status === value,
-            render: (type) => statusContract[type],
+            render: (status) => statusContract[status] || <Tag>{status}</Tag>,
             sorter: (a, b) => a.status.localeCompare(b.status),
         },
         {
@@ -169,45 +196,52 @@ const ManageContracts = () => {
             key: "action",
             render: (_, record) => (
                 <Space>
-                    <Dropdown
-                        menu={{
-                            items: [
-                                {
-                                    key: "edit",
-                                    icon: <EditFilled style={{ color: '#228eff' }} />,
-                                    label: "Sửa",
-                                    onClick: () => navigate(`/EditContract/${record.id}`),
-                                },
-                                {
-                                    key: "duplicate",
-                                    icon: <BiDuplicate style={{ color: '#228eff' }} />,
-                                    label: "Nhân bản",
-                                    onClick: () => handleDuplicate(record.id),
-                                },
-                                {
-                                    key: "updateStatus",
-                                    icon: <BsClipboard2DataFill />,
-                                    label: "Cập nhật trạng thái",
-                                    onClick: () => message.info("Cập nhật trạng thái hợp đồng!"),
-                                },
-                                {
-                                    key: "updateNotification",
-                                    icon: <IoNotifications />,
-                                    label: "Cập nhật thông báo",
-                                    onClick: () => message.info("Cập nhật thông báo hợp đồng!"),
-                                },
-                                {
-                                    key: "delete",
-                                    icon: <DeleteOutlined />,
-                                    label: "Xóa",
-                                    danger: true,
-                                    onClick: () => handleDelete(record),
-                                },
-                            ],
-                        }}
-                    >
-                        <Button><SettingOutlined /></Button>
-                    </Dropdown>
+                    {record?.status === "APPROVED" ? (
+                        <Button>Gửi ký</Button>
+                    ) : (
+                        <Dropdown
+                            menu={{
+                                items: [
+                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "UPDATED"
+                                        ? [{
+                                            key: "edit",
+                                            icon: <EditFilled style={{ color: '#228eff' }} />,
+                                            label: "Sửa",
+                                            onClick: () => navigate(`/EditContract/${record.id}`),
+                                        }]
+                                        : []),
+
+                                    {
+                                        key: "duplicate",
+                                        icon: <BiDuplicate style={{ color: '#228eff' }} />,
+                                        label: "Nhân bản",
+                                        onClick: () => handleDuplicate(record.id),
+                                    },
+                                    {
+                                        key: "updateStatus",
+                                        icon: <BsClipboard2DataFill />,
+                                        label: "Cập nhật trạng thái",
+                                        onClick: () => message.info("Cập nhật trạng thái hợp đồng!"),
+                                    },
+                                    {
+                                        key: "updateNotification",
+                                        icon: <IoNotifications />,
+                                        label: "Cập nhật thông báo",
+                                        onClick: () => message.info("Cập nhật thông báo hợp đồng!"),
+                                    },
+                                    {
+                                        key: "delete",
+                                        icon: <DeleteOutlined />,
+                                        label: "Xóa",
+                                        danger: true,
+                                        onClick: () => handleDelete(record),
+                                    },
+                                ],
+                            }}
+                        >
+                            <Button><SettingOutlined /></Button>
+                        </Dropdown>
+                    )}
                 </Space>
             ),
         },
@@ -215,8 +249,8 @@ const ManageContracts = () => {
 
     const handleTableChange = (pagination, filters, sorter) => {
         setPagination(pagination);
-        if (filters.status && filters.status.length > 0) {
-            setStatus(filters.status[0]);
+        if (filters?.status && filters?.status.length > 0) {
+            setStatus(filters?.status[0]);
         } else {
             setStatus(null);
         }

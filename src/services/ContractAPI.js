@@ -70,6 +70,13 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
+        getContractUpdate: builder.query({
+            query: () => ({
+                url: `contracts?status=UPDATED`,
+                method: "GET"
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
 
         createContractType: builder.mutation({
             query: ({ name }) => ({
@@ -205,6 +212,7 @@ export const {
     useUpdateContractMutation,
     useGetContractPorcessQuery,
     useGetContractRejectQuery,
+    useGetContractUpdateQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

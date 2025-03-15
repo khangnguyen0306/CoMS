@@ -440,7 +440,7 @@ const EditContract = () => {
                 navigate('/contract');
             }
         } catch (error) {
-            message.error("Đã xảy ra lỗi khi lưu hợp đồng!");
+            message.error(error?.data?.message || "Có lỗi xảy ra khi cập nhật hợp đồng!");
             console.error(error);
         }
     };

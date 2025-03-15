@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Timeline, Divider } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
-import { BookOutlined, EditFilled, HistoryOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { BookOutlined, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
 import { useLazyGetAllAuditTrailByContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery } from '../../services/ContractAPI';
 import AuditTrailDisplay from '../../components/ui/Audittrail/AuditTrail';
@@ -22,7 +22,7 @@ const ContractDetail = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [visible, setVisible] = useState(false);
     const [auditTrails, setAuditTrails] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0);
     const pageSize = 20;
     const [hasMore, setHasMore] = useState(true);
     const [groupedTerms, setGroupedTerms] = useState({
@@ -182,6 +182,7 @@ const ContractDetail = () => {
             // Gọi API với tham số: { id, page, size }
             const response = await fetchAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
             // Giả sử response.data là mảng các bản ghi audit trail
+            console.log("Audit trail page", response.data);
             if (page === 1) {
                 setAuditTrails(response.data.content);
             } else {
@@ -212,7 +213,7 @@ const ContractDetail = () => {
             setAuditTrails([]);
             setCurrentPage(1);
             setHasMore(true);
-            loadAuditTrailPage(1);
+            loadAuditTrailPage(0);
         }
     };
 
@@ -245,10 +246,12 @@ const ContractDetail = () => {
                 <Tabs defaultActiveKey="1" centered onChange={handleTabChange}>
                     <Tabs.TabPane icon={<BookOutlined />} tab="Thông tin chung" key="1">
                         <div className='flex gap-2 flex-col justify-center'>
+                            <p> <b>Version hợp đồng:</b> {contractData?.data.version}.0.0</p>
                             <p> <b>Người tạo:</b> {contractData?.data.user.full_name}</p>
                             <p><b>Được tạo vào:</b> {convertCreatedAt(contractData?.data.createdAt)}</p>
                             <p><b>Lần chỉnh sửa cuối cùng</b> {convertCreatedAt(contractData?.data.updatedAt)}</p>
                             <p><b>Trạng thái:</b> <Tag color='orange'>{contractData?.data.status}</Tag></p>
+                            <Divider className="border-t-2 border-gray-400" />
                         </div>
                         {loadingDataProcess ? (
                             <div className='flex justify-center items-center'>
@@ -258,10 +261,58 @@ const ContractDetail = () => {
                             (
 
                                 <>
-                                    <p><b>Trạng thái quy trình:</b> {processData?.status}</p>
-                                    <p><b>Ngày bắt đầu:</b> {dayjs(processData?.startDate).format('DD-MM-YYYY')}</p>
-                                    <p><b>Ngày kết thúc:</b> {dayjs(processData?.endDate).format('DD-MM-YYYY')}</p>
+                                    <p className="text-center font-bold mt-6">
+                                        Lộ trình xét duyệt
+                                    </p>
+                                    <Timeline mode="left" className="mt-4 -mb-14">
+                                        {processData?.data?.stages?.length > 0 ? (
+                                            processData.data.stages.map((stage) => (
+                                                <Timeline.Item
+                                                    key={stage.id}
+                                                    children={stage.approverName}
+                                                    label={
+                                                        stage.status === "APPROVING"
+                                                            ? `${new Date(
+                                                                stage.startDate[0],
+                                                                stage.startDate[1] - 1,
+                                                                stage.startDate[2]
+                                                            ).toLocaleDateString("vi-VN")} - ${new Date(
+                                                                stage.endDate[0],
+                                                                stage.endDate[1] - 1,
+                                                                stage.endDate[2]
+                                                            ).toLocaleDateString("vi-VN")}`
+                                                            : stage.status === "APPROVED" && stage.approvedAt
+                                                                ? new Date(
+                                                                    stage.approvedAt[0],
+                                                                    stage.approvedAt[1] - 1,
+                                                                    stage.approvedAt[2]
+                                                                ).toLocaleDateString("vi-VN")
+                                                                : ""
+                                                    }
+                                                    dot={
+                                                        stage.status === "APPROVING" ? (
+                                                            <LoadingOutlined spin className="timeline-clock-icon" />
+                                                        ) : stage.status === "APPROVED" ? (
+                                                            <CheckOutlined className="timeline-clock-icon" style={{ color: 'green' }} />
+                                                        ) : stage.status === "REJECTED" ? (
+                                                            <CloseOutlined className="timeline-clock-icon" style={{ color: 'red' }} />
+                                                        ) : stage.status === "SKIPPED" ? (
+                                                            <ForwardOutlined className="timeline-clock-icon" style={{ color: 'orange' }} />
+                                                        ) : stage.status === "NOT_STARTED" ? (
+                                                            <SmallDashOutlined className="timeline-clock-icon" style={{ color: 'gray' }} />
+                                                        ) : (
+                                                            <ClockCircleOutlined className="timeline-clock-icon" />
+                                                        )
+                                                    }
+                                                />
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-500 text-center mt-2">Chưa có lộ trình xét duyệt</p>
+                                        )}
+                                    </Timeline>
+
                                 </>
+
                             )}
                     </Tabs.TabPane>
                     <Tabs.TabPane icon={<HistoryOutlined />} tab="Lịch sử thay đổi" key="2">

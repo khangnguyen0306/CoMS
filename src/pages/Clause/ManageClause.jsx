@@ -9,6 +9,7 @@ import { useGetAllTypeClauseQuery, useCreateClauseMutation, useUpdateClauseMutat
 import TabPane from 'antd/es/tabs/TabPane';
 import dayjs from 'dayjs';
 import { FaSortDown, FaSortUp } from 'react-icons/fa';
+import { useGetContractTypeQuery } from '../../services/ContractAPI';
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 const { Search } = Input;
@@ -31,6 +32,15 @@ const ManageClause = () => {
     const [isModalOpenLegal, setIsModalOpenLegal] = useState(false);
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
     const [isModalOpenAddLegal, setIsModalOpenAddLegal] = useState(false);
+
+    // const [searchTermContractType, setSearchTermContractType] = useState('');
+    const [sortOrderContractType, setSortOrderContractType] = useState('desc');
+    const [isModalOpenAddContractType, setIsModalOpenAddContractType] = useState(false);
+    const [isModalOpenContractType, setIsModalOpenContractType] = useState(false);
+    const [pageContractType, setPageContractType] = useState(0);
+    const [pageSizeContractType, setPageSizeContractType] = useState(10);
+    const [contractTypeData, setContractTypeData] = useState(null); // Giả sử dữ liệu từ API
+    const [sortedContractTypes, setSortedContractTypes] = useState([]);
     const { data: clauseData, isLoading: loadingClause, isError: DataError, refetch: refetchClause } = useGetClauseManageQuery({
         keyword: searchTermClause,
         typeTermIds: selectedType,
@@ -39,7 +49,9 @@ const ManageClause = () => {
         order: sortOrderClause,
         sortBy: sortByClause
     });
+
     const { data: legalData, isLoading: loadingLegal, refetch: refetchLegal } = useGetLegalQuery({ page: pageLegal, size: pageSizeLegal, keyword: searchTermLegal, order: sortOrderLegal });
+    const { data: typeContractData, isLoading: loadingTypeContract } = useGetContractTypeQuery();
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
@@ -320,15 +332,15 @@ const ManageClause = () => {
                             </div>
                         </div>
                         <div className='flex justify-between w-full gap-4'>
-                          
+
                             <div className='flex gap-2 w-[80%]'>
-                            <Search
-                                placeholder="Tìm kiếm tên điều khoản"
-                                onSearch={setSearchTermClause}
-                                enterButton="tìm kiếm"
-                                allowClear
-                                className="mb-4 max-w-[350px]"
-                            />
+                                <Search
+                                    placeholder="Tìm kiếm tên điều khoản"
+                                    onSearch={setSearchTermClause}
+                                    enterButton="tìm kiếm"
+                                    allowClear
+                                    className="mb-4 max-w-[350px]"
+                                />
                                 <Select
                                     placeholder="Chọn loại điều khoản"
                                     value={selectedType}
@@ -872,6 +884,7 @@ const ManageClause = () => {
                         />
                     </div>
                 </TabPane>
+
             </Tabs>
         </ConfigProvider>
     );

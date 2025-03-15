@@ -50,18 +50,18 @@ export const userAPI = createApi({
             providesTags: (result, error, User) => [{ type: "User", id: User }],
         }),
         UpdateUser: builder.mutation({
-            query: ({ id, email, full_name, phone_number, address, role_id, is_ceo }) => ({
+            query: ({ id, email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth }) => ({
                 url: `/users/update-user/${id}`,
                 method: "PUT",
-                body: { email, full_name, phone_number, address, role_id, is_ceo },
+                body: { email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth },
             }),
             invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
         AddUser: builder.mutation({
-            query: ({ email, full_name, phone_number, address, role_id, is_ceo }) => ({
+            query: ({ email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth }) => ({
                 url: `/users/register`,
                 method: "POST",
-                body: { email, full_name, phone_number, address, role_id, is_ceo },
+                body: { email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth },
             }),
             invalidatesTags: [{ type: "USER", id: "LIST" }],
         }),

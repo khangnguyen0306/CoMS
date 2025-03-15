@@ -4,6 +4,7 @@ import { EditFilled, PlusOutlined, DeleteFilled, StarFilled } from "@ant-design/
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
 import { validationPatterns } from "../../utils/ultil";
+import { useGetDepartmentsQuery } from "../../services/Department";
 
 const { Search } = Input;
 
@@ -19,12 +20,27 @@ const UserManagement = () => {
         page: 0,
         limit: 10,
     });
+    const { data, error, isLoading: DepartmentLoading, refetch: DepartmentRefetch } = useGetDepartmentsQuery();
+
     const [BanUser, { isLoading: loadingDelete }] = useBanUserMutation();
     const [ActiveUser, { isLoading: loadingActive }] = useActiveUserMutation();
     const [UpdateUser, { isLoading: loadingUpdate }] = useUpdateUserMutation();
     const [AddUser, { isLoading: loadingAdd }] = useAddUserMutation();
 
     const isCEO = Form.useWatch('is_ceo', form);
+
+    const translateDepartment = (department) => {
+        const departmentTranslations = {
+            IT_DEPARTMENT: "Phòng Công nghệ Thông tin",
+            HR_DEPARTMENT: "Phòng Nhân sự",
+            FINANCE_DEPARTMENT: "Phòng Tài chính",
+            MARKETING_DEPARTMENT: "Phòng Marketing",
+            SALES_DEPARTMENT: "Phòng Kinh doanh",
+            CEO_DEPARTMENT: "Phòng Giám đốc Điều hành",
+        };
+
+        return departmentTranslations[department] || department;
+    };
 
     React.useEffect(() => {
         if (isCEO === true) {
@@ -39,7 +55,7 @@ const UserManagement = () => {
     };
 
     const filteredUsers = userData?.content ? filterUsers(userData?.content) : [];
-    console.log("Filtered users:", userData);
+    // console.log("Filtered users:", userData);
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -53,7 +69,7 @@ const UserManagement = () => {
             return;
         }
         try {
-            const result = await AddUser({ role_id: values.role_id, phone_number: values.phone_number, full_name: values.full_name, email: values.email, address: values.address, is_ceo: values.is_ceo }).unwrap();
+            const result = await AddUser({ role_id: values.role_id, phone_number: values.phone_number, full_name: values.full_name, email: values.email, address: values.address, is_ceo: values.is_ceo, departmentId: values.departmentId }).unwrap();
             message.success("Tạo nhân sự thành công");
             refetch();
             setIsModalVisible(false);
@@ -81,7 +97,7 @@ const UserManagement = () => {
     const handleSubmitEditUser = async (values) => {
         console.log('Form data:', values);
         try {
-            const result = await UpdateUser({ id: values.id, full_name: values.full_name, phone_number: values.phone_number, email: values.email, address: values.address, role_id: values.role_id, is_ceo: values.is_ceo }).unwrap();
+            const result = await UpdateUser({ id: values.id, full_name: values.full_name, phone_number: values.phone_number, email: values.email, address: values.address, role_id: values.role_id, is_ceo: values.is_ceo, departmentId: values.departmentId }).unwrap();
             message.success(result.message);
             refetch();
             setIsModalUpdate(false);
@@ -125,6 +141,8 @@ const UserManagement = () => {
             },
         });
     };
+
+
 
 
     const columns = [
@@ -188,12 +206,19 @@ const UserManagement = () => {
             sorter: (a, b) => a.role?.roleName?.localeCompare(b.role?.roleName),
         },
 
-        // {
-        //     title: "Ngày sinh",
-        //     dataIndex: "date_of_birth",
-        //     key: "date_of_birth",
-        //     render: (text) => text ? new Date(text).toLocaleDateString("vi-VN") : "Chưa cập nhật"
-        // },
+        {
+            title: "Phòng ban",
+            dataIndex: ["department", "departmentName"],
+            key: "department.departmentName",
+            filters: data?.data.map(dept => ({
+                text: dept.departmentName,
+                value: dept.departmentName
+            })) || [],
+            onFilter: (value, record) => record?.department?.departmentName === value,
+            render: (text) => translateDepartment(text),
+        },
+
+
         {
             title: "Hoạt động",
             dataIndex: "is_active",
@@ -326,6 +351,23 @@ const UserManagement = () => {
                             </Col>
                             <Col span={12}>
                                 <Form.Item
+                                    name="departmentId"
+                                    label="Chọn phòng ban"
+                                    rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
+                                >
+                                    <Select placeholder="Chọn phòng ban">
+                                        {data?.data?.map((dept) => (
+                                            <Option key={dept.departmentId} value={dept.departmentId}>
+                                                {dept.departmentName}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
                                     name="is_ceo"
                                     label="CEO"
                                     rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
@@ -400,6 +442,20 @@ const UserManagement = () => {
                             rules={[{ required: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
                         >
                             <Input placeholder="Nhập tên nhận sự" />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="departmentId"
+                            label="Chọn phòng ban"
+                            rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
+                        >
+                            <Select placeholder="Chọn phòng ban">
+                                {data?.data?.map((dept) => (
+                                    <Option key={dept.departmentId} value={dept.departmentId}>
+                                        {dept.departmentName}
+                                    </Option>
+                                ))}
+                            </Select>
                         </Form.Item>
 
                         <Form.Item

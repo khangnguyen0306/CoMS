@@ -91,6 +91,13 @@ export const processAPI = createApi({
             }),
             providesTags: (result, error, contractId) => [{ type: "ProcessList", id: contractId }],
         }),
+        resubmitProcess: builder.mutation({
+            query: ({ contractId }) => ({
+                url: `/approval-workflows/resubmit/${contractId}`,
+                method: "POST",
+            }),
+            providesTags: (result, error, contractId) => [{ type: "ProcessList", id: contractId }],
+        }),
     })
 });
 
@@ -103,7 +110,8 @@ export const {
     useRejectProcessMutation,
     useApproveProcessMutation,
     useGetContractPorcessPendingQuery,
-    useLazyGetProcessByContractIdQuery
+    useLazyGetProcessByContractIdQuery,
     useGetProcessByContractTypeIdQuery,
     useGetcommentQuery,
+    useResubmitProcessMutation,
 } = processAPI;
