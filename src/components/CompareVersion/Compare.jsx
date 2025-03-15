@@ -106,93 +106,81 @@ const Compare = () => {
         isDifferent(schedule, v2.paymentSchedules[index])
     );
 
-    // Hàm so sánh additionalConfig
-    const compareAdditionalConfig = (config1, config2) => {
-        const allKeys = new Set([...Object.keys(config1), ...Object.keys(config2)]);
-        const diffs = [];
-        allKeys.forEach(key => {
-            const c1 = config1[key] || { A: [], B: [], Common: [] };
-            const c2 = config2[key] || { A: [], B: [], Common: [] };
-            ['A', 'B', 'Common'].forEach(section => {
-                if (isDifferent(c1[section], c2[section])) {
-                    diffs.push({
-                        key,
-                        section,
-                        v1: c1[section],
-                        v2: c2[section]
-                    });
-                }
-            });
-        });
-        return diffs;
-    };
-
-    // Sử dụng hàm để lấy các điểm khác nhau
-    const additionalConfigDifferences = compareAdditionalConfig(v1.additionalConfig, v2.additionalConfig);
-
     const findDifferences = () => {
         const ids1 = v1.legalBasisTerms.map(item => item.original_term_id);
         const ids2 = v2.legalBasisTerms.map(item => item.original_term_id);
 
-        const uniqueIds1 = ids1.filter(id => !ids2.includes(id));
-        const uniqueIds2 = ids2.filter(id => !ids1.includes(id));
-        const commonIds = ids1.filter(id => ids2.includes(id));
-
         return {
-            v1_different: v1.legalBasisTerms.filter(item => uniqueIds1.includes(item.original_term_id)),
-            v2_different: v2.legalBasisTerms.filter(item => uniqueIds2.includes(item.original_term_id)),
-            common: v1.legalBasisTerms.filter(item => commonIds.includes(item.original_term_id))
+            unchanged: v1.legalBasisTerms.filter(item => ids2.includes(item.original_term_id)), // Không thay đổi
+            removed: v1.legalBasisTerms.filter(item => !ids2.includes(item.original_term_id)),  // Bị xóa đi
+            added: v2.legalBasisTerms.filter(item => !ids1.includes(item.original_term_id))     // Được thêm vào
         };
     };
+
     const differencesLegalBasic = findDifferences();
 
     const compareVersionsTerms = () => {
         let result = {};
 
-        const keys = new Set([...Object.keys(v1?.additionalConfig), ...Object.keys(v2?.additionalConfig)]);
+        // Lấy tất cả các key từ cả v1 và v2
+        const keys = new Set([...Object.keys(v1?.additionalConfig || {}), ...Object.keys(v2?.additionalConfig || {})]);
 
         keys.forEach(key => {
             const group1 = v1.additionalConfig[key] || { A: [], B: [], Common: [] };
             const group2 = v2.additionalConfig[key] || { A: [], B: [], Common: [] };
 
-            // Tìm sự khác biệt
-            const findDifferences = (list1, list2) => {
-                const ids2 = new Set(list2.map(item => item.original_term_id));
-                return list1.filter(item => !ids2.has(item.original_term_id));
-            };
-
-            // Tìm phần giống nhau
+            // Hàm tìm dữ liệu chung
             const findSame = (list1, list2) => {
                 const ids2 = new Set(list2.map(item => item.original_term_id));
                 return list1.filter(item => ids2.has(item.original_term_id));
             };
 
+            // Hàm tìm dữ liệu bị xóa
+            const findRemoved = (list1, list2) => {
+                const ids2 = new Set(list2.map(item => item.original_term_id));
+                return list1.filter(item => !ids2.has(item.original_term_id));
+            };
+
+            // Hàm tìm dữ liệu mới được thêm vào
+            const findAdded = (list1, list2) => findRemoved(list2, list1);
+
             // So sánh Common
-            const differentCommon = findDifferences(group1.Common, group2.Common).concat(findDifferences(group2.Common, group1.Common));
             const sameCommon = findSame(group1.Common, group2.Common);
+            const removedCommon = findRemoved(group1.Common, group2.Common);
+            const addedCommon = findAdded(group1.Common, group2.Common);
 
-            // Gom sự khác biệt của A và B
-            const differentA = findDifferences(group1.A, group2.A).concat(findDifferences(group2.A, group1.A));
-            const differentB = findDifferences(group1.B, group2.B).concat(findDifferences(group2.B, group1.B));
-
-            // Tìm điểm chung giữa A và B
-            const sameAB = findSame(group1.A, group2.A).concat(findSame(group1.B, group2.B));
+            // So sánh A
             const sameA = findSame(group1.A, group2.A);
+            const removedA = findRemoved(group1.A, group2.A);
+            const addedA = findAdded(group1.A, group2.A);
+
+            // So sánh B
             const sameB = findSame(group1.B, group2.B);
+            const removedB = findRemoved(group1.B, group2.B);
+            const addedB = findAdded(group1.B, group2.B);
 
             result[key] = {
-                differentA,
-                differentB,
-                sameA,
-                sameB,
-                SameAB: sameAB,
-                differentCommon,
-                SameCommon: sameCommon
+                Common: {
+                    unchanged: sameCommon,
+                    removed: removedCommon,
+                    added: addedCommon
+                },
+                A: {
+                    unchanged: sameA,
+                    removed: removedA,
+                    added: addedA
+                },
+                B: {
+                    unchanged: sameB,
+                    removed: removedB,
+                    added: addedB
+                }
             };
         });
 
         return result;
     };
+
 
     const compareTerm = compareVersionsTerms();
 
@@ -398,14 +386,14 @@ const Compare = () => {
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
                         <h3 className="font-semibold text-lg mb-2">Căn cứ pháp lý</h3>
-                        {differencesLegalBasic.common.map((term, index) => (
+                        {v1.legalBasisTerms.map((term, index) => (
                             <div className='flex flex-col gap-1'>
                                 <p><i>- {term.value}</i></p>
                             </div>
                         ))}
-                        {differencesLegalBasic.v1_different.map((term, index) => (
+                        {/* {differencesLegalBasic.v1_different.map((term, index) => (
                             <p className='bg-yellow-300'>{index + 1}. {term.value}</p>
-                        ))}
+                        ))} */}
                     </div>
 
                     {/* PaymentSchedules */}
@@ -423,7 +411,7 @@ const Compare = () => {
                         )}
                         {v1.autoRenew && (
                             <p className='py-3'>
-                                - Hợp đồng sẽ tự gia hạn khi hết hạn mà không có bất kỳ thông báo nào
+                                - Hợp đồng sẽ tự gia hạn khi hết hạn nếu không có bất kỳ thông báo nào từ 2 bên
                             </p>
                         )}
 
@@ -431,31 +419,31 @@ const Compare = () => {
                             const v2Schedule = v2.paymentSchedules[index] || {};
                             return (
                                 <div key={index} className="p-4 mb-4 rounded">
-                                    <p><b className={`mb-3 ${isDifferent(schedule.amount, v2Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
+                                    <p><b className={`mb-3 `}>
                                         Số lần thanh toán:</b> {v1.paymentSchedules?.length}</p>
                                     <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
                                     <div className='ml-3'>
                                         <p>
                                             <strong>Số tiền: </strong>
-                                            <span className={`${isDifferent(schedule.amount, v2Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span className={``}>
                                                 {schedule.amount} VNĐ
                                             </span>
                                         </p>
                                         <p>
                                             <strong>Ngày thông báo thanh toán:</strong>
-                                            <span className={`${isDifferent(schedule.notifyPaymentDate, v2Schedule.notifyPaymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span className={``}>
                                                 {formatDate(schedule.notifyPaymentDate)}
                                             </span>
                                         </p>
                                         <p>
                                             <strong>Ngày thanh toán:</strong>
-                                            <span className={`${isDifferent(schedule.paymentDate, v2Schedule.paymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span className={``}>
                                                 {formatDate(schedule.paymentDate)}
                                             </span>
                                         </p>
                                         <p>
                                             <strong>Phương thức thanh toán: </strong>
-                                            <span className={`${isDifferent(schedule.paymentMethod, v2Schedule.paymentMethod) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span className={``}>
                                                 {schedule.paymentMethod}
                                             </span>
                                         </p>
@@ -468,7 +456,7 @@ const Compare = () => {
                     <div className="mt-4 flex flex-col gap-3">
                         <h3 className="font-semibold ">ĐIỀU KHOẢN</h3>
                         {Object.entries(v1.additionalConfig).map(([key, termData]) => {
-                            const title = termTitles[key] || `Điều khoản ${key}`; // Lấy tiêu đề từ termTitles hoặc fallback
+                            const title = termTitles[key] || `Điều khoản ${key}`;
                             const commonTerms = termData.Common || [];
                             const termsA = termData.A || [];
                             const termsB = termData.B || [];
@@ -495,7 +483,7 @@ const Compare = () => {
 
                                     {/* Hiển thị phần riêng của A nếu có */}
                                     {termsA.length > 0 && (
-                                        <div className="p-2 mb-2 bg-blue-50">
+                                        <div className="p-2 mb-2">
                                             <p className="font-bold mb-2">Riêng bên A:</p>
                                             {termsA.map((item, index) => (
                                                 <div key={index} className="mb-2">
@@ -507,7 +495,7 @@ const Compare = () => {
 
                                     {/* Hiển thị phần riêng của B nếu có */}
                                     {termsB.length > 0 && (
-                                        <div className="p-2 mb-2 bg-green-50">
+                                        <div className="p-2 mb-2">
                                             <p className="font-bold mb-2">Riêng bên B:</p>
                                             {termsB.map((item, index) => (
                                                 <div key={index} className="mb-2">
@@ -575,12 +563,12 @@ const Compare = () => {
                              ${(isDifferent(v1.contractLocation, v2.contractLocation)
                                 || isDifferent(v1?.signingDate, v2?.signingDate)) ?
                                 'bg-yellow-300 px-1' : ''}`}>
-                            {v1.contractLocation}, Ngày {v1?.signingDate[2]} Tháng {v1?.signingDate[1]} Năm {v1?.signingDate[0]}
+                            {v2.contractLocation}, Ngày {v2?.signingDate[2]} Tháng {v2?.signingDate[1]} Năm {v2?.signingDate[0]}
                         </p>
-                        <p className={`text-2xl font-bold mt-10`}>
-                            {v1.title.toUpperCase()}
+                        <p className={`text-2xl font-bold mt-10 ${isDifferent(v1?.title, v2?.title) ? "bg-yellow-300" : ""}`}>
+                            {v2.title.toUpperCase()}
                         </p>
-                        <p className={`mt-3 `}><b>Số:</b> {v1.contractNumber}</p>
+                        <p className={`mt-3 ${isDifferent(v1?.contractNumber, v2?.contractNumber) ? "bg-yellow-300" : ""} `}><b>Số:</b> {v2.contractNumber}</p>
                     </div>
                     <Row gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
@@ -618,141 +606,167 @@ const Compare = () => {
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
                         <h3 className="font-semibold text-lg">Căn cứ pháp lý</h3>
-                        {v2.legalBasisTerms.map((term, index) => (
-                            <div key={index} className={`${isDifferent(term, v1.legalBasisTerms[index]) ? 'bg-yellow-300' : ''}`}>
+                        {differencesLegalBasic.unchanged.map((term, index) => (
+                            <div >
                                 <p>- <i>{term.value}</i></p>
                             </div>
                         ))}
-                    </div>
-                    {/* AdditionalTerms */}
-                    <div className="mt-4">
-                        <h3 className="font-semibold text-gray-600">Additional Terms</h3>
-                        {v2.additionalTerms.map((term, index) => (
-                            <div key={index} className={`${isDifferent(term, v1.additionalTerms[index]) ? 'bg-yellow-300' : ''}`}>
-                                <p><strong>Name:</strong> {term.name}</p>
-                                <p><strong>Identifier:</strong> {term.identifier}</p>
-                                <p><strong>Original Term ID:</strong> {term.original_term_id}</p>
+                        {differencesLegalBasic.added.map((term, index) => (
+                            <div className='bg-yellow-300 my-2'>
+                                <p>- <i>{term.value}</i></p>
+                            </div>
+                        ))}
+                        {differencesLegalBasic.removed.map((term, index) => (
+                            <div className='bg-red-400'>
+                                <p>- <i>{term.value}</i></p>
                             </div>
                         ))}
                     </div>
                     {/* PaymentSchedules */}
                     <div className="mt-4">
-                        <h3 className="font-semibold text-gray-600">Payment Schedules</h3>
-                        {v2.paymentSchedules.map((schedule, index) => (
-                            <div key={index} className={`${isDifferent(schedule, v1.paymentSchedules[index]) ? 'bg-yellow-300' : ''}`}>
-                                <p><strong>ID:</strong> {schedule.id}</p>
-                                <p><strong>Payment Order:</strong> {schedule.paymentOrder}</p>
-                                <p><strong>Amount:</strong> {schedule.amount}</p>
-                                <p><strong>Notify Payment Date:</strong> {formatDate(schedule.notifyPaymentDate)}</p>
-                                <p><strong>Payment Date:</strong> {formatDate(schedule.paymentDate)}</p>
-                                <p><strong>Status:</strong> {schedule.status ?? 'N/A'}</p>
-                                <p><strong>Payment Method:</strong> {schedule.paymentMethod}</p>
-                                <p><strong>Notify Payment Content:</strong> {schedule.notifyPaymentContent}</p>
-                                <p><strong>Reminder Email Sent:</strong> {schedule.reminderEmailSent.toString()}</p>
-                                <p><strong>Overdue Email Sent:</strong> {schedule.overdueEmailSent.toString()}</p>
-                            </div>
-                        ))}
-                    </div>
-                    {/* AdditionalConfig */}
-                    <div className="mt-4">
-                        <h3 className="font-semibold text-gray-600">Additional Config</h3>
-                        {Object.entries(v2.additionalConfig).map(([key, config]) => {
-                            const otherConfig = v1.additionalConfig[key] || { A: [], B: [], Common: [] };
+                        <h3 className="font-semibold">GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
+                        {v2.autoAddVAT && (
+                            <p className={`py-1 ${(isDifferent(v1.autoAddVAT, v2.autoAddVAT) || (isDifferent(v1.vatPercentage, v2.vatPercentage))) ? 'bg-yellow-300 px-1' : ''}`}>
+                                <b>- Thêm phí VAT: </b> {v2?.vatPercentage} %
+                            </p>
+                        )}
+                        {v2.isDateLateChecked && (
+                            <p className={`py-1 ${(isDifferent(v1.isDateLateChecked, v2.isDateLateChecked) || (isDifferent(v1.maxDateLate, v2.maxDateLate))) ? 'bg-yellow-300 px-1' : ''}`}>
+                                <b> - Cho phép thanh toán trễ tối đa: </b> {v2?.maxDateLate} (Ngày)
+                            </p>
+                        )}
+                        {v2.autoRenew && (
+                            <p className={`py-1 ${isDifferent(v1.autoRenew, v2.autoRenew) ? 'bg-yellow-300 px-1' : ''}`}>
+                                - Hợp đồng sẽ tự gia hạn khi hết hạn nếu không có bất kỳ thông báo nào từ 2 bên
+                            </p>
+                        )}
+
+                        {v2.paymentSchedules.map((schedule, index) => {
+                            const v2Schedule = v2.paymentSchedules[index] || {};
                             return (
-                                <div key={key} className="mb-4">
-                                    <h4 className="font-medium">Config {key}</h4>
-                                    {['A', 'B', 'Common'].map(section => (
-                                        <div key={section} className={`${isDifferent(config[section], otherConfig[section]) ? 'bg-yellow-300' : ''} p-2 mb-2`}>
-                                            <h5 className="font-semibold">Section {section}</h5>
-                                            {config[section].map((item, index) => (
-                                                <div key={index} className="mb-2">
-                                                    <p><strong>Label:</strong> {item.label}</p>
-                                                    <p><strong>Value:</strong> {item.value}</p>
-                                                    <p><strong>Original Term ID:</strong> {item.original_term_id}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ))}
+                                <div key={index} className="p-4 mb-4 rounded">
+                                    <p><b className={`mb-3 ${isDifferent(schedule.amount, v2Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
+                                        Số lần thanh toán:</b> {v2.paymentSchedules?.length}</p>
+                                    <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
+                                    <div className='ml-3'>
+                                        <p>
+                                            <strong>Số tiền: </strong>
+                                            <span className={`${isDifferent(schedule.amount, v2Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
+                                                {schedule.amount} VNĐ
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <strong>Ngày thông báo thanh toán:</strong>
+                                            <span className={`${isDifferent(schedule.notifyPaymentDate, v2Schedule.notifyPaymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                                {formatDate(schedule.notifyPaymentDate)}
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <strong>Ngày thanh toán:</strong>
+                                            <span className={`
+                                                ${isDifferent(schedule.paymentDate, v2Schedule.paymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                                {formatDate(schedule.paymentDate)}
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <strong>Phương thức thanh toán: </strong>
+                                            <span className={`${isDifferent(schedule.paymentMethod, v2Schedule.paymentMethod) ? 'bg-yellow-300 px-1' : ''}`}>
+                                                {schedule.paymentMethod}
+                                            </span>
+                                        </p>
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
-                </div>
-            </div>
+                    {/* AdditionalConfig */}
+                    <div>
+                        {Object.keys(compareTerm).map((key) => {
+                            const { Common, A, B } = compareTerm[key];
+                            return (
+                                <div key={key} className="mb-6">
+                                    <h2 className="font-medium mt-3 text-blue-600">{termTitles[key] || `Nhóm ${key}`}</h2>
 
-            {/* Hiển thị các dữ liệu khác nhau */}
-            <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Dữ liệu khác nhau giữa hai phiên bản</h2>
-                {differences.length > 0 || userDifferences.length > 0 || partnerDifferences.length > 0 || legalBasisTermsDifferences.some(diff => diff) || additionalTermsDifferences.some(diff => diff) || paymentSchedulesDifferences.some(diff => diff) ? (
-                    <ul className="list-disc pl-6">
-                        {differences.map(field => (
-                            <li key={field.key}>
-                                <strong>{field.label}</strong>:
-                                {' '}{field.format ? field.format(v1[field.key]) : v1[field.key] ?? 'N/A'} (v14)
-                                {' vs '}{field.format ? field.format(v2[field.key]) : v2[field.key] ?? 'N/A'} (v15)
-                            </li>
-                        ))}
-                        {userDifferences.map(key => (
-                            <li key={`user-${key}`}>
-                                <strong>User {key}</strong>: {v1.user[key]} (v14) vs {v2.user[key]} (v15)
-                            </li>
-                        ))}
-                        {partnerDifferences.map(key => (
-                            <li key={`partner-${key}`}>
-                                <strong>Partner {key}</strong>: {v1.partner[key] ?? 'N/A'} (v14) vs {v2.partner[key] ?? 'N/A'} (v15)
-                            </li>
-                        ))}
-                        {legalBasisTermsDifferences.map((diff, index) => diff && (
-                            <li key={`legalBasisTerms-${index}`}>
-                                <strong>Legal Basis Term {index + 1}</strong>:
-                                {JSON.stringify(v1.legalBasisTerms[index])} (v14) vs {JSON.stringify(v2.legalBasisTerms[index])} (v15)
-                            </li>
-                        ))}
-                        {additionalTermsDifferences.map((diff, index) => diff && (
-                            <li key={`additionalTerms-${index}`}>
-                                <strong>Additional Term {index + 1}</strong>:
-                                {JSON.stringify(v1.additionalTerms[index])} (v14) vs {JSON.stringify(v2.additionalTerms[index])} (v15)
-                            </li>
-                        ))}
-                        {paymentSchedulesDifferences.map((diff, index) => diff && (
-                            <li key={`paymentSchedules-${index}`}>
-                                <strong>Payment Schedule {index + 1}</strong>:
-                                {JSON.stringify(v1.paymentSchedules[index])} (v14) vs {JSON.stringify(v2.paymentSchedules[index])} (v15)
-                            </li>
-                        ))}
-                        {/* Hiển thị các dữ liệu khác nhau */}
-                        <div className="mt-8">
-                            {differences.length > 0 || userDifferences.length > 0 || partnerDifferences.length > 0 || legalBasisTermsDifferences.some(diff => diff) || additionalTermsDifferences.some(diff => diff) || paymentSchedulesDifferences.some(diff => diff) || additionalConfigDifferences.length > 0 ? (
-                                <ul className="list-disc pl-6">
-                                    {/* ... Các phần khác ... */}
+                                    {/* Hiển thị Common */}
+                                    {Common && (
+                                        <div className='flex flex-col gap-2 ml-3'>
+                                            {Common.unchanged.length > 0 && (
+                                                <p> {Common.unchanged.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                            {Common.added.length > 0 && (
+                                                <p className='bg-yellow-300'> {Common.added.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                            {Common.removed.length > 0 && (
+                                                <p className='bg-red-400'> {Common.removed.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                        </div>
+                                    )}
 
-                                    {/* Additional Config Differences */}
-                                    {additionalConfigDifferences.map((diff, index) => (
-                                        <li key={`additionalConfig-${index}`} className="mb-2">
-                                            <strong>Additional Config {diff.key} - Section {diff.section}</strong>:
-                                            <div className="ml-4">
-                                                <p className="text-sm">Version 14: {diff.v1.length > 0 ? (
-                                                    diff.v1.map((item, idx) => (
-                                                        <span key={idx}>{item.label}: {item.value} (ID: {item.original_term_id}){idx < diff.v1.length - 1 ? ', ' : ''}</span>
-                                                    ))
-                                                ) : 'N/A'}</p>
-                                                <p className="text-sm">Version 15: {diff.v2.length > 0 ? (
-                                                    diff.v2.map((item, idx) => (
-                                                        <span key={idx}>{item.label}: {item.value} (ID: {item.original_term_id}){idx < diff.v2.length - 1 ? ', ' : ''}</span>
-                                                    ))
-                                                ) : 'N/A'}</p>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-gray-600">Không có sự khác biệt giữa hai phiên bản.</p>
+                                    {/* Hiển thị A */}
+                                    {A && (
+                                        <div className='flex flex-col gap 2 ml-3 my-3'>
+                                            <p className='font-bold'>Riêng bên A</p>
+                                            {A.unchanged.length > 0 && (
+                                                <p> {A.unchanged.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                            {A.added.length > 0 && (
+                                                <p className='bg-yellow-300'> {A.added.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                            {A.removed.length > 0 && (
+                                                <p className='bg-red-400'> {A.removed.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Hiển thị B */}
+                                    {B && (
+                                        <div className='flex flex-col gap 2 ml-3'>
+                                            <p className='font-bold'>Riêng bên B</p>
+                                            {B.unchanged.length > 0 && (
+                                                <p> {B.unchanged.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                            {B.added.length > 0 && (
+                                                <p className='bg-yellow-300'> {B.added.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                            {B.removed.length > 0 && (
+                                                <p className='bg-red-400'> {B.removed.map((item) => <p>- {item.value}</p>)}</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {(v2.appendixEnabled === true || v2.violate === true || v2.transferEnabled === true || v2.suspend == true) && (
+                        <div>
+                            <h1 className='font-semibold'>PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
+                            {v2.appendixEnabled && (
+                                <p className={`py-1   ${(isDifferent(v1.appendixEnabled, v2.appendixEnabled))
+                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    - Cho phép tạo phụ lục khi hợp đồng đang có hiệu lực pháp lý
+                                </p>
+                            )}
+                            {v2.transferEnabled && (
+                                <p className={`py-1   ${(isDifferent(v1.transferEnabled, v2.transferEnabled))
+                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    - Cho phép chuyển nhượng hợp đồng
+                                </p>
+                            )}
+                            {v2.violate && (
+                                <p className={`py-1   ${(isDifferent(v1.violate, v2.violate))
+                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    - Cho phép đơn phương hủy hợp đồng nếu vi phạm nghiêm trọng các quy định trong điều khoản hợp đồng
+                                </p>
+                            )}
+                            {v2.suspend && (
+                                <p className={`${(isDifferent(v1.suspend, v2.suspend)) || (isDifferent(v1.suspendContent, v2.suspendContent))
+                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    - Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng được ghi rõ: <p>{v1.suspendContent}</p>
+                                </p>
                             )}
                         </div>
-                    </ul>
-                ) : (
-                    <p className="text-gray-600">Không có sự khác biệt giữa hai phiên bản.</p>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );
