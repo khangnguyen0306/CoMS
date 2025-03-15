@@ -77,7 +77,7 @@ const Department = () => {
     ];
 
     return (
-        <div className="min-h-[100vh] p-4">
+        <div className="min-h-[100vh] p-4 w-full">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Danh sách Phòng Ban</h2>
                 <Button type="primary" onClick={showAddModal}>

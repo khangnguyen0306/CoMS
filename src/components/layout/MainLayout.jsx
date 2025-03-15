@@ -155,9 +155,7 @@ const MainLayout = () => {
     {
       icon: LuWaypoints, key: "workflow", label: 'Quy trình duyệt'
     },
-    {
-      icon: AiOutlineApartment, key: "department", label: 'Quản lý phòng ban'
-    },
+
     {
       icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
     },

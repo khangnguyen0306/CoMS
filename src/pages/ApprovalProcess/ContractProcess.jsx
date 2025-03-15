@@ -60,13 +60,13 @@ const ContractProcess = () => {
             title: "MHĐ",
             dataIndex: "contractNumber",
             key: "contractNumber",
-            width: "10%",
+            width: "8%",
         },
         {
             title: "Ngày tạo",
             dataIndex: "createdAt",
             key: "createdAt",
-            width: "10%",
+            width: "12%",
             render: (createdAt) =>
                 createdAt
                     ? dayjs(
@@ -207,16 +207,31 @@ const ContractProcess = () => {
                                         </span>
                                     ),
                                 },
-                                {
-                                    key: "select-process",
-                                    icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
-                                    label: (
-                                        <span onClick={() => showModal(record)}>
-                                            Yêu cầu phê duyệt
-                                        </span>
-                                    ),
-                                },
-                            ],
+                                ...(record?.approvalWorkflowId == null
+                                    ? [
+                                        {
+                                            key: "select-process",
+                                            icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                            label: (
+                                                <span onClick={() => showModal(record)}>
+                                                    Yêu cầu phê duyệt
+                                                </span>
+                                            ),
+                                        },
+                                    ]
+                                    : [
+                                        {
+                                            key: "resend-process",
+                                            icon: <ReloadOutlined style={{ color: "#F59E0B" }} />,
+                                            label: (
+                                                <span onClick={() => resendProcess(record)}>
+                                                    Gửi lại yêu cầu phê duyệt
+                                                </span>
+                                            ),
+                                        },
+                                    ]),
+                            ]
+
                     }} trigger={["hover"]}>
                         <Button icon={<SettingOutlined />} />
                     </Dropdown>
