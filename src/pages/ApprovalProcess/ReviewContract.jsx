@@ -6,7 +6,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useGetProcessByContractIdQuery } from "../../services/ProcessAPI";
 import { selectCurrentUser } from "../../slices/authSlice";
 import { useSelector } from "react-redux";
-import { useGetAllUserQuery } from "../../services/UserAPI";
 
 
 const { Title, Text } = Typography;
@@ -18,17 +17,12 @@ const ReviewContract = () => {
     const contractId = id;
     const { data: contracts, isLoading, isError } = useGetContractDetailQuery(id);
     const { data: process } = useGetProcessByContractIdQuery({ contractId });
-    const { data: userData, refetch } = useGetAllUserQuery({
-        keyword: "",
-        page: 0,
-        limit: 10,
-    });
-    console.log(contracts)
+
+
     // Lấy mảng stages
     const stages = process?.data?.stages || [];
 
-    // Lấy mảng user
-    const users = userData?.content || [];
+    console.log(stages);
 
     const matchingStage = stages.find(stage => stage.approver === currentUser?.id);
     const StageIdMatching = matchingStage?.stageId;

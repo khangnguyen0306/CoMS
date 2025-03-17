@@ -21,8 +21,8 @@ const ManageContractApproval = () => {
     const columns = [
         {
             title: "Mã hợp đồng",
-            dataIndex: "id",
-            key: "id",
+            dataIndex: "contractNumber",
+            key: "contractNumber",
             width: "10%",
         },
         {
