@@ -4,8 +4,6 @@ import MainLayout from "../components/layout/MainLayout";
 import AuthGuard from "./AuthGuard";
 import AdminGuard from "./AdminGuard";
 import ManagerGuard from "./ManagerGuard";
-
-const Home = Loadable({ loader: () => import("../pages/Home") });
 const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
 const Partner = Loadable({ loader: () => import("../pages/Partner/ManagePartner") });
 const DetailPartner = Loadable({ loader: () => import("../pages/Partner/DetailParrtner") });

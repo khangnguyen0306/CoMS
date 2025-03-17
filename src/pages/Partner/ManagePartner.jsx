@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation } from '../../services/PartnerAPI';
 import { validationPatterns } from "../../utils/ultil";
 import { useSelector } from "react-redux";
-
+import partnerIMG from "../../assets/Image/partner.jpg"
 const { Link } = Typography;
 const { Search } = Input;
 
@@ -38,10 +38,10 @@ const ManagePartner = () => {
         page: currentPage - 1,
         size: pageSize,
     });
-    // //////////////////////////////////// //////////////////////// ////////////////////////////////// chua co search
-    const [CreatePartner, { isLoading }] = useCreatePartnerMutation();
-    const [EditPartner, { isLoading: isLoadingEdit }] = useEditPartnerMutation();
-    const [DeletePartner, { isLoading: loadingDelete }] = useDeletePartnerMutation();
+    
+    const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
+    const [EditPartner, { isLoading: isEditing }] = useEditPartnerMutation();
+    const [DeletePartner, { isLoading: loadingDeleting }] = useDeletePartnerMutation();
     const [viewHistory, setViewHistory] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
@@ -119,14 +119,15 @@ const ManagePartner = () => {
             const bankingInfo = bankAccounts.map(account => ({
                 bankName: account.bankName,
                 backAccountNumber: account.backAccountNumber,
-            }));
+            }));    
             const newPartnerData = {
                 ...values,
                 banking: bankingInfo,
             };
-            console.log(newPartnerData);
-            const result = await CreatePartner(newPartnerData);
-            if (result.data.status === "CREATED") {
+           
+            const result = await CreatePartner(newPartnerData).unwrap();
+            console.log(result);
+            if (result.status === "CREATED") {
                 message.success('Thêm mới thành công!');
                 refetch();
                 form.resetFields();
@@ -174,7 +175,9 @@ const ManagePartner = () => {
         const newBankAccounts = bankAccounts.map((account, i) =>
             i === index ? { ...account, [field]: value } : account
         );
+
         setBankAccounts(newBankAccounts);
+        form.setFieldsValue({ banking: newBankAccounts });
     };
 
     // --- Xử lý phân trang của table ---
@@ -190,9 +193,15 @@ const ManagePartner = () => {
 
     // --- Modal: Chỉnh sửa partner --- 
     const showEditModal = (partner) => {
-        setEditingPartner(partner);
-        form.setFieldsValue(partner);
-        setBankAccounts(partner.banking || [{ bankName: '', backAccountNumber: '' }]);
+        console.log(partner);
+        const formattedData = {
+            ...partner,
+            bankAccounts: partner.banking || [],
+        };
+
+        setEditingPartner(formattedData);
+        setBankAccounts(formattedData.bankAccounts);
+        form.setFieldsValue(formattedData);
         setIsModalVisible(true);
     };
 
@@ -327,13 +336,12 @@ const ManagePartner = () => {
                                     onClick={() => {
                                         setSearchText(item.partnerName);
                                         setSearchQuery(item.partnerName);
-                                        // Reset lại trang về 1 khi chọn từ viewHistory
                                         setCurrentPage(1);
                                     }}
                                 >
                                     <Space style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
                                         <img
-                                            src={item.img || 'https://faceinch.vn/upload/elfinder/%E1%BA%A2nh/chup-chan-dung-5.jpg'}
+                                            src={item.img || partnerIMG}
                                             alt={item.partnerName}
                                             style={{ width: 30, height: 30, borderRadius: '50%' }}
                                         />
@@ -386,28 +394,106 @@ const ManagePartner = () => {
                 </Button>
             </div>
 
-            <Modal title={editingPartner ? "Chỉnh sửa Partner" : "Tạo Partner Mới"} open={isModalVisible} onOk={editingPartner ? handleEditOk : handleOk} onCancel={handleCancel}>
+            <Modal
+                title={editingPartner ? "Chỉnh sửa Partner" : "Tạo Partner Mới"}
+                open={isModalVisible}
+                okText={editingPartner ? "Chỉnh sửa Partner" : "Tạo Partner Mới"}
+                onOk={editingPartner ? handleEditOk : handleOk}
+                onCancel={handleCancel}
+                cancelText={"Hủy"}
+            >
                 <Form form={form} layout="vertical">
                     <Form.Item name="partyId" />
-                    <Form.Item name="partnerType" label="Loại Partner" rules={[{ required: true }]}>
+                    <Form.Item name="partnerType" label="Loại đối tãc" rules={[{ required: true }]}>
                         <Select>
-                            <Select.Option value="PARTY_B">Nhà cung cấp</Select.Option>
-                            <Select.Option value="PARTY_A">Khách hàng</Select.Option>
+                            <Select.Option value="PARTNER_B">Nhà cung cấp</Select.Option>
+                            <Select.Option value="PARTNER_A">Khách hàng</Select.Option>
                         </Select>
                     </Form.Item>
-                    <Form.Item name="partnerName" label="Tên Partner" rules={[{ required: true }]}>
+                    <Form.Item
+                        name="partnerName"
+                        label="Tên đối tác"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập tên đối tác" },
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+
+                                    const regex = /^[\p{L}0-9\s-]{2,100}$/u;
+                                    if (regex.test(value)) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(
+                                        new Error("Tên đối tác không hợp lệ (chỉ chứa chữ, số, dấu cách, dấu gạch ngang, từ 2-100 ký tự)")
+                                    );
+                                },
+                            },
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
-                    <Form.Item name="position" label="Chức vụ" rules={[{ required: true }]}>
+
+                    <Form.Item
+                        name="spokesmanName"
+                        label="Người đại diện"
+                        rules={[
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+
+                                    const regex = /^[\p{L}\s-]{2,50}$/u;
+                                    if (regex.test(value)) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(
+                                        new Error("Tên người đại diện không hợp lệ (chỉ chứa chữ, dấu cách, dấu gạch ngang, từ 2-50 ký tự)")
+                                    );
+                                },
+                            },
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
-                    <Form.Item name="spokesmanName" label="Người đại diện">
+
+                    <Form.Item
+                        name="position"
+                        label="Chức vụ người đại diện"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập chức vụ" },
+                            {
+                                pattern: /^[\p{L}\s-]{2,50}$/u,
+                                message: "Chức vụ không hợp lệ (chỉ chứa chữ, dấu cách, dấu gạch ngang, từ 2-50 ký tự)",
+                            },
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
+
                     <Form.Item name="address" label="Địa chỉ" rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="taxCode" label="Mã số thuế" rules={[{ required: true }]}>
+                    <Form.Item
+                        name="taxCode"
+                        label="Mã số thuế"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập mã số thuế" },
+                            {
+                                validator: (_, value) => {
+                                    if (!value) return Promise.resolve();
+
+                                    const mst10Digits = /^\d{10}$/;
+                                    const mst13Digits = /^\d{10}-\d{3}$/;
+
+                                    if (mst10Digits.test(value) || mst13Digits.test(value)) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(
+                                        new Error("Mã số thuế không hợp lệ (10 số hoặc 13 số dạng XXXXXXXX-XXX)")
+                                    );
+                                },
+                            },
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
                     <Form.Item
@@ -438,20 +524,42 @@ const ManagePartner = () => {
                             <div key={index} style={{ marginBottom: '10px' }}>
                                 <Form.Item className="mt-2">
                                     <div className="flex flex-col gap-2 w-[70%] ml-[10px]">
-                                        <Input
-                                            placeholder="Tên ngân hàng"
-                                            value={bank.bankName}
-                                            onChange={(e) => handleBankChange(index, 'bankName', e.target.value)}
-                                        />
-                                        <Input
-                                            placeholder="Số tài khoản"
-                                            value={bank.backAccountNumber}
-                                            onChange={(e) => handleBankChange(index, 'backAccountNumber', e.target.value)}
-                                        />
+                                        <Form.Item
+                                            name={['banking', index, 'bankName']} // Đổi 'bankAccounts' thành 'banking'
+                                            rules={[
+                                                {
+                                                    pattern: /^[\p{L}\s.-]{3,100}$/u,
+                                                    message: 'Tên ngân hàng không hợp lệ (3-100 ký tự, chỉ chứa chữ, khoảng trắng, dấu gạch ngang, dấu chấm)',
+                                                },
+                                            ]}
+                                        >
+                                            <Input
+                                                placeholder="Tên ngân hàng"
+                                                value={bank.bankName}
+                                                onChange={(e) => handleBankChange(index, 'bankName', e.target.value)}
+                                            />
+                                        </Form.Item>
+
+                                        <Form.Item
+                                            name={['banking', index, 'backAccountNumber']}
+                                            rules={[
+                                                {
+                                                    pattern: /^\d{6,20}$/,
+                                                    message: 'Số tài khoản không hợp lệ (chỉ chứa số, từ 6-20 ký tự)',
+                                                },
+                                            ]}
+                                        >
+                                            <Input
+                                                placeholder="Số tài khoản"
+                                                value={bank.backAccountNumber}
+                                                onChange={(e) => handleBankChange(index, 'backAccountNumber', e.target.value)}
+                                            />
+                                        </Form.Item>
                                     </div>
                                 </Form.Item>
                             </div>
                         ))}
+
                         <Button icon={<PlusOutlined />} onClick={addBankAccount}>Thêm ngân hàng</Button>
                     </div>
                 </Form>

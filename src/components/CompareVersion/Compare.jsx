@@ -196,8 +196,10 @@ const Compare = () => {
     };
     console.log(compareTerm)
     return (
-        <div className="min-h-screen p-4 bg-gray-50">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">So sánh hai phiên bản hợp đồng</h1>
+        <div className={`min-h-screen p-4 ${isDarkMode ? 'bg-[#1f1f1f]' : ''}`}>
+            <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                SO SÁNH 2 PHIÊN BẢN
+            </p>
 
             {/* Hiển thị dữ liệu của hai phiên bản */}
             <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 h-fit `}>
@@ -261,126 +263,6 @@ const Compare = () => {
                         className="ml-1"
                         dangerouslySetInnerHTML={{ __html: contractData.data.contractContent || "Chưa nhập" }}
                     />
-                    <div className="mt-4">
-                        <h4 className="font-bold text-lg"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
-                        <p className="mt-4">
-                            - Tổng giá trị hợp đồng: <b>{new Intl.NumberFormat('vi-VN').format(contractData.data.amount)} VND</b>
-                            <span className="text-gray-600"> ( {numberToVietnamese(contractData.data.amount)} )</span>
-                        </p>
-                        {contractData.data?.payments && contractData.data.payments.length > 0 && (
-                            <div className="mt-5 ml-2">
-                                <p className="font-bold text-base">
-                                    Thanh toán qua {contractData.data.payments.length} đợt:
-                                </p>
-                                {contractData.data.payments.map((payment, index) => (
-                                    <div key={index} className="mt-2 ml-6 flex flex-col gap-2">
-                                        <p><b>Đợt {index + 1}:</b></p>
-                                        <p>- <b>Số tiền:</b> {payment.amount.toLocaleString()} ₫</p>
-                                        <p>- <b>Ngày thanh toán:</b> {dayjs(payment.paymentDate).format('DD/MM/YYYY')}</p>
-                                        <p>
-                                            - <b>Phương thức thanh toán:</b> {payment.paymentMethod === 'cash'
-                                                ? 'Tiền mặt'
-                                                : payment.paymentMethod === 'creditCard'
-                                                    ? 'Thẻ tín dụng'
-                                                    : 'Chuyển khoản'}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <div>
-                            {contractData.data?.isDateLateChecked && (
-                                <p className="mt-3">
-                                    - Trong quá trình thanh toán cho phép trễ hạn tối đa {contractData.data.maxDateLate} (ngày)
-                                </p>
-                            )}
-                            {contractData.data?.autoAddVAT && (
-                                <p className="mt-3">
-                                    - Thuế VAT được tính ({contractData.data.vatPercentage}%)
-                                </p>
-                            )}
-                        </div>
-                        <div className="mt-4">
-                            <h4 className="font-bold text-lg"><u>THỜI GIAN HIỆU LỰC LIÊN QUAN</u></h4>
-                            {contractData.data?.effectiveDate && contractData.data?.expiryDate && (
-                                <div className="mt-3">
-                                    <p>
-                                        - Ngày bắt đầu hiệu lực: {dayjs(parseDate(contractData.data.effectiveDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.effectiveDate)).format('DD/MM/YYYY')}</b>
-                                    </p>
-                                    <p>
-                                        - Ngày chấm dứt hiệu lực: {dayjs(parseDate(contractData.data.expiryDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.expiryDate)).format('DD/MM/YYYY')}</b>
-                                    </p>
-                                </div>
-                            )}
-                            {contractData.data?.autoRenew && (
-                                <p className="mt-3">
-                                    - Tự động gia hạn khi hợp đồng hết hạn nếu không có phản hồi từ các phía
-                                </p>
-                            )}
-                            {contractData.data?.appendixEnabled && (
-                                <p className="mt-3">
-                                    - Cho phép tạo phụ lục khi hợp đồng có hiệu lực
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="mt-2">
-                        <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
-                        <div className="ml-5 mt-3 flex flex-col gap-3">
-                            {groupedTerms.Common.length > 0 && (
-                                <div className="term-group mb-2">
-                                    <p className="text-base font-bold">Điều khoản chung</p>
-                                    {groupedTerms.Common.map((termId, index) => renderTerm(termId, index))}
-                                </div>
-                            )}
-                            {groupedTerms.A.length > 0 && (
-                                <div className="term-group mb-2">
-                                    <p className="font-bold">Điều khoản riêng bên A</p>
-                                    {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
-                                    {contractData.data.specialTermsA && contractData.data.specialTermsA.trim() !== "" && (
-                                        <p className="text-sm">- {contractData.data.specialTermsA}</p>
-                                    )}
-                                </div>
-                            )}
-                            {groupedTerms.B.length > 0 && (
-                                <div className="term-group mb-2">
-                                    <p className="font-bold">Điều khoản riêng bên B</p>
-                                    {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
-                                    {contractData.data.specialTermsB && contractData.data.specialTermsB.trim() !== "" && (
-                                        <p className="text-sm">- {contractData.data.specialTermsB}</p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        <div className="mt-4">
-                            {(contractData.data?.appendixEnabled ||
-                                contractData.data?.transferEnabled ||
-                                contractData.data?.violate ||
-                                contractData.data?.suspend) && (
-                                    <div>
-                                        <h4 className="font-bold text-lg"><u>CÁC THÔNG TIN KHÁC</u></h4>
-                                        {contractData.data?.appendixEnabled && (
-                                            <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
-                                        )}
-                                        {contractData.data?.transferEnabled && (
-                                            <p className="mt-3">- Cho phép chuyển nhượng hợp đồng</p>
-                                        )}
-                                        {contractData.data?.violate && (
-                                            <p className="mt-3">
-                                                - Cho phép đơn phương hủy hợp đồng nếu 1 trong 2 vi phạm các quy định trong điều khoản
-                                            </p>
-                                        )}
-                                        {contractData.data?.suspend && (
-                                            <div>
-                                                <p className="mt-3">
-                                                    - Cho phép tạm ngưng hợp đồng trong trường hợp bất khả kháng: {contractData.data.suspendContent}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                        </div>
-                    </div>
                 </div> */}
                     </Row>
                     {/* LegalBasisTerms */}
@@ -391,26 +273,23 @@ const Compare = () => {
                                 <p><i>- {term.value}</i></p>
                             </div>
                         ))}
-                        {/* {differencesLegalBasic.v1_different.map((term, index) => (
-                            <p className='bg-yellow-300'>{index + 1}. {term.value}</p>
-                        ))} */}
                     </div>
 
                     {/* PaymentSchedules */}
                     <div className="mt-4">
                         <h3 className="font-semibold">GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
                         {v1.autoAddVAT && (
-                            <p className='py-3'>
+                            <p className='py-1'>
                                 <b>- Thêm phí VAT: </b> {v1?.vatPercentage} %
                             </p>
                         )}
                         {v1.isDateLateChecked && (
-                            <p className='py-3'>
+                            <p className='py-1'>
                                 <b> - Cho phép thanh toán trễ tối đa: </b> {v1?.maxDateLate} (Ngày)
                             </p>
                         )}
                         {v1.autoRenew && (
-                            <p className='py-3'>
+                            <p className='py-1'>
                                 - Hợp đồng sẽ tự gia hạn khi hết hạn nếu không có bất kỳ thông báo nào từ 2 bên
                             </p>
                         )}
@@ -453,7 +332,7 @@ const Compare = () => {
                         })}
 
                     </div>
-                    <div className="mt-4 flex flex-col gap-3">
+                    <div className="mt-4 flex flex-col">
                         <h3 className="font-semibold ">ĐIỀU KHOẢN</h3>
                         {Object.entries(v1.additionalConfig).map(([key, termData]) => {
                             const title = termTitles[key] || `Điều khoản ${key}`;
@@ -472,9 +351,9 @@ const Compare = () => {
 
                                     {/* Hiển thị phần Common */}
                                     {commonTerms.length > 0 && (
-                                        <div className="p-2 mb-2">
+                                        <div className="p-1 mb-1">
                                             {commonTerms.map((item, index) => (
-                                                <div key={index} className="mb-2">
+                                                <div key={index} className="mb-1">
                                                     <p>- {item.value}</p>
                                                 </div>
                                             ))}
@@ -483,10 +362,10 @@ const Compare = () => {
 
                                     {/* Hiển thị phần riêng của A nếu có */}
                                     {termsA.length > 0 && (
-                                        <div className="p-2 mb-2">
-                                            <p className="font-bold mb-2">Riêng bên A:</p>
+                                        <div className="p-1 mb-1">
+                                            <p className="font-bold mb-1">Riêng bên A:</p>
                                             {termsA.map((item, index) => (
-                                                <div key={index} className="mb-2">
+                                                <div key={index} className="mb-1">
                                                     <p>- {item.value}</p>
                                                 </div>
                                             ))}
@@ -495,10 +374,10 @@ const Compare = () => {
 
                                     {/* Hiển thị phần riêng của B nếu có */}
                                     {termsB.length > 0 && (
-                                        <div className="p-2 mb-2">
-                                            <p className="font-bold mb-2">Riêng bên B:</p>
+                                        <div className="p-1 mb-1">
+                                            <p className="font-bold mb-1">Riêng bên B:</p>
                                             {termsB.map((item, index) => (
-                                                <div key={index} className="mb-2">
+                                                <div key={index} className="mb-1">
                                                     <p>- {item.value}</p>
                                                 </div>
                                             ))}
@@ -512,22 +391,22 @@ const Compare = () => {
                         <div>
                             <h1 className='font-semibold'>PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
                             {v1.appendixEnabled && (
-                                <p className='py-3'>
+                                <p className='py-1'>
                                     - Cho phép tạo phụ lục khi hợp đồng đang có hiệu lực pháp lý
                                 </p>
                             )}
                             {v1.transferEnabled && (
-                                <p className='py-3'>
+                                <p className='py-1'>
                                     - Cho phép chuyển nhượng hợp đồng
                                 </p>
                             )}
                             {v1.violate && (
-                                <p className='py-3'>
+                                <p className='py-1'>
                                     - Cho phép đơn phương hủy hợp đồng nếu vi phạm nghiêm trọng các quy định trong điều khoản hợp đồng
                                 </p>
                             )}
                             {v1.suspend && (
-                                <p className='py-3'>
+                                <p className='py-1'>
                                     - Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng được ghi rõ: <p>{v1.suspendContent}</p>
                                 </p>
                             )}
@@ -548,9 +427,7 @@ const Compare = () => {
 
                 </div>
 
-
-                {/* Phiên bản 15 */}
-                <div className="bg-white p-4 rounded-lg shadow-md">
+                <div className={` p-4 border border-cyan-400 rounded-lg shadow-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
                     <div className="flex justify-between">
                         <h2 className="text-base font-semibold mb-3">PHIÊN BẢN HIỆN TẠI</h2>
                         <Tag color='blue' className='h-fit'>V {nowVersion}.0.0</Tag>
@@ -681,6 +558,7 @@ const Compare = () => {
                     </div>
                     {/* AdditionalConfig */}
                     <div>
+                        <h3 className="font-semibold ">ĐIỀU KHOẢN</h3>
                         {Object.keys(compareTerm).map((key) => {
                             const { Common, A, B } = compareTerm[key];
                             return (
@@ -691,13 +569,13 @@ const Compare = () => {
                                     {Common && (
                                         <div className='flex flex-col gap-2 ml-3'>
                                             {Common.unchanged.length > 0 && (
-                                                <p> {Common.unchanged.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className="p-1 mb-1"> {Common.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {Common.added.length > 0 && (
-                                                <p className='bg-yellow-300'> {Common.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-yellow-300 p-1 mb-1'> {Common.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {Common.removed.length > 0 && (
-                                                <p className='bg-red-400'> {Common.removed.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-red-400 p-1 mb-1'> {Common.removed.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                         </div>
                                     )}
@@ -707,13 +585,13 @@ const Compare = () => {
                                         <div className='flex flex-col gap 2 ml-3 my-3'>
                                             <p className='font-bold'>Riêng bên A</p>
                                             {A.unchanged.length > 0 && (
-                                                <p> {A.unchanged.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='p-1 mb-1'> {A.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {A.added.length > 0 && (
-                                                <p className='bg-yellow-300'> {A.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-yellow-300 p-1 mb-1'> {A.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {A.removed.length > 0 && (
-                                                <p className='bg-red-400'> {A.removed.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-red-400 p-1 mb-1'> {A.removed.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                         </div>
                                     )}
@@ -723,13 +601,13 @@ const Compare = () => {
                                         <div className='flex flex-col gap 2 ml-3'>
                                             <p className='font-bold'>Riêng bên B</p>
                                             {B.unchanged.length > 0 && (
-                                                <p> {B.unchanged.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='p-1 mb-1'> {B.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {B.added.length > 0 && (
-                                                <p className='bg-yellow-300'> {B.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-yellow-300 p-1 mb-1'> {B.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {B.removed.length > 0 && (
-                                                <p className='bg-red-400'> {B.removed.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-red-400 p-1 mb-1'> {B.removed.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                         </div>
                                     )}
@@ -766,6 +644,19 @@ const Compare = () => {
                             )}
                         </div>
                     )}
+                    <div className='w-full flex justify-center mt-10 items-center pb-24' >
+                        <div className='flex flex-col gap-2 px-[9%] text-center'>
+                            <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
+                            <p className={`${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300" : ""}`}>
+                                <b> {process[0]?.partner.partnerName.toUpperCase()}</b></p>
+                            <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
+                        </div>
+                        <div className='flex flex-col gap-2 px-[9%] text-center'>
+                            <p className='text-lg'><b>ĐẠI DIỆN BÊN B</b></p>
+                            <p><b> {bsInfor?.representativeName.toUpperCase()}</b></p>
+                            <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
