@@ -307,16 +307,16 @@ const ContractDetail = () => {
                     >
                         Thêm nhận xét
                     </Button>
-                    {scrolledToBottom && (
-                        <Button
-                            className="fixed right-40 top-20"
-                            loading={approveLoading}
-                            type="primary"
-                            onClick={handleApprove}
-                        >
-                            Đồng Ý Phê Duyệt
-                        </Button>
-                    )}
+
+                    <Button
+                        className="fixed right-40 top-20"
+                        loading={approveLoading}
+                        type="primary"
+                        onClick={handleApprove}
+                    >
+                        Đồng Ý Phê Duyệt
+                    </Button>
+
                 </>
                 )
                 }

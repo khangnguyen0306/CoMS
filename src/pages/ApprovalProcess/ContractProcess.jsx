@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider } from "antd";
-import { useGetContractPorcessQuery, useGetContractRejectQuery, useGetContractUpdateQuery } from "../../services/ContractAPI";
+import { useGetContractStatusQuery } from "../../services/ContractAPI";
 import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
 import dayjs from "dayjs";
@@ -9,9 +9,8 @@ import { useResubmitProcessMutation } from "../../services/ProcessAPI";
 const { Search } = Input;
 
 const ContractProcess = () => {
-    const { data: contractsProcess, isLoading, isError, refetch } = useGetContractPorcessQuery();
-    const { data: contractsReject, isLoadingReject, isErrorReject, refetch: refetchReject } = useGetContractRejectQuery();
-    const { data: contractsUpdate, isLoadingUpdate, isErrorUpdate, refetch: refetchUpdate } = useGetContractUpdateQuery();
+    const { data: contractsStatus, isLoading, isError, refetch } = useGetContractStatusQuery();
+
     const [resubmitProcess, { isLoading: loadingResubmit }] = useResubmitProcessMutation();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -19,12 +18,10 @@ const ContractProcess = () => {
 
     useEffect(() => {
         refetch();
-        refetchReject();
-        refetchUpdate();
+
     }, []);
-    const contracts = contractsProcess?.data?.content
-        ?.concat(contractsReject?.data?.content || [])
-        .concat(contractsUpdate?.data?.content || []);
+    const contracts = contractsStatus?.data?.content
+
     console.log(contracts);
     const navigate = useNavigate();
     const showModal = (record) => {
@@ -41,15 +38,13 @@ const ContractProcess = () => {
         setIsModalVisible(false);
         setSelectedRecord(null);
         refetch();
-        refetchReject();
-        refetchUpdate();
+
     };
     const resendProcess = async (record) => {
         try {
             await resubmitProcess({ contractId: record.id });
             refetch();
-            refetchReject();
-            refetchUpdate();
+
             message.success("Gửi lại yêu cầu phê duyệt thành công");
         } catch (error) {
             console.error("Lỗi khi gửi lại yêu cầu:", error);

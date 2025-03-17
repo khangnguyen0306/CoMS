@@ -328,7 +328,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
                     </Radio>
                 </div> */}
                 <div>
-                    {/* Radio "Đề xuất" */}\
+                    {/* Radio "Đề xuất" */}
                     {formattedData.length > 0 && (
                         <div className="flex items-center cursor-pointer mb-4">
                             <Radio

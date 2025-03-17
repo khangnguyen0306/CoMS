@@ -924,11 +924,10 @@ const ManageClause = () => {
                 <TabPane tab="Loại Hợp Đồng" key="3">
                     <div className="p-6 min-h-[100vh] ">
                         {/* Tiêu đề */}
-                        <div
-                            className="mb-10 text-center font-bold text-[34px] pb-7 bg-custom-gradient bg-clip-text text-transparent"
-                            style={{ textShadow: "8px 8px 8px rgba(0, 0, 0, 0.2)" }}
-                        >
-                            QUẢN LÝ LOẠI HỢP ĐỒNG
+                        <div className='font-bold mb-10 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                            <div className="flex items-center gap-4">
+                                QUẢN LÝ LOẠI HỢP ĐỒNG
+                            </div>
                         </div>
                         {/* Nút Thêm Loại Hợp Đồng */}
                         <div className="mb-6 flex justify-end">
@@ -980,7 +979,6 @@ const ManageClause = () => {
                         <div>
                             <List
                                 dataSource={typeContractData}
-                                locale={{ emptyText: "Không có loại hợp đồng nào" }}
                                 renderItem={(item, index) => (
                                     <>
                                         <List.Item

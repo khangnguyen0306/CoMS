@@ -61,7 +61,7 @@ const CreateContractForm = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [loadingTerms, setLoadingTerms] = useState({});
     const [changeCCPL, setChangeCCPL] = useState(false);
-   
+
     const [isOverflowing, setIsOverflowing] = useState(false);
 
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
@@ -366,7 +366,7 @@ const CreateContractForm = () => {
                 if (key === 'templateId') {
                     acc[key] = data[key].value;
                 } else if (key === 'partnerId') {
-                    acc['partyId'] = data[key];
+                    acc['partnerId'] = data[key];
                 }
                 else if (key === "contractName") {
                     acc['contractTitle'] = data[key];

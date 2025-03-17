@@ -202,7 +202,7 @@ const ManageContracts = () => {
                         <Dropdown
                             menu={{
                                 items: [
-                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "UPDATED"
+                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED" && record.status !== "SIGNED" && record.status !== "ACTIVE" && record.status !== "COMPLETED" && record.status !== "EXPIRED" && record.status !== "CANCELLED" && record.status !== "ENDED"
                                         ? [{
                                             key: "edit",
                                             icon: <EditFilled style={{ color: '#228eff' }} />,
