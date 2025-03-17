@@ -22,7 +22,7 @@ export const clauseAPI = createApi({
         getClauseManage: builder.query({
             query: ({ keyword, page, size, typeTermIds, order, sortBy }) => ({
                 url: `/terms/get-all`,
-                params:{
+                params: {
                     keyword,
                     page,
                     size,

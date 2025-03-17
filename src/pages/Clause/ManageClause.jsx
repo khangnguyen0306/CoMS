@@ -56,7 +56,7 @@ const ManageClause = () => {
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
-    console.log(typeContractData);
+    // console.log(typeContractData);
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -284,11 +284,17 @@ const ManageClause = () => {
             onOk: async () => {
                 try {
                     const result = await deleteClause({ termId: contractId });
+                    console.log("Delete result:", result);
                     if (result.error.originalStatus == 200) {
+                        console.log("Delete result:", result);
                         refetchClause();
                         refetchLegal();
                         message.success('Xóa thành công');
-                    } else
+                    } if (result.error.status == 409) {
+                        console.log("Delete result:", result.error.data.message);
+                        message.error(result.error.data.message);
+                    }
+                    else
                         message.error('Xóa thất bại vui lòng thử lại');
 
                 }
@@ -297,6 +303,8 @@ const ManageClause = () => {
                     message.error('Xóa thất bại, vui lòng thử lại!');
                 }
             },
+            okText: 'Xóa',
+            cancelText: 'Hủy',
         });
     };
 
@@ -617,7 +625,7 @@ const ManageClause = () => {
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            console.log(clause)
+                                                            // console.log(clause)
                                                             handleDelete(clause.id);
                                                         }}
                                                         className="flex items-center justify-center"

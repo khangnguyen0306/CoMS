@@ -18,8 +18,7 @@ const ContractProcess = () => {
 
     useEffect(() => {
         refetch();
-
-    }, []);
+    }, [contractsStatus]);
     const contracts = contractsStatus?.data?.content
 
     console.log(contracts);
@@ -101,7 +100,7 @@ const ContractProcess = () => {
                             {text}
                         </Link>
                     );
-                } else if (record.status === "CREATED" || record.status === "UPDATED") {
+                } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
                     return (
                         <span className="block truncate max-w-[200px]" title={text}>
                             {text}
@@ -148,10 +147,13 @@ const ContractProcess = () => {
 
                 if (status === "REJECTED") {
                     color = "red";
-                    text = "Chưa được duyệt";
+                    text = "Đã bị từ chối";
                 } else if (status === "UPDATED") {
                     color = "blue";
                     text = "Đã cập nhật";
+                } else if (status === "FIXED") {
+                    color = "orange";
+                    text = "Đã sửa lỗi";
                 }
 
                 return <Tag color={color}>{text}</Tag>;
@@ -160,13 +162,21 @@ const ContractProcess = () => {
 
 
         {
-            title: "Giá trị",
-            dataIndex: "amount",
-            key: "amount",
+            title: "Phiên bản",
+            dataIndex: "version",
+            key: "version",
             width: "15%",
-            render: (value) => value.toLocaleString("vi-VN") + " VND",
+            render: (value) => value + ".0.0",
             sorter: (a, b) => a.value - b.value,
         },
+        // {
+        //     title: "Giá trị",
+        //     dataIndex: "amount",
+        //     key: "amount",
+        //     width: "15%",
+        //     render: (value) => value.toLocaleString("vi-VN") + " VND",
+        //     sorter: (a, b) => a.value - b.value,
+        // },
         {
             title: "Hành động",
             key: "action",

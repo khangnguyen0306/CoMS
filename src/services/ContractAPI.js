@@ -59,7 +59,7 @@ export const ContractAPI = createApi({
         }),
         getContractStatus: builder.query({
             query: () => ({
-                url: `contracts?page=0&size=10&statuses=CREATED&statuses=UPDATED&statuses=REJECTED&sortBy=id&order=asc`,
+                url: `contracts?page=0&size=10&statuses=CREATED&statuses=UPDATED&statuses=REJECTED&statuses=FIXED&sortBy=id&order=asc`,
                 method: "GET",
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],

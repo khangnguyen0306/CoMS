@@ -85,7 +85,7 @@ const EditContract = () => {
 
         if (Array.isArray(date)) {
             const [year, month, day, hour, minute, second] = date;
-            return dayjs(new Date(year, month - 1, day, hour, minute, second)).format("YYYY-MM-DDTHH:mm:ss");
+            return dayjs(new Date(year, month - 1, day, hour, minute, second)).format("DD-MM-YYYY HH:mm:ss");
         }
         return dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]");
     };

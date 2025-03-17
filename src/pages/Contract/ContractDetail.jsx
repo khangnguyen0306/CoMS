@@ -451,7 +451,7 @@ const ContractDetail = () => {
                     </Tabs.TabPane>
                 </Tabs>
             </Drawer>
-            <div className="custom-scrollbar w-full h-screen overflow-y-auto overflow-x-hidden" onScroll={handleScrollContainer}>
+            <div >
                 <div className="text-center mt-9">
                     <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                     <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
@@ -636,6 +636,7 @@ const ContractDetail = () => {
                 </div>
 
             </div>
+
         </div>
     );
 };
