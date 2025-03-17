@@ -5,7 +5,7 @@ import { useGetUserByIdQuery, useUpdateUserMutation } from "../../services/UserA
 import LOGO from './../../assets/Image/letterC.svg'
 import dayjs from 'dayjs';
 import { useGetDepartmentsQuery } from "../../services/Department";
-
+import partnerIMG from "../../assets/Image/partner.jpg"
 const { Title } = Typography;
 
 
@@ -18,7 +18,7 @@ const Profile = () => {
     const [updateUser] = useUpdateUserMutation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
-    console.log(departmentData.data.map((dept) => dept.departmentId))
+
     const handleUpdateClick = () => {
         // Set các giá trị hiện có vào form
         form.setFieldsValue({
@@ -66,7 +66,7 @@ const Profile = () => {
         setIsModalOpen(false);
     };
 
-    if (isLoading) return <Skeleton active />;
+    if (isLoading || DepartmentLoading) return <Skeleton active />;
 
     return (
         <div className="flex justify-center p-6">
@@ -87,7 +87,7 @@ const Profile = () => {
                     <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-20">
                         <div className="w-40 h-40 rounded-full border-4 border-white overflow-hidden">
                             <img
-                                src="https://faceinch.vn/upload/elfinder/%E1%BA%A2nh/chup-chan-dung-5.jpg"
+                                src={data?.employeeCode || partnerIMG}
                                 alt="Employee"
                                 className="w-full h-full object-cover"
                             />
@@ -139,7 +139,7 @@ const Profile = () => {
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
                             Phòng Ban
                         </span>
-                        <span className="text-gray-800 font-semibold text-lg"> : {data?.department?.departmentName}</span>
+                        <span className="text-gray-800 font-semibold text-lg"> : {data?.department?.departmentName || "Chưa cập nhật"}</span>
                     </div>
                     <div className="flex items-center">
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>

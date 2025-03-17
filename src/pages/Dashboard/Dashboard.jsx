@@ -5,12 +5,16 @@ import Highlighter from 'react-highlight-words';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, Tooltip, Cell } from "recharts";
 import { GlowingEffectDemoSecond, GridItem, GridItemCustom } from "../../components/ui/ComponentEffect";
 import { useSelector } from "react-redux";
+import { useGetDashboardataQuery } from "../../services/BsAPI";
 
 const Home = () => {
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
     const searchInput = useRef(null);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const currentYear = new Date().getFullYear();
+    const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
+
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
         setSearchText(selectedKeys[0]);
@@ -323,8 +327,8 @@ const Home = () => {
         <div className={`${isDarkMode ? 'dark' : ''}`}>
             {/* Thống kê */}
             <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
-                >THỐNG KÊ
-                </p>
+            >THỐNG KÊ
+            </p>
             <Row gutter={[16, 16]} className="mb-5 ">
                 {statisticsData.map((stat, index) => (
                     <Col
