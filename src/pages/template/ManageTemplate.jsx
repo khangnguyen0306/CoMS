@@ -93,13 +93,13 @@ const ManageTemplate = () => {
             const result = await duplicateTemplate(templateId).unwrap();
             console.log(result);
             if (result.status === "OK") {
-                message.success("Nhân bản hợp đồng thành công!");
+                message.success("Nhân bản mẫu hợp đồng thành công!");
                 refetch()
             }
 
         } catch (error) {
             console.error("Error duplicating template:", error);
-            message.error("Lỗi khi nhân bản hợp đồng!");
+            message.error("Lỗi khi nhân bản mẫu hợp đồng!");
         }
     };
     // Cột Table

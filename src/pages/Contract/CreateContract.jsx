@@ -365,9 +365,7 @@ const CreateContractForm = () => {
             if (!excludedFields.includes(key)) {
                 if (key === 'templateId') {
                     acc[key] = data[key].value;
-                } else if (key === 'partnerId') {
-                    acc['partyId'] = data[key];
-                }
+                } 
                 else if (key === "contractName") {
                     acc['contractTitle'] = data[key];
                 }

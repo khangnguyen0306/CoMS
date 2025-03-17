@@ -17,6 +17,7 @@ const NotificationDropdown = () => {
   const containerRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const isDarkMode = useSelector((state) => state.theme.isDarkMode);
   // Lấy giá trị notiNumber từ state thông qua useSelector
   const notiNumber = useSelector(selectNotiNumber);
 
@@ -75,7 +76,7 @@ const NotificationDropdown = () => {
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="w-[300px] max-h-[300px] overflow-y-auto p-4 bg-white shadow-md rounded scrollbar-hide"
+      className={`min-w-[300px] max-w-full max-h-full overflow-y-auto p-4 ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} shadow-md rounded scrollbar-hide`}
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {notifications.length === 0 ? (

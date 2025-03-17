@@ -70,6 +70,7 @@ const ManageContracts = () => {
         'CREATED': <Tag color="default">Đã tạo</Tag>,
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
         'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
+        'UPDATED': <Tag color="success">Đã cập nhật</Tag>,
         'PENDING': <Tag color="warning">Đang chờ</Tag>,
         'REJECTED': <Tag color="red">Từ chối</Tag>,
         'SIGNED': <Tag color="geekblue">Đã ký</Tag>,

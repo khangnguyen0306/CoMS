@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider } from "antd";
 import { useGetContractPorcessQuery, useGetContractRejectQuery } from "../../services/ContractAPI";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,6 +15,11 @@ const ContractProcess = () => {
     const [selectedRecord, setSelectedRecord] = useState(null);
 
     const contracts = contractsProcess?.data?.content?.concat(contractsReject?.data?.content);
+    
+    useEffect(() => {
+        refetchReject()
+    }, [])
+
     console.log(contracts);
     const navigate = useNavigate();
     const showModal = (record) => {
