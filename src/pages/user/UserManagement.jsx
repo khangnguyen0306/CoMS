@@ -261,7 +261,7 @@ const UserManagement = () => {
     ];
 
     if (isLoading) return <Skeleton active />;
-    if (isError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+    // if (isError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
 
     return (
         <div className="min-h-[50vh] p-4">
@@ -346,8 +346,8 @@ const UserManagement = () => {
                                             rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
                                         >
                                             <Select placeholder="Chọn vai trò">
-                                                <Option value={2}>Manage</Option>
-                                                <Option value={3}>Staff</Option>
+                                                <Option value={2}>Quản Lý</Option>
+                                                <Option value={3}>Nhân Viên</Option>
                                             </Select>
                                         </Form.Item>
                                     </Col>
@@ -466,8 +466,8 @@ const UserManagement = () => {
                                     rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
                                 >
                                     <Select placeholder="Chọn vai trò">
-                                        <Option value={2}>Manage</Option>
-                                        <Option value={3}>Staff</Option>
+                                        <Option value={2}>Quản Lý</Option>
+                                        <Option value={3}>Nhân Viên</Option>
                                     </Select>
                                 </Form.Item>
 

@@ -328,16 +328,18 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
                     </Radio>
                 </div> */}
                 <div>
-                    {/* Radio "Đề xuất" */}
-                    <div className="flex items-center cursor-pointer mb-4">
-                        <input
-                            type="radio"
-                            value="recomment"
-                            checked={selection === "recomment"}
-                            onChange={(e) => setSelection(e.target.value)}
-                        />
-                        <span className="ml-2">Đề xuất</span>
-                    </div>
+                    {/* Radio "Đề xuất" */}\
+                    {formattedData.length > 0 && (
+                        <div className="flex items-center cursor-pointer mb-4">
+                            <Radio
+                                value="recomment"
+                                checked={selection === "recomment"}
+                                onChange={(e) => setSelection(e.target.value)}
+                            >
+                                Đề xuất
+                            </Radio>
+                        </div>
+                    )}
 
                     <div className="flex gap-4">
                         {formattedData.map((process) => (
@@ -429,7 +431,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
                     className="bg-gradient-to-r from-blue-400 to-blue-700 text-white border-0 hover:from-blue-500 hover:to-blue-800"
                     onClick={handleApplyProcess}
                     loading={isLoading}
-                    disabled={selectedProcessId === null}
+                    disabled={selectedProcessId === null && selection === "recomment"}
                 >
                     Áp dụng quy trình
                 </Button>

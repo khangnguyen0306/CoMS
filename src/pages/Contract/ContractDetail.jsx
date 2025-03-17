@@ -239,7 +239,7 @@ const ContractDetail = () => {
     const handleScrollContainer = (e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
         // Check if scrolled to the bottom
-        if (scrollTop + clientHeight >= scrollHeight - 1) { // Adjusted threshold to -1
+        if (scrollTop + clientHeight >= scrollHeight - 10) {
             setScrolledToBottom(true);
         } else {
             setScrolledToBottom(false);
@@ -299,8 +299,7 @@ const ContractDetail = () => {
                     <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
                         Sửa hợp đồng
                     </Button>
-                ) : (
-
+                ) : (<>
                     <Button
                         type="primary"
                         className="fixed right-0 top-20"
@@ -308,6 +307,17 @@ const ContractDetail = () => {
                     >
                         Thêm nhận xét
                     </Button>
+                    {scrolledToBottom && (
+                        <Button
+                            className="fixed right-40 top-20"
+                            loading={approveLoading}
+                            type="primary"
+                            onClick={handleApprove}
+                        >
+                            Đồng Ý Phê Duyệt
+                        </Button>
+                    )}
+                </>
                 )
                 }
                 <Button type='link' onClick={showDrawer}>
@@ -441,7 +451,7 @@ const ContractDetail = () => {
                     </Tabs.TabPane>
                 </Tabs>
             </Drawer>
-            <div onScroll={handleScrollContainer}>
+            <div className="custom-scrollbar w-full h-screen overflow-y-auto overflow-x-hidden" onScroll={handleScrollContainer}>
                 <div className="text-center mt-9">
                     <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                     <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
@@ -624,11 +634,7 @@ const ContractDetail = () => {
                         <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                     </div>
                 </div>
-                {scrolledToBottom && (
-                    <Button loading={approveLoading} type="primary" onClick={handleApprove}>
-                        Đồng Ý Phê Duyệt
-                    </Button>
-                )}
+
             </div>
         </div>
     );

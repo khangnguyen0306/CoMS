@@ -26,6 +26,7 @@ export const ContractAPI = createApi({
                     ? result.map(({ id }) => ({ type: "ContractType", id }))
                     : [{ type: "ContractType", id: 'UNKNOWN_ID' }],
         }),
+
         getAllContract: builder.query({
             query: (params) => ({
                 url: `contracts`,

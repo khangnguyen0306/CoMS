@@ -80,7 +80,15 @@ const EditContract = () => {
     const [isOverflowing, setIsOverflowing] = useState(false);
     const [changeCCPL, setChangeCCPL] = useState(false);
     const [loadingTerms, setLoadingTerms] = useState({});
-    const formatDate = (date) => date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]") : null;
+    const formatDate = (date) => {
+        if (!date) return null;
+
+        if (Array.isArray(date)) {
+            const [year, month, day, hour, minute, second] = date;
+            return dayjs(new Date(year, month - 1, day, hour, minute, second)).format("YYYY-MM-DDTHH:mm:ss");
+        }
+        return dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]");
+    };
     console.log(cmtData)
 
     // Fetch contract data in edit mode
@@ -753,7 +761,7 @@ const EditContract = () => {
             );
         });
     };
-    
+
 
     useEffect(() => {
         if (containerRef.current) {
@@ -1324,11 +1332,11 @@ const EditContract = () => {
             {isLoadingContract && <Spin tip="Đang tải dữ liệu hợp đồng..." />}
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 {cmtData?.data[0] && (
-                    <div className="flex justify-end mb-4">
+                    <div className="fixed top-20 right-4 z-50">
                         <Button onClick={showDrawer}>Xem bình luận</Button>
                     </div>
-                )
-                }
+                )}
+
                 <Steps current={currentStep} className="mb-8">
                     {steps.map((item, index) => <Step key={index} title={item.title} />)}
                 </Steps>

@@ -12,7 +12,7 @@ const ContractProcess = () => {
     const { data: contractsProcess, isLoading, isError, refetch } = useGetContractPorcessQuery();
     const { data: contractsReject, isLoadingReject, isErrorReject, refetch: refetchReject } = useGetContractRejectQuery();
     const { data: contractsUpdate, isLoadingUpdate, isErrorUpdate, refetch: refetchUpdate } = useGetContractUpdateQuery();
-    const [resubmitProcess] = useResubmitProcessMutation();
+    const [resubmitProcess, { isLoading: loadingResubmit }] = useResubmitProcessMutation();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
@@ -47,6 +47,9 @@ const ContractProcess = () => {
     const resendProcess = async (record) => {
         try {
             await resubmitProcess({ contractId: record.id });
+            refetch();
+            refetchReject();
+            refetchUpdate();
             message.success("Gửi lại yêu cầu phê duyệt thành công");
         } catch (error) {
             console.error("Lỗi khi gửi lại yêu cầu:", error);
@@ -179,7 +182,7 @@ const ContractProcess = () => {
                             ? [
                                 {
                                     key: "resend-process",
-                                    icon: <ReloadOutlined style={{ color: "#F59E0B" }} />,
+                                    icon: loadingResubmit ? <Spin size="small" /> : <ReloadOutlined style={{ color: "#F59E0B" }} />,
                                     label: (
                                         <span onClick={() => resendProcess(record)}>
                                             Gửi lại yêu cầu phê duyệt
@@ -222,7 +225,7 @@ const ContractProcess = () => {
                                     : [
                                         {
                                             key: "resend-process",
-                                            icon: <ReloadOutlined style={{ color: "#F59E0B" }} />,
+                                            icon: loadingResubmit ? <Spin size="small" /> : <ReloadOutlined style={{ color: "#F59E0B" }} />,
                                             label: (
                                                 <span onClick={() => resendProcess(record)}>
                                                     Gửi lại yêu cầu phê duyệt
