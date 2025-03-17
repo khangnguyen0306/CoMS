@@ -5,7 +5,7 @@ import { BE_API_LOCAL } from "../config/config";
 
 export const ContractAPI = createApi({
     reducerPath: "contractManagement",
-    tagTypes: ["Contract", "Compare", "ContractType"],
+    tagTypes: ["Contract", "Compare", "ContractType", "PartnerContract"],
     baseQuery: fetchBaseQuery({
         baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
@@ -57,6 +57,7 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
+
         getContractPorcess: builder.query({
             query: () => ({
                 url: `contracts?status=CREATED`,
@@ -64,9 +65,17 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
+
         getContractReject: builder.query({
             query: () => ({
                 url: `contracts?status=REJECTED`,
+                method: "GET"
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
+        getContractUpdate: builder.query({
+            query: () => ({
+                url: `contracts?status=UPDATED`,
                 method: "GET"
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
@@ -151,7 +160,7 @@ export const ContractAPI = createApi({
 
         deleteContract: builder.mutation({
             query: (contractId) => ({
-                url: `/contracts/${contractId}`, // Use contractId instead of doctorId
+                url: `/contracts/${contractId}`,
                 method: "DELETE",
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
@@ -169,6 +178,18 @@ export const ContractAPI = createApi({
                 method: "GET",
             }),
             providesTags: (result, error, Compare) => [{ type: "Compare", id: Compare }],
+        }),
+
+        getContractByPartnerId: builder.query({
+            query: (params) => ({
+                url: `contracts/partner/${params.partnerId}`,
+                params: {
+                    page: params?.page,
+                    size: params?.size
+                },
+                method: "GET",
+            }),
+            providesTags: (result, error, partnerId) => [{ type: "PartnerContract", id: partnerId }],
         }),
 
         // getPartnerInfoDetail: builder.query({
@@ -227,7 +248,8 @@ export const {
     useGetContractPorcessQuery,
     useGetContractRejectQuery,
     useGetDataContractCompareVersionQuery,
-    useGetContractUpdateQuery,
+    useGetContractByPartnerIdQuery,
+useGetContractUpdateQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

@@ -63,11 +63,8 @@ const ReviewContract = () => {
 
     return (
         <div className='container mx-auto min-h-[100vh]'>
-            <p
-                className='font-bold text-[34px] flex justify-center pb-7 bg-custom-gradient bg-clip-text text-transparent'
-                style={{ textShadow: '0 0 8px rgba(0, 0, 0, 0.1' }}
-            >
-                XEM TRƯỚC HỢP ĐỒNG
+            <p className='font-bold text-[34px] justify-self-center pb-9 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                THÔNG TIN PHÊ DUYỆT
             </p>
             {/* Nội dung chính */}
             <Row gutter={[16, 16]}>
@@ -84,8 +81,11 @@ const ReviewContract = () => {
                     >
                         <Card className="p-6 mb-6 shadow-lg relative"
                             title={
-                                <p className="text-lg break-words text-blue-600">  {contract?.title.toUpperCase() || "Chưa cập nhật"} - {contract?.contractNumber || "Chưa cập nhật"}
-                                </p>
+                                <div>
+                                    <p className="text-base font-bold mb-3" >Hợp đồng phê duyệt</p>
+                                    <p className="text-lg break-words text-blue-600">  {contract?.title.toUpperCase() || "Chưa cập nhật"} <span className="text-red-800">---</span> {contract?.contractNumber || "Chưa cập nhật"}
+                                    </p>
+                                </div>
                             }
                         >
                             <Tag className="w-fit top-4 right-4 absolute">
@@ -108,31 +108,14 @@ const ReviewContract = () => {
                                     </Text>
                                     <div>
                                         <Text strong className="">Đối Tác:</Text>
-                                        <Text className="ml-2">{contract?.party?.partnerName || "Chưa cập nhật"}</Text>
+                                        <Text className="ml-2">{contract?.partner?.partnerName || "Chưa cập nhật"}</Text>
                                     </div>
                                     <div>
-                                        <Text strong className="">Giá Trị:</Text>
+                                        <Text strong className="">Tổng giá Trị:</Text>
                                         <Text className="ml-2">
                                             {contract?.amount?.toLocaleString() || "Chưa cập nhật"} VND
                                         </Text>
                                     </div>
-                                    {/* 
-                                    <div>
-                                        <Text strong className="">Ngày Hiệu lực:</Text>
-                                        <Text className="ml-2">
-                                            {contract?.effectiveDate
-                                                ? new Date(...contract.effectiveDate).toLocaleString()
-                                                : "Chưa cập nhật"}
-                                        </Text>
-                                    </div>
-                                    <div>
-                                        <Text strong className="">Ngày Hết Hạn:</Text>
-                                        <Text className="ml-2">
-                                            {contract?.expiryDate
-                                                ? new Date(...contract.expiryDate).toLocaleString()
-                                                : "Chưa cập nhật"}
-                                        </Text>
-                                    </div> */}
                                     <div>
                                         <Text strong className="">Ngày Ký:</Text>
                                         <Text className="ml-2">
@@ -178,25 +161,47 @@ const ReviewContract = () => {
                         <Timeline mode="left" className="-mb-14">
                             {stages?.map((stage) => (
                                 <Timeline.Item
-                                    children={stage.approverName}
+                                    children={
+                                        <div className="min-h-[50px]">
+                                            {stage.approverName}
+                                        </div>
+                                    }
                                     label={
-                                        stage.status === "APPROVING"
-                                            ? `${new Date(
-                                                stage.startDate[0],
-                                                stage.startDate[1] - 1,
-                                                stage.startDate[2]
-                                            ).toLocaleDateString("vi-VN")} - ${new Date(
-                                                stage.endDate[0],
-                                                stage.endDate[1] - 1,
-                                                stage.endDate[2]
-                                            ).toLocaleDateString("vi-VN")}`
-                                            : stage.status === "APPROVED" && stage.approvedAt
-                                                ? new Date(
-                                                    stage.approvedAt[0],
-                                                    stage.approvedAt[1] - 1,
-                                                    stage.approvedAt[2]
-                                                ).toLocaleDateString("vi-VN")
-                                                : ""
+                                        <div>
+                                            {
+                                                stage.status === "APPROVING"
+                                                    ? <div className="flex flex-col justify-center items-center">
+                                                        <p className="text-[12px]">
+                                                            {new Date(
+                                                                stage.startDate[0],
+                                                                stage.startDate[1] - 1,
+                                                                stage.startDate[2]
+                                                            ).toLocaleDateString("vi-VN")} -
+                                                            {new Date(
+                                                                stage.endDate[0],
+                                                                stage.endDate[1] - 1,
+                                                                stage.endDate[2]
+                                                            ).toLocaleDateString("vi-VN")}
+                                                        </p>
+                                                        <Tag color="gold-inverse" className="w-fit">Đang phê duyệt</Tag>
+                                                    </div>
+                                                    : stage.status === "APPROVED" && stage.approvedAt
+                                                        ?
+                                                        <div className="flex flex-col justify-center items-center">
+                                                            <p className="text-[12px]">
+                                                                {
+                                                                    new Date(
+                                                                        stage.approvedAt[0],
+                                                                        stage.approvedAt[1] - 1,
+                                                                        stage.approvedAt[2]
+                                                                    ).toLocaleDateString("vi-VN")
+                                                                }
+                                                            </p>
+                                                            <Tag color="green-inverse" className="w-fit">Đã duyệt</Tag>
+                                                        </div>
+                                                        : ""
+                                            }
+                                        </div>
                                     }
                                     dot={
                                         stage.status === "APPROVING" ? (

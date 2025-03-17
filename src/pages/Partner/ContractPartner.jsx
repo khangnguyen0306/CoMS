@@ -1,22 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Table, Tag, Space, Skeleton, Card, Empty, ConfigProvider } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { useGetContractByPartnerQuery } from '../../services/PartnerAPI';
+import { useGetContractByPartnerIdQuery } from '../../services/ContractAPI';
 import { Link } from 'react-router-dom';
 
 const ContractPartner = ({ partnerId }) => {
-    const { data: contractData, isLoading: isFetching, error: fetchError } = useGetContractByPartnerQuery(partnerId);
+    // Quản lý state
     const [searchText, setSearchText] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
 
+    // Gọi API với các tham số phân trang và tìm kiếm
+    const { 
+        data: partnerContractData, 
+        isLoading: isFetchingContractData, 
+        error: fetchErrorContractData, 
+        refetch: refetchContractData 
+    } = useGetContractByPartnerIdQuery({
+        partnerId: partnerId,
+        page: currentPage - 1, // API thường bắt đầu từ page 0
+        size: pageSize,
+        search: searchText,
+    });
 
-    const filteredData = contractData?.filter(contract =>
-        contract.contractName.toLowerCase().includes(searchText.toLowerCase()) ||
-        contract.signDate.includes(searchText) ||
-        contract.contractId.includes(searchText) ||
-        contract.expirationDate.includes(searchText) ||
-        contract.status.toLowerCase().includes(searchText.toLowerCase())
-    );
+    // Reset về trang 1 khi searchText thay đổi
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchText]);
 
+    // Xử lý sự kiện thay đổi trang hoặc kích thước trang
+    const handleTableChange = (pagination) => {
+        setCurrentPage(pagination.current);
+        setPageSize(pagination.pageSize);
+    };
+
+    // Định nghĩa bộ lọc trạng thái
     const statusFilters = [
         { text: 'Đã ký', value: 'Đã ký' },
         { text: 'Đang hiệu lực', value: 'Đang hiệu lực' },
@@ -25,6 +43,7 @@ const ContractPartner = ({ partnerId }) => {
         { text: 'Đang chờ ký', value: 'Đang chờ ký' },
     ];
 
+    // Định nghĩa cột của bảng
     const columns = [
         {
             title: 'Mã hợp đồng',
@@ -42,7 +61,7 @@ const ContractPartner = ({ partnerId }) => {
             title: 'Ngày ký',
             dataIndex: 'signDate',
             key: 'signDate',
-            sorter: (a, b) => new Date(a.signDate) - new Date(b.signDate),   ///////////////chưa format
+            sorter: (a, b) => new Date(a.signDate) - new Date(b.signDate),
         },
         {
             title: 'Trạng thái',
@@ -50,14 +69,14 @@ const ContractPartner = ({ partnerId }) => {
             key: 'status',
             render: status => (
                 <Tag color={status === 'Đang hiệu lực' ? 'green' :
-                    status === 'Đã hết hạn' ? 'red' :
-                        status === 'Đang chờ ký' ? 'blue' :
+                            status === 'Đã hết hạn' ? 'red' :
+                            status === 'Đang chờ ký' ? 'blue' :
                             status === 'Hết hiệu lực' ? 'orange' : 'default'}>
                     {status}
                 </Tag>
             ),
             filters: statusFilters,
-            onFilter: (value, record) => record.status.includes(value),
+            // Giữ filters nhưng không dùng onFilter để tương thích server-side sau này
         },
         {
             title: 'Giá trị',
@@ -70,12 +89,17 @@ const ContractPartner = ({ partnerId }) => {
             title: 'Ngày hết hạn',
             dataIndex: 'expirationDate',
             key: 'expirationDate',
-            sorter: (a, b) => new Date(a.expirationDate) - new Date(b.expirationDate),    ///////////////chưa format
+            sorter: (a, b) => new Date(a.expirationDate) - new Date(b.expirationDate),
         },
     ];
 
-    if (isFetching) return <Skeleton active />;
-    if (fetchError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+    // Xử lý trạng thái loading và error
+    if (isFetchingContractData) return <Skeleton active />;
+    if (fetchErrorContractData) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+
+    // Sắp xếp dữ liệu theo ngày ký giảm dần (mặc định)
+    const sortedData = (partnerContractData?.content || []).sort((a, b) => new Date(b.signDate) - new Date(a.signDate));
+
     return (
         <div>
             <Space style={{ marginBottom: 16 }} className='w-full'>
@@ -91,22 +115,28 @@ const ContractPartner = ({ partnerId }) => {
                 theme={{
                     components: {
                         Table: {
-                            headerBg:'#2196f3',
-                            headerSortActiveBg:"#44b1ff",
-                            headerFilterHoverBg:"#44b1ff",
-                            headerSortHoverBg:"#44b1ff",
-                            headerColor:"#fff"
+                            headerBg: '#2196f3',
+                            headerSortActiveBg: "#44b1ff",
+                            headerFilterHoverBg: "#44b1ff",
+                            headerSortHoverBg: "#44b1ff",
+                            headerColor: "#fff"
                         },
                     },
                 }}
             >
-
-
                 <Table
-                    dataSource={filteredData.sort((a, b) => new Date(b.signDate) - new Date(a.signDate))}
+                    dataSource={sortedData}
                     columns={columns}
                     rowKey="contractId"
                     bordered
+                    pagination={{
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: partnerContractData?.totalElements || 0,
+                        showSizeChanger: true,
+                        pageSizeOptions: ['10', '20', '50', '100'],
+                    }}
+                    onChange={handleTableChange}
                 />
             </ConfigProvider>
         </div>

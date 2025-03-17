@@ -69,12 +69,12 @@ const RealTimeNotification = () => {
             },
             reconnectDelay: 5000,
             debug: (str) => {
-                console.log("WebSocket debug:", str);
+                // console.log("WebSocket debug:", str);
             },
         });
 
         stompClient.onConnect = (frame) => {
-            console.log("Connected: ", frame);
+            // console.log("Connected: ", frame);
 
             stompClient.subscribe(`/user/${user.fullName}/queue/payment`, (message) => {
                 if (message.body) {

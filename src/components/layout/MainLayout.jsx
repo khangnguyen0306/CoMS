@@ -76,6 +76,8 @@ const MainLayout = () => {
         });
         navigate("/login");
       },
+      okText:"Đăng xuất",
+      cancelText:"Hủy"
     });
   }, [dispatch, navigate]);
 

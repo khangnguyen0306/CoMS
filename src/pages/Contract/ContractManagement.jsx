@@ -92,19 +92,19 @@ const ManageContracts = () => {
     };
 
     const statusContract = {
-        'DRAFT': <Tag style={{ backgroundColor: generateColor(statusToId['DRAFT']) }}>Đang tạo</Tag>,
-        'CREATED': <Tag style={{ backgroundColor: generateColor(statusToId['CREATED']) }}>Đã tạo</Tag>,
-        'APPROVAL_PENDING': <Tag style={{ backgroundColor: generateColor(statusToId['APPROVAL_PENDING']) }}>Chờ phê duyệt</Tag>,
-        'APPROVED': <Tag style={{ backgroundColor: generateColor(statusToId['APPROVED']) }}>Chờ ký</Tag>,
-        'UPDATED': <Tag style={{ backgroundColor: generateColor(statusToId['UPDATED']) }}>Đã cập nhật</Tag>,
-        'PENDING': <Tag style={{ backgroundColor: generateColor(statusToId['PENDING']) }}>Đang chờ</Tag>,
-        'REJECTED': <Tag style={{ backgroundColor: generateColor(statusToId['REJECTED']) }}>Từ chối</Tag>,
-        'SIGNED': <Tag style={{ backgroundColor: generateColor(statusToId['SIGNED']) }}>Đã ký</Tag>,
-        'ACTIVE': <Tag style={{ backgroundColor: generateColor(statusToId['ACTIVE']) }}>Đang hiệu lực</Tag>,
-        'COMPLETED': <Tag style={{ backgroundColor: generateColor(statusToId['COMPLETED']) }}>Hoàn thành</Tag>,
-        'EXPIRED': <Tag style={{ backgroundColor: generateColor(statusToId['EXPIRED']) }}>Hết hiệu lực</Tag>,
-        'CANCELLED': <Tag style={{ backgroundColor: generateColor(statusToId['CANCELLED']) }}>Đã hủy</Tag>,
-        'ENDED': <Tag style={{ backgroundColor: generateColor(statusToId['ENDED']) }}>Đã kết thúc</Tag>
+        'DRAFT': <Tag color="default">Đang tạo</Tag>,
+        'CREATED': <Tag color="default">Đã tạo</Tag>,
+        'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
+        'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
+        'UPDATED': <Tag color="success">Đã cập nhật</Tag>,
+        'PENDING': <Tag color="warning">Đang chờ</Tag>,
+        'REJECTED': <Tag color="red">Từ chối</Tag>,
+        'SIGNED': <Tag color="geekblue">Đã ký</Tag>,
+        'ACTIVE': <Tag color="processing">Đang hiệu lực</Tag>,
+        'COMPLETED': <Tag color="success">Hoàn thành</Tag>,
+        'EXPIRED': <Tag color="red">Hết hiệu lực</Tag>,
+        'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
+        'ENDED': <Tag color="default">Đã kết thúc</Tag>
     };
     const columns = [
         {
