@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { selectTokens } from "../slices/authSlice";
-// import { BE_API_LOCAL } from "../config";
+import { BE_API_LOCAL } from "../config/config";
+
 
 export const bussinessAPI = createApi({
     reducerPath: "bussinessManagement",
-    tagTypes: [],
+    tagTypes: ["Bussiness", "dashboard"],
     baseQuery: fetchBaseQuery({
-        baseUrl: "https://mocki.io/v1/",
+        baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
             const token = selectTokens(getState());
             if (token) {
@@ -17,21 +18,23 @@ export const bussinessAPI = createApi({
         },
     }),
     endpoints: (builder) => ({
-        // getAllDoctor: builder.query({
-        //     query: () => `/getlist`,
-        //     providesTags: (result) =>
-        //         result
-        //             ? result.data.map(({ id }) => ({ type: "DoctorList", id }))
-        //             : [{ type: "DoctorList", id: "LIST" }],
-        // }),
-
         getBussinessInformatin: builder.query({
             query: () => ({
-                url: `6219a6ba-6297-4291-bad1-9ad89ede566b`,
+                url: `parties/get-by-id/${1}`,
                 method: "GET",
             }),
-            keepUnusedDataFor: 60 * 5,
-            providesTags: (result, error, bsInformation) => [{ type: "DoctorList", id: bsInformation }],
+            providesTags: (result, error, Bussiness) => [{ type: "Bussiness", id: Bussiness }],
+        }),
+
+        getDashboardata: builder.query({
+            query: (params) => ({
+                url: `dashboard/statistics`,
+                params: {
+                    year: params.year
+                },
+                method: "GET",
+            }),
+            providesTags: (result, error, dashboard) => [{ type: "dashboard", id: dashboard }],
         }),
 
         // createDoctor: builder.mutation({
@@ -64,5 +67,6 @@ export const bussinessAPI = createApi({
 });
 
 export const {
-    useGetBussinessInformatinQuery
+    useGetBussinessInformatinQuery,
+    useGetDashboardataQuery
 } = bussinessAPI;

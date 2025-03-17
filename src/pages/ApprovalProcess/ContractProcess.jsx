@@ -278,7 +278,7 @@ const ContractProcess = () => {
                     title="Chi tiết bản ghi"
                     width={"80%"}
                     footer={null}
-                    visible={isModalVisible}
+                    open={isModalVisible}
                     onOk={handleOk}
                     onCancel={handleCancel}
                 >

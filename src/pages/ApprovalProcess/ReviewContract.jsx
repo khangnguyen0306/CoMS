@@ -158,7 +158,7 @@ const ReviewContract = () => {
                         }}
                     >
                         <p className="mx-3 text-base font-bold mb-6" >Danh Sách Phê Duyệt</p>
-                        <Timeline mode="left" className="-mb-14">
+                        <Timeline mode="left" className="mb-14">
                             {stages?.map((stage) => (
                                 <Timeline.Item
                                     children={
@@ -167,7 +167,7 @@ const ReviewContract = () => {
                                         </div>
                                     }
                                     label={
-                                        <div>
+                                        <div className="w-full">
                                             {
                                                 stage.status === "APPROVING"
                                                     ? <div className="flex flex-col justify-center items-center">
@@ -183,7 +183,7 @@ const ReviewContract = () => {
                                                                 stage.endDate[2]
                                                             ).toLocaleDateString("vi-VN")}
                                                         </p>
-                                                        <Tag color="gold-inverse" className="w-fit">Đang phê duyệt</Tag>
+                                                        <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
                                                     </div>
                                                     : stage.status === "APPROVED" && stage.approvedAt
                                                         ?
@@ -197,7 +197,7 @@ const ReviewContract = () => {
                                                                     ).toLocaleDateString("vi-VN")
                                                                 }
                                                             </p>
-                                                            <Tag color="green-inverse" className="w-fit">Đã duyệt</Tag>
+                                                            <Tag color="green-inverse" className="w-fit mr-0">Đã duyệt</Tag>
                                                         </div>
                                                         : ""
                                             }

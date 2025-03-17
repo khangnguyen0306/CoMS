@@ -3,16 +3,15 @@ import { useParams } from 'react-router-dom'
 import { useGetDataContractCompareVersionQuery } from '../../services/ContractAPI'
 import { Col, Row, Tag } from 'antd'
 import { useSelector } from 'react-redux'
-import { formatSigningDate } from '../../utils/ConvertTime'
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI'
-
+import { diffWords } from 'diff';
 const Compare = () => {
     const { contractId } = useParams()
     const { nowVersion } = useParams()
     const { preVersion } = useParams()
     const { data: process } = useGetDataContractCompareVersionQuery({ contractId, version1: nowVersion, version2: preVersion });
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-    console.log(process);
+
 
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     if (!process || process.length < 2) {
@@ -21,7 +20,22 @@ const Compare = () => {
 
     const v1 = process[0]; // Version 14
     const v2 = process[1]; // Version 15
-    console.log(v1);
+
+
+
+    const highlightDifferences = (content1, content2) => {
+        const differences = diffWords(content1, content2);
+
+        return differences
+            .map(part => {
+                if (part.added) {
+                    return `<span style="background: #fde047">${part.value}</span>`;
+                }
+                return part.value;
+            })
+            .join('');
+    };
+
 
     // Hàm định dạng ngày từ mảng sang chuỗi
     const formatDate = (dateArray) => {
@@ -30,81 +44,30 @@ const Compare = () => {
         return `Ngày ${day.toString().padStart(2, '0')} tháng ${month.toString().padStart(2, '0')} năm ${year}`;
     };
 
-    const formatDateWithTime = (dateArray) => {
-        if (!dateArray) return 'N/A';
-        const [year, month, day, hour, minute] = dateArray;
-        return `Ngày ${day.toString().padStart(2, '0')} tháng ${month.toString().padStart(2, '0')} năm ${year}- ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    };
-
     // Hàm so sánh hai giá trị
     const isDifferent = (val1, val2) => {
+        // Nếu một trong hai là null (và khác nhau) -> khác biệt
+        if (val1 === null || val2 === null) return val1 !== val2;
+
+        // Nếu là mảng, so sánh từng phần tử
         if (Array.isArray(val1) && Array.isArray(val2)) {
-            return JSON.stringify(val1) !== JSON.stringify(val2);
+            if (val1.length !== val2.length) return true; // Nếu độ dài khác nhau -> khác biệt
+            return val1.some((item, index) => isDifferent(item, val2[index])); // Kiểm tra từng phần tử
         }
-        if (typeof val1 === 'object' && typeof val2 === 'object' && val1 !== null && val2 !== null) {
-            return JSON.stringify(val1) !== JSON.stringify(val2);
+
+        // Nếu là object, so sánh số lượng key và từng value
+        if (typeof val1 === 'object' && typeof val2 === 'object') {
+            const keys1 = Object.keys(val1);
+            const keys2 = Object.keys(val2);
+            if (keys1.length !== keys2.length) return true; // Nếu số key khác nhau -> khác biệt
+            return keys1.some(key => isDifferent(val1[key], val2[key])); // Kiểm tra từng giá trị
         }
+
+        // So sánh giá trị thông thường (number, string, boolean,...)
         return val1 !== val2;
     };
 
-    // Danh sách các trường để hiển thị
-    const fields = [
-        { key: 'id', label: 'ID' },
-        { key: 'title', label: 'Tiêu đề' },
-        { key: 'contractNumber', label: 'Số hợp đồng' },
-        { key: 'status', label: 'Trạng thái' },
-        { key: 'createdAt', label: 'Ngày tạo', format: formatDate },
-        { key: 'updatedAt', label: 'Ngày cập nhật', format: formatDate },
-        { key: 'signingDate', label: 'Ngày ký', format: formatDate },
-        { key: 'contractLocation', label: 'Địa điểm hợp đồng' },
-        { key: 'amount', label: 'Số tiền' },
-        { key: 'contractTypeId', label: 'Loại hợp đồng' },
-        { key: 'effectiveDate', label: 'Ngày hiệu lực', format: formatDate },
-        { key: 'expiryDate', label: 'Ngày hết hạn', format: formatDate },
-        { key: 'notifyEffectiveDate', label: 'Ngày thông báo hiệu lực', format: formatDate },
-        { key: 'notifyExpiryDate', label: 'Ngày thông báo hết hạn', format: formatDate },
-        { key: 'notifyEffectiveContent', label: 'Nội dung thông báo hiệu lực' },
-        { key: 'notifyExpiryContent', label: 'Nội dung thông báo hết hạn' },
-        { key: 'specialTermsA', label: 'Điều khoản đặc biệt A' },
-        { key: 'specialTermsB', label: 'Điều khoản đặc biệt B' },
-        { key: 'contractContent', label: 'Nội dung hợp đồng' },
-        { key: 'appendixEnabled', label: 'Cho phép phụ lục' },
-        { key: 'transferEnabled', label: 'Cho phép chuyển nhượng' },
-        { key: 'autoAddVAT', label: 'Tự động thêm VAT' },
-        { key: 'vatPercentage', label: 'Phần trăm VAT' },
-        { key: 'isDateLateChecked', label: 'Kiểm tra ngày trễ' },
-        { key: 'maxDateLate', label: 'Số ngày trễ tối đa' },
-        { key: 'autoRenew', label: 'Tự động gia hạn' },
-        { key: 'violate', label: 'Vi phạm' },
-        { key: 'suspend', label: 'Tạm ngưng' },
-        { key: 'suspendContent', label: 'Nội dung tạm ngưng' },
-        { key: 'version', label: 'Phiên bản' },
-        { key: 'originalContractId', label: 'ID hợp đồng gốc' },
-    ];
 
-    // Tìm các trường khác nhau
-    const differences = fields.filter(field => isDifferent(v1[field.key], v2[field.key]));
-
-    // So sánh đối tượng user
-    const userDifferences = Object.keys(v1.user).filter(key => isDifferent(v1.user[key], v2.user[key]));
-
-    // So sánh đối tượng partner
-    const partnerDifferences = Object.keys(v1.partner).filter(key => isDifferent(v1.partner[key], v2.partner[key]));
-
-    // So sánh mảng legalBasisTerms
-    const legalBasisTermsDifferences = v1.legalBasisTerms.map((term, index) =>
-        isDifferent(term, v2.legalBasisTerms[index])
-    );
-
-    // So sánh mảng additionalTerms
-    const additionalTermsDifferences = v1.additionalTerms.map((term, index) =>
-        isDifferent(term, v2.additionalTerms[index])
-    );
-
-    // So sánh mảng paymentSchedules
-    const paymentSchedulesDifferences = v1.paymentSchedules.map((schedule, index) =>
-        isDifferent(schedule, v2.paymentSchedules[index])
-    );
 
     const findDifferences = () => {
         const ids1 = v1.legalBasisTerms.map(item => item.original_term_id);
@@ -252,18 +215,6 @@ const Compare = () => {
                                 <b>Email:</b> {v1?.partner.email}
                             </p>
                         </div>
-
-
-                        {/* <div className="pl-2">
-                    <p>
-                        Sau khi bàn bạc và thống nhất, chúng tôi cùng thỏa thuận ký kết hợp đồng với nội dung và các điều khoản sau:
-                    </p>
-                    <p className="font-bold text-lg mt-4 mb-3"><u>NỘI DUNG HỢP ĐỒNG</u></p>
-                    <div
-                        className="ml-1"
-                        dangerouslySetInnerHTML={{ __html: contractData.data.contractContent || "Chưa nhập" }}
-                    />
-                </div> */}
                     </Row>
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
@@ -274,7 +225,11 @@ const Compare = () => {
                             </div>
                         ))}
                     </div>
-
+                    <p className="font-semibold mt-4 mb-3"><u>2. NỘI DUNG HỢP ĐỒNG</u></p>
+                    <div
+                        className="ml-1"
+                        dangerouslySetInnerHTML={{ __html: v1.contractContent || "Chưa nhập" }}
+                    />
                     {/* PaymentSchedules */}
                     <div className="mt-4">
                         <h3 className="font-semibold">GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
@@ -293,13 +248,13 @@ const Compare = () => {
                                 - Hợp đồng sẽ tự gia hạn khi hết hạn nếu không có bất kỳ thông báo nào từ 2 bên
                             </p>
                         )}
-
+                        <p><b className={`mb-3 `}>
+                            Số lần thanh toán:</b> {v1.paymentSchedules?.length}
+                        </p>
                         {v1.paymentSchedules.map((schedule, index) => {
                             const v2Schedule = v2.paymentSchedules[index] || {};
                             return (
                                 <div key={index} className="p-4 mb-4 rounded">
-                                    <p><b className={`mb-3 `}>
-                                        Số lần thanh toán:</b> {v1.paymentSchedules?.length}</p>
                                     <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
                                     <div className='ml-3'>
                                         <p>
@@ -482,7 +437,7 @@ const Compare = () => {
                     </Row>
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
-                        <h3 className="font-semibold text-lg">Căn cứ pháp lý</h3>
+                        <h3 className="font-semibold"><u>1. Căn cứ pháp lý</u></h3>
                         {differencesLegalBasic.unchanged.map((term, index) => (
                             <div >
                                 <p>- <i>{term.value}</i></p>
@@ -499,9 +454,15 @@ const Compare = () => {
                             </div>
                         ))}
                     </div>
+
+                    <p className="font-semibold mt-4 mb-3"><u>2. NỘI DUNG HỢP ĐỒNG</u></p>
+                    <div
+                        className="ml-1"
+                        dangerouslySetInnerHTML={{ __html: highlightDifferences(v1.contractContent, v2.contractContent) || "Chưa nhập" }}
+                    />
                     {/* PaymentSchedules */}
                     <div className="mt-4">
-                        <h3 className="font-semibold">GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
+                        <h3 className="font-semibold">3. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
                         {v2.autoAddVAT && (
                             <p className={`py-1 ${(isDifferent(v1.autoAddVAT, v2.autoAddVAT) || (isDifferent(v1.vatPercentage, v2.vatPercentage))) ? 'bg-yellow-300 px-1' : ''}`}>
                                 <b>- Thêm phí VAT: </b> {v2?.vatPercentage} %
@@ -517,37 +478,37 @@ const Compare = () => {
                                 - Hợp đồng sẽ tự gia hạn khi hết hạn nếu không có bất kỳ thông báo nào từ 2 bên
                             </p>
                         )}
-
+                        <p className={`mb-3 ${isDifferent(v1.paymentSchedules.length, v2.paymentSchedules.length) ? 'bg-yellow-300 px-1' : ''}`}><b >
+                            -  Số lần thanh toán:</b> {v2.paymentSchedules?.length}
+                        </p>
                         {v2.paymentSchedules.map((schedule, index) => {
-                            const v2Schedule = v2.paymentSchedules[index] || {};
+                            const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === schedule.paymentOrder) || {};
+
                             return (
-                                <div key={index} className="p-4 mb-4 rounded">
-                                    <p><b className={`mb-3 ${isDifferent(schedule.amount, v2Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
-                                        Số lần thanh toán:</b> {v2.paymentSchedules?.length}</p>
+                                <div key={index} className="p-4  rounded">
                                     <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
                                     <div className='ml-3'>
-                                        <p>
+                                        <p className={`${isDifferent(schedule.amount, v1Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
                                             <strong>Số tiền: </strong>
-                                            <span className={`${isDifferent(schedule.amount, v2Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span >
                                                 {schedule.amount} VNĐ
                                             </span>
                                         </p>
-                                        <p>
+                                        <p className={`${isDifferent(schedule.notifyPaymentDate, v1Schedule.notifyPaymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
                                             <strong>Ngày thông báo thanh toán:</strong>
-                                            <span className={`${isDifferent(schedule.notifyPaymentDate, v2Schedule.notifyPaymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span >
                                                 {formatDate(schedule.notifyPaymentDate)}
                                             </span>
                                         </p>
-                                        <p>
+                                        <p className={`${isDifferent(schedule.paymentDate, v1Schedule.paymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
                                             <strong>Ngày thanh toán:</strong>
-                                            <span className={`
-                                                ${isDifferent(schedule.paymentDate, v2Schedule.paymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span >
                                                 {formatDate(schedule.paymentDate)}
                                             </span>
                                         </p>
-                                        <p>
+                                        <p className={`${isDifferent(schedule.paymentMethod, v1Schedule.paymentMethod) ? 'bg-yellow-300 px-1' : ''}`}>
                                             <strong>Phương thức thanh toán: </strong>
-                                            <span className={`${isDifferent(schedule.paymentMethod, v2Schedule.paymentMethod) ? 'bg-yellow-300 px-1' : ''}`}>
+                                            <span >
                                                 {schedule.paymentMethod}
                                             </span>
                                         </p>
@@ -558,7 +519,7 @@ const Compare = () => {
                     </div>
                     {/* AdditionalConfig */}
                     <div>
-                        <h3 className="font-semibold ">ĐIỀU KHOẢN</h3>
+                        <h3 className="font-semibold ">4. ĐIỀU KHOẢN</h3>
                         {Object.keys(compareTerm).map((key) => {
                             const { Common, A, B } = compareTerm[key];
                             return (
@@ -617,7 +578,7 @@ const Compare = () => {
                     </div>
                     {(v2.appendixEnabled === true || v2.violate === true || v2.transferEnabled === true || v2.suspend == true) && (
                         <div>
-                            <h1 className='font-semibold'>PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
+                            <h1 className='font-semibold'>5. PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
                             {v2.appendixEnabled && (
                                 <p className={`py-1   ${(isDifferent(v1.appendixEnabled, v2.appendixEnabled))
                                     ? 'bg-yellow-300 px-1' : ''}`}>
