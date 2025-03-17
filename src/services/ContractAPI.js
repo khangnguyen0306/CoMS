@@ -247,7 +247,7 @@ export const {
     useUpdateContractMutation,
     useGetContractPorcessQuery,
     useGetContractRejectQuery,
-    useGetDataContractCompareVersionQuery,,
+    useGetDataContractCompareVersionQuery,
     useGetContractByPartnerIdQuery,
 useGetContractUpdateQuery,
     // useGetContractByPartnerQuery
