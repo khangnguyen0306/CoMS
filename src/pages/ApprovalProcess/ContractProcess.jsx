@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider } from "antd";
-import { useGetContractPorcessQuery, useGetContractRejectQuery } from "../../services/ContractAPI";
+import { useGetContractPorcessQuery, useGetContractRejectQuery, useGetContractUpdateQuery } from "../../services/ContractAPI";
 import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
 import dayjs from "dayjs";
 import { CheckCircleFilled, EditFilled, ReloadOutlined, SettingOutlined } from "@ant-design/icons";
+import { useResubmitProcessMutation } from "../../services/ProcessAPI";
 const { Search } = Input;
 
 const ContractProcess = () => {
     const { data: contractsProcess, isLoading, isError, refetch } = useGetContractPorcessQuery();
     const { data: contractsReject, isLoadingReject, isErrorReject, refetch: refetchReject } = useGetContractRejectQuery();
+    const { data: contractsUpdate, isLoadingUpdate, isErrorUpdate, refetch: refetchUpdate } = useGetContractUpdateQuery();
+    const [resubmitProcess, { isLoading: loadingResubmit }] = useResubmitProcessMutation();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
 
-    const contracts = contractsProcess?.data?.content?.concat(contractsReject?.data?.content);
-    
     useEffect(() => {
-        refetchReject()
-    }, [])
-
+        refetch();
+        refetchReject();
+        refetchUpdate();
+    }, []);
+    const contracts = contractsProcess?.data?.content
+        ?.concat(contractsReject?.data?.content || [])
+        .concat(contractsUpdate?.data?.content || []);
     console.log(contracts);
     const navigate = useNavigate();
     const showModal = (record) => {
@@ -35,17 +40,29 @@ const ContractProcess = () => {
     const handleCancel = () => {
         setIsModalVisible(false);
         setSelectedRecord(null);
+        refetch();
+        refetchReject();
+        refetchUpdate();
     };
-    const resendProcess = (record) => {
-        console.log(record);
+    const resendProcess = async (record) => {
+        try {
+            await resubmitProcess({ contractId: record.id });
+            refetch();
+            refetchReject();
+            refetchUpdate();
+            message.success("Gửi lại yêu cầu phê duyệt thành công");
+        } catch (error) {
+            console.error("Lỗi khi gửi lại yêu cầu:", error);
+            message.error("Gửi lại yêu cầu phê duyệt thất bại. Vui lòng thử lại!");
+        }
     };
 
 
     const columns = [
         {
             title: "MHĐ",
-            dataIndex: "id",
-            key: "id",
+            dataIndex: "contractNumber",
+            key: "contractNumber",
             width: "8%",
         },
         {
@@ -89,7 +106,7 @@ const ContractProcess = () => {
                             {text}
                         </Link>
                     );
-                } else if (record.status === "CREATED") {
+                } else if (record.status === "CREATED" || record.status === "UPDATED") {
                     return (
                         <span className="block truncate max-w-[200px]" title={text}>
                             {text}
@@ -127,13 +144,23 @@ const ContractProcess = () => {
             filters: [
                 { text: "Đã tạo", value: "CREATED" },
                 { text: "Chưa được duyệt", value: "REJECTED" },
+                { text: "Đã cập nhật", value: "UPDATED" },
             ],
             onFilter: (value, record) => record.status === value,
-            render: (status) => (
-                <Tag color={status === "REJECTED" ? "red" : "green"}>
-                    {status === "REJECTED" ? "Chưa được duyệt" : "Đã tạo"}
-                </Tag>
-            ),
+            render: (status) => {
+                let color = "green";
+                let text = "Đã tạo";
+
+                if (status === "REJECTED") {
+                    color = "red";
+                    text = "Chưa được duyệt";
+                } else if (status === "UPDATED") {
+                    color = "blue";
+                    text = "Đã cập nhật";
+                }
+
+                return <Tag color={color}>{text}</Tag>;
+            },
         },
 
 
@@ -155,7 +182,7 @@ const ContractProcess = () => {
                             ? [
                                 {
                                     key: "resend-process",
-                                    icon: <ReloadOutlined style={{ color: "#F59E0B" }} />, // Màu vàng cho nút gửi lại
+                                    icon: loadingResubmit ? <Spin size="small" /> : <ReloadOutlined style={{ color: "#F59E0B" }} />,
                                     label: (
                                         <span onClick={() => resendProcess(record)}>
                                             Gửi lại yêu cầu phê duyệt
@@ -183,16 +210,31 @@ const ContractProcess = () => {
                                         </span>
                                     ),
                                 },
-                                {
-                                    key: "select-process",
-                                    icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
-                                    label: (
-                                        <span onClick={() => showModal(record)}>
-                                            Yêu cầu phê duyệt
-                                        </span>
-                                    ),
-                                },
-                            ],
+                                ...(record?.approvalWorkflowId == null
+                                    ? [
+                                        {
+                                            key: "select-process",
+                                            icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                            label: (
+                                                <span onClick={() => showModal(record)}>
+                                                    Yêu cầu phê duyệt
+                                                </span>
+                                            ),
+                                        },
+                                    ]
+                                    : [
+                                        {
+                                            key: "resend-process",
+                                            icon: loadingResubmit ? <Spin size="small" /> : <ReloadOutlined style={{ color: "#F59E0B" }} />,
+                                            label: (
+                                                <span onClick={() => resendProcess(record)}>
+                                                    Gửi lại yêu cầu phê duyệt
+                                                </span>
+                                            ),
+                                        },
+                                    ]),
+                            ]
+
                     }} trigger={["hover"]}>
                         <Button icon={<SettingOutlined />} />
                     </Dropdown>

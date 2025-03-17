@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, Button, message, Typography, Space, Skeleton, DatePicker } from "antd";
+import { Modal, Form, Input, Button, message, Typography, Space, Skeleton, DatePicker, Select } from "antd";
 import { useParams } from "react-router-dom";
 import { useGetUserByIdQuery, useUpdateUserMutation } from "../../services/UserAPI";
 import LOGO from './../../assets/Image/letterC.svg'
 import dayjs from 'dayjs';
+import { useGetDepartmentsQuery } from "../../services/Department";
 
 const { Title } = Typography;
 
@@ -11,26 +12,29 @@ const { Title } = Typography;
 // làm lại
 const Profile = () => {
     const { id } = useParams();
-    const { data, isLoading } = useGetUserByIdQuery({ id });    
+    const { data, isLoading } = useGetUserByIdQuery({ id });
+    const { data: departmentData, error, isLoading: DepartmentLoading, refetch: DepartmentRefetch } = useGetDepartmentsQuery();
+
     const [updateUser] = useUpdateUserMutation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
-    // console.log(data?.role.id)
+    console.log(departmentData.data.map((dept) => dept.departmentId))
     const handleUpdateClick = () => {
         // Set các giá trị hiện có vào form
         form.setFieldsValue({
             full_name: data?.full_name,
-            department: data?.position,
+            // department: data?.position,
+            department_id: data?.department?.id,
             date_of_birth: data?.date_of_birth ? dayjs(data.date_of_birth) : null,
             phone_number: data?.phone_number,
             address: data?.address,
             email: data?.email,
         });
         setIsModalOpen(true);
+        // console.log(form.getFieldValue('department_id'))
     };
 
     const handleOk = async () => {
-        console.log("Form values:");
         try {
             const values = await form.validateFields();
             console.log("Form values:", values);
@@ -39,8 +43,11 @@ const Profile = () => {
                 email: values.email,
                 address: values.address,
                 phone_number: values.phone_number,
-                date_of_birth: values.date_of_birth.format('YYYY-MM-DD'),
+                date_of_birth: values.date_of_birth
+                    ? values.date_of_birth.toISOString()
+                    : null,
                 full_name: values.full_name,
+                departmentId: values.department_id,
                 is_ceo: data.is_ceo,
                 role_id: data.role.id,
             }).unwrap();
@@ -130,9 +137,9 @@ const Profile = () => {
                     </div>
                     <div className="flex items-center">
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
-                            Phong Ban
+                            Phòng Ban
                         </span>
-                        <span className="text-gray-800 font-semibold text-lg"> : {data?.department ? data.department : "Chưa cập nhật"}</span>
+                        <span className="text-gray-800 font-semibold text-lg"> : {data?.department?.departmentName}</span>
                     </div>
                     <div className="flex items-center">
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
@@ -147,7 +154,7 @@ const Profile = () => {
                         className="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
                         onClick={handleUpdateClick}
                     >
-                        Update
+                        Cập nhật thông tin
                     </button>
                 </div>
             </div>
@@ -168,13 +175,20 @@ const Profile = () => {
                         >
                             <Input placeholder="Nhập họ và tên" />
                         </Form.Item>
-                        {/* <Form.Item
-                            name="department"
-                            label="Phòng ban"
-                            rules={[{ required: true, message: "Vui lòng nhập phòng ban!" }]}
+                        <Form.Item
+                            name="department_id"
+                            label="Chọn phòng ban"
+                            rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
                         >
-                            <Input placeholder="Nhập phòng ban" />
-                        </Form.Item> */}
+                            <Select placeholder="Chọn phòng ban">
+                                {departmentData?.data?.map((dept) => (
+                                    <Select.Option key={dept.departmentName} value={dept.departmentId}>
+                                        {dept.departmentName}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+
+                        </Form.Item>
                         <Form.Item
                             name="date_of_birth"
                             label="Năm Sinh"

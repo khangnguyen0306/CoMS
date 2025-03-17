@@ -13,7 +13,7 @@ import { FaHistory } from "react-icons/fa";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
-import { AiFillIdcard } from "react-icons/ai";
+import { AiFillIdcard, AiOutlineApartment } from "react-icons/ai";
 import { FaTasks } from "react-icons/fa";
 import { GoChecklist, GoLaw } from "react-icons/go";
 import { FaHandshakeSimple } from "react-icons/fa6";
@@ -59,6 +59,7 @@ const MainLayout = () => {
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
     'approvalContractStaff': '/approvalContract',
+    'department': '/admin/department',
     '4': '/combo',
   }
 
@@ -156,6 +157,7 @@ const MainLayout = () => {
     {
       icon: LuWaypoints, key: "workflow", label: 'Quy trình duyệt'
     },
+
     {
       icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
     },

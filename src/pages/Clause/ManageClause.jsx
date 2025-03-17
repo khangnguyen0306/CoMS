@@ -1,14 +1,15 @@
 // isDelete sẽ có 3 trạng thái : đang hoạt động, đã xóa(khi user xóa đk), đã cũ(khi user edit thì đk cũ sẽ chuyển sang trạng thái đã cũ và tạo đk mới)
 import React, { useState, useEffect } from 'react';
-import { Input, Button, Modal, List, Select, message, Skeleton, Card, Empty, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Pagination } from 'antd';
+import { Input, Button, Modal, List, Select, message, Skeleton, Card, Empty, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Pagination, Divider } from 'antd';
 import 'tailwindcss/tailwind.css';
-import { DeleteFilled, EditFilled } from '@ant-design/icons';
+import { DeleteFilled, EditFilled, EditOutlined } from '@ant-design/icons';
 import { GrUpdate } from "react-icons/gr";
 import { useGetClauseManageQuery } from '../../services/ClauseAPI';
 import { useGetAllTypeClauseQuery, useCreateClauseMutation, useUpdateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
 import TabPane from 'antd/es/tabs/TabPane';
 import dayjs from 'dayjs';
 import { FaSortDown, FaSortUp } from 'react-icons/fa';
+import { useGetContractTypeQuery, useEditContractTypeMutation, useCreateContractTypeMutation } from '../../services/ContractAPI';
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 const { Search } = Input;
@@ -31,6 +32,12 @@ const ManageClause = () => {
     const [isModalOpenLegal, setIsModalOpenLegal] = useState(false);
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
     const [isModalOpenAddLegal, setIsModalOpenAddLegal] = useState(false);
+
+    // const [searchTermContractType, setSearchTermContractType] = useState('');
+    const [isModalOpenAddContractType, setIsModalOpenAddContractType] = useState(false);
+    const [isModalOpenContractType, setIsModalOpenContractType] = useState(false);
+    const [currentContractType, setCurrentContractType] = useState(null);
+
     const { data: clauseData, isLoading: loadingClause, isError: DataError, refetch: refetchClause } = useGetClauseManageQuery({
         keyword: searchTermClause,
         typeTermIds: selectedType,
@@ -39,13 +46,17 @@ const ManageClause = () => {
         order: sortOrderClause,
         sortBy: sortByClause
     });
+
     const { data: legalData, isLoading: loadingLegal, refetch: refetchLegal } = useGetLegalQuery({ page: pageLegal, size: pageSizeLegal, keyword: searchTermLegal, order: sortOrderLegal });
+    const { data: typeContractData, isLoading: loadingTypeContract, refetch } = useGetContractTypeQuery();
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
+    const [createContractType, { isLoading: loadingCreateType }] = useCreateContractTypeMutation();
+    const [editContractType, { isLoading: loadingEdit }] = useEditContractTypeMutation();
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
-    console.log(typeData);
+    console.log(typeContractData);
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -168,6 +179,44 @@ const ManageClause = () => {
         form.resetFields();
         setSortOrderLegal('desc');
         setIsModalOpenAddLegal(true);
+    };
+    const handleEditContractType = (record) => {
+        setCurrentContractType(record);
+        form.setFieldsValue({ name: record.name });
+        setIsModalOpenContractType(true);
+    };
+
+    const handleAddContractType = () => {
+        form.resetFields();
+        setIsModalOpenAddContractType(true);
+    };
+
+    const handleOkAdd = async () => {
+        try {
+            const values = await form.validateFields();
+            console.log("Values sau validateFields:", values);
+            await createContractType(values).unwrap();
+            message.success("Thêm loại hợp đồng thành công!");
+            setIsModalOpenAddContractType(false);
+            refetch(); // Tải lại danh sách
+        } catch (error) {
+            console.error(error);
+            message.error("Thêm loại hợp đồng thất bại!");
+        }
+    };
+
+    const handleOkEdit = async () => {
+        try {
+            const values = await form.validateFields();
+            // Gọi API update
+            await editContractType({ id: currentContractType.id, ...values }).unwrap();
+            message.success("Cập nhật loại hợp đồng thành công!");
+            setIsModalOpenContractType(false);
+            refetch(); // Tải lại danh sách
+        } catch (error) {
+            console.error(error);
+            message.error("Cập nhật loại hợp đồng thất bại!");
+        }
     };
 
 
@@ -320,15 +369,15 @@ const ManageClause = () => {
                             </div>
                         </div>
                         <div className='flex justify-between w-full gap-4'>
-                          
+
                             <div className='flex gap-2 w-[80%]'>
-                            <Search
-                                placeholder="Tìm kiếm tên điều khoản"
-                                onSearch={setSearchTermClause}
-                                enterButton="tìm kiếm"
-                                allowClear
-                                className="mb-4 max-w-[350px]"
-                            />
+                                <Search
+                                    placeholder="Tìm kiếm tên điều khoản"
+                                    onSearch={setSearchTermClause}
+                                    enterButton="tìm kiếm"
+                                    allowClear
+                                    className="mb-4 max-w-[350px]"
+                                />
                                 <Select
                                     placeholder="Chọn loại điều khoản"
                                     value={selectedType}
@@ -872,6 +921,93 @@ const ManageClause = () => {
                         />
                     </div>
                 </TabPane>
+                <TabPane tab="Loại Hợp Đồng" key="3">
+                    <div className="p-6 min-h-[100vh] ">
+                        {/* Tiêu đề */}
+                        <div
+                            className="mb-10 text-center font-bold text-[34px] pb-7 bg-custom-gradient bg-clip-text text-transparent"
+                            style={{ textShadow: "8px 8px 8px rgba(0, 0, 0, 0.2)" }}
+                        >
+                            QUẢN LÝ LOẠI HỢP ĐỒNG
+                        </div>
+                        {/* Nút Thêm Loại Hợp Đồng */}
+                        <div className="mb-6 flex justify-end">
+                            <Button icon={<EditOutlined />} type="primary" onClick={handleAddContractType}>
+                                Thêm Loại Hợp Đồng
+                            </Button>
+                        </div>
+                        <Modal
+                            title="Thêm Loại Hợp Đồng"
+                            open={isModalOpenAddContractType}
+                            onCancel={() => setIsModalOpenAddContractType(false)}
+                            onOk={handleOkAdd}
+                            confirmLoading={loadingCreate}
+                            okText="Lưu"
+                            cancelText="Hủy"
+                        >
+                            <Form form={form} layout="vertical">
+                                <Form.Item
+                                    label="Tên Loại Hợp Đồng"
+                                    name="name"
+                                    rules={[{ required: true, message: "Vui lòng nhập tên loại hợp đồng!" }]}
+                                >
+                                    <Input placeholder="Ví dụ: Hợp đồng thuê phần mềm" />
+                                </Form.Item>
+                            </Form>
+                        </Modal>
+
+                        {/* Modal Sửa */}
+                        <Modal
+                            title="Chỉnh Sửa Loại Hợp Đồng"
+                            open={isModalOpenContractType}
+                            onCancel={() => setIsModalOpenContractType(false)}
+                            onOk={handleOkEdit}
+                            confirmLoading={loadingEdit}
+                            okText="Cập nhật"
+                            cancelText="Hủy"
+                        >
+                            <Form form={form} layout="vertical">
+                                <Form.Item
+                                    label="Tên Loại Hợp Đồng"
+                                    name="name"
+                                    rules={[{ required: true, message: "Vui lòng nhập tên loại hợp đồng!" }]}
+                                >
+                                    <Input />
+                                </Form.Item>
+                            </Form>
+                        </Modal>
+                        {/* Bọc List trong div có lề trái */}
+                        <div>
+                            <List
+                                dataSource={typeContractData}
+                                locale={{ emptyText: "Không có loại hợp đồng nào" }}
+                                renderItem={(item, index) => (
+                                    <>
+                                        <List.Item
+                                            actions={[
+                                                <Button onClick={() => handleEditContractType(item)}>
+                                                    Sửa
+                                                </Button>,
+                                            ]}
+                                            className="bg-white shadow rounded p-4 mt-6"
+                                        >
+                                            <List.Item.Meta
+                                                title={<span className="ml-4 font-semibold text-lg">{item.name}</span>}
+                                                description={<span className="ml-4 text-gray-500">ID: {item.id}</span>}
+                                            />
+                                        </List.Item>
+
+                                        {/* Divider hiển thị sau mỗi item trừ item cuối cùng */}
+                                        {index !== typeContractData.length - 1 && <Divider style={{ margin: 0 }} />}
+                                    </>
+                                )}
+                            />
+                        </div>
+
+                    </div>
+                </TabPane>
+
+
             </Tabs>
         </ConfigProvider>
     );

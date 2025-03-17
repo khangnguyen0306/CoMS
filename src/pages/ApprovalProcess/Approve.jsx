@@ -62,9 +62,9 @@ const Approve = () => {
     };
 
     // Ví dụ chuyển hướng khi ấn nút Đồng Ý Phê Duyệt
-    const handleApprove = async () => {
+    const handleApprove = () => {
         try {
-            await approveProcess({ contractId: id, stageId: StageIdMatching }).unwrap();
+            approveProcess({ contractId: id, stageId: StageIdMatching }).unwrap();
             message.success("Đã đồng ý phê duyệt thành công!");
             onClose();
             if (user?.roles?.includes("ROLE_STAFF")) {

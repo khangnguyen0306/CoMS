@@ -11,15 +11,15 @@ const Setting = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const { data: dateNotifi, isLoading, isError, refetch } = useGetDateNofitifationQuery();
     const [createDateNoftifi, { isLoading: loadingCreate }] = useCreateDateNofiticationMutation();
-    // In a real application, you would fetch these values from an API
     const [settings, setSettings] = useState(null);
 
-    // Update settings when dateNotifi data is received
+    // Cập nhật settings khi nhận được dữ liệu từ API
     console.log(dateNotifi?.length)
     useEffect(() => {
         if (dateNotifi) {
             setSettings({
-                notificationDays: parseInt(dateNotifi[dateNotifi?.length -1]?.value) || 0
+                notificationDays: parseInt(dateNotifi[dateNotifi?.length - 1]?.value) || 0,
+                approvalDays: parseInt(dateNotifi[0]?.value) || 0
             });
         }
     }, [dateNotifi]);
@@ -27,15 +27,22 @@ const Setting = () => {
     const handleSave = async (values) => {
         setLoading(true);
         try {
-            let formData = {
-                key: "1",
-                value: values?.notificationDays.toString(),
-                description: "Số ngày thông báo mặc định trước đợt thanh toán"
-            }
+            const formData = [
+                {
+                    key: "1",
+                    value: values?.notificationDays.toString(),
+                    description: "Số ngày thông báo mặc định trước đợt thanh toán"
+                },
+                {
+                    key: "2",
+                    value: values?.approvalDays.toString(),
+                    description: "Số ngày cho phép phê duyệt mặc định"
+                }
+            ];
 
-            // In a real application:
-            const response = await createDateNoftifi(formData).unwrap();
-            refetch()
+            // Gửi dữ liệu lên API
+            await createDateNoftifi(formData).unwrap();
+            refetch();
             setIsEditMode(false);
             message.success('Cài đặt đã được lưu thành công!');
         } catch (error) {
@@ -47,8 +54,7 @@ const Setting = () => {
     };
 
     const handleEditClick = () => {
-        // Only set existing values if settings exist, otherwise use empty object
-        form.setFieldsValue(settings || {});
+        form.setFieldsValue(settings || { notificationDays: 0, approvalDays: 0 });
         setIsEditMode(true);
     };
 
@@ -61,18 +67,16 @@ const Setting = () => {
             <div className='flex items-center justify-center'>
                 <Spin />
             </div>
-        )
+        );
     }
-
 
     const renderContractSettingsContent = () => {
         if (isEditMode) {
-            // Edit mode - show form
             return (
                 <Form
                     form={form}
                     layout="vertical"
-                    initialValues={settings || { notificationDays: 0 }}
+                    initialValues={settings || { notificationDays: 0, approvalDays: 0 }}
                     onFinish={handleSave}
                 >
                     <Form.Item
@@ -91,7 +95,22 @@ const Setting = () => {
                             style={{ width: '200px' }}
                         />
                     </Form.Item>
-
+                    <Form.Item
+                        name="approvalDays"
+                        label="Số ngày cho phép phê duyệt mặc định"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập số ngày cho phép phê duyệt mặc định!' },
+                            { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
+                            { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' }
+                        ]}
+                    >
+                        <InputNumber
+                            min={1}
+                            max={90}
+                            addonAfter="ngày"
+                            style={{ width: '200px' }}
+                        />
+                    </Form.Item>
                     <Form.Item>
                         <Space>
                             <Button
@@ -110,18 +129,16 @@ const Setting = () => {
                 </Form>
             );
         } else {
-            // View mode - show current settings or prompt to add
             return (
-                <div >
+                <div>
                     {settings ? (
                         <>
-                            <Descriptions
-                                title="Cài đặt hiện tại"
-                                bordered
-
-                            >
+                            <Descriptions title="Cài đặt hiện tại" bordered column={1}>
                                 <Descriptions.Item label="Số ngày thông báo mặc định trước các ngày, đợt thanh toán">
                                     {settings.notificationDays} ngày
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Số ngày mặc định giới hạn phê duyệt hợp đồng">
+                                    {settings.approvalDays} ngày
                                 </Descriptions.Item>
                             </Descriptions>
                             <div style={{ marginTop: '20px' }}>
@@ -162,7 +179,8 @@ const Setting = () => {
                     style={{
                         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
                         borderRadius: '8px'
-                    }}>
+                    }}
+                >
                     {renderContractSettingsContent()}
                 </Card>
             ),
@@ -175,7 +193,8 @@ const Setting = () => {
                     style={{
                         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
                         borderRadius: '8px'
-                    }}  >
+                    }}
+                >
                     <Space direction="vertical" align="center" style={{ width: '100%', padding: '20px' }}>
                         <Title level={5}>Cài đặt khác</Title>
                         <Text type="secondary">Hiện tại chưa có dữ liệu cài đặt khác.</Text>

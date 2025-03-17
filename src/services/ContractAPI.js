@@ -26,6 +26,7 @@ export const ContractAPI = createApi({
                     ? result.map(({ id }) => ({ type: "ContractType", id }))
                     : [{ type: "ContractType", id: 'UNKNOWN_ID' }],
         }),
+
         getAllContract: builder.query({
             query: (params) => ({
                 url: `contracts`,
@@ -67,7 +68,21 @@ export const ContractAPI = createApi({
 
         getContractReject: builder.query({
             query: () => ({
-                url: `contracts`,
+                url: `contracts?status=REJECTED`,
+                method: "GET"
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
+        getContractUpdate: builder.query({
+            query: () => ({
+                url: `contracts?status=UPDATED`,
+                method: "GET"
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
+        getContractUpdate: builder.query({
+            query: () => ({
+                url: `contracts?status=UPDATED`,
                 method: "GET"
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
@@ -232,9 +247,9 @@ export const {
     useUpdateContractMutation,
     useGetContractPorcessQuery,
     useGetContractRejectQuery,
-    useGetDataContractCompareVersionQuery,
+    useGetDataContractCompareVersionQuery,,
     useGetContractByPartnerIdQuery,
-
+useGetContractUpdateQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

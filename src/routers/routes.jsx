@@ -34,6 +34,7 @@ const DeleteContract = Loadable({ loader: () => import("../pages/Contract/Delete
 const EditContract = Loadable({ loader: () => import("../pages/Contract/EditContract") });
 const ChatTest = Loadable({ loader: () => import("../components/AI-Gen/ChatTest") });
 const Compare = Loadable({ loader: () => import("../components/CompareVersion/Compare") });
+const Department = Loadable({ loader: () => import("../pages/Department/Department") });
 
 
 
@@ -169,6 +170,10 @@ export const router = createBrowserRouter([
                     {
                         path: "process",
                         element: ApprovalProcess,
+                    },
+                    {
+                        path: "department",
+                        element: Department,
                     },
                     {
                         path: "profile/:id",
