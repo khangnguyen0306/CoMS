@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline } from "antd";
 import dayjs from "dayjs";
 import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
 import { CheckCircleFilled, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
-import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetLegalQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
+import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
 import RichTextEditor, {
 } from 'reactjs-tiptap-editor';
@@ -27,6 +27,8 @@ import { useLazyGetDateNofitifationQuery } from "../../services/ConfigAPI";
 import { useSelector } from "react-redux";
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import topIcon from "../../assets/Image/top.svg"
+import { debounce, throttle } from "lodash";
+
 const { Step } = Steps;
 const { Option } = Select;
 const { TextArea } = Input;
@@ -61,8 +63,6 @@ const CreateContractForm = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [loadingTerms, setLoadingTerms] = useState({});
     const [changeCCPL, setChangeCCPL] = useState(false);
-   
-    const [isOverflowing, setIsOverflowing] = useState(false);
 
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
@@ -77,7 +77,10 @@ const CreateContractForm = () => {
 
 
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery()
-    const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery()
+    const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery({
+        pollingInterval: 0,
+        refetchOnMountOrArgChange: true,
+    })
     const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListQuery()
     const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation()
     const [getTemplateDetail] = useLazyGetTemplateDataDetailQuery();
@@ -125,7 +128,7 @@ const CreateContractForm = () => {
                     setNotificationDays(response[0].value || 0);
                 }
             } catch (error) {
-                console.error('Error fetching notification days:', error);
+                // console.error('Error fetching notification days:', error);
             }
         };
 
@@ -275,7 +278,7 @@ const CreateContractForm = () => {
             await form.validateFields();
             setCurrentStep(currentStep + 1);
         } catch (errorInfo) {
-            console.log(errorInfo)
+            // console.log(errorInfo)
             message.error(errorInfo.errorFields.length > 1 ? errorInfo.errorFields[0].errors[0] + " và các trường bắt buộc khác" : errorInfo.errorFields[0].errors[0]);
         }
     };
@@ -287,7 +290,7 @@ const CreateContractForm = () => {
     // Submit toàn bộ form
     const onFinish = async (values) => {
         const data = form.getFieldsValue(true);
-        console.log(data);
+        // console.log(data);
 
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
         const additionalConfig = Object.keys(data)
@@ -365,7 +368,7 @@ const CreateContractForm = () => {
             if (!excludedFields.includes(key)) {
                 if (key === 'templateId') {
                     acc[key] = data[key].value;
-                } 
+                }
                 else if (key === "contractName") {
                     acc['contractTitle'] = data[key];
                 }
@@ -423,7 +426,7 @@ const CreateContractForm = () => {
         let content = form.getFieldValue('legalContent') || '';
         try {
             const result = await createClause({ label: name, value: content, typeTermId: 8 }).unwrap();
-            console.log(result);
+            // console.log(result);
             if (result.status === "CREATED") {
                 message.success("Tạo điều khoản thành công");
             }
@@ -431,31 +434,27 @@ const CreateContractForm = () => {
             setIsAddLegalModalOpen(false);
             form.resetFields();
         } catch (error) {
-            console.error("Lỗi tạo điều khoản:", error);
+            // console.error("Lỗi tạo điều khoản:", error);
             message.error("Có lỗi xảy ra khi tạo điều khoản");
         }
 
     };
 
-    function debounce(func, wait) {
-        let timeout;
-        return function (...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        }
-    }
-
-    const onValueChange = useCallback(debounce((value) => {
-        setContent(value);
-        form.setFieldsValue({ contractContent: value });
-    }, 100), []);
-
+    const onValueChange = useCallback(
+        debounce((value) => {
+            setContent(value);
+            form.setFieldsValue({ contractContent: value });
+        }, 300),
+        []
+    );
+    useEffect(() => {
+        return () => onValueChange.cancel();
+    }, []);
 
     useEffect(() => {
         if (selectedTemplate) {
             loadContractTemplateDetail(selectedTemplate)
                 .then((data) => {
-
                     setTemplateDataSelected(data.data);
                     setContent(data.data?.contractContent)
                     setIsVATChecked(data.data?.autoAddVAT)
@@ -468,7 +467,6 @@ const CreateContractForm = () => {
                     setIsisViolate(data.data?.violate)
                     form.setFieldsValue({
                         legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
-                        // contractContent: data.data.contractContent,
                         generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
                         autoAddVAT: data.data?.autoAddVAT,
                         vatPercentage: data.data?.vatPercentage,
@@ -834,42 +832,63 @@ const CreateContractForm = () => {
             });
         }
     }, [form.getFieldValue('legalBasis'), changeCCPL]);
-
-    useEffect(() => {
-        if (containerRef.current) {
-            const containerHeight = containerRef.current.scrollHeight;
-            setIsOverflowing(containerHeight > 270);
-        }
-    }, [form.getFieldValue('legalBasis')]);
     // Render the legal basis terms
-    const handleScroll = () => {
-        const scrollPosition = window.scrollY + 50;
+    // const handleScroll = () => {
+    //     const scrollPosition = window.scrollY + 50;
 
-        // Get positions of each section
-        const generalInfoPosition = generalInfoRef.current?.offsetTop || 0;
-        const mainContentPosition = mainContentRef.current?.offsetTop || 0;
-        const termsPosition = termsRef.current?.offsetTop || 0;
-        const otherContentPosition = otherContentRef.current?.offsetTop || 0;
+    //     // Get positions of each section
+    //     const generalInfoPosition = generalInfoRef.current?.offsetTop || 0;
+    //     const mainContentPosition = mainContentRef.current?.offsetTop || 0;
+    //     const termsPosition = termsRef.current?.offsetTop || 0;
+    //     const otherContentPosition = otherContentRef.current?.offsetTop || 0;
 
-        // vị trí
-        if (scrollPosition >= otherContentPosition) {
-            setActiveSection('other');
-        } else if (scrollPosition >= termsPosition) {
-            setActiveSection('terms');
-        } else if (scrollPosition >= mainContentPosition) {
-            setActiveSection('main');
-        } else {
-            setActiveSection('general');
-        }
+    //     // vị trí
+    //     if (scrollPosition >= otherContentPosition) {
+    //         setActiveSection('other');
+    //     } else if (scrollPosition >= termsPosition) {
+    //         setActiveSection('terms');
+    //     } else if (scrollPosition >= mainContentPosition) {
+    //         setActiveSection('main');
+    //     } else {
+    //         setActiveSection('general');
+    //     }
 
-        // nút scrol 
-        if (window.scrollY > 400) {
-            setShowScroll(true);
-        } else {
-            setShowScroll(false);
-        }
-    };
+    //     // nút scrol 
+    //     if (window.scrollY > 400) {
+    //         setShowScroll(true);
+    //     } else {
+    //         setShowScroll(false);
+    //     }
+    // };
 
+    const handleScroll = useCallback(
+        throttle(() => {
+            const scrollPosition = window.scrollY + 50;
+            const generalInfoPosition = generalInfoRef.current?.offsetTop || 0;
+            const mainContentPosition = mainContentRef.current?.offsetTop || 0;
+            const termsPosition = termsRef.current?.offsetTop || 0;
+            const otherContentPosition = otherContentRef.current?.offsetTop || 0;
+
+            // vị trí
+            if (scrollPosition >= otherContentPosition) {
+                setActiveSection('other');
+            } else if (scrollPosition >= termsPosition) {
+                setActiveSection('terms');
+            } else if (scrollPosition >= mainContentPosition) {
+                setActiveSection('main');
+            } else {
+                setActiveSection('general');
+            }
+
+            // nút scrol 
+            if (window.scrollY > 400) {
+                setShowScroll(true);
+            } else {
+                setShowScroll(false);
+            }
+        }, 200),
+        []
+    );
 
     const renderLegalBasisTerms = () => {
         if (!form.getFieldValue('legalBasis') || form.getFieldValue('legalBasis').length === 0) {
@@ -905,14 +924,13 @@ const CreateContractForm = () => {
                     [termId]: response.data
                 }));
             } catch (error) {
-                console.error(`Error loading term ${termId}:`, error);
+                // console.error(`Error loading term ${termId}:`, error);
             } finally {
                 setLoadingTerms(prev => ({ ...prev, [termId]: false }));
             }
         }
     };
 
-    console.log(form.getFieldsValue())
 
     // Các bước của form
     const steps = [
