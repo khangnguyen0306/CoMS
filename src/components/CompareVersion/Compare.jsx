@@ -1,10 +1,11 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useGetDataContractCompareVersionQuery } from '../../services/ContractAPI'
-import { Col, Row, Tag } from 'antd'
+import { Spin, Tag } from 'antd'
 import { useSelector } from 'react-redux'
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI'
 import { diffWords } from 'diff';
+
 const Compare = () => {
     const { contractId } = useParams()
     const { nowVersion } = useParams()
@@ -18,8 +19,8 @@ const Compare = () => {
         return <div>Loading or insufficient data...</div>;
     }
 
-    const v1 = process[0]; // Version 14
-    const v2 = process[1]; // Version 15
+    const v1 = process[0];
+    const v2 = process[1];
 
 
 
@@ -37,33 +38,27 @@ const Compare = () => {
     };
 
 
-    // Hàm định dạng ngày từ mảng sang chuỗi
     const formatDate = (dateArray) => {
         if (!dateArray) return 'N/A';
         const [year, month, day, hour, minute] = dateArray;
         return `Ngày ${day.toString().padStart(2, '0')} tháng ${month.toString().padStart(2, '0')} năm ${year}`;
     };
 
-    // Hàm so sánh hai giá trị
-    const isDifferent = (val1, val2) => {
-        // Nếu một trong hai là null (và khác nhau) -> khác biệt
-        if (val1 === null || val2 === null) return val1 !== val2;
 
-        // Nếu là mảng, so sánh từng phần tử
+    const isDifferent = (val1, val2) => {
+        if (val1 === null || val2 === null) return val1 !== val2;
         if (Array.isArray(val1) && Array.isArray(val2)) {
-            if (val1.length !== val2.length) return true; // Nếu độ dài khác nhau -> khác biệt
-            return val1.some((item, index) => isDifferent(item, val2[index])); // Kiểm tra từng phần tử
+            if (val1.length !== val2.length) return true;
+            return val1.some((item, index) => isDifferent(item, val2[index]));
         }
 
-        // Nếu là object, so sánh số lượng key và từng value
         if (typeof val1 === 'object' && typeof val2 === 'object') {
             const keys1 = Object.keys(val1);
             const keys2 = Object.keys(val2);
-            if (keys1.length !== keys2.length) return true; // Nếu số key khác nhau -> khác biệt
-            return keys1.some(key => isDifferent(val1[key], val2[key])); // Kiểm tra từng giá trị
+            if (keys1.length !== keys2.length) return true;
+            return keys1.some(key => isDifferent(val1[key], val2[key]));
         }
 
-        // So sánh giá trị thông thường (number, string, boolean,...)
         return val1 !== val2;
     };
 
@@ -157,7 +152,15 @@ const Compare = () => {
         "7": "7. ĐIỀU KHOẢN BẢO MẬT",
         "10": "8. ĐIỀU KHOẢN KHÁC"
     };
-    console.log(compareTerm)
+
+    if (isLoadingBsData) {
+        return (
+            <div className='flex justify-center items-center'>
+                <Spin />
+            </div>)
+    }
+
+
     return (
         <div className={`min-h-screen p-4 ${isDarkMode ? 'bg-[#1f1f1f]' : ''}`}>
             <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
@@ -184,7 +187,7 @@ const Compare = () => {
                         </p>
                         <p className={`mt-3 `}><b>Số:</b> {v1.contractNumber}</p>
                     </div>
-                    <Row gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
+                    <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
                             <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.businessName}</p>
@@ -215,7 +218,7 @@ const Compare = () => {
                                 <b>Email:</b> {v1?.partner.email}
                             </p>
                         </div>
-                    </Row>
+                    </div>
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
                         <h3 className="font-semibold text-lg mb-2">Căn cứ pháp lý</h3>
@@ -252,7 +255,6 @@ const Compare = () => {
                             Số lần thanh toán:</b> {v1.paymentSchedules?.length}
                         </p>
                         {v1.paymentSchedules.map((schedule, index) => {
-                            const v2Schedule = v2.paymentSchedules[index] || {};
                             return (
                                 <div key={index} className="p-4 mb-4 rounded">
                                     <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
@@ -402,7 +404,7 @@ const Compare = () => {
                         </p>
                         <p className={`mt-3 ${isDifferent(v1?.contractNumber, v2?.contractNumber) ? "bg-yellow-300" : ""} `}><b>Số:</b> {v2.contractNumber}</p>
                     </div>
-                    <Row gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
+                    <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
                             <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.businessName}</p>
@@ -434,7 +436,7 @@ const Compare = () => {
                             </p>
                         </div>
 
-                    </Row>
+                    </div>
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
                         <h3 className="font-semibold"><u>1. Căn cứ pháp lý</u></h3>

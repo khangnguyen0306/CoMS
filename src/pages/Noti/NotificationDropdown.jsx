@@ -18,7 +18,6 @@ const NotificationDropdown = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-  // Lấy giá trị notiNumber từ state thông qua useSelector
   const notiNumber = useSelector(selectNotiNumber);
 
   useEffect(() => {
@@ -45,9 +44,9 @@ const NotificationDropdown = () => {
         dispatch(setNotiNumber(newUnreadCount));
         return updated;
       });
-      navigate(`/manager/approvalContract/reviewContract/${item.contractId}`);
+      navigate(`/manager/approvalContract`);
     } catch (error) {
-      console.error("Error updating notification:", error); // Handle errors appropriately
+      console.error("Error updating notification:", error);
     }
   };
 
@@ -138,4 +137,4 @@ const NotificationDropdown = () => {
   );
 };
 
-export default NotificationDropdown;
+export default NotificationDropdown
