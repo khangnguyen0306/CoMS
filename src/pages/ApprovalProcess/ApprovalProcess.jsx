@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button, Form, Select, Steps, message, Empty, Skeleton } from "antd";
-import { MinusCircleOutlined } from "@ant-design/icons";
+import { MinusCircleFilled, MinusCircleOutlined } from "@ant-design/icons";
 import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
 import { useGetProcessTemplatesQuery, useUpdateProcessMutation } from "../../services/ProcessAPI";
 
@@ -119,7 +119,7 @@ const ApprovalProcess = () => {
                     <div className="flex justify-between items-center">
                         <span>{isFinal ? "Đợt cuối" : `Ký duyệt đợt ${stage.stageOrder}`}</span>
                         {approvalStages.length > 1 && (
-                            <MinusCircleOutlined
+                            <MinusCircleFilled
                                 className="ml-4 text-red-500 cursor-pointer"
                                 onClick={(e) => {
                                     e.stopPropagation();

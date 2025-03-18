@@ -9,9 +9,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
+import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
 const { Search } = Input;
 
 const ManageContracts = () => {
+
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
     const [pagination, setPagination] = useState({
@@ -19,6 +21,7 @@ const ManageContracts = () => {
         pageSize: 10,
         total: 0
     });
+
     const [status, setStatus] = useState(null);
     const [duplicateContract] = useDuplicateContractMutation();
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
@@ -27,10 +30,14 @@ const ManageContracts = () => {
         keyword: searchText,
         status: status
     });
+    const user = useSelector(selectCurrentUser)
+    const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
-    const user = useSelector(selectCurrentUser)
-    // console.log(contracts?.data?.content[0].status)
+    console.log(contractManager)
+    const isManager = user?.roles[0] === "ROLE_MANAGER";
+    const tableData = isManager ? contractManager?.data : contracts?.data?.content;
+    // const totalElements = isManager ? contractManager?.data?.totalElements : contracts?.data?.totalElements;
 
     useEffect(() => {
         refetch();
@@ -132,7 +139,7 @@ const ManageContracts = () => {
             title: "Người tạo",
             dataIndex: "user",
             key: "user",
-            filters: [...new Set(contracts?.data.content.map(contract => contract.user.full_name))].map(name => ({
+            filters: [...new Set(tableData?.map(contract => contract?.user?.full_name))].map(name => ({
                 text: name,
                 value: name,
             })),
@@ -151,21 +158,47 @@ const ManageContracts = () => {
         },
         {
             title: "Loại hợp đồng",
-            dataIndex: "contractType",
+            dataIndex: user.roles[0] === "ROLE_MANAGER" ? "contractTypeName" : "contractType",
             key: "contractType",
-            render: (type) => <Tag color="blue">{type.name}</Tag>,
-            filters: [...new Set(contracts?.data.content.map(contract => contract.contractType.name))].map(type => ({
-                text: type,
-                value: type,
-            })),
-            onFilter: (value, record) => record.contractType === value,
+            render: (value) =>
+                user.roles[0] === "ROLE_MANAGER" ? (
+                    <Tag color="blue">{value}</Tag>
+                ) : (
+                    <Tag color="blue">{value.name}</Tag>
+                ),
+            filters:
+                user.roles[0] === "ROLE_MANAGER"
+                    ? [...new Set(tableData?.map(contract => contract.contractTypeName))].map(type => ({
+                        text: type,
+                        value: type,
+                    }))
+                    : [...new Set(tableData?.map(contract => contract.contractType.name))].map(type => ({
+                        text: type,
+                        value: type,
+                    })),
+            onFilter:
+                user.roles[0] === "ROLE_MANAGER"
+                    ? (value, record) => record.contractTypeName === value
+                    : (value, record) => record.contractType.name === value,
         },
+
+        // {
+        //     title: "Loại hợp đồng",
+        //     dataIndex: "contractType",
+        //     key: "contractType",
+        //     render: (type) => <Tag color="blue">{type.name}</Tag>,
+        //     filters: [...new Set(tableData?.map(contract => contract.contractType.name))].map(type => ({
+        //         text: type,
+        //         value: type,
+        //     })),
+        //     onFilter: (value, record) => record.contractType === value,
+        // },
         {
             title: "Đối tác",
             dataIndex: "partner",
             key: "partner",
             render: (partner) => <p>{partner.partnerName}</p>,
-            filters: [...new Set(contracts?.data.content.map(contract => contract.partner.partnerName))].map(type => ({
+            filters: [...new Set(tableData?.map(contract => contract.partner.partnerName))].map(type => ({
                 text: type,
                 value: type,
             })),
@@ -283,7 +316,7 @@ const ManageContracts = () => {
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.data.content}
+                    dataSource={tableData}
                     rowKey="id"
                     loading={isLoading}
                     pagination={{

@@ -1,16 +1,14 @@
 // isDelete sẽ có 3 trạng thái : đang hoạt động, đã xóa(khi user xóa đk), đã cũ(khi user edit thì đk cũ sẽ chuyển sang trạng thái đã cũ và tạo đk mới)
 import React, { useState, useEffect } from 'react';
-import { Input, Button, Modal, List, Select, message, Skeleton, Card, Empty, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Pagination, Divider } from 'antd';
+import { Input, Button, Modal, List, Select, message, Skeleton, Card, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Divider } from 'antd';
 import 'tailwindcss/tailwind.css';
-import { DeleteFilled, EditFilled, EditOutlined } from '@ant-design/icons';
-import { GrUpdate } from "react-icons/gr";
+import { DeleteFilled, EditFilled, PlusCircleFilled } from '@ant-design/icons';
 import { useGetClauseManageQuery } from '../../services/ClauseAPI';
 import { useGetAllTypeClauseQuery, useCreateClauseMutation, useUpdateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
 import TabPane from 'antd/es/tabs/TabPane';
 import dayjs from 'dayjs';
-import { FaSortDown, FaSortUp } from 'react-icons/fa';
 import { useGetContractTypeQuery, useEditContractTypeMutation, useCreateContractTypeMutation } from '../../services/ContractAPI';
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
 
@@ -56,7 +54,6 @@ const ManageClause = () => {
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [form] = Form.useForm();
-    // console.log(typeContractData);
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -158,12 +155,11 @@ const ManageClause = () => {
 
     const handleUpdateLegal = (clauseCode) => {
         const clauseToEdit = legalData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
-        console.log(clauseToEdit);
         if (clauseToEdit) {
             setSortOrderLegal('desc');
             form.setFieldsValue(clauseToEdit);
 
-            setIsModalOpenLegal(true); // Hiển thị modal
+            setIsModalOpenLegal(true);
         } else {
             message.error('Không tìm thấy Căn căn cứ!');
         }
@@ -194,13 +190,11 @@ const ManageClause = () => {
     const handleOkAdd = async () => {
         try {
             const values = await form.validateFields();
-            console.log("Values sau validateFields:", values);
             await createContractType(values).unwrap();
             message.success("Thêm loại hợp đồng thành công!");
             setIsModalOpenAddContractType(false);
             refetch(); // Tải lại danh sách
         } catch (error) {
-            console.error(error);
             message.error("Thêm loại hợp đồng thất bại!");
         }
     };
@@ -214,14 +208,12 @@ const ManageClause = () => {
             setIsModalOpenContractType(false);
             refetch(); // Tải lại danh sách
         } catch (error) {
-            console.error(error);
             message.error("Cập nhật loại hợp đồng thất bại!");
         }
     };
 
 
     const handleSubmitAddClause = async (values) => {
-        console.log('Form data:', values);
         try {
             const result = await createClause({ typeTermId: values.type, label: values.label, value: values.value }).unwrap();
             message.success("Tạo điều khoản thành công");
@@ -232,7 +224,6 @@ const ManageClause = () => {
             setIsModalOpenAddLegal(false);
             form.resetFields();
         } catch (error) {
-            console.error("Lỗi tạo điều khoản:", error);
             message.error("Có lỗi xảy ra khi tạo điều khoản");
         }
     };
@@ -256,21 +247,16 @@ const ManageClause = () => {
     };
 
     const handleSubmitUpdateClause = async (values) => {
-        console.log('Form data:', values);
         try {
             const typeTermId = getTypeTermId(values.type);
-            console.log('Type term ID:', typeTermId);
             const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: typeTermId }).unwrap();
-            console.log(updatedData);
             message.success("Cập nhật điều khoản thành công!");
             refetchClause();
-            console.log(pageClause)
             refetchLegal();
             setIsModalOpenClause(false);
             setIsModalOpenLegal(false);
             form.resetFields();
         } catch (error) {
-            console.error("Lỗi cập nhật điều khoản:", error);
             message.error("Có lỗi xảy ra khi cập nhật điều khoản!");
             setIsModalOpenClause(false);
             setIsModalOpenLegal(false);
@@ -278,20 +264,16 @@ const ManageClause = () => {
     };
 
     const handleDelete = async (contractId) => {
-        console.log("Delete contract ID:", contractId);
         Modal.confirm({
             title: 'Bạn có chắc muốn xóa không?',
             onOk: async () => {
                 try {
                     const result = await deleteClause({ termId: contractId });
-                    console.log("Delete result:", result);
                     if (result.error.originalStatus == 200) {
-                        console.log("Delete result:", result);
                         refetchClause();
                         refetchLegal();
                         message.success('Xóa thành công');
                     } if (result.error.status == 409) {
-                        console.log("Delete result:", result.error.data.message);
                         message.error(result.error.data.message);
                     }
                     else
@@ -299,7 +281,6 @@ const ManageClause = () => {
 
                 }
                 catch (error) {
-                    console.error("Error during delete:", error);
                     message.error('Xóa thất bại, vui lòng thử lại!');
                 }
             },
@@ -310,33 +291,30 @@ const ManageClause = () => {
 
 
     const handleSortByCreatedAt = () => {
-        console.log("Sort order:", sortOrderClause);
         setSortByClause('id');
         setSortOrderClause(sortOrderClause === 'asc' ? 'desc' : 'asc');
     };
 
-    const handleSortByContractCount = () => {
+    // const handleSortByContractCount = () => {
 
-        setSortByClause('contractCount');
-        setSortOrderClause(sortOrderClause === 'asc' ? 'desc' : 'asc');
-    };
+    //     setSortByClause('contractCount');
+    //     setSortOrderClause(sortOrderClause === 'asc' ? 'desc' : 'asc');
+    // };
 
     const handleSortByCreatedAtLegal = () => {
         setSortOrderLegal(sortOrderLegal === 'asc' ? 'desc' : 'asc');
     };
     const handlePageChange = (newPage, newPageSize) => {
-        console.log("Page changed:", newPage, "PageSize:", newPageSize);
         setPageLegal(newPage - 1);
         setPageSizeLegal(newPageSize);
     }
     const handlePageClauseChange = (newPage, newPageSize) => {
-        console.log("Page changed:", newPage, "PageSize:", newPageSize);
         setPageClause(newPage - 1);
         setPageSizeClause(newPageSize);
     }
 
 
-    if (loadingClause || loadingType || loadingLegal) return <Skeleton active />;
+    if (loadingClause || loadingType || loadingLegal || loadingTypeContract) return <Skeleton active />;
     // if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
     return (
         <ConfigProvider
@@ -413,7 +391,7 @@ const ManageClause = () => {
                                         {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                                     </span>
                                 </button>
-                                <button
+                                {/* <button
                                     onClick={handleSortByContractCount}
                                     className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortByClause === 'contractCount'
                                         ? sortOrderClause === 'asc'
@@ -429,14 +407,15 @@ const ManageClause = () => {
                                                 : 'Nhiều hợp đồng nhất'
                                             : 'Sắp xếp theo số hợp đồng'}
                                     </span>
-                                </button>
+                                </button> */}
                             </div>
                             <Button
                                 type="primary"
                                 onClick={openAddClauseModal}
                                 className="mb-4 justify-self-end"
+                                icon={<PlusCircleFilled />}
                             >
-                                + Thêm điều khoản
+                                Thêm điều khoản
                             </Button>
                         </div>
 
@@ -548,7 +527,7 @@ const ManageClause = () => {
 
 
                                 <Form.Item>
-                                    <Button type="primary" htmlType="submit">
+                                    <Button loading={loadingUpdate} type="primary" htmlType="submit">
                                         Cập Nhật Điều Khoản
                                     </Button>
                                 </Form.Item>
@@ -625,10 +604,10 @@ const ManageClause = () => {
                                                         type="primary"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            // console.log(clause)
                                                             handleDelete(clause.id);
                                                         }}
                                                         className="flex items-center justify-center"
+                                                        loading={loadingDelete}
                                                     >
                                                         <DeleteFilled />
                                                     </Button>
@@ -702,8 +681,9 @@ const ManageClause = () => {
                                 type="primary"
                                 onClick={openAddLagelModal}
                                 className="mb-4"
+                                icon={<PlusCircleFilled />}
                             >
-                                + Thêm Căn cứ
+                                Thêm Căn cứ
                             </Button>
                             <Button
                                 onClick={handleSortByCreatedAtLegal}
@@ -754,7 +734,7 @@ const ManageClause = () => {
                                 </Form.Item>
 
                                 <Form.Item>
-                                    <Button type="primary" htmlType="submit">
+                                    <Button loading={loadingCreate} type="primary" htmlType="submit">
                                         Tạo Căn cứ
                                     </Button>
                                 </Form.Item>
@@ -884,7 +864,7 @@ const ManageClause = () => {
                                                             handleDelete(clause.id);
                                                         }}
                                                         className="flex items-center justify-center"
-
+                                                        loading={loadingDelete}
                                                     >
                                                         <DeleteFilled />
                                                     </Button>
@@ -939,7 +919,7 @@ const ManageClause = () => {
                         </div>
                         {/* Nút Thêm Loại Hợp Đồng */}
                         <div className="mb-6 flex justify-end">
-                            <Button icon={<EditOutlined />} type="primary" onClick={handleAddContractType}>
+                            <Button loading={loadingCreateType} icon={<PlusCircleFilled />} type="primary" onClick={handleAddContractType}>
                                 Thêm Loại Hợp Đồng
                             </Button>
                         </div>
@@ -991,15 +971,14 @@ const ManageClause = () => {
                                     <>
                                         <List.Item
                                             actions={[
-                                                <Button onClick={() => handleEditContractType(item)}>
+                                                <Button icon={<EditFilled />} onClick={() => handleEditContractType(item)}>
                                                     Sửa
                                                 </Button>,
                                             ]}
-                                            className="bg-white shadow rounded p-4 mt-6"
+                                            className=" shadow rounded p-4 mt-6"
                                         >
                                             <List.Item.Meta
                                                 title={<span className="ml-4 font-semibold text-lg">{item.name}</span>}
-                                                description={<span className="ml-4 text-gray-500">ID: {item.id}</span>}
                                             />
                                         </List.Item>
 

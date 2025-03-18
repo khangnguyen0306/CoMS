@@ -180,7 +180,7 @@ const Compare = () => {
                             {v1.contractLocation}, Ngày {v1?.signingDate[2]} Tháng {v1?.signingDate[1]} Năm {v1?.signingDate[0]}
                         </p>
                         <p className={`text-2xl font-bold mt-10`}>
-                            {v1.title.toUpperCase()}
+                            {v1.title?.toUpperCase()}
                         </p>
                         <p className={`mt-3 `}><b>Số:</b> {v1.contractNumber}</p>
                     </div>
@@ -370,12 +370,12 @@ const Compare = () => {
                     <div className='w-full flex justify-center mt-10 items-center pb-24' >
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
-                            <p><b> {process[0]?.partner.partnerName.toUpperCase()}</b></p>
+                            <p><b> {process[0]?.partner.partnerName?.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN B</b></p>
-                            <p><b> {bsInfor?.representativeName.toUpperCase()}</b></p>
+                            <p><b> {bsInfor?.representativeName?.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                     </div>
@@ -398,7 +398,7 @@ const Compare = () => {
                             {v2.contractLocation}, Ngày {v2?.signingDate[2]} Tháng {v2?.signingDate[1]} Năm {v2?.signingDate[0]}
                         </p>
                         <p className={`text-2xl font-bold mt-10 ${isDifferent(v1?.title, v2?.title) ? "bg-yellow-300" : ""}`}>
-                            {v2.title.toUpperCase()}
+                            {v2.title?.toUpperCase()}
                         </p>
                         <p className={`mt-3 ${isDifferent(v1?.contractNumber, v2?.contractNumber) ? "bg-yellow-300" : ""} `}><b>Số:</b> {v2.contractNumber}</p>
                     </div>
@@ -609,12 +609,12 @@ const Compare = () => {
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
                             <p className={`${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300" : ""}`}>
-                                <b> {process[0]?.partner.partnerName.toUpperCase()}</b></p>
+                                <b> {process[0]?.partner.partnerName?.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN B</b></p>
-                            <p><b> {bsInfor?.representativeName.toUpperCase()}</b></p>
+                            <p><b> {bsInfor?.representativeName?.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                     </div>
