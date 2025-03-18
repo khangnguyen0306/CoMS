@@ -6,11 +6,11 @@ import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
-import { BookOutlined, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
+import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
 import { useLazyGetAllAuditTrailByContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery } from '../../services/ContractAPI';
 import AuditTrailDisplay from '../../components/ui/Audittrail/AuditTrail';
-import { useApproveProcessMutation, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
+import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
 import { selectCurrentUser } from '../../slices/authSlice';
 import note from "../../assets/Image/review.svg"
 const ContractDetail = () => {
@@ -51,7 +51,8 @@ const ContractDetail = () => {
     const [fetchAudittrail, { data: auditTrailData, isLoading: loadingAuditTrail }] = useLazyGetAllAuditTrailByContractQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
-    console.log(auditTrailData)
+    console.log(processData)
+    console.log(user.id)
     // Hàm tải chi tiết điều khoản dựa theo termId (original_term_id)
     const loadTermDetail = async (termId) => {
         if (!termsData[termId]) {
@@ -185,10 +186,10 @@ const ContractDetail = () => {
     const onCloseDrawerAprove = () => {
         setOpenAprove(false);
     };
-   
+
     const onCheckboxChange = (e) => {
         setConfirmed(e.target.checked);
-      };
+    };
 
     function convertCreatedAt(createdAtArray) {
         if (!createdAtArray || !Array.isArray(createdAtArray) || createdAtArray.length < 6) {
@@ -272,7 +273,7 @@ const ContractDetail = () => {
         const { comment } = values;
         try {
             // Gọi mutation reject process với dữ liệu nhận được (ví dụ có thêm id hoặc thông tin cần thiết)
-            console.log(comment);
+            // console.log(comment);
             await rejectProcess({ comment: comment, contractId: id, stageId: StageIdMatching }).unwrap();
             message.success("Đã từ chối phê duyệt và gửi nhận xét thành công!");
             form.resetFields();
@@ -287,7 +288,7 @@ const ContractDetail = () => {
             message.error("Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
-
+    const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
     // Trong trường hợp không có dữ liệu, hiển thị loading
     if (isLoadingBsData || loadingDataContract) {
         return (
@@ -308,10 +309,10 @@ const ContractDetail = () => {
                     <>
                         <Button
                             type="default"
-                            className="fixed right-5 top-20 flex flex-col h-fit"
+                            className="fixed right-5 top-20 flex flex-col h-fit bg-[#2280ff]"
                             onClick={showDrawerAprove}
                         >
-                            <Image width={40} className='py-1' height={40} src={note} preview={false} />
+                            <p className='flex items-center justify-center'> <LeftOutlined style={{fontSize:25}}/> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
                         </Button>
                     </>
                 )
@@ -327,49 +328,53 @@ const ContractDetail = () => {
                 onClose={onCloseDrawerAprove}
                 open={openAprove}
             >
-                <Tabs defaultActiveKey="1" >
-                    {/* Tab Nhận xét */}
-                    <Tabs.TabPane tab="Nhận xét" key="1">
-                        <Form form={form} layout="vertical" onFinish={handleReject}>
-                            <Form.Item
-                                name="comment"
-                                label="Đề xuất sửa đổi hợp đồng :"
-                                rules={[{ required: true, message: "Vui lòng nhập nhận xét" }]}
-                            >
-                                <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />
-                            </Form.Item>
+                {!userApproval ? (
+                    <Tabs defaultActiveKey="1" >
+                        {/* Tab Nhận xét */}
+                        <Tabs.TabPane tab="Nhận xét" key="1">
+                            <Form form={form} layout="vertical" onFinish={handleReject}>
+                                <Form.Item
+                                    name="comment"
+                                    label="Đề xuất sửa đổi hợp đồng :"
+                                    rules={[{ required: true, message: "Vui lòng nhập nhận xét" }]}
+                                >
+                                    <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />
+                                </Form.Item>
 
-                            <Form.Item>
-                                <Space style={{ display: "flex", justifyContent: "space-around" }}>
-                                    <Button icon={<CloseOutlined />} danger type="primary" loading={rejectLoading} htmlType="submit" >
-                                        Từ Chối Phê Duyệt
-                                    </Button>
-                                </Space>
-                            </Form.Item>
-                        </Form>
-                    </Tabs.TabPane>
-                    <Tabs.TabPane tab="Phê duyệt" key="2">
-                        <Card style={{ margin: '16px' }}>
-                            <Typography.Paragraph>
-                                Vui lòng đảm bảo rằng bạn đã đọc kỹ tất cả các thông tin liên quan đến phê duyệt.
-                            </Typography.Paragraph>
-                            <Checkbox onChange={onCheckboxChange}>
-                                Tôi đã đọc kỹ và quyết định phê duyệt
-                            </Checkbox>
-                            <Button
-                                disabled={!confirmed}
-                                loading={approveLoading}
-                                type="primary"
-                                onClick={handleApprove}
-                                style={{ marginTop: '16px' }}
-                                icon={<CheckOutlined />}
-                            >
-                                Đồng Ý Phê Duyệt
-                            </Button>
-                        </Card>
-                    </Tabs.TabPane>
-                </Tabs>
+                                <Form.Item>
+                                    <Space style={{ display: "flex", justifyContent: "space-around" }}>
+                                        <Button icon={<CloseOutlined />} danger type="primary" loading={rejectLoading} htmlType="submit" >
+                                            Từ Chối Phê Duyệt
+                                        </Button>
+                                    </Space>
+                                </Form.Item>
+                            </Form>
 
+                        </Tabs.TabPane>
+                        <Tabs.TabPane tab="Phê duyệt" key="2">
+                            <Card style={{ margin: '16px' }}>
+                                <Typography.Paragraph>
+                                    Vui lòng đảm bảo rằng bạn đã đọc kỹ tất cả các thông tin liên quan đến phê duyệt.
+                                </Typography.Paragraph>
+                                <Checkbox onChange={onCheckboxChange}>
+                                    Tôi đã đọc kỹ và quyết định phê duyệt
+                                </Checkbox>
+                                <Button
+                                    disabled={!confirmed}
+                                    loading={approveLoading}
+                                    type="primary"
+                                    onClick={handleApprove}
+                                    style={{ marginTop: '16px' }}
+                                    icon={<CheckOutlined />}
+                                >
+                                    Đồng Ý Phê Duyệt
+                                </Button>
+                            </Card>
+                        </Tabs.TabPane>
+                    </Tabs>
+                ) : (
+                    <Tag color='green' className='text-base mt-5 ml-5' icon={<CheckCircleFilled />}>Bạn đã phê duyệt hợp đồng này </Tag>
+                )}
             </Drawer>
 
             <Drawer

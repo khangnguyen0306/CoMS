@@ -89,4 +89,5 @@ export const {
     useCreatePartnerMutation,
     useEditPartnerMutation,
     useDeletePartnerMutation,
+    useLazyGetPartnerInfoDetailQuery
 } = partnerAPI;

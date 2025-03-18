@@ -40,6 +40,7 @@ const LazyLegalSelect = ({
             const isGloballySelected = globalSelected.includes(dk.original_term_id);
             return (
                 <Select.Option
+                    key={dk?.original_term_id}
                     value={dk?.original_term_id}
                     className={isGloballySelected ? "option-selected" : ""}
                 >
@@ -61,7 +62,7 @@ const LazyLegalSelect = ({
         });
     };
 
-    console.log(defaultValue)
+    // console.log(defaultValue)
     return (
         <>
             <Select

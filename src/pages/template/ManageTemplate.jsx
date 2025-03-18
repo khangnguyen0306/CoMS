@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Select, Space, Button, Popconfirm, message, Dropdown, Menu, Spin, Image, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, CopyOutlined, EyeOutlined, SettingOutlined, FullscreenOutlined, SearchOutlined, FileSearchOutlined, EditFilled, CopyFilled, DeleteFilled } from "@ant-design/icons";
+import { Table, Input, Space, Button, message, Dropdown, Spin, Image, Modal, Tag } from "antd";
+import { FullscreenOutlined, EditFilled, CopyFilled, DeleteFilled, SettingFilled } from "@ant-design/icons";
 import { useDeleteTemplateMutation, useDuplicateTemplateMutation, useGetAllTemplateQuery, useGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import pressBtIcon from "../../assets/Image/press-button.svg"
 import dayjs from "dayjs";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 const { Search } = Input;
 const { confirm } = Modal;
 const ManageTemplate = () => {
@@ -21,7 +21,6 @@ const ManageTemplate = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [duplicateTemplate] = useDuplicateTemplateMutation();
     const [deleteTemplate] = useDeleteTemplateMutation();
-    // currentPage được lưu dạng 1-based để hiển thị trên UI
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const { data: templates, isLoading, isError, refetch } = useGetAllTemplateQuery({
@@ -81,10 +80,6 @@ const ManageTemplate = () => {
         });
     };
     const generateColor = (id) => {
-        // Sử dụng HSL để tạo màu
-        // Hue: 0-360 độ trên vòng màu
-        // Saturation: 65% để có màu vừa đủ sống động
-        // Lightness: 75% để màu không quá tối hoặc quá sáng
         const hue = (id * 137.508) % 360; // 137.508 là góc vàng, giúp phân bố màu đều
         return `hsl(${hue}, 65%, 75%)`;
     };
@@ -160,12 +155,6 @@ const ManageTemplate = () => {
                     <Dropdown
                         menu={{
                             items: [
-                                // {
-                                //     key: "view",
-                                //     icon: <EyeOutlined />,
-                                //     label: "Xem chi tiết",
-                                //     onClick: () => console.log("Xem:", record)
-                                // },
                                 {
                                     key: "edit",
                                     icon: <EditFilled style={{ color: 'blue' }} />,
@@ -189,7 +178,7 @@ const ManageTemplate = () => {
                             ]
                         }}
                     >
-                        <Button ><SettingOutlined /></Button>
+                        <Button ><SettingFilled /></Button>
                     </Dropdown>
                 </Space>
             ),

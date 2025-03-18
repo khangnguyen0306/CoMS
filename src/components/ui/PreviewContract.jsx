@@ -357,7 +357,6 @@ const PreviewContract = ({ form, partnerId, data }) => {
                     <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
                     <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName}</p></p>
                     <p className="text-sm"><b>Chức vụ:</b> {partnerDetail?.data.position} </p>
-                    {/* ///////////////////////thiếu chức vụ  */}
                     <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
                     <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
                 </Col>
@@ -477,15 +476,10 @@ const PreviewContract = ({ form, partnerId, data }) => {
                 </div>
                 <div className='flex flex-col gap-2 px-[18%] text-center'>
                     <p className='text-lg'><b>ĐẠI DIỆN BÊN B</b></p>
-                    <p><b> {bsInfor?.representativeName.toUpperCase()}</b></p>
+                    <p><b> {bsInfor?.representativeName?.toUpperCase()}</b></p>
                     <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                 </div>
             </div>
-            {/* <div className="flex justify-center mt-6">
-                <Button type="primary" onClick={handleGenerateAIPrompt}>
-                    Phân tích hợp đồng (Gửi cho AI)
-                </Button>
-            </div> */}
         </div>
     );
 };

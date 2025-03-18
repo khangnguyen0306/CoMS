@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Row, Col, Card, Statistic, Table, Button, Input, Space } from "antd";
+import { Row, Col, Card, Statistic, Table, Button, Input, Space, Spin } from "antd";
 import { AreaChartOutlined, SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, Tooltip, Cell } from "recharts";
@@ -120,19 +120,6 @@ const Home = () => {
                 text
             ),
     });
-    // Dữ liệu thống kê
-
-    // thiếu icon
-    const statisticsData = [
-        { title: "TỔNG HỢP HỢP ĐỒNG", count: 10, value: "2.278.563.100" },
-        { title: "CÒN HIỆU LỰC", count: 7, value: "23.278.563" },
-        { title: "HẾT HIỆU LỰC", count: 3, value: "100" },
-        { title: "ĐÃ THANH LÝ", count: 0, value: "0" },
-        { title: "CHƯA THANH LÝ", count: 10, value: "0" },
-        { title: "ĐÃ THANH TOÁN", count: 0, value: "105.020.000" },
-        { title: "CHƯA THANH TOÁN", count: 0, value: "0" },
-        { title: "  CHỜ ĐỐI TÁC KÝ", count: 0, value: "0" },
-    ];
 
     // Cột dữ liệu cho bảng
     const columns = [
@@ -252,19 +239,7 @@ const Home = () => {
             ],
         },
     ];
-    // Dữ liệu cho biểu đồ
-    const lineData = [
-        { month: "Jan", contracts: 10 },
-        { month: "Feb", contracts: 15 },
-        { month: "Mar", contracts: 12 },
-        { month: "Apr", contracts: 18 },
-        { month: "May", contracts: 20 },
-        { month: "Jun", contracts: 25 },
-        { month: "Jul", contracts: 22 },
-        { month: "Aug", contracts: 27 },
-        { month: "Sep", contracts: 30 },
-        { month: "Oct", contracts: 28 },
-    ];
+
     // Dữ liệu cho biểu đồ tròn
     const pieData = [
         { name: "Còn hiệu lực", value: 40 },
@@ -323,37 +298,53 @@ const Home = () => {
         },
     ];
 
+    const statusTitles = {
+        APPROVAL_PENDING: 'CHỜ PHÊ DUYỆT',
+        COMPLETED: 'HOÀN THÀNH',
+        EXPIRED: 'ĐÃ HẾT HẠN',
+        ENDED: 'ĐÃ KẾT THÚC',
+        CANCELLED: 'ĐÃ HỦY',
+        ACTIVE: 'ĐANG HOẠT ĐỘNG',
+        SIGNED: 'ĐÃ KÝ',
+        APPROVED: 'ĐÃ PHÊ DUYỆT',
+    };
+    
+    const hiddenStatuses = ['DRAFT', 'DELETED', 'PENDING', 'CREATED', 'FIXED', 'REJECTED', 'UPDATED'];
+    const statusCountsArray = Object.entries(dashboardData?.data?.statusCounts || {})
+        .filter(([status]) => !hiddenStatuses.includes(status)) 
+        .map(([status, count]) => ({
+            status,
+            count
+        }));
+        
+    if(loadingDashboard){
+        return (
+            <div className="flex justify-center items-center h-screen w-screen">
+                <Spin size="large" />
+            </div>
+        );
+    }
+
     return (
         <div className={`${isDarkMode ? 'dark' : ''}`}>
             {/* Thống kê */}
             <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
             >THỐNG KÊ
             </p>
-            <Row gutter={[16, 16]} className="mb-5 ">
-                {statisticsData.map((stat, index) => (
-                    <Col
-                        key={index}
-                        xs={24}
-                        sm={12}
-                        md={12}
-                        lg={6}
-                    >
+            <Row gutter={[16, 16]} className="mb-5">
+                {statusCountsArray?.map((stat, index) => (
+                    <Col key={index} xs={24} sm={12} md={12} lg={6}>
                         <GridItemCustom
                             icon={null}
-                            title={stat?.title}
+                            title={statusTitles[stat.status] || stat.status}
                             description={
                                 <div className={`${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                                     <a
                                         href="/desired-link"
-                                        className={`flex items-center justify-center text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-500'
-                                            } hover:underline`}
+                                        className={`flex items-center justify-center text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-500'} hover:underline`}
                                     >
                                         {stat.count}
                                     </a>
-                                    <span className={`text-sm flex items-center justify-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                                        }`}>
-                                        {stat.value}
-                                    </span>
                                 </div>
                             }
                             className={`${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}
@@ -361,6 +352,7 @@ const Home = () => {
                     </Col>
                 ))}
             </Row>
+
             <Row gutter={[16, 16]} className="mb-4 flex gap-5 justify-center">
                 {/* Biểu dồ đường */}
                 <GridItem
@@ -374,7 +366,7 @@ const Home = () => {
                                 <LineChart
                                     width={500}
                                     height={300}
-                                    data={lineData}
+                                    data={dashboardData?.data.monthlyCounts}
                                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                 >
                                     <CartesianGrid

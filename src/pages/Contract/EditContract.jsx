@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline, Drawer } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline, Drawer, Image, Card } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLazyGetAllTemplateQuery } from "../../services/TemplateAPI";
@@ -8,7 +8,7 @@ import { useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractDetailQuery, useLazyGetContractTypeQuery, useUpdateContractMutation } from "../../services/ContractAPI";
-import { CheckCircleFilled, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
+import { CheckCircleFilled, DeleteFilled, EyeFilled, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
@@ -26,6 +26,7 @@ import { useSelector } from "react-redux";
 import topIcon from "../../assets/Image/top.svg"
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import { useGetcommentQuery } from "../../services/ProcessAPI";
+import viewComment from "../../assets/Image/view.svg"
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -80,14 +81,15 @@ const EditContract = () => {
     const [isOverflowing, setIsOverflowing] = useState(false);
     const [changeCCPL, setChangeCCPL] = useState(false);
     const [loadingTerms, setLoadingTerms] = useState({});
+
     const formatDate = (date) => {
         if (!date) return null;
 
         if (Array.isArray(date)) {
             const [year, month, day, hour, minute, second] = date;
-            return dayjs(new Date(year, month - 1, day, hour, minute, second)).format("YYYY-MM-DDTHH:mm:ss");
+            return dayjs(new Date(year, month - 1, day, hour, minute, second)).format("DD-MM-YYYY hh:mm:ss");
         }
-        return dayjs(date).format("YYYY-MM-DDTHH:mm:ss[Z]");
+        return dayjs(date).format("DD-MM-YYYY hh:mm:ss");
     };
     console.log(cmtData)
 
@@ -422,8 +424,8 @@ const EditContract = () => {
             suspendContent: data.suspendContent,
             status: data.status,
             payments: data.payments.map((payment, index) => ({
-                id: payment.id, 
-                paymentOrder: index + 1, 
+                id: payment.id,
+                paymentOrder: index + 1,
                 amount: payment.amount,
                 notifyPaymentDate: formatDateArray(payment.notifyPaymentDate),
                 paymentDate: formatDateArray(payment.paymentDate),
@@ -1333,7 +1335,11 @@ const EditContract = () => {
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 {cmtData?.data[0] && (
                     <div className="fixed top-20 right-4 z-50">
-                        <Button onClick={showDrawer}>Xem bình luận</Button>
+                        <Button
+                            className="w-fit h-fit"
+                            onClick={showDrawer}>
+                            <p className="flex justify-center items-center py-2"><LeftOutlined style={{ fontSize: 20 }} /><Image preview={false} width={40} height={40} src={viewComment} /></p>
+                        </Button>
                     </div>
                 )}
 
@@ -1366,34 +1372,28 @@ const EditContract = () => {
                 open={drawerVisible}
                 width={600}
             >
-                <div className="p-4 bg-gray-50 min-h-full">
+                <div className="p-4 min-h-full">
                     {cmtData?.data ? (
                         cmtData?.data?.map((cmt, index) => (
-                            <div className="bg-white rounded-md shadow-sm p-4 border border-gray-200">
+                            <div className=" rounded-md ">
                                 {/* Tên người bình luận */}
-                                <div className="font-semibold text-gray-800 text-base mb-2">
-                                    {cmt.commenter}
+                                <div className="font-semibold  text-base mb-2">
+                                   <p>{cmt.commenter}</p> 
                                 </div>
-
-                                {/* Thời gian bình luận */}
-                                <div className="text-xs text-gray-500 mb-4">
+                                <div className="text-xs mb-4">
                                     {formatDate(cmt.commentedAt)}
                                 </div>
-
-                                {/* Nội dung bình luận (hiển thị trong textarea) */}
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Nội dung
-                                </label>
-                                <textarea
-                                    className="w-full h-24 resize-none border border-gray-300 rounded p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                <Card
+                                    className="w-full min-h-3 resize-none shadow-lg"
                                     readOnly
-                                    value={cmt.comment}
-                                />
+                                >
+                                    {cmt.comment}
+                                </Card>
                             </div>
                         ))
 
                     ) : (
-                        <p className="text-gray-500">Không có bình luận nào</p>
+                        <p className="">Không có bình luận nào</p>
                     )}
                 </div>
             </Drawer>
