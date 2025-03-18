@@ -24,18 +24,26 @@ const Compare = () => {
 
 
 
-    const highlightDifferences = (content1, content2) => {
-        const differences = diffWords(content1, content2);
+    const stripHtml = (html) => html.replace(/<\/?[^>]+(>|$)/g, ""); 
 
+    const highlightDifferences = (content1, content2) => {
+        const text1 = stripHtml(content1);
+        const text2 = stripHtml(content2);
+        const differences = diffWords(text1, text2);
+    
         return differences
             .map(part => {
                 if (part.added) {
-                    return `<span style="background: #fde047">${part.value}</span>`;
+                    return `<span style="background: #fde047; color: green;">${part.value}</span>`; 
                 }
-                return part.value;
+                if (part.removed) {
+                    return `<span style="background: #f87171; color: red; text-decoration: line-through;">${part.value}</span>`; 
+                }
+                return part.value; 
             })
             .join('');
     };
+    
 
 
     const formatDate = (dateArray) => {
@@ -396,13 +404,13 @@ const Compare = () => {
                         <p className={`text-right mt-4
                              ${(isDifferent(v1.contractLocation, v2.contractLocation)
                                 || isDifferent(v1?.signingDate, v2?.signingDate)) ?
-                                'bg-yellow-300 px-1' : ''}`}>
+                                'bg-yellow-300 px-1  text-green-800' : ''}`}>
                             {v2.contractLocation}, Ngày {v2?.signingDate[2]} Tháng {v2?.signingDate[1]} Năm {v2?.signingDate[0]}
                         </p>
                         <p className={`text-2xl font-bold mt-10 ${isDifferent(v1?.title, v2?.title) ? "bg-yellow-300" : ""}`}>
                             {v2.title?.toUpperCase()}
                         </p>
-                        <p className={`mt-3 ${isDifferent(v1?.contractNumber, v2?.contractNumber) ? "bg-yellow-300" : ""} `}><b>Số:</b> {v2.contractNumber}</p>
+                        <p className={`mt-3 ${isDifferent(v1?.contractNumber, v2?.contractNumber) ? "bg-yellow-300 text-green-800" : ""} `}><b>Số:</b> {v2.contractNumber}</p>
                     </div>
                     <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
@@ -416,22 +424,22 @@ const Compare = () => {
                         </div>
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300" : ""}`}>
+                            <p className={`text-sm ${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
                                 <b>Tên công ty:</b> {v1?.partner.partnerName}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.address, v2?.partner.address) ? "bg-yellow-300" : ""}`}>
+                            <p className={`text-sm ${isDifferent(v1?.partner.address, v2?.partner.address) ? "bg-yellow-300 text-green-800" : ""}`}>
                                 <b>Địa chỉ trụ sở chính:</b> {v1?.partner.address}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.spokesmanName, v2?.partner.spokesmanName) ? "bg-yellow-300" : ""}`}>
+                            <p className={`text-sm ${isDifferent(v1?.partner.spokesmanName, v2?.partner.spokesmanName) ? "bg-yellow-300 text-green-800" : ""}`}>
                                 <b>Người đại diện:</b> {v1?.partner.spokesmanName}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.position, v2?.partner.position) ? "bg-yellow-300" : ""}`}>
+                            <p className={`text-sm ${isDifferent(v1?.partner.position, v2?.partner.position) ? "bg-yellow-300 text-green-800" : ""}`}>
                                 <b>Chức vụ:</b> {v1?.partner?.position}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.taxCode, v2?.partner.taxCode) ? "bg-yellow-300" : ""}`}>
+                            <p className={`text-sm ${isDifferent(v1?.partner.taxCode, v2?.partner.taxCode) ? "bg-yellow-300 text-green-800" : ""}`}>
                                 <b>Mã số thuế:</b> {v1?.partner.taxCode}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.email, v2?.partner.email) ? "bg-yellow-300" : ""}`}>
+                            <p className={`text-sm ${isDifferent(v1?.partner.email, v2?.partner.email) ? "bg-yellow-300 text-green-800" : ""}`}>
                                 <b>Email:</b> {v1?.partner.email}
                             </p>
                         </div>
@@ -446,7 +454,7 @@ const Compare = () => {
                             </div>
                         ))}
                         {differencesLegalBasic.added.map((term, index) => (
-                            <div className='bg-yellow-300 my-2'>
+                            <div className='bg-yellow-300 text-green-800 my-2'>
                                 <p>- <i>{term.value}</i></p>
                             </div>
                         ))}
@@ -466,21 +474,21 @@ const Compare = () => {
                     <div className="mt-4">
                         <h3 className="font-semibold">3. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
                         {v2.autoAddVAT && (
-                            <p className={`py-1 ${(isDifferent(v1.autoAddVAT, v2.autoAddVAT) || (isDifferent(v1.vatPercentage, v2.vatPercentage))) ? 'bg-yellow-300 px-1' : ''}`}>
+                            <p className={`py-1 ${(isDifferent(v1.autoAddVAT, v2.autoAddVAT) || (isDifferent(v1.vatPercentage, v2.vatPercentage))) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                 <b>- Thêm phí VAT: </b> {v2?.vatPercentage} %
                             </p>
                         )}
                         {v2.isDateLateChecked && (
-                            <p className={`py-1 ${(isDifferent(v1.isDateLateChecked, v2.isDateLateChecked) || (isDifferent(v1.maxDateLate, v2.maxDateLate))) ? 'bg-yellow-300 px-1' : ''}`}>
+                            <p className={`py-1 ${(isDifferent(v1.isDateLateChecked, v2.isDateLateChecked) || (isDifferent(v1.maxDateLate, v2.maxDateLate))) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                 <b> - Cho phép thanh toán trễ tối đa: </b> {v2?.maxDateLate} (Ngày)
                             </p>
                         )}
                         {v2.autoRenew && (
-                            <p className={`py-1 ${isDifferent(v1.autoRenew, v2.autoRenew) ? 'bg-yellow-300 px-1' : ''}`}>
+                            <p className={`py-1 ${isDifferent(v1.autoRenew, v2.autoRenew) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                 - Hợp đồng sẽ tự gia hạn khi hết hạn nếu không có bất kỳ thông báo nào từ 2 bên
                             </p>
                         )}
-                        <p className={`mb-3 ${isDifferent(v1.paymentSchedules.length, v2.paymentSchedules.length) ? 'bg-yellow-300 px-1' : ''}`}><b >
+                        <p className={`mb-3 ${isDifferent(v1.paymentSchedules.length, v2.paymentSchedules.length) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}><b >
                             -  Số lần thanh toán:</b> {v2.paymentSchedules?.length}
                         </p>
                         {v2.paymentSchedules.map((schedule, index) => {
@@ -490,25 +498,25 @@ const Compare = () => {
                                 <div key={index} className="p-4  rounded">
                                     <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
                                     <div className='ml-3'>
-                                        <p className={`${isDifferent(schedule.amount, v1Schedule.amount) ? 'bg-yellow-300 px-1' : ''}`}>
+                                        <p className={`${isDifferent(schedule.amount, v1Schedule.amount) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                             <strong>Số tiền: </strong>
                                             <span >
                                                 {schedule.amount} VNĐ
                                             </span>
                                         </p>
-                                        <p className={`${isDifferent(schedule.notifyPaymentDate, v1Schedule.notifyPaymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                        <p className={`${isDifferent(schedule.notifyPaymentDate, v1Schedule.notifyPaymentDate) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                             <strong>Ngày thông báo thanh toán:</strong>
                                             <span >
                                                 {formatDate(schedule.notifyPaymentDate)}
                                             </span>
                                         </p>
-                                        <p className={`${isDifferent(schedule.paymentDate, v1Schedule.paymentDate) ? 'bg-yellow-300 px-1' : ''}`}>
+                                        <p className={`${isDifferent(schedule.paymentDate, v1Schedule.paymentDate) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                             <strong>Ngày thanh toán:</strong>
                                             <span >
                                                 {formatDate(schedule.paymentDate)}
                                             </span>
                                         </p>
-                                        <p className={`${isDifferent(schedule.paymentMethod, v1Schedule.paymentMethod) ? 'bg-yellow-300 px-1' : ''}`}>
+                                        <p className={`${isDifferent(schedule.paymentMethod, v1Schedule.paymentMethod) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                             <strong>Phương thức thanh toán: </strong>
                                             <span >
                                                 {schedule.paymentMethod}
@@ -535,7 +543,7 @@ const Compare = () => {
                                                 <p className="p-1 mb-1"> {Common.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {Common.added.length > 0 && (
-                                                <p className='bg-yellow-300 p-1 mb-1'> {Common.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-yellow-300 text-green-800 p-1 mb-1'> {Common.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {Common.removed.length > 0 && (
                                                 <p className='bg-red-400 p-1 mb-1'> {Common.removed.map((item) => <p>- {item.value}</p>)}</p>
@@ -551,7 +559,7 @@ const Compare = () => {
                                                 <p className='p-1 mb-1'> {A.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {A.added.length > 0 && (
-                                                <p className='bg-yellow-300 p-1 mb-1'> {A.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-yellow-300 text-green-800 p-1 mb-1'> {A.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {A.removed.length > 0 && (
                                                 <p className='bg-red-400 p-1 mb-1'> {A.removed.map((item) => <p>- {item.value}</p>)}</p>
@@ -567,7 +575,7 @@ const Compare = () => {
                                                 <p className='p-1 mb-1'> {B.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {B.added.length > 0 && (
-                                                <p className='bg-yellow-300 p-1 mb-1'> {B.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-yellow-300 text-green-800 p-1 mb-1'> {B.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {B.removed.length > 0 && (
                                                 <p className='bg-red-400 p-1 mb-1'> {B.removed.map((item) => <p>- {item.value}</p>)}</p>
@@ -583,25 +591,25 @@ const Compare = () => {
                             <h1 className='font-semibold'>5. PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
                             {v2.appendixEnabled && (
                                 <p className={`py-1   ${(isDifferent(v1.appendixEnabled, v2.appendixEnabled))
-                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                     - Cho phép tạo phụ lục khi hợp đồng đang có hiệu lực pháp lý
                                 </p>
                             )}
                             {v2.transferEnabled && (
                                 <p className={`py-1   ${(isDifferent(v1.transferEnabled, v2.transferEnabled))
-                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                     - Cho phép chuyển nhượng hợp đồng
                                 </p>
                             )}
                             {v2.violate && (
                                 <p className={`py-1   ${(isDifferent(v1.violate, v2.violate))
-                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                     - Cho phép đơn phương hủy hợp đồng nếu vi phạm nghiêm trọng các quy định trong điều khoản hợp đồng
                                 </p>
                             )}
                             {v2.suspend && (
                                 <p className={`${(isDifferent(v1.suspend, v2.suspend)) || (isDifferent(v1.suspendContent, v2.suspendContent))
-                                    ? 'bg-yellow-300 px-1' : ''}`}>
+                                    ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                     - Cho phép tạm ngưng hợp đồng trong các trường hợp bất khả kháng được ghi rõ: <p>{v1.suspendContent}</p>
                                 </p>
                             )}
@@ -610,8 +618,8 @@ const Compare = () => {
                     <div className='w-full flex justify-center mt-10 items-center pb-24' >
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
-                            <p className={`${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300" : ""}`}>
-                                <b> {process[0]?.partner.partnerName?.toUpperCase()}</b></p>
+                            <p className={`${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b> {process[0]?.partner.partnerName.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
