@@ -1378,7 +1378,7 @@ const EditContract = () => {
                             <div className=" rounded-md ">
                                 {/* Tên người bình luận */}
                                 <div className="font-semibold  text-base mb-2">
-                                   <p>{cmt.commenter}</p> 
+                                    <p>{cmt.commenter}</p>
                                 </div>
                                 <div className="text-xs mb-4">
                                     {formatDate(cmt.commentedAt)}

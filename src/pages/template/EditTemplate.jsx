@@ -58,8 +58,8 @@ const EditTemplate = () => {
     const [getTemplateDetail, { data }] = useLazyGetTemplateDataDetailQuery();
     const [getContractLegal] = useLazyGetLegalCreateContractQuery();
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
-
-
+    const [newGeneralTerm, setNewGeneralTerm] = useState({ name: "", typeId: null, content: "" });
+    const [isAddGeneralModalOpen, setIsAddGeneralModalOpen] = useState(false);
     const [activeSection, setActiveSection] = useState('general');
     const generalInfoRef = useRef(null);
     const mainContentRef = useRef(null);
@@ -655,6 +655,37 @@ const EditTemplate = () => {
             window.removeEventListener('scroll', handleScroll);
         };
     }, []);
+
+    const showAddGeneralModal = async (value) => {
+        setNewGeneralTerm({ name: "", typeId: value, content: "" });
+        setIsAddGeneralModalOpen(true);
+    }
+    const handleAddOkGeneralTerm = async () => {
+        const { name, typeId, content } = newGeneralTerm;
+        if (!name || !typeId || !content) {
+            message.error("Vui lòng nhập đầy đủ thông tin!");
+            return;
+        }
+        try {
+            const result = await createClause({ typeTermId: typeId, label: name, value: content }).unwrap();
+            // console.log(result);
+            if (result.status === "CREATED") {
+                message.success("Tạo điều khoản thành công");
+            }
+            handleAddGeneralCancel()
+            await refetchGenaral();
+            handleAddGeneralCancel();
+
+        } catch (error) {
+            console.error("Lỗi tạo điều khoản:", error);
+            message.error(error.data.message);
+        }
+    };
+
+    const handleAddGeneralCancel = () => {
+        setIsAddGeneralModalOpen(false);
+        setNewGeneralTerm({ name: "", typeId: null, content: "" });
+    };
 
 
     // Các bước của form
@@ -1264,6 +1295,39 @@ const EditTemplate = () => {
                         <TextArea
                             value={newLegalBasis.content}
                             onChange={(e) => setNewLegalBasis({ ...newLegalBasis, content: e.target.value })}
+                            placeholder="Nhập nội dung"
+                            rows={4}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            <Modal
+                title="Thêm điều khoản chung"
+                open={isAddGeneralModalOpen}
+                onOk={handleAddOkGeneralTerm}
+                onCancel={handleAddGeneralCancel}
+                okText="Lưu"
+                cancelText="Hủy"
+            >
+                <Form layout="vertical">
+                    <Form.Item
+                        label="Tên điều khoản"
+                        rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
+                    >
+                        <Input
+                            value={newGeneralTerm.name}
+                            onChange={(e) => setNewGeneralTerm({ ...newGeneralTerm, name: e.target.value })}
+                            placeholder="Nhập tên điều khoản"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Nội dung điều khoản"
+                        rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
+                    >
+                        <TextArea
+                            value={newGeneralTerm.content}
+                            onChange={(e) => setNewGeneralTerm({ ...newGeneralTerm, content: e.target.value })}
                             placeholder="Nhập nội dung"
                             rows={4}
                         />

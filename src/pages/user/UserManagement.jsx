@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Tag, Skeleton, Empty, Card, Popover, Modal, Form, Select, Switch, Tooltip, Radio, Col, Row, Tabs } from "antd";
+import React, { useState } from "react";
+import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Radio, Col, Row, Tabs } from "antd";
 import { EditFilled, PlusOutlined, DeleteFilled, StarFilled } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
@@ -117,6 +117,9 @@ const UserManagement = () => {
                     message.error('Cấm thất bại, vui lòng thử lại!');
                 }
             },
+            okText: "Cấm",
+            cancelText: "Hủy"
+
         });
     };
     const handleActive = async (userId) => {

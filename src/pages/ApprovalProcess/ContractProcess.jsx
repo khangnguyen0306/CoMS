@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider } from "antd";
-import { useGetContractPorcessQuery, useGetContractRejectQuery, useGetContractUpdateQuery } from "../../services/ContractAPI";
+import { useGetContractStatusQuery } from "../../services/ContractAPI";
 import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
 import dayjs from "dayjs";
@@ -9,9 +9,8 @@ import { useResubmitProcessMutation } from "../../services/ProcessAPI";
 const { Search } = Input;
 
 const ContractProcess = () => {
-    const { data: contractsProcess, isLoading, isError, refetch } = useGetContractPorcessQuery();
-    const { data: contractsReject, isLoadingReject, isErrorReject, refetch: refetchReject } = useGetContractRejectQuery();
-    const { data: contractsUpdate, isLoadingUpdate, isErrorUpdate, refetch: refetchUpdate } = useGetContractUpdateQuery();
+    const { data: contractsStatus, isLoading, isError, refetch } = useGetContractStatusQuery();
+
     const [resubmitProcess, { isLoading: loadingResubmit }] = useResubmitProcessMutation();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -19,12 +18,9 @@ const ContractProcess = () => {
 
     useEffect(() => {
         refetch();
-        refetchReject();
-        refetchUpdate();
-    }, []);
-    const contracts = contractsProcess?.data?.content
-        ?.concat(contractsReject?.data?.content || [])
-        .concat(contractsUpdate?.data?.content || []);
+    }, [contractsStatus]);
+    const contracts = contractsStatus?.data?.content
+
     console.log(contracts);
     const navigate = useNavigate();
     const showModal = (record) => {
@@ -41,15 +37,13 @@ const ContractProcess = () => {
         setIsModalVisible(false);
         setSelectedRecord(null);
         refetch();
-        refetchReject();
-        refetchUpdate();
+
     };
     const resendProcess = async (record) => {
         try {
             await resubmitProcess({ contractId: record.id });
             refetch();
-            refetchReject();
-            refetchUpdate();
+
             message.success("Gửi lại yêu cầu phê duyệt thành công");
         } catch (error) {
             console.error("Lỗi khi gửi lại yêu cầu:", error);
@@ -106,7 +100,7 @@ const ContractProcess = () => {
                             {text}
                         </Link>
                     );
-                } else if (record.status === "CREATED" || record.status === "UPDATED") {
+                } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
                     return (
                         <span className="block truncate max-w-[200px]" title={text}>
                             {text}
@@ -153,10 +147,13 @@ const ContractProcess = () => {
 
                 if (status === "REJECTED") {
                     color = "red";
-                    text = "Chưa được duyệt";
+                    text = "Đã bị từ chối";
                 } else if (status === "UPDATED") {
                     color = "blue";
                     text = "Đã cập nhật";
+                } else if (status === "FIXED") {
+                    color = "orange";
+                    text = "Đã sửa lỗi";
                 }
 
                 return <Tag color={color}>{text}</Tag>;
@@ -165,13 +162,21 @@ const ContractProcess = () => {
 
 
         {
-            title: "Giá trị",
-            dataIndex: "amount",
-            key: "amount",
+            title: "Phiên bản",
+            dataIndex: "version",
+            key: "version",
             width: "15%",
-            render: (value) => value.toLocaleString("vi-VN") + " VND",
+            render: (value) => value + ".0.0",
             sorter: (a, b) => a.value - b.value,
         },
+        // {
+        //     title: "Giá trị",
+        //     dataIndex: "amount",
+        //     key: "amount",
+        //     width: "15%",
+        //     render: (value) => value.toLocaleString("vi-VN") + " VND",
+        //     sorter: (a, b) => a.value - b.value,
+        // },
         {
             title: "Hành động",
             key: "action",

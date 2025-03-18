@@ -3,11 +3,15 @@ import { Radio, Steps, Form, Button, Select, message, Timeline, Card } from 'ant
 import { MinusCircleOutlined } from '@ant-design/icons';
 import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
 import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation, useGetProcessByContractTypeIdQuery } from "../../services/ProcessAPI";
+import { useSelector } from 'react-redux';
+import { selectCurrentUser } from '../../slices/authSlice';
 const { Step } = Steps;
 const { Option } = Select;
 
 const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
     console.log("Contract ID:", contractTypeId);
+    const user = useSelector(selectCurrentUser);
+
     const [selection, setSelection] = useState("auto");
     const [hideAddStage, setHideAddStage] = useState(false)
     const [isCreate, setIsCreate] = useState(false)
@@ -24,7 +28,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
     const [create] = useCreateProcessMutation();
     const [assign, { isLoading }] = useAssignProcessMutation();
 
-    console.log(approvalData)
+    console.log(user)
 
     // Các state cho giao diện Steps (cho việc tạo/chỉnh sửa quy trình)
     const [current, setCurrent] = useState(0);
@@ -47,6 +51,9 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
         // Nếu ở bước hiện tại đã có giá trị, giữ lại giá trị đó trong danh sách để hiển thị trong select
         const currentValue = approvals[currentStepKey];
         return (userData?.data?.content || []).filter((manager) => {
+            if (manager.id === user.id) {
+                return false;
+            }
             if (
                 currentValue &&
                 manager.id === (typeof currentValue === 'object' ? currentValue.value : currentValue)
@@ -328,7 +335,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
                     </Radio>
                 </div> */}
                 <div>
-                    {/* Radio "Đề xuất" */}\
+                    {/* Radio "Đề xuất" */}
                     {formattedData.length > 0 && (
                         <div className="flex items-center cursor-pointer mb-4">
                             <Radio

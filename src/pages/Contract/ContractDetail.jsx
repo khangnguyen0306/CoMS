@@ -313,7 +313,7 @@ const ContractDetail = () => {
                             className="fixed right-5 top-20 flex flex-col h-fit bg-[#2280ff]"
                             onClick={showDrawerAprove}
                         >
-                            <p className='flex items-center justify-center'> <LeftOutlined style={{fontSize:25}}/> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
+                            <p className='flex items-center justify-center'> <LeftOutlined style={{ fontSize: 25 }} /> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
                         </Button>
                     </>
                 )
@@ -479,7 +479,7 @@ const ContractDetail = () => {
                     </Tabs.TabPane>
                 </Tabs>
             </Drawer>
-            <div className="" onScroll={handleScrollContainer}>
+            <div >
                 <div className="text-center mt-9">
                     <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                     <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
@@ -664,6 +664,7 @@ const ContractDetail = () => {
                 </div>
 
             </div>
+
         </div>
     );
 };

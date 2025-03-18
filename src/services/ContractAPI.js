@@ -57,33 +57,10 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
-
-        getContractPorcess: builder.query({
+        getContractStatus: builder.query({
             query: () => ({
-                url: `contracts?status=CREATED`,
+                url: `contracts?page=0&size=10&statuses=CREATED&statuses=UPDATED&statuses=REJECTED&statuses=FIXED&sortBy=id&order=asc`,
                 method: "GET",
-            }),
-            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
-        }),
-
-        getContractReject: builder.query({
-            query: () => ({
-                url: `contracts?status=REJECTED`,
-                method: "GET"
-            }),
-            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
-        }),
-        getContractUpdate: builder.query({
-            query: () => ({
-                url: `contracts?status=UPDATED`,
-                method: "GET"
-            }),
-            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
-        }),
-        getContractUpdate: builder.query({
-            query: () => ({
-                url: `contracts?status=UPDATED`,
-                method: "GET"
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
@@ -245,11 +222,8 @@ export const {
     useDeleteContractMutation,
     useLazyGetContractDetailQuery,
     useUpdateContractMutation,
-    useGetContractPorcessQuery,
-    useGetContractRejectQuery,
+    useGetContractStatusQuery,
     useGetDataContractCompareVersionQuery,
-    useGetContractByPartnerIdQuery,
-useGetContractUpdateQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

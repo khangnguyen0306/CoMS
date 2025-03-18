@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Space } from 'antd';
+import { Table, Button, Modal, Form, Input, message, Space, Skeleton } from 'antd';
 import {
     useCreateDepartmentMutation,
     useGetDepartmentsQuery,
@@ -7,7 +7,7 @@ import {
 } from '../../services/Department';
 
 const Department = () => {
-    const { data, error, isLoading, refetch } = useGetDepartmentsQuery();
+    const { data, isLoading, refetch } = useGetDepartmentsQuery();
     const [createDepartment] = useCreateDepartmentMutation();
     const [updateDepartment] = useUpdateDepartmentMutation();
 
@@ -75,6 +75,7 @@ const Department = () => {
             ),
         },
     ];
+    if (isLoading) return <Skeleton active />;
 
     return (
         <div className="min-h-[100vh] p-4 w-full">
@@ -89,7 +90,6 @@ const Department = () => {
                 columns={columns}
                 dataSource={data?.data}
                 rowKey="id"
-                loading={isLoading}
                 pagination={{ pageSize: 10 }}
             />
 

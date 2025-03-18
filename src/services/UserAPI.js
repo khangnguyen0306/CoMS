@@ -50,10 +50,10 @@ export const userAPI = createApi({
             providesTags: (result, error, User) => [{ type: "User", id: User }],
         }),
         UpdateUser: builder.mutation({
-            query: ({ id, email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth }) => ({
+            query: ({ id, email, full_name, phone_number, address, role_id, is_ceo, departmentId, dateOfBirth }) => ({
                 url: `/users/update-user/${id}`,
                 method: "PUT",
-                body: { email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth },
+                body: { email, full_name, phone_number, address, role_id, is_ceo, departmentId, dateOfBirth },
             }),
             invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
