@@ -7,7 +7,7 @@ import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
 import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
-import { useLazyGetAllAuditTrailByContractQuery } from '../../services/AuditTrailAPI';
+import { useLazyGetAllAuditTrailByContractQuery, useLazyGetDateChangeContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery } from '../../services/ContractAPI';
 import AuditTrailDisplay from '../../components/ui/Audittrail/AuditTrail';
 import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
@@ -49,6 +49,7 @@ const ContractDetail = () => {
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
     const [fetchAudittrail, { data: auditTrailData, isLoading: loadingAuditTrail }] = useLazyGetAllAuditTrailByContractQuery();
+    const [fetchDdateAudittrail, { data: auditTrailDate, isLoading: loadingAuditTrailDate }] = useLazyGetDateChangeContractQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
     console.log(processData)
@@ -205,7 +206,7 @@ const ContractDetail = () => {
     const loadAuditTrailPage = async (page) => {
         try {
             // Gọi API với tham số: { id, page, size }
-            const response = await fetchAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
+            const response = await fetchDdateAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
             // Giả sử response.data là mảng các bản ghi audit trail
             console.log("Audit trail page", response.data);
             if (page === 1) {
