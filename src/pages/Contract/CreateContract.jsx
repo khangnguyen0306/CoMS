@@ -64,6 +64,8 @@ const CreateContractForm = () => {
     const [loadingTerms, setLoadingTerms] = useState({});
     const [changeCCPL, setChangeCCPL] = useState(false);
 
+    const [isOverflowing, setIsOverflowing] = useState(false);
+
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
 

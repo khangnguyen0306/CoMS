@@ -6,12 +6,16 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, To
 import { GlowingEffectDemoSecond, GridItem, GridItemCustom } from "../../components/ui/ComponentEffect";
 import { useSelector } from "react-redux";
 import { useGetDashboardataQuery } from "../../services/BsAPI";
+import { useGetDashboardataQuery } from "../../services/BsAPI";
 
 const Home = () => {
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
     const searchInput = useRef(null);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const currentYear = new Date().getFullYear();
+    const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
+
     const currentYear = new Date().getFullYear();
     const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
 
@@ -308,16 +312,16 @@ const Home = () => {
         SIGNED: 'ĐÃ KÝ',
         APPROVED: 'ĐÃ PHÊ DUYỆT',
     };
-    
+
     const hiddenStatuses = ['DRAFT', 'DELETED', 'PENDING', 'CREATED', 'FIXED', 'REJECTED', 'UPDATED'];
     const statusCountsArray = Object.entries(dashboardData?.data?.statusCounts || {})
-        .filter(([status]) => !hiddenStatuses.includes(status)) 
+        .filter(([status]) => !hiddenStatuses.includes(status))
         .map(([status, count]) => ({
             status,
             count
         }));
-        
-    if(loadingDashboard){
+
+    if (loadingDashboard) {
         return (
             <div className="flex justify-center items-center h-screen w-screen">
                 <Spin size="large" />

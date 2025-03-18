@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Button, Form, Select, Steps, message } from "antd";
-import { MinusCircleOutlined } from "@ant-design/icons";
+import { Button, Form, Select, Steps, message, Empty, Skeleton } from "antd";
+import { MinusCircleFilled, MinusCircleOutlined } from "@ant-design/icons";
 import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
 import { useGetProcessTemplatesQuery, useUpdateProcessMutation } from "../../services/ProcessAPI";
 
@@ -119,7 +119,7 @@ const ApprovalProcess = () => {
                     <div className="flex justify-between items-center">
                         <span>{isFinal ? "Đợt cuối" : `Ký duyệt đợt ${stage.stageOrder}`}</span>
                         {approvalStages.length > 1 && (
-                            <MinusCircleOutlined
+                            <MinusCircleFilled
                                 className="ml-4 text-red-500 cursor-pointer"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -188,11 +188,11 @@ const ApprovalProcess = () => {
     };
 
     if (isLoading || isLoadingUser) {
-        return <div>Loading...</div>;
+        return <Skeleton active />;
     }
 
     return (
-        <div>
+        <div className="min-h-[100vh] p-6">
             <div
                 className="font-bold mb-4 text-[34px] pb-7 bg-custom-gradient bg-clip-text text-transparent"
                 style={{ textShadow: "8px 8px 8px rgba(0, 0, 0, 0.2)" }}
@@ -202,11 +202,14 @@ const ApprovalProcess = () => {
                     <div className="flex-1 text-center font-bold text-[34px]">
                         Quản Lý Quy Trình Ký Duyệt
                     </div>
-                    <div className="flex-1 text-right">
-                        <Button type="primary" onClick={() => setIsEditing(true)}>
-                            Chỉnh sửa quy trình
-                        </Button>
-                    </div>
+                    {
+                        <div className="flex-1 text-right">
+                            <Button type="primary" onClick={() => setIsEditing(true)}>
+                                Chỉnh sửa quy trình
+                            </Button>
+                        </div>
+                    }
+
                 </div>
 
             </div>

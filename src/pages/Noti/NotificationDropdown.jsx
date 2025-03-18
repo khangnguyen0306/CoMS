@@ -46,7 +46,7 @@ const NotificationDropdown = () => {
       });
       navigate(`/manager/approvalContract`);
     } catch (error) {
-      console.error("Error updating notification:", error); 
+      console.error("Error updating notification:", error);
     }
   };
 
@@ -137,4 +137,4 @@ const NotificationDropdown = () => {
   );
 };
 
-export default NotificationDropdown;
+export default NotificationDropdown

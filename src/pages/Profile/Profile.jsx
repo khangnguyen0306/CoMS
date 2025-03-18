@@ -9,7 +9,6 @@ import partnerIMG from "../../assets/Image/partner.jpg"
 const { Title } = Typography;
 
 
-// làm lại
 const Profile = () => {
     const { id } = useParams();
     const { data, isLoading } = useGetUserByIdQuery({ id });
@@ -25,38 +24,41 @@ const Profile = () => {
             full_name: data?.full_name,
             // department: data?.position,
             department_id: data?.department?.id,
-            date_of_birth: data?.date_of_birth ? dayjs(data.date_of_birth) : null,
-            phone_number: data?.phone_number,
+            date_of_birth: data?.date_of_birth
+                ? dayjs(
+                    `${data.date_of_birth[0]}-${data.date_of_birth[1]
+                        .toString()
+                        .padStart(2, "0")}-${data.date_of_birth[2]
+                            .toString()
+                            .padStart(2, "0")}`
+                )
+                : null, phone_number: data?.phone_number,
             address: data?.address,
             email: data?.email,
         });
         setIsModalOpen(true);
-        // console.log(form.getFieldValue('department_id'))
     };
 
     const handleOk = async () => {
         try {
             const values = await form.validateFields();
-            console.log("Form values:", values);
             const updatedData = await updateUser({
                 id: id,
                 email: values.email,
                 address: values.address,
                 phone_number: values.phone_number,
-                date_of_birth: values.date_of_birth
+                dateOfBirth: values.date_of_birth
                     ? values.date_of_birth.toISOString()
                     : null,
                 full_name: values.full_name,
                 departmentId: values.department_id,
-                is_ceo: data.is_ceo,
-                role_id: data.role.id,
+                is_ceo: data?.is_ceo,
+                role_id: data?.role.id,
             }).unwrap();
-            console.log("Updated user:", updatedData);
             message.success("Profile updated successfully!");
             setIsModalOpen(false);
             form.resetFields();
         } catch (error) {
-            console.error("Update error:", error);
             message.error("Update failed, please try again.");
         }
     };
@@ -100,15 +102,22 @@ const Profile = () => {
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
                             Mã Nhân Viên
                         </span>
-                        <span className="text-gray-800 font-semibold text-lg"> : {data?.employeeCode ? data.employeeCode : "Chưa cập nhật"}</span>
+                        <span className="text-gray-800 font-semibold text-lg"> : {data?.employeeCode ? data?.employeeCode : "Chưa cập nhật"}</span>
                     </div>
                     <div className="flex items-center">
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
-                            Năm Sinh
+                            Ngày Sinh
                         </span>
                         <span className="text-gray-800 font-semibold text-lg">
-                            : {data?.date_of_birth ? data.date_of_birth : "Chưa cập nhật"}
+                            : {data?.date_of_birth
+                                ? dayjs(new Date(
+                                    data.date_of_birth[0],
+                                    data.date_of_birth[1] - 1,
+                                    data.date_of_birth[2]
+                                )).format("DD-MM-YYYY")
+                                : "Chưa cập nhật"}
                         </span>
+
                     </div>
                     <div className="flex items-center">
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
@@ -127,7 +136,11 @@ const Profile = () => {
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
                             Tuổi
                         </span>
-                        <span className="text-gray-800 font-semibold text-lg">: {data?.age ? data.age : "Chưa cập nhật"}</span>
+                        <span className="text-gray-800 font-semibold text-lg">
+                            : {data?.date_of_birth
+                                ? dayjs().diff(new Date(data.date_of_birth[0], data.date_of_birth[1] - 1, data.date_of_birth[2]), 'year')
+                                : "Chưa cập nhật"}
+                        </span>
                     </div>
                     <div className="flex items-center">
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
@@ -164,6 +177,7 @@ const Profile = () => {
                 title="Cập nhật thông tin cá nhân"
                 open={isModalOpen}
                 onCancel={handleCancel}
+
                 footer={null}
             >
                 <Form form={form} layout="vertical" onFinish={handleOk}>
@@ -199,19 +213,34 @@ const Profile = () => {
                                 },
                                 {
                                     validator: (_, value) => {
-                                        if (!value || (dayjs().year() - value.year() < 18)) {
+                                        if (!value || dayjs().diff(value, 'year') < 18) {
                                             return Promise.reject(new Error("Tuổi không thể nhỏ hơn 18!"));
                                         }
                                         return Promise.resolve();
                                     },
                                 },
                             ]}
+                            initialValue={
+                                data?.date_of_birth
+                                    ? dayjs(
+                                        `${data.date_of_birth[0]}-${data.date_of_birth[1]
+                                            .toString()
+                                            .padStart(2, '0')}-${data.date_of_birth[2]
+                                                .toString()
+                                                .padStart(2, '0')}`
+                                    )
+                                    : null
+                            }
                         >
                             <DatePicker
+                                className="w-[100%]"
                                 placeholder="Chọn ngày sinh"
                                 disabledDate={(current) => current && current > dayjs().endOf('day')}
+                                format="DD-MM-YYYY"
                             />
                         </Form.Item>
+
+
                         <Form.Item
                             name="phone_number"
                             label="Điện thoại"
@@ -235,11 +264,11 @@ const Profile = () => {
                         </Form.Item>
                     </div>
                     <Form.Item>
-                        <Space>
+                        <Space className="flex justify-end w-full">
                             <Button type="primary" htmlType="submit">
-                                OK
+                                Lưu Cập Nhật
                             </Button>
-                            <Button onClick={handleCancel}>Cancel</Button>
+                            <Button onClick={handleCancel}>Hủy</Button>
                         </Space>
                     </Form.Item>
                 </Form>
