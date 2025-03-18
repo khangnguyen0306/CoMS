@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
@@ -12,13 +12,12 @@ import { useGetContractDetailQuery } from '../../services/ContractAPI';
 import AuditTrailDisplay from '../../components/ui/Audittrail/AuditTrail';
 import { useApproveProcessMutation, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
 import { selectCurrentUser } from '../../slices/authSlice';
-
+import note from "../../assets/Image/review.svg"
 const ContractDetail = () => {
 
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
-
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -32,6 +31,8 @@ const ContractDetail = () => {
         A: [],
         B: []
     });
+    const [confirmed, setConfirmed] = useState(false);
+
     const user = useSelector(selectCurrentUser);
     const location = useLocation();
     const { StageIdMatching } = location.state || {};
@@ -185,6 +186,10 @@ const ContractDetail = () => {
         setOpenAprove(false);
     };
 
+    const onCheckboxChange = (e) => {
+        setConfirmed(e.target.checked);
+    };
+
     function convertCreatedAt(createdAtArray) {
         if (!createdAtArray || !Array.isArray(createdAtArray) || createdAtArray.length < 6) {
             return "Không có dữ liệu";
@@ -299,25 +304,16 @@ const ContractDetail = () => {
                     <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
                         Sửa hợp đồng
                     </Button>
-                ) : (<>
-                    <Button
-                        type="primary"
-                        className="fixed right-0 top-20"
-                        onClick={showDrawerAprove}
-                    >
-                        Thêm nhận xét
-                    </Button>
-
-                    <Button
-                        className="fixed right-40 top-20"
-                        loading={approveLoading}
-                        type="primary"
-                        onClick={handleApprove}
-                    >
-                        Đồng Ý Phê Duyệt
-                    </Button>
-
-                </>
+                ) : (
+                    <>
+                        <Button
+                            type="default"
+                            className="fixed right-5 top-20 flex flex-col h-fit"
+                            onClick={showDrawerAprove}
+                        >
+                            <Image width={40} className='py-1' height={40} src={note} preview={false} />
+                        </Button>
+                    </>
                 )
                 }
                 <Button type='link' onClick={showDrawer}>
@@ -327,27 +323,53 @@ const ContractDetail = () => {
 
             <Drawer
                 size="large"
-                title="Lý do từ chối:"
+                title="Thông tin phê duyệt hợp đồng"
                 onClose={onCloseDrawerAprove}
                 open={openAprove}
             >
-                <Form form={form} layout="vertical" onFinish={handleReject}>
-                    <Form.Item
-                        name="comment"
-                        label="Đề xuất cải tiến :"
-                        rules={[{ required: true, message: "Vui lòng nhập nhận xét" }]}
-                    >
-                        <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />
-                    </Form.Item>
+                <Tabs defaultActiveKey="1" >
+                    {/* Tab Nhận xét */}
+                    <Tabs.TabPane tab="Nhận xét" key="1">
+                        <Form form={form} layout="vertical" onFinish={handleReject}>
+                            <Form.Item
+                                name="comment"
+                                label="Đề xuất sửa đổi hợp đồng :"
+                                rules={[{ required: true, message: "Vui lòng nhập nhận xét" }]}
+                            >
+                                <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />
+                            </Form.Item>
 
-                    <Form.Item>
-                        <Space style={{ display: "flex", justifyContent: "space-around" }}>
-                            <Button danger type="primary" loading={rejectLoading} htmlType="submit" >
-                                Từ Chối Phê Duyệt
+                            <Form.Item>
+                                <Space style={{ display: "flex", justifyContent: "space-around" }}>
+                                    <Button icon={<CloseOutlined />} danger type="primary" loading={rejectLoading} htmlType="submit" >
+                                        Từ Chối Phê Duyệt
+                                    </Button>
+                                </Space>
+                            </Form.Item>
+                        </Form>
+                    </Tabs.TabPane>
+                    <Tabs.TabPane tab="Phê duyệt" key="2">
+                        <Card style={{ margin: '16px' }}>
+                            <Typography.Paragraph>
+                                Vui lòng đảm bảo rằng bạn đã đọc kỹ tất cả các thông tin liên quan đến phê duyệt.
+                            </Typography.Paragraph>
+                            <Checkbox onChange={onCheckboxChange}>
+                                Tôi đã đọc kỹ và quyết định phê duyệt
+                            </Checkbox>
+                            <Button
+                                disabled={!confirmed}
+                                loading={approveLoading}
+                                type="primary"
+                                onClick={handleApprove}
+                                style={{ marginTop: '16px' }}
+                                icon={<CheckOutlined />}
+                            >
+                                Đồng Ý Phê Duyệt
                             </Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
+                        </Card>
+                    </Tabs.TabPane>
+                </Tabs>
+
             </Drawer>
 
             <Drawer
@@ -506,16 +528,16 @@ const ContractDetail = () => {
                                 - Tổng giá trị hợp đồng: <b>{new Intl.NumberFormat('vi-VN').format(contractData.data.amount)} VND</b>
                                 <span className="text-gray-600"> ( {numberToVietnamese(contractData.data.amount)} )</span>
                             </p>
-                            {contractData.data?.payments && contractData.data.payments.length > 0 && (
+                            {contractData.data?.paymentSchedules && contractData?.data.paymentSchedules.length > 0 && (
                                 <div className="mt-5 ml-2">
                                     <p className="font-bold text-base">
-                                        Thanh toán qua {contractData.data.payments.length} đợt:
+                                        Thanh toán qua {contractData.data.paymentSchedules.length} đợt:
                                     </p>
-                                    {contractData.data.payments.map((payment, index) => (
+                                    {contractData.data.paymentSchedules.map((payment, index) => (
                                         <div key={index} className="mt-2 ml-6 flex flex-col gap-2">
-                                            <p><b>Đợt {index + 1}:</b></p>
+                                            <p><b>Đợt: {payment.paymentOrder}</b></p>
                                             <p>- <b>Số tiền:</b> {payment.amount.toLocaleString()} ₫</p>
-                                            <p>- <b>Ngày thanh toán:</b> {dayjs(payment.paymentDate).format('DD/MM/YYYY')}</p>
+                                            <p>- <b>Ngày thanh toán:</b>  Ngày {dayjs(parseDate(payment?.paymentDate)).format('DD')} Tháng {dayjs(parseDate(payment?.paymentDate)).format('MM')} năm {dayjs(parseDate(payment?.paymentDate)).format('YYYY')}</p>
                                             <p>
                                                 - <b>Phương thức thanh toán:</b> {payment.paymentMethod === 'cash'
                                                     ? 'Tiền mặt'

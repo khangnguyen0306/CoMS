@@ -32,23 +32,22 @@ const NotificationDropdown = () => {
   }, [notiData]);
 
 
-  const handleReadNoti = async (id) => {
+  const handleReadNoti = async (item) => {
+    console.log(item);
     try {
-      const data = await update(id).unwrap();
+      const data = await update(item?.id).unwrap();
       setNotifications((prev) => {
         const updated = prev.map((noti) =>
-          noti.id === id ? { ...noti, isRead: true } : noti
+          noti?.id === item.id ? { ...noti, isRead: true } : noti
         );
-        // Tính lại số lượng thông báo chưa đọc dựa trên danh sách updated
+        // Calculate the number of unread notifications based on the updated list
         const newUnreadCount = updated.filter((noti) => !noti.isRead).length;
         dispatch(setNotiNumber(newUnreadCount));
         return updated;
       });
-      if (data?.contractId) {
-        navigate(`/manager/ContractDetail/${data.contractId}`);
-      }
+      navigate(`/manager/approvalContract/reviewContract/${item.contractId}`);
     } catch (error) {
-      console.log(error);
+      console.error("Error updating notification:", error); // Handle errors appropriately
     }
   };
 
@@ -87,12 +86,12 @@ const NotificationDropdown = () => {
           renderItem={(item) => (
             <List.Item
               key={item.id}
-              className="border-b-2 border-gray-400 py-2"
-              onClick={() => handleReadNoti(item.id)}
+              className="border-b-2 border-gray-400 py-2 cursor-pointer"
+              onClick={() => handleReadNoti(item)}
             >
               <div className="flex justify-between items-center w-full">
                 <div
-                  className="w-[85%] overflow-hidden text-ellipsis whitespace-nowrap"
+                  className=" overflow-hidden text-ellipsis whitespace-nowrap"
                   style={{ fontWeight: item.isRead ? "normal" : "bold" }}
                 >
                   {formatMessage(item.message)}

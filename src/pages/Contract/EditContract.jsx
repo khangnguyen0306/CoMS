@@ -421,13 +421,13 @@ const EditContract = () => {
             suspend: data.suspend,
             suspendContent: data.suspendContent,
             status: data.status,
-            payments: data.payments.map(payment => ({
-                id: payment.id,
-                paymentOrder: payment.paymentOrder,
+            payments: data.payments.map((payment, index) => ({
+                id: payment.id, 
+                paymentOrder: index + 1, 
                 amount: payment.amount,
                 notifyPaymentDate: formatDateArray(payment.notifyPaymentDate),
                 paymentDate: formatDateArray(payment.paymentDate),
-                status: payment.status,
+                status: payment.status || "UNPAID",
                 paymentMethod: payment.paymentMethod,
                 notifyPaymentContent: payment.notifyPaymentContent,
                 reminderEmailSent: payment.reminderEmailSent,
