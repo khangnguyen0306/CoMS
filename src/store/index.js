@@ -10,6 +10,7 @@ import { processAPI } from "../services/ProcessAPI";
 import { ConfigAPI } from "../services/ConfigAPI";
 import { notiAPI } from "../services/NotiAPI";
 import { AuditTrailAPI } from "../services/AuditTrailAPI";
+import { AppendixAPI } from "../services/AppendixAPI";
 import { DepartmentAPI } from "../services/Department";
 import AuthReducer from "../slices/authSlice";
 import themeReducer from "../slices/themeSlice";
@@ -52,7 +53,9 @@ export const store = configureStore({
     [AuditTrailAPI.reducerPath]: AuditTrailAPI.reducer,
     auditrail: AuditTrailAPI,
     [DepartmentAPI.reducerPath]: DepartmentAPI.reducer,
-    auditrail: DepartmentAPI,
+    department: DepartmentAPI,
+    [AppendixAPI.reducerPath]: AppendixAPI.reducer,
+    appendix: AppendixAPI,
     theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -69,7 +72,8 @@ export const store = configureStore({
       ConfigAPI.middleware,
       notiAPI.middleware,
       AuditTrailAPI.middleware,
-      DepartmentAPI.middleware
+      DepartmentAPI.middleware,
+      AppendixAPI.middleware
     ),
 });
 
