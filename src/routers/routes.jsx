@@ -127,7 +127,7 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: "approvalContract/reviewContract/:id/approve/:id",
-                        element: Approve,
+                        element: ContractDetail,
                     },
                     {
                         path: "contractsApproval",

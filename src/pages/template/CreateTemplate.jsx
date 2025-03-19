@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Steps, Button, Input, Checkbox, message, Form, Skeleton, Empty, Card, Row, Col, Select, Radio, Switch, Spin, Divider, Space, Popconfirm, Modal, Timeline } from "antd";
+import { Steps, Button, Input, Checkbox, message, Form, Skeleton, Empty, Card, Row, Col, Select, Switch, Spin, Divider, Space, Popconfirm, Modal, Timeline } from "antd";
 
 import {
     BaseKit,
@@ -704,7 +704,7 @@ const CreateTemplate = () => {
     const handleSendTemplateToAI = async () => {
         const prompt = getContractPrompt(form, bsInfor);
         // console.log(prompt)
-        setPromt(prompt);
+        // setPromt(prompt);
     };
 
     // console.log(promt)
@@ -913,7 +913,7 @@ const CreateTemplate = () => {
                                                             10. Phụ lục
                                                         </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                            {(isAutoRenew || isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                            {(  isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
                                                                 <span className="mr-[20px]"></span>}
                                                             11. Trường hợp đặc biệt
                                                         </div>
@@ -1762,7 +1762,7 @@ const CreateTemplate = () => {
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}>
-                            <ChatModalWrapper generatedPrompt={promt} handleGenerateAIPrompt={handleSendTemplateToAI} Template={"template"} />
+                            <ChatModalWrapper generatedPrompt={getContractPrompt(form, bsInfor)} handleGenerateAIPrompt={handleSendTemplateToAI} Template={"template"} />
                         </div>
 
                     </Row>
@@ -2117,7 +2117,7 @@ const CreateTemplate = () => {
         <div className={`p-8 ${isDarkMode ? 'bg-[#141414] text-white' : 'bg-white'} shadow rounded-md min-h-[100vh]`}>
             <Steps current={currentStep} className="mb-8">
                 {steps.map((item, index) => (
-                    <Step key={index} title={item.title} />
+                    <Step key={index} className="cursor-pointer" title={<p onClick={() => setCurrentStep(index)}>{item.title}</p>} />
                 ))}
             </Steps>
             <div className="mb-6">{steps[currentStep].content}</div>

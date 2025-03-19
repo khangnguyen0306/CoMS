@@ -64,7 +64,6 @@ const CreateContractForm = () => {
     const [loadingTerms, setLoadingTerms] = useState({});
     const [changeCCPL, setChangeCCPL] = useState(false);
 
-    const [isOverflowing, setIsOverflowing] = useState(false);
 
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
@@ -94,7 +93,6 @@ const CreateContractForm = () => {
     const [createClause] = useCreateClauseMutation();
     const [createContract, { isLoading: loadingCreateContract, isError: CreateError }] = useCreateContractMutation();
     const [termsData, setTermsData] = useState({});
-    // Thêm state để quản lý danh sách thông báo
     const [notifications, setNotifications] = useState([]);
 
     // Hàm thêm một thông báo mới
@@ -259,7 +257,6 @@ const CreateContractForm = () => {
         return getTemplateDetail(templateId).unwrap();
     };
 
-
     const handleSelectChange = (newValues) => {
         form.setFieldsValue({ generalTerms: newValues });
     };
@@ -289,55 +286,50 @@ const CreateContractForm = () => {
         setCurrentStep(currentStep - 1);
     };
 
-    // Submit toàn bộ form
+
     const onFinish = async (values) => {
         const data = form.getFieldsValue(true);
-        // console.log(data);
 
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
         const additionalConfig = Object.keys(data)
             .filter(key => !isNaN(key)) // Chỉ lấy các key là số (1,2,3,...)
             .reduce((acc, key) => {
-                const { A, B, Common } = data[key];
-
+                const { A = [], B = [], Common = [] } = data[key] || {};
                 if (A.length > 0 || B.length > 0 || Common.length > 0) {
-                    acc[key] = {
-                        ...(A.length > 0 && { A }),
-                        ...(B.length > 0 && { B }),
-                        ...(Common.length > 0 && { Common }),
-                    };
+                    acc[key] = {};
+                    if (A.length > 0) acc[key].A = A;
+                    if (B.length > 0) acc[key].B = B;
+                    if (Common.length > 0) acc[key].Common = Common;
                 }
                 return acc;
             }, {});
 
         // Format TemplateData
         const templateData = {
-
-            specialTermsA: data.specialTermsA,
-            specialTermsB: data.specialTermsB,
-            appendixEnabled: data.appendixEnabled,
-            transferEnabled: data.transferEnabled,
-            violate: data.violate,
-            suspend: data.suspend,
-            suspendContent: data.suspendContent,
-            contractContent: data.contractContent,
-            autoAddVAT: data.autoAddVAT,
-            vatPercentage: data.vatPercentage,
-            isDateLateChecked: data.isDateLateChecked,
-            maxDateLate: data.maxDateLate,
-            autoRenew: data.autoRenew,
-            legalBasisTerms: data.legalBasis,
-            generalTerms: data.generalTerms,
-            additionalTerms: data.additionalTerms,
-            contractTypeId: data.contractType?.value,
+            specialTermsA: data.specialTermsA || "",
+            specialTermsB: data.specialTermsB || "",
+            appendixEnabled: data.appendixEnabled || false,
+            transferEnabled: data.transferEnabled || false,
+            violate: data.violate || false,
+            suspend: data.suspend || false,
+            suspendContent: data.suspendContent || "",
+            contractContent: data.contractContent || "",
+            autoAddVAT: data.autoAddVAT || false,
+            vatPercentage: data.vatPercentage || 0,
+            isDateLateChecked: data.isDateLateChecked || false,
+            maxDateLate: data.maxDateLate || 0,
+            autoRenew: data.autoRenew || false,
+            legalBasisTerms: data.legalBasis || [],
+            generalTerms: data.generalTerms || [],
+            additionalTerms: data.additionalTerms || [],
+            contractTypeId: data.contractType?.value || null,
             additionalConfig,
             originalTemplateId: null,
             duplicateVersion: null,
         };
 
-        // Các trường đã có trong TemplateData, ta loại bỏ khỏi data chính
+        // Các trường cần loại bỏ khỏi data chính
         const excludedFields = [
-            // "contractName",
             "specialTermsA",
             "specialTermsB",
             "appendixEnabled",
@@ -355,47 +347,60 @@ const CreateContractForm = () => {
             "generalTerms",
             "additionalTerms",
             "contractType",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
+            "1", "2", "3", "4", "5", "6", "7",
             "effectiveDate&expiryDate"
         ];
 
-        // Loại bỏ các trường trùng lặp và format templateId
+        // Xử lý dữ liệu và loại bỏ các trường không cần thiết
         const formattedData = Object.keys(data).reduce((acc, key) => {
             if (!excludedFields.includes(key)) {
                 if (key === 'templateId') {
-                    acc[key] = data[key].value;
-                }
-                else if (key === "contractName") {
-                    acc['contractTitle'] = data[key];
-                }
-                else {
+                    acc[key] = data[key]?.value || null;
+                } else if (key === "contractName") {
+                    acc["contractTitle"] = data[key] || "";
+                } else {
                     acc[key] = data[key];
                 }
             }
             return acc;
         }, {});
 
-        // Thêm TemplateData vào
+        // Định dạng ngày giờ chuẩn ISO 8601 (YYYY-MM-DDTHH:mm:ss)
+        const formatDateTime = (date) => date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss") : null;
+
+        formattedData.signingDate = formatDateTime(data.signingDate);
+        formattedData.effectiveDate = formatDateTime(data.effectiveDate);
+        formattedData.expiryDate = formatDateTime(data.expiryDate);
+        formattedData.notifyEffectiveDate = formatDateTime(data.notifyEffectiveDate);
+        formattedData.notifyExpiryDate = formatDateTime(data.notifyExpiryDate);
+
+        // Định dạng ngày giờ cho payments
+        formattedData.payments = data.payments?.map(payment => ({
+            ...payment,
+            paymentDate: formatDateTime(payment.paymentDate),
+            notifyPaymentDate: formatDateTime(payment.notifyPaymentDate),
+        })) || [];
+
+        // Thêm TemplateData vào dữ liệu cuối cùng
         formattedData.TemplateData = templateData;
 
         console.log("Formatted Data:", formattedData);
 
-        const response = await createContract(formattedData).unwrap();
-        if (response.status == "CREATED") {
-            form.resetFields();
-            message.success("Tạo hợp đồng thành công!");
-            navigate('/contractsApproval')
-        } else {
-            message.error(response.message);
+        try {
+            const response = await createContract(formattedData).unwrap();
+            if (response.status === "CREATED") {
+                form.resetFields();
+                message.success("Tạo hợp đồng thành công!");
+                navigate('/contractsApproval');
+            } else {
+                message.error(response.message);
+            }
+        } catch (error) {
+            message.error("Lỗi khi tạo hợp đồng!");
         }
-
     };
+
+
 
 
     const onNewTypeChange = (e) => {
@@ -834,34 +839,7 @@ const CreateContractForm = () => {
             });
         }
     }, [form.getFieldValue('legalBasis'), changeCCPL]);
-    // Render the legal basis terms
-    // const handleScroll = () => {
-    //     const scrollPosition = window.scrollY + 50;
 
-    //     // Get positions of each section
-    //     const generalInfoPosition = generalInfoRef.current?.offsetTop || 0;
-    //     const mainContentPosition = mainContentRef.current?.offsetTop || 0;
-    //     const termsPosition = termsRef.current?.offsetTop || 0;
-    //     const otherContentPosition = otherContentRef.current?.offsetTop || 0;
-
-    //     // vị trí
-    //     if (scrollPosition >= otherContentPosition) {
-    //         setActiveSection('other');
-    //     } else if (scrollPosition >= termsPosition) {
-    //         setActiveSection('terms');
-    //     } else if (scrollPosition >= mainContentPosition) {
-    //         setActiveSection('main');
-    //     } else {
-    //         setActiveSection('general');
-    //     }
-
-    //     // nút scrol 
-    //     if (window.scrollY > 400) {
-    //         setShowScroll(true);
-    //     } else {
-    //         setShowScroll(false);
-    //     }
-    // };
 
     const handleScroll = useCallback(
         throttle(() => {
@@ -1242,12 +1220,12 @@ const CreateContractForm = () => {
                                 <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
                                     <div className="flex flex-col gap-2 pl-4 " md={10} sm={24} >
                                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                                        <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
+                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
+                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                                        <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
                                     </div>
                                     <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
                                         <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
@@ -1262,20 +1240,7 @@ const CreateContractForm = () => {
                             </div>
                             <div ref={mainContentRef}>
                                 <Form.Item
-                                    label={
-                                        <div className="flex justify-between items-center gap-4">
-                                            <p>Soạn thảo nội dung hợp đồng</p>
-                                            <Popover
-                                                content={
-                                                    <PreviewSection className='w-[80%]' content={content} isDarkMode={isDarkMode} />
-                                                }
-                                                trigger="hover"
-                                                placement="right"
-                                            >
-                                                <Button icon={<EyeFilled />} />
-                                            </Popover>
-                                        </div>
-                                    }
+                                    label=" Soạn thảo nội dung hợp đồng"
                                     name="contractContent"
                                     className="mt-5"
                                     rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
@@ -1543,14 +1508,14 @@ const CreateContractForm = () => {
                                     label={
                                         <div className="flex justify-between items-center gap-4">
                                             <p>Điều khoản chung </p>
-                                            <Popover
+                                            {/* <Popover
                                                 content={() => getTermsContent('generalTerms')}
                                                 title="Danh sách Điều khoản chung đã chọn"
                                                 trigger="hover"
                                                 placement="right"
                                             >
                                                 <Button icon={<EyeFilled />} />
-                                            </Popover>
+                                            </Popover> */}
                                         </div>
                                     }
                                     name="generalTerms"
@@ -1970,7 +1935,7 @@ const CreateContractForm = () => {
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 <Steps current={currentStep} className="mb-8">
                     {steps.map((item, index) => (
-                        <Step key={index} title={item.title} />
+                        <Step key={index} title={<p className="cursor-pointer" onClick={() => setCurrentStep(index)}>{item.title}</p>} />
                     ))}
                 </Steps>
                 <div className="mb-6">{steps[currentStep].content}</div>
