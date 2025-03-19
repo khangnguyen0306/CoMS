@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
 import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
-import { useLazyGetAllAuditTrailByContractQuery, useLazyGetDateChangeContractQuery } from '../../services/AuditTrailAPI';
+import { useLazyGetDataChangeByDateQuery, useLazyGetDateChangeContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery } from '../../services/ContractAPI';
-import AuditTrailDisplay from '../../components/ui/Audittrail/AuditTrail';
 import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
 import { selectCurrentUser } from '../../slices/authSlice';
 import note from "../../assets/Image/review.svg"
+import AuditrailContract from './component/AuditrailContract';
 const ContractDetail = () => {
 
     const { id } = useParams();
@@ -48,8 +48,8 @@ const ContractDetail = () => {
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
-    const [fetchAudittrail, { data: auditTrailData, isLoading: loadingAuditTrail }] = useLazyGetAllAuditTrailByContractQuery();
     const [fetchDdateAudittrail, { data: auditTrailDate, isLoading: loadingAuditTrailDate }] = useLazyGetDateChangeContractQuery();
+    const [fetchDataData] = useLazyGetDataChangeByDateQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
     console.log(processData)
@@ -209,7 +209,7 @@ const ContractDetail = () => {
             const response = await fetchDdateAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
             // Giả sử response.data là mảng các bản ghi audit trail
             console.log("Audit trail page", response.data);
-            if (page === 1) {
+            if (page === 0) {
                 setAuditTrails(response.data.content);
             } else {
                 setAuditTrails((prev) => [...prev, ...response.data.content]);
@@ -225,7 +225,7 @@ const ContractDetail = () => {
 
     // Add a new button to load more data
     const loadMoreData = () => {
-        if (hasMore && !loadingAuditTrail) {
+        if (hasMore && !loadingAuditTrailDate) {
             const nextPage = currentPage + 1;
             setCurrentPage(nextPage);
             loadAuditTrailPage(nextPage);
@@ -290,7 +290,7 @@ const ContractDetail = () => {
         }
     };
     const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
-    // Trong trường hợp không có dữ liệu, hiển thị loading
+    const isApprover = processData?.data.stages?.some(stage => stage.approver === user?.id);
     if (isLoadingBsData || loadingDataContract) {
         return (
             <div className="flex justify-center items-center">
@@ -300,9 +300,9 @@ const ContractDetail = () => {
     }
 
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} relative shadow-md p-4 pb-16 rounded-md`}>
+        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center relative shadow-md p-4 pb-16 rounded-md`}>
             <div className="flex justify-between relative">
-                {user.roles[0] != "ROLE_MANAGER" ? (
+                {(!isApprover && user.roles[0] !== "ROLE_MANAGER") ? (
                     <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
                         Sửa hợp đồng
                     </Button>
@@ -313,7 +313,7 @@ const ContractDetail = () => {
                             className="fixed right-5 top-20 flex flex-col h-fit bg-[#2280ff]"
                             onClick={showDrawerAprove}
                         >
-                            <p className='flex items-center justify-center'> <LeftOutlined style={{ fontSize: 25 }} /> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
+                            <p className='flex items-center justify-center'> <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} /> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
                         </Button>
                     </>
                 )
@@ -461,21 +461,24 @@ const ContractDetail = () => {
                             id="scrollableDiv"
                             style={{ height: '100%', overflow: 'auto', padding: '0 16px' }}
                         >
-                            {auditTrails.length === 0 && loadingAuditTrail ? (
+                            {auditTrails.length === 0 && loadingAuditTrailDate ? (
                                 <Spin />
                             ) : (
-                                <div className="audit-trail-item">
-                                    <AuditTrailDisplay auditTrails={auditTrails} />
+                                <div className="date-list">
+                                    <AuditrailContract auditTrails={auditTrails} contractId={contractData?.data.originalContractId} getDetail={fetchDataData} />
+                                    {/* {!hasMore && <p style={{ textAlign: 'center' }}>Không còn dữ liệu</p>} */}
                                 </div>
                             )}
-                            {loadingAuditTrail && <Spin style={{ textAlign: 'center', marginTop: 10 }} />}
-                            {!hasMore && <p style={{ textAlign: 'center' }}>Không còn dữ liệu</p>}
+                            {loadingAuditTrailDate && <Spin style={{ textAlign: 'center', marginTop: 10 }} />}
+
                         </div>
-                        <div className='flex justify-center'>
-                            <Button onClick={loadMoreData} disabled={!hasMore || loadingAuditTrail} style={{ marginTop: '10px' }}>
-                                {loadingAuditTrail ? 'Đang tải...' : 'Xem thêm'}
-                            </Button>
-                        </div>
+                        {hasMore && (
+                            <div className='flex justify-center'>
+                                <Button onClick={loadMoreData} disabled={!hasMore || loadingAuditTrailDate} style={{ marginTop: '10px' }}>
+                                    {loadingAuditTrailDate ? 'Đang tải...' : 'Xem thêm'}
+                                </Button>
+                            </div>
+                        )}
                     </Tabs.TabPane>
                 </Tabs>
             </Drawer>
@@ -503,12 +506,12 @@ const ContractDetail = () => {
                 <Row gutter={16} className="flex flex-col mt-5 pl-10 gap-5" justify="center">
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
                         <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                        <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                        <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.representativeName}</p>
-                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                        <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.taxCode}</p>
-                        <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                        <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
+                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                        <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.data.spokesmanName}</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
+                        <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p>
+                        <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
                     </Col>
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
                         <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>

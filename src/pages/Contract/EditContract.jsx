@@ -1018,12 +1018,12 @@ const EditContract = () => {
                                 <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
                                     <div className="flex flex-col gap-2 pl-4 " md={10} sm={24} >
                                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                                        <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
+                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
+                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                                        <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
                                     </div>
                                     <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
                                         <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>

@@ -90,9 +90,10 @@ const MainLayout = () => {
         { icon: FaUserTie, label: 'Khách hàng', key: "client" },
         // { icon: FaTasks, label: 'Task', key: "task" },
         { icon: GoLaw, label: 'Điều khoản và loại hợp đồng', key: "clause" },
-        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract" },
+
         {
           icon: FaFileContract, label: 'Hợp đồng', children: [
+            { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract" },
             { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
             { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
             { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
@@ -174,17 +175,18 @@ const MainLayout = () => {
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Quản lý điều khoản', key: "clause" },
-    { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
+
 
     {
       icon: FaFileContract, label: 'Hợp đồng', children: [
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
         // { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
         // { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
         { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
         { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
-        { icon: HiMiniClipboardDocumentCheck, label: 'Phê duyệt', key: "contractsApproval" },
+        { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval" },
 
       ]
     },
@@ -192,7 +194,7 @@ const MainLayout = () => {
       icon: MdLibraryBooks, label: 'Mẫu Hợp đồng', children: [
         { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "manageTemplate" },
         { icon: BsClipboard2DataFill, label: 'Tạo mẫu hợp đồng', key: "templateCreate" },
-        { icon: BsTrash3Fill, label: 'Đã xóa', key: "deletedtemplate" },
+        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
       ]
     },
     {
