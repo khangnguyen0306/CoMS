@@ -35,6 +35,7 @@ const EditContract = Loadable({ loader: () => import("../pages/Contract/EditCont
 const ChatTest = Loadable({ loader: () => import("../components/AI-Gen/ChatTest") });
 const Compare = Loadable({ loader: () => import("../components/CompareVersion/Compare") });
 const Department = Loadable({ loader: () => import("../pages/Department/Department") });
+const CreateAppendix = Loadable({ loader: () => import("../pages/appendix/CreateApependix") });
 
 
 
@@ -152,6 +153,10 @@ export const router = createBrowserRouter([
                     {
                         path: "compare/:contractId/:nowVersion/:preVersion",
                         element: Compare,
+                    },
+                    {
+                        path: "CreateAppendix",
+                        element: CreateAppendix,
                     }
                 ],
             },
