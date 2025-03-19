@@ -6,7 +6,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, To
 import { GlowingEffectDemoSecond, GridItem, GridItemCustom } from "../../components/ui/ComponentEffect";
 import { useSelector } from "react-redux";
 import { useGetDashboardataQuery } from "../../services/BsAPI";
-import { useGetDashboardataQuery } from "../../services/BsAPI";
 
 const Home = () => {
     const [searchText, setSearchText] = useState('');
@@ -16,8 +15,6 @@ const Home = () => {
     const currentYear = new Date().getFullYear();
     const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
 
-    const currentYear = new Date().getFullYear();
-    const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
 
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
         confirm();
@@ -245,15 +242,6 @@ const Home = () => {
     ];
 
     // Dữ liệu cho biểu đồ tròn
-    const pieData = [
-        { name: "Còn hiệu lực", value: 40 },
-        { name: "Hết hiệu lực", value: 30 },
-        { name: "Đã thanh toán", value: 20 },
-        { name: "Chưa thanh toán", value: 10 },
-        { name: "Đã thanh lý", value: 10 },
-        { name: "Chưa thanh lý", value: 10 },
-        { name: "Chờ đối tác ký", value: 10 },
-    ];
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
     // Dữ liệu cho bảng
@@ -320,6 +308,11 @@ const Home = () => {
             status,
             count
         }));
+
+    const pieChartData = dashboardData?.data?.pieChartData?.map(item => ({
+        ...item,
+        name: statusTitles[item.name] || item.name // Chuyển đổi tên trạng thái
+    }));
 
     if (loadingDashboard) {
         return (
@@ -422,9 +415,9 @@ const Home = () => {
                                 </h3>
                                 <PieChart width={500} height={350}>
                                     <Pie
-                                        data={pieData}
+                                        data={pieChartData}
                                         dataKey="value"
-                                        nameKey="name"
+                                        nameKey={(entry) => statusTitles[entry.name]}
                                         cx="50%"
                                         cy="50%"
                                         outerRadius={150}
@@ -433,7 +426,7 @@ const Home = () => {
                                         }}
 
                                     >
-                                        {pieData.map((entry, index) => (
+                                        {pieChartData.map((entry, index) => (
                                             <Cell
                                                 key={`cell-${index}`}
                                                 fill={isDarkMode ?

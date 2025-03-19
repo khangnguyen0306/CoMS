@@ -59,16 +59,24 @@ const ManageContracts = () => {
         }
     };
     const handleDelete = (record) => {
-        if (record?.status === "đang hiệu lực" || record?.status === "đã thanh toán") {
+        if (record?.status === "ACTIVE" || record?.status === "SIGNED") {
             message.warning("Không thể xóa hợp đồng đang hiệu lực hoặc đã thanh toán.");
             return;
         }
         Modal.confirm({
             title: 'Bạn có chắc muốn xóa hợp đồng này không?',
-            onOk: () => {
-                softDelete(record.id).unwrap();
-                message.success("Xóa hợp đồng thành công!");
+            onOk: async () => {
+                try {
+                    await softDelete(record.id).unwrap();
+                    message.success("Xóa hợp đồng thành công!");
+                } catch (error) {
+                    const errorMessage = error?.data?.message?.split(": ")?.[1] || "Xóa hợp đồng thất bại, vui lòng thử lại!";
+                    message.error(errorMessage);
+                }
             },
+
+            okText: 'Xóa',
+            cancelText: 'Hủy',
         });
 
     };

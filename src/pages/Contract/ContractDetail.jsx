@@ -35,7 +35,6 @@ const ContractDetail = () => {
 
     const user = useSelector(selectCurrentUser);
     const location = useLocation();
-    const { StageIdMatching } = location.state || {};
     const [form] = Form.useForm();
 
     const [openAprove, setOpenAprove] = useState(false);
@@ -51,6 +50,11 @@ const ContractDetail = () => {
     const [fetchAudittrail, { data: auditTrailData, isLoading: loadingAuditTrail }] = useLazyGetAllAuditTrailByContractQuery();
     const [fetchDdateAudittrail, { data: auditTrailDate, isLoading: loadingAuditTrailDate }] = useLazyGetDateChangeContractQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
+
+    const stages = processData?.data?.stages || [];
+
+    const matchingStage = stages.find(stage => stage.approver === user?.id);
+    const StageIdMatching = matchingStage?.stageId;
 
     console.log(processData)
     console.log(user.id)
@@ -266,7 +270,7 @@ const ContractDetail = () => {
             }
         } catch (error) {
             console.log(error);
-            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+            message.error(error.data.message || "Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
     const handleReject = async (values) => {
@@ -286,7 +290,7 @@ const ContractDetail = () => {
             }
         } catch (error) {
             console.log(error);
-            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+            message.error(error.data.message || "Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
     const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");

@@ -517,7 +517,7 @@ const CreateTemplate = () => {
             form.resetFields();
         } catch (error) {
             // console.error("Lỗi tạo điều khoản:", error);
-            message.error("Có lỗi xảy ra khi tạo điều khoản");
+            message.error(error.data.message || "Có lỗi xảy ra khi tạo điều khoản");
         }
 
     };
@@ -573,7 +573,7 @@ const CreateTemplate = () => {
 
         } catch (error) {
             // console.error("Lỗi tạo điều khoản:", error);
-            message.error("Có lỗi xảy ra khi tạo điều khoản");
+            message.error(error.data.message || "Có lỗi xảy ra khi tạo điều khoản");
         }
     };
 

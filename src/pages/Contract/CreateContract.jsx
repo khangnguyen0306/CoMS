@@ -384,7 +384,7 @@ const CreateContractForm = () => {
         // Thêm TemplateData vào
         formattedData.TemplateData = templateData;
 
-        // console.log("Formatted Data:", formattedData);
+        console.log("Formatted Data:", formattedData);
 
         const response = await createContract(formattedData).unwrap();
         if (response.status == "CREATED") {

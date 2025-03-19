@@ -34,7 +34,7 @@ export const ContractAPI = createApi({
                     page: params?.page || 0,
                     size: params?.size || 10,
                     keyword: params?.keyword || '',
-                    status: params?.status || ''
+                    statuses: params?.status || ''
                 },
             }),
             providesTags: (result) =>
@@ -224,6 +224,7 @@ export const {
     useUpdateContractMutation,
     useGetContractStatusQuery,
     useGetDataContractCompareVersionQuery,
+    useGetContractByPartnerIdQuery,
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

@@ -47,7 +47,7 @@ const UserManagement = () => {
     };
 
     const filteredUsers = userData?.content ? filterUsers(userData?.content) : [];
-    // console.log("Filtered users:", userData);
+    console.log("Filtered users:", userData?.content);
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -73,6 +73,7 @@ const UserManagement = () => {
     };
 
     const showEditModal = (record) => {
+        console.log("Record:", record);
         setIsModalUpdate(true);
         form.resetFields();
         form.setFieldsValue({
@@ -83,7 +84,7 @@ const UserManagement = () => {
             address: record.address,
             role_id: record.role.id,
             is_ceo: record.isCeo,
-            departmentId: record.department.id,
+            departmentId: record.department?.id,
         });
         console.log("Record:", record);
     }
@@ -136,6 +137,8 @@ const UserManagement = () => {
                     message.error('Kích hoạt thất bại, vui lòng thử lại!');
                 }
             },
+            okText: "Kích hoạt",
+            cancelText: "Hủy"
         });
     };
 
