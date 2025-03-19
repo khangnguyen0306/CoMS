@@ -23,13 +23,11 @@ const ManageContractApproval = () => {
             title: "Mã hợp đồng",
             dataIndex: "contractNumber",
             key: "contractNumber",
-            width: "10%",
         },
         {
             title: "Ngày tạo",
             dataIndex: "createdAt",
             key: "createdAt",
-            width: "12%",
             render: (createdAt) =>
                 createdAt
                     ? dayjs(
@@ -46,14 +44,12 @@ const ManageContractApproval = () => {
         {
             title: "Người tạo",
             dataIndex: ["user", "full_name"],
-            key: "user?.full_name",
-            width: "10%",
+            key: "full_name",
         },
         {
             title: "Tên hợp đồng",
             dataIndex: "title",
             key: "title",
-            width: "20%",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
                 <Link
@@ -75,7 +71,6 @@ const ManageContractApproval = () => {
             title: "Loại hợp đồng",
             dataIndex: "contractTypeName",
             key: "contractTypeName",
-            width: "15%",
             render: (type) => <Tag color="blue">{type}</Tag>,
             // filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
             //     text: type,
@@ -87,7 +82,6 @@ const ManageContractApproval = () => {
             title: "Đối tác",
             dataIndex: ["partner", "partnerName"],
             key: "partner.partnerName",
-            width: "18%",
             sorter: (a, b) => a.partner.localeCompare(b.partner),
         },
 
@@ -95,7 +89,6 @@ const ManageContractApproval = () => {
             title: "Giá trị",
             dataIndex: "amount",
             key: "amount",
-            width: "15%",
             render: (value) => value.toLocaleString("vi-VN") + " VND",
             sorter: (a, b) => a.value - b.value,
         },

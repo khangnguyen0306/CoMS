@@ -971,11 +971,11 @@ const ManageClause = () => {
                                     <>
                                         <List.Item
                                             actions={[
-                                                <Button icon={<EditFilled />} onClick={() => handleEditContractType(item)}>
+                                                <Button type='primary' icon={<EditFilled />} onClick={() => handleEditContractType(item)}>
                                                     Sửa
                                                 </Button>,
                                             ]}
-                                            className=" shadow rounded p-4 mt-6"
+                                            className=" shadow-md border rounded-lg p-4 m-3"
                                         >
                                             <List.Item.Meta
                                                 title={<span className="ml-4 font-semibold text-lg">{item.name}</span>}

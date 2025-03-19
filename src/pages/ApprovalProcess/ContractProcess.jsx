@@ -57,13 +57,11 @@ const ContractProcess = () => {
             title: "MHĐ",
             dataIndex: "contractNumber",
             key: "contractNumber",
-            width: "8%",
         },
         {
             title: "Ngày tạo",
             dataIndex: "createdAt",
             key: "createdAt",
-            width: "12%",
             render: (createdAt) =>
                 createdAt
                     ? dayjs(
@@ -80,14 +78,13 @@ const ContractProcess = () => {
         {
             title: "Người tạo",
             dataIndex: ["user", "full_name"],
-            key: "user?.full_name",
-            width: "10%",
+            key: "full_name",
+            render: (text) => <span className="text-[#40a9ff] font-bold">{text}</span>, // Change color to light blue
         },
         {
             title: "Tên hợp đồng",
             dataIndex: "title",
             key: "title",
-            width: "20%",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => {
                 if (record.status === "REJECTED") {
@@ -102,7 +99,7 @@ const ContractProcess = () => {
                     );
                 } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
                     return (
-                        <span className="block truncate max-w-[200px]" title={text}>
+                        <span className="block truncate max-w-[200px] text-[#40a9ff] font-bold" title={text}>
                             {text}
                         </span>
                     );
@@ -115,7 +112,6 @@ const ContractProcess = () => {
             title: "Loại hợp đồng",
             dataIndex: ["contractType", "name"],
             key: "contractType.name",
-            width: "17%",
             render: (type) => <Tag color="blue">{type}</Tag>,
             // filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
             //     text: type,
@@ -127,14 +123,12 @@ const ContractProcess = () => {
             title: "Đối tác",
             dataIndex: ["partner", "partnerName"],
             key: "partner.partnerName",
-            width: "18%",
             sorter: (a, b) => a.partner.localeCompare(b.partner),
         },
         {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
-            width: "10%",
             filters: [
                 { text: "Đã tạo", value: "CREATED" },
                 { text: "Chưa được duyệt", value: "REJECTED" },
@@ -165,7 +159,6 @@ const ContractProcess = () => {
             title: "Phiên bản",
             dataIndex: "version",
             key: "version",
-            width: "15%",
             render: (value) => value + ".0.0",
             sorter: (a, b) => a.value - b.value,
         },
