@@ -13,11 +13,15 @@ import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectPro
 import { selectCurrentUser } from '../../slices/authSlice';
 import note from "../../assets/Image/review.svg"
 import AuditrailContract from './component/AuditrailContract';
+import { useGetAppendixByContractIdQuery } from '../../services/AppendixAPI';
+import DisplayAppendix from '../appendix/DisplayAppendix';
 const ContractDetail = () => {
 
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
+    const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
+    console.log(appendixData)
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -51,13 +55,15 @@ const ContractDetail = () => {
     const [fetchDataData] = useLazyGetDataChangeByDateQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
+
+
     const stages = processData?.data?.stages || [];
 
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
 
-    console.log(processData)
-    console.log(user.id)
+    // console.log(processData)
+    // console.log(user.id)
     // Hàm tải chi tiết điều khoản dựa theo termId (original_term_id)
     const loadTermDetail = async (termId) => {
         if (!termsData[termId]) {
@@ -209,10 +215,8 @@ const ContractDetail = () => {
     // Hàm để xử lý khi tab được thay đổi
     const loadAuditTrailPage = async (page) => {
         try {
-            // Gọi API với tham số: { id, page, size }
-            const response = await fetchDdateAudittrail({ id: contractData?.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
-            // Giả sử response.data là mảng các bản ghi audit trail
-            console.log("Audit trail page", response?.data);
+            const response = await fetchDdateAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
+            console.log("Audit trail page", response.data);
             if (page === 0) {
                 setAuditTrails(response?.data?.content);
             } else {
@@ -246,16 +250,22 @@ const ContractDetail = () => {
             loadAuditTrailPage(0);
         }
     };
-
-    const handleScrollContainer = (e) => {
-        const { scrollTop, scrollHeight, clientHeight } = e.target;
-        // Check if scrolled to the bottom
-        if (scrollTop + clientHeight >= scrollHeight - 10) {
-            setScrolledToBottom(true);
-        } else {
-            setScrolledToBottom(false);
-        }
+    const statusContract = {
+        'DRAFT': <Tag color="default">Đang tạo</Tag>,
+        'CREATED': <Tag color="default">Đã tạo</Tag>,
+        'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
+        'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
+        'UPDATED': <Tag color="success">Đã cập nhật</Tag>,
+        'PENDING': <Tag color="warning">Đang chờ</Tag>,
+        'REJECTED': <Tag color="red">Từ chối</Tag>,
+        'SIGNED': <Tag color="geekblue">Đã ký</Tag>,
+        'ACTIVE': <Tag color="processing">Đang hiệu lực</Tag>,
+        'COMPLETED': <Tag color="success">Hoàn thành</Tag>,
+        'EXPIRED': <Tag color="red">Hết hiệu lực</Tag>,
+        'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
+        'ENDED': <Tag color="default">Đã kết thúc</Tag>
     };
+
 
     // Ví dụ chuyển hướng khi ấn nút Đồng Ý Phê Duyệt
     const handleApprove = async () => {
@@ -293,9 +303,10 @@ const ContractDetail = () => {
             message.error(error?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
-    const userApproval = processData?.data?.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
-    const isApprover = processData?.data?.stages?.some(stage => stage.approver === user?.id);
-    if (isLoadingBsData || loadingDataContract) {
+    const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
+    const isApprover = processData?.data.stages?.some(stage => stage.approver === user?.id);
+
+    if (isLoadingBsData || loadingDataContract | loadingDataContractAppendix) {
         return (
             <div className="flex justify-center items-center">
                 <Spin />
@@ -317,13 +328,16 @@ const ContractDetail = () => {
                             className="fixed right-5 top-20 flex flex-col h-fit bg-[#2280ff]"
                             onClick={showDrawerAprove}
                         >
-                            <p className='flex items-center justify-center'> <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} /> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
+                            <div className='flex flex-col items-center'>
+                                <p className='flex items-center justify-center'> <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} /> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
+                                <p className={`${!isDarkMode ? "text-white" : ''}`}>Phê duyệt</p>
+                            </div>
                         </Button>
                     </>
                 )
                 }
                 <Button type='link' onClick={showDrawer}>
-                    <InfoCircleOutlined style={{ fontSize: 30 }} />
+                    <InfoCircleOutlined style={{ fontSize: 30 }} /> Thông tin hợp đồng
                 </Button>
             </div>
 
@@ -387,15 +401,16 @@ const ContractDetail = () => {
                 placement="right"
                 onClose={onClose}
                 open={visible}
+                width={500}
             >
                 <Tabs defaultActiveKey="1" centered onChange={handleTabChange}>
                     <Tabs.TabPane icon={<BookOutlined />} tab="Thông tin chung" key="1">
-                        <div className='flex gap-2 flex-col justify-center'>
-                            <p> <b>Version hợp đồng:</b> {contractData?.data.version}.0.0</p>
+                        <div className='flex gap-2 flex-col ml-6 justify-center'>
+                            <p> <b>phiên bản hợp đồng:</b> <Tag className='ml-2' color='blue-inverse'>{contractData?.data.version}.0.0 </Tag></p>
                             <p> <b>Người tạo:</b> {contractData?.data.user.full_name}</p>
                             <p><b>Được tạo vào:</b> {convertCreatedAt(contractData?.data.createdAt)}</p>
                             <p><b>Lần chỉnh sửa cuối cùng</b> {convertCreatedAt(contractData?.data.updatedAt)}</p>
-                            <p><b>Trạng thái:</b> <Tag color='orange'>{contractData?.data.status}</Tag></p>
+                            <p><b>Trạng thái:</b> <span className='ml-3'>{statusContract[contractData?.data.status]}</span></p>
                             <Divider className="border-t-2 border-gray-400" />
                         </div>
                         {loadingDataProcess ? (
@@ -404,9 +419,8 @@ const ContractDetail = () => {
                             </div>
                         ) :
                             (
-
-                                <>
-                                    <p className="text-center font-bold mt-6">
+                                <div>
+                                    <p className="text-center font-bold mt-6 mb-[50px]">
                                         Lộ trình xét duyệt
                                     </p>
                                     <Timeline mode="left" className="mt-4 -mb-14">
@@ -414,31 +428,58 @@ const ContractDetail = () => {
                                             processData?.data?.stages.map((stage) => (
                                                 <Timeline.Item
                                                     key={stage.id}
-                                                    children={stage.approverName}
-                                                    label={
-                                                        stage.status === "APPROVING"
-                                                            ? `${new Date(
-                                                                stage.startDate[0],
-                                                                stage.startDate[1] - 1,
-                                                                stage.startDate[2]
-                                                            ).toLocaleDateString("vi-VN")} - ${new Date(
-                                                                stage.endDate[0],
-                                                                stage.endDate[1] - 1,
-                                                                stage.endDate[2]
-                                                            ).toLocaleDateString("vi-VN")}`
-                                                            : stage.status === "APPROVED" && stage.approvedAt
-                                                                ? new Date(
-                                                                    stage.approvedAt[0],
-                                                                    stage.approvedAt[1] - 1,
-                                                                    stage.approvedAt[2]
-                                                                ).toLocaleDateString("vi-VN")
-                                                                : ""
+                                                    children={
+                                                        <div className="min-h-[50px]">
+                                                            {stage.approverName}
+                                                        </div>
                                                     }
+                                                    label={
+                                                        <div className="w-full mt-[-15px] h-full">
+                                                            {
+                                                                stage.status === "APPROVING"
+                                                                    ? <div className="flex flex-col h-full justify-center items-center">
+                                                                        <p className="text-[12px]">
+                                                                            {new Date(
+                                                                                stage.startDate[0],
+                                                                                stage.startDate[1] - 1,
+                                                                                stage.startDate[2]
+                                                                            ).toLocaleDateString("vi-VN")} -
+                                                                            {new Date(
+                                                                                stage.endDate[0],
+                                                                                stage.endDate[1] - 1,
+                                                                                stage.endDate[2]
+                                                                            ).toLocaleDateString("vi-VN")}
+                                                                        </p>
+                                                                        <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
+                                                                    </div>
+                                                                    : stage.status === "APPROVED" && stage.approvedAt
+                                                                        ?
+                                                                        <div className="flex flex-col justify-center items-center">
+                                                                            <p className="text-[12px]">
+                                                                                {
+                                                                                    new Date(
+                                                                                        stage.approvedAt[0],
+                                                                                        stage.approvedAt[1] - 1,
+                                                                                        stage.approvedAt[2]
+                                                                                    ).toLocaleDateString("vi-VN")
+                                                                                }
+                                                                            </p>
+                                                                            <Tag color="green-inverse" className="w-fit mr-0">Đã duyệt</Tag>
+                                                                        </div>
+                                                                        : ""
+                                                            }
+                                                        </div>
+                                                    }
+
                                                     dot={
                                                         stage.status === "APPROVING" ? (
-                                                            <LoadingOutlined spin className="timeline-clock-icon" />
+                                                            <div>
+                                                                <LoadingOutlined spin className="timeline-clock-icon" />
+                                                            </div>
                                                         ) : stage.status === "APPROVED" ? (
-                                                            <CheckOutlined className="timeline-clock-icon" style={{ color: 'green' }} />
+                                                            <div>
+                                                                <CheckOutlined className="timeline-clock-icon" style={{ color: 'green' }} />
+                                                            </div>
                                                         ) : stage.status === "REJECTED" ? (
                                                             <CloseOutlined className="timeline-clock-icon" style={{ color: 'red' }} />
                                                         ) : stage.status === "SKIPPED" ? (
@@ -456,7 +497,7 @@ const ContractDetail = () => {
                                         )}
                                     </Timeline>
 
-                                </>
+                                </div>
 
                             )}
                     </Tabs.TabPane>
@@ -484,6 +525,14 @@ const ContractDetail = () => {
                             </div>
                         )}
                     </Tabs.TabPane>
+                    {appendixData?.data.length > 0 && (
+                        <Tabs.TabPane tab="Phụ Lục Hợp Đồng" key="3">
+                            <div className="flex flex-col">
+                                {/* <h3 className="text-lg font-bold">Danh sách phụ lục:</h3> */}
+                                <DisplayAppendix appendices={appendixData?.data} />
+                            </div>
+                        </Tabs.TabPane>
+                    )}
                 </Tabs>
             </Drawer>
             <div >

@@ -189,18 +189,6 @@ const ManageContracts = () => {
                     ? (value, record) => record.contractTypeName === value
                     : (value, record) => record.contractType.name === value,
         },
-
-        // {
-        //     title: "Loại hợp đồng",
-        //     dataIndex: "contractType",
-        //     key: "contractType",
-        //     render: (type) => <Tag color="blue">{type.name}</Tag>,
-        //     filters: [...new Set(tableData?.map(contract => contract.contractType.name))].map(type => ({
-        //         text: type,
-        //         value: type,
-        //     })),
-        //     onFilter: (value, record) => record.contractType === value,
-        // },
         {
             title: "Đối tác",
             dataIndex: "partner",
@@ -249,6 +237,14 @@ const ManageContracts = () => {
                                             icon: <EditFilled style={{ color: '#228eff' }} />,
                                             label: "Sửa",
                                             onClick: () => navigate(`/EditContract/${record.id}`),
+                                        }]
+                                        : []),
+                                    ...(record.status == "ACTIVE"
+                                        ? [{
+                                            key: "createAppendix",
+                                            icon: <PlusOutlined style={{ color: '#228eff' }} />,
+                                            label: "Tạo phụ lục",
+                                            onClick: () => navigate(`/CreateAppendix/?contractId=${record.id}&contractNumber=${record.contractNumber}`),
                                         }]
                                         : []),
 
