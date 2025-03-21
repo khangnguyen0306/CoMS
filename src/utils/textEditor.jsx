@@ -26,9 +26,6 @@ import {
     TextAlign,
     Underline,
 } from 'reactjs-tiptap-editor/extension-bundle'
-import RichTextEditor from 'reactjs-tiptap-editor'
-import 'reactjs-tiptap-editor/style.css';
-import 'katex/dist/katex.min.css';
 
 export const extensions = [
     BaseKit.configure({

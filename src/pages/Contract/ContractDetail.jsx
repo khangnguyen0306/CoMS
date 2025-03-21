@@ -21,7 +21,6 @@ const ContractDetail = () => {
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
-    console.log(appendixData)
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -403,7 +402,7 @@ const ContractDetail = () => {
                 open={visible}
                 width={500}
             >
-                <Tabs defaultActiveKey="1" centered onChange={handleTabChange}>
+                <Tabs defaultActiveKey="1"  onChange={handleTabChange}>
                     <Tabs.TabPane icon={<BookOutlined />} tab="Thông tin chung" key="1">
                         <div className='flex gap-2 flex-col ml-6 justify-center'>
                             <p> <b>phiên bản hợp đồng:</b> <Tag className='ml-2' color='blue-inverse'>{contractData?.data.version}.0.0 </Tag></p>
