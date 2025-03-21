@@ -98,6 +98,14 @@ export const processAPI = createApi({
             }),
             providesTags: (result, error, contractId) => [{ type: "ProcessList", id: contractId }],
         }),
+        getContractPorcessPendingManager: builder.query({
+            query: ({ approverId }) => ({
+                url: `approval-workflows/get-contract-for-manager/${approverId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
+
     })
 });
 
@@ -114,4 +122,5 @@ export const {
     useGetProcessByContractTypeIdQuery,
     useGetcommentQuery,
     useResubmitProcessMutation,
+    useGetContractPorcessPendingManagerQuery,
 } = processAPI;

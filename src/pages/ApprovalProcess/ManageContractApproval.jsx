@@ -4,13 +4,13 @@ import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
-import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
+import { useGetContractPorcessPendingManagerQuery } from "../../services/ProcessAPI";
 
 const { Search } = Input;
 const { Text } = Typography;
 const ManageContractApproval = () => {
     const user = useSelector(selectCurrentUser);
-    const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessPendingQuery({ approverId: user?.id });
+    const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessPendingManagerQuery({ approverId: user?.id });
     const [searchText, setSearchText] = useState("");
     console.log(contracts)
     console.log(user?.id)

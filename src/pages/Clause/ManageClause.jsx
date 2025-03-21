@@ -30,6 +30,8 @@ const ManageClause = () => {
     const [isModalOpenLegal, setIsModalOpenLegal] = useState(false);
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
     const [isModalOpenAddLegal, setIsModalOpenAddLegal] = useState(false);
+    const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
+    const [isModalOpenDeleteLegal, setIsModalOpenDeleteLegal] = useState(false);
 
     // const [searchTermContractType, setSearchTermContractType] = useState('');
     const [isModalOpenAddContractType, setIsModalOpenAddContractType] = useState(false);
@@ -224,7 +226,7 @@ const ManageClause = () => {
             setIsModalOpenAddLegal(false);
             form.resetFields();
         } catch (error) {
-            message.error("Có lỗi xảy ra khi tạo điều khoản");
+            message.error(error.data.message || "Có lỗi xảy ra khi tạo điều khoản!");
         }
     };
 
@@ -269,21 +271,26 @@ const ManageClause = () => {
             onOk: async () => {
                 try {
                     const result = await deleteClause({ termId: contractId });
-                    if (result.error.originalStatus == 200) {
+
+                    if (result.data) {
+                        // Thành công
+                        console.log(result);
                         refetchClause();
                         refetchLegal();
-                        message.success('Xóa thành công');
-                    } if (result.error.status == 409) {
+                        message.success(result.data.message || 'Xóa thành công');
+                    } else if (result.error && result.error.status === 409) {
+                        // Lỗi 409
                         message.error(result.error.data.message);
+                    } else {
+                        // Lỗi khác
+                        message.error(result.error?.data?.message || 'Xóa thất bại, vui lòng thử lại');
                     }
-                    else
-                        message.error('Xóa thất bại vui lòng thử lại');
-
-                }
-                catch (error) {
-                    message.error('Xóa thất bại, vui lòng thử lại!');
+                } catch (error) {
+                    console.error("Lỗi trong quá trình xóa:", error);
+                    message.error("Đã xảy ra lỗi, vui lòng thử lại");
                 }
             },
+
             okText: 'Xóa',
             cancelText: 'Hủy',
         });
@@ -677,6 +684,16 @@ const ManageClause = () => {
                                 allowClear
                                 className="mb-4 max-w-[350px]"
                             />
+
+                            <Button
+                                onClick={handleSortByCreatedAtLegal}
+                                className="mb-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow-md transition duration-200"
+                            >
+                                {/* Sắp xếp theo Ngày tạo */}
+                                {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
+                            </Button>
+                        </div>
+                        <div className='flex justify-end w-full gap-4'>
                             <Button
                                 type="primary"
                                 onClick={openAddLagelModal}
@@ -684,13 +701,6 @@ const ManageClause = () => {
                                 icon={<PlusCircleFilled />}
                             >
                                 Thêm Căn cứ
-                            </Button>
-                            <Button
-                                onClick={handleSortByCreatedAtLegal}
-                                className="mb-4 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow-md transition duration-200"
-                            >
-                                {/* Sắp xếp theo Ngày tạo */}
-                                {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                             </Button>
                         </div>
                         <Modal

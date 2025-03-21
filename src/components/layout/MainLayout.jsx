@@ -76,8 +76,8 @@ const MainLayout = () => {
         });
         navigate("/login");
       },
-      okText:"Đăng xuất",
-      cancelText:"Hủy"
+      okText: "Đăng xuất",
+      cancelText: "Hủy"
     });
   }, [dispatch, navigate]);
 
@@ -372,6 +372,7 @@ const MainLayout = () => {
           <Footer
             style={{
               textAlign: 'center',
+              marginBottom: -30,
             }}
           >
             Ant Design ©{new Date().getFullYear()} Created by Khang
