@@ -19,6 +19,18 @@ export const AppendixAPI = createApi({
     }),
 
     endpoints: (builder) => ({
+        getAllAppendixBySelf: builder.query({
+            query: (params) => ({
+                url: `addendums/get-all?statuses=CREATED&statuses=APPROVED&statuses=REJECTED&statuses=APPROVAL_PENDING&statuses=UPDATED`,
+                params: {
+                    page: params.page,
+                    size: params.size,
+                    order: "esc"
+                },
+                method: "GET",
+            }),
+            providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
+        }),
 
         getAppendixDetail: builder.query({
             query: ({ id, params }) => ({
@@ -56,6 +68,16 @@ export const AppendixAPI = createApi({
             invalidatesTags: [{ type: "Appendix", id: "LIST" }],
         }),
 
+
+        updateAppendix: builder.mutation({
+            query: ({ appendixId, ...updatedAppendix }) => ({
+                url: `/addendums/update/${appendixId}`,
+                method: "PUT",
+                body: updatedAppendix,
+            }),
+            invalidatesTags: (result, error, { appendixId }) => [{ type: "Appendix", id: appendixId }],
+        }),
+
         createAppendixType: builder.mutation({
             query: (name) => ({
                 url: `/addendum-types/create`,
@@ -80,7 +102,7 @@ export const AppendixAPI = createApi({
             query: ({ id, name }) => ({
                 url: `/addendum-types/update/${id}`,
                 method: "PUT",
-                body: {name: name},
+                body: { name: name },
             }),
             invalidatesTags: (result, error, { addendumTypeId }) => [{ type: "appendixType", id: addendumTypeId }],
         }),
@@ -131,5 +153,7 @@ export const {
     useGetAllAppendixTypeQuery,
     useCreateAppendixTypeMutation,
     useEditAppendixTypeMutation,
-    useDeleteAppendixTypeMutation
+    useDeleteAppendixTypeMutation,
+    useGetAllAppendixBySelfQuery,
+    useUpdateAppendixMutation
 } = AppendixAPI;

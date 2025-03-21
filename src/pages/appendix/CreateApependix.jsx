@@ -7,32 +7,66 @@ import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
 import { extensions } from "../../utils/textEditor";
 import { debounce } from "lodash";
-import { useCreateAppendixMutation, useCreateAppendixTypeMutation, useDeleteAppendixTypeMutation, useEditAppendixTypeMutation, useGetAllAppendixTypeQuery } from '../../services/AppendixAPI';
+import { useCreateAppendixMutation, useCreateAppendixTypeMutation, useDeleteAppendixTypeMutation, useEditAppendixTypeMutation, useGetAllAppendixTypeQuery, useGetAppendixDetailQuery, useUpdateAppendixMutation } from '../../services/AppendixAPI';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DeleteFilled, EditFilled, PlusOutlined } from '@ant-design/icons';
+import { useGetAllContractQuery } from '../../services/ContractAPI';
 
 const { Option } = Select;
 
 const ContractAppendixPage = () => {
-    const [form] = Form.useForm();
-    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-    const [content, setContent] = useState('');
-    const [newTypeCreate, setNewTypeCreate] = useState('');
-    const [createAppendix, { isLoading: LoadingCreate }] = useCreateAppendixMutation();
-    const { data: appenditType, isLoading: isLoadingappendixType, refetch: refecthAppendixType } = useGetAllAppendixTypeQuery();
-    const [createAppendixType, { isLoading: isLoadingCreateAppendixType }] = useCreateAppendixTypeMutation();
-    const [updateAppendixType, { isLoading: isLoadingUpdateAppendixType }] = useEditAppendixTypeMutation();
-    const [deleteAppendixType, { isLoading: isLoadingDeleteAppendixType }] = useDeleteAppendixTypeMutation();
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const contractId = queryParams.get('contractId');
+    const appendixId = queryParams.get('appendixId');
+    const [form] = Form.useForm();
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const [content, setContent] = useState('');
+    const [newTypeCreate, setNewTypeCreate] = useState('');
+    const [loadingData, setLoadingData] = useState(true);
+    const [createAppendix, { isLoading: LoadingCreate }] = useCreateAppendixMutation();
+    const [updateAppendix, { isLoading: LoadingUpdate }] = useUpdateAppendixMutation();
+
+    const { data: appenditType, isLoading: isLoadingappendixType, refetch: refecthAppendixType } = useGetAllAppendixTypeQuery();
+    const { data: appendixData, isLoading: isLoadingAppendix } = useGetAppendixDetailQuery({ id: appendixId }, { skip: !appendixId });
+    const { data: contracts, isLoading: isLoadingContracts } = useGetAllContractQuery(
+        { status: "ACTIVE" },
+        { skip: !!contractId }
+      );
+      
+    console.log(contracts)
+    const [createAppendixType, { isLoading: isLoadingCreateAppendixType }] = useCreateAppendixTypeMutation();
+    const [updateAppendixType, { isLoading: isLoadingUpdateAppendixType }] = useEditAppendixTypeMutation();
+    const [deleteAppendixType, { isLoading: isLoadingDeleteAppendixType }] = useDeleteAppendixTypeMutation();
+
 
     // State cho modal
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [currentAppendixType, setCurrentAppendixType] = useState(null);
     const [editForm] = Form.useForm();
+
+
+    useEffect(() => {
+        if (appendixData) {
+            setContent(appendixData?.data?.content);
+            form.setFieldsValue({
+                title: appendixData?.data.title,
+                addendumTypeId: appendixData?.data?.addendumType.addendumTypeId,
+                content: appendixData?.data?.content,                            //check loading time for all data using Richtext
+                effectiveDate: dayjs(new Date(
+                    appendixData?.data.effectiveDate[0],
+                    appendixData?.data.effectiveDate[1] - 1,
+                    appendixData?.data.effectiveDate[2],
+                    appendixData?.data.effectiveDate[3],
+                    appendixData?.data.effectiveDate[4]
+                )),
+
+            });
+            setLoadingData(false);
+        }
+    }, [appendixData]);
 
     const onValueChange = useCallback(
         debounce((value) => {
@@ -42,13 +76,13 @@ const ContractAppendixPage = () => {
         []
     );
 
-    const onNewTypeChange = (e) => {
-        setNewTypeCreate(e.target.value);
-    };
-
     useEffect(() => {
         return () => onValueChange.cancel();
     }, []);
+
+    const onNewTypeChange = (e) => {
+        setNewTypeCreate(e.target.value);
+    };
 
     const addNewType = async () => {
         if (!newTypeCreate.trim()) return message.warning("Vui lòng nhập loại phụ lục!");
@@ -110,23 +144,36 @@ const ContractAppendixPage = () => {
     };
 
     const onFinish = async (values) => {
-        const appendixData = {
-            ...values,
-            contractId: contractId,
-        };
-        try {
-            const result = await createAppendix(appendixData).unwrap();
-            if (result.status === 'CREATED') {
-                message.success('Phụ lục đã được tạo thành công!');
-                navigate('/contract');
-                form.resetFields();
+        if (appendixId) {
+            try {
+                const result = await updateAppendix({ appendixId: appendixId, ...values });
+                if (result.error.originalStatus === 200) {
+                    message.success('Phụ lục đã được cập nhật thành công!');
+                    navigate('/appendix');
+                }
+            } catch (error) {
+                message.error(error?.data?.message || 'Lỗi khi cập nhật phụ lục!');
             }
-        } catch (error) {
-            message.error(error?.data?.message);
+        } else {
+            const appendixData = {
+                ...values,
+                ...(contractId ? { contractId } : {})
+            };
+            try {
+                const result = await createAppendix(appendixData).unwrap();
+                if (result.status === 'CREATED') {
+                    message.success('Phụ lục đã được tạo thành công!');
+                    navigate('/appendix');
+                    form.resetFields();
+                }
+            } catch (error) {
+                message.error(error?.data?.message);
+            }
         }
     };
 
-    if (isLoadingappendixType) {
+
+    if (isLoadingappendixType || isLoadingAppendix || isLoadingContracts || (appendixId && loadingData)) {
         return (
             <div className='flex justify-center items-center'>
                 <Spin />
@@ -134,11 +181,33 @@ const ContractAppendixPage = () => {
         );
     }
 
+
     return (
         <div className={`min-h-screen p-8 ${isDarkMode ? 'bg-[#141414]' : ''}`}>
             <div className={`max-w-4xl mx-auto ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5] border'} shadow-lg rounded-lg p-6`}>
-                <h1 className="text-3xl font-bold mb-6 text-center">TẠO PHỤ LỤC HỢP ĐỒNG</h1>
+                <h1 className="text-3xl font-bold mb-6 text-center">
+                    {appendixId ? 'CHỈNH SỬA PHỤ LỤC HỢP ĐỒNG' : 'TẠO PHỤ LỤC HỢP ĐỒNG'}
+                </h1>
                 <Form form={form} layout="vertical" onFinish={onFinish}>
+                    {!contractId && !appendixId && (
+                        <Form.Item
+                            label="Hợp Đồng"
+                            name="contractId"
+                            rules={[{ required: true, message: "Vui lòng chọn hợp đồng!" }]}
+                        >
+                            {contracts?.data.content.length > 0 ? (
+                                <Select placeholder="Chọn hợp đồng">
+                                    {contracts.data.content.map((contract) => (
+                                        <Option key={contract.id} value={contract.id}>
+                                            {contract.title}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            ) : (
+                                <p>Không có hợp đồng nào khả dụng.</p>
+                            )}
+                        </Form.Item>
+                    )}
                     <Form.Item
                         label="Tên Phụ Lục"
                         name="title"
@@ -150,9 +219,11 @@ const ContractAppendixPage = () => {
                     <Form.Item
                         label="Ngày Hiệu Lực"
                         name="effectiveDate"
+
                         rules={[{ required: true, message: 'Vui lòng chọn ngày hiệu lực!' }]}
                     >
                         <DatePicker
+                            format="DD/MM/YYYY"
                             className="w-full"
                             disabledDate={(current) => current && current < dayjs().startOf('day')}
                         />
@@ -237,8 +308,8 @@ const ContractAppendixPage = () => {
                     </Form.Item>
 
                     <Form.Item className="text-center">
-                        <Button type="primary" htmlType="submit" className="w-1/2">
-                            Tạo Phụ Lục
+                        <Button type="primary" htmlType="submit" className="w-1/2" loading={LoadingUpdate || LoadingCreate}>
+                            {appendixId ? 'Cập Nhật Phụ Lục' : 'Tạo Phụ Lục'}
                         </Button>
                     </Form.Item>
                 </Form>
