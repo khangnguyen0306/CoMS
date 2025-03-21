@@ -38,7 +38,6 @@ const ContractDetail = () => {
 
     const user = useSelector(selectCurrentUser);
     const location = useLocation();
-    const { StageIdMatching } = location.state || {};
     const [form] = Form.useForm();
 
     const [openAprove, setOpenAprove] = useState(false);
@@ -55,6 +54,13 @@ const ContractDetail = () => {
     const [fetchDataData] = useLazyGetDataChangeByDateQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
+
+
+    const stages = processData?.data?.stages || [];
+
+    const matchingStage = stages.find(stage => stage.approver === user?.id);
+    const StageIdMatching = matchingStage?.stageId;
+
     // console.log(processData)
     // console.log(user.id)
     // Hàm tải chi tiết điều khoản dựa theo termId (original_term_id)
@@ -65,7 +71,7 @@ const ContractDetail = () => {
                 const response = await fetchTerms(termId).unwrap();
                 setTermsData((prev) => ({
                     ...prev,
-                    [termId]: response.data
+                    [termId]: response?.data
                 }));
             } catch (error) {
                 console.error(`Error loading term ${termId}:`, error);
@@ -80,7 +86,7 @@ const ContractDetail = () => {
     // Tải chi tiết các căn cứ pháp lý (legal_basis_terms là mảng object có trường original_term_id)
     useEffect(() => {
         if (contractData?.data?.legalBasisTerms) {
-            contractData.data.legalBasisTerms.forEach((termObj) => {
+            contractData?.data?.legalBasisTerms.forEach((termObj) => {
                 loadTermDetail(termObj.original_term_id);
             });
         }
@@ -91,7 +97,7 @@ const ContractDetail = () => {
         if (contractData?.data?.additionalConfig) {
             const allGrouped = { Common: [], A: [], B: [] };
             // additionalConfig là object với các key (ví dụ: "1") chứa object với mảng Common, A, B
-            Object.values(contractData.data.additionalConfig).forEach((config) => {
+            Object.values(contractData?.data?.additionalConfig).forEach((config) => {
                 if (config.Common && config.Common.length > 0) {
                     config.Common.forEach((termObj) => {
                         allGrouped.Common.push(termObj.original_term_id);
@@ -130,10 +136,10 @@ const ContractDetail = () => {
 
     // Render các căn cứ pháp lý
     const renderLegalBasisTerms = () => {
-        if (!contractData?.data?.legalBasisTerms || contractData.data.legalBasisTerms.length === 0) {
+        if (!contractData?.data?.legalBasisTerms || contractData?.data?.legalBasisTerms.length === 0) {
             return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
         }
-        return contractData.data.legalBasisTerms.map((termObj, index) => {
+        return contractData?.data?.legalBasisTerms.map((termObj, index) => {
             const termDetail = termsData[termObj.original_term_id];
             if (!termDetail) {
                 return (
@@ -211,12 +217,12 @@ const ContractDetail = () => {
             const response = await fetchDdateAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
             console.log("Audit trail page", response.data);
             if (page === 0) {
-                setAuditTrails(response.data.content);
+                setAuditTrails(response?.data?.content);
             } else {
-                setAuditTrails((prev) => [...prev, ...response.data.content]);
+                setAuditTrails((prev) => [...prev, ...response?.data?.content]);
             }
             // Nếu số lượng trả về ít hơn pageSize thì không còn dữ liệu
-            if (response.data.content.length < pageSize) {
+            if (response?.data?.content.length < pageSize) {
                 setHasMore(false);
             }
         } catch (error) {
@@ -273,7 +279,7 @@ const ContractDetail = () => {
             }
         } catch (error) {
             console.log(error);
-            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+            message.error(error?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
     const handleReject = async (values) => {
@@ -293,7 +299,7 @@ const ContractDetail = () => {
             }
         } catch (error) {
             console.log(error);
-            message.error("Có lỗi xảy ra, vui lòng thử lại!");
+            message.error(error?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
     const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
@@ -323,7 +329,7 @@ const ContractDetail = () => {
                         >
                             <div className='flex flex-col items-center'>
                                 <p className='flex items-center justify-center'> <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} /> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
-                                <p className={`${!isDarkMode?"text-white":''}`}>Phê duyệt</p>
+                                <p className={`${!isDarkMode ? "text-white" : ''}`}>Phê duyệt</p>
                             </div>
                         </Button>
                     </>
@@ -418,7 +424,7 @@ const ContractDetail = () => {
                                     </p>
                                     <Timeline mode="left" className="mt-4 -mb-14">
                                         {processData?.data?.stages?.length > 0 ? (
-                                            processData.data.stages.map((stage) => (
+                                            processData?.data?.stages.map((stage) => (
                                                 <Timeline.Item
                                                     key={stage.id}
                                                     children={
@@ -534,13 +540,13 @@ const ContractDetail = () => {
                     <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
                     <p>---------------------------------</p>
                     <p className='place-self-end mr-10'>
-                        {contractData.data.contractLocation}, Ngày {dayjs(parseDate(contractData.data.createdAt)).format('DD')} Tháng {dayjs(parseDate(contractData.data.createdAt)).format('MM')} năm {dayjs(parseDate(contractData.data.createdAt)).format('YYYY')}
+                        {contractData?.data?.contractLocation}, Ngày {dayjs(parseDate(contractData?.data?.createdAt)).format('DD')} Tháng {dayjs(parseDate(contractData?.data?.createdAt)).format('MM')} năm {dayjs(parseDate(contractData?.data?.createdAt)).format('YYYY')}
                     </p>
                     <p className="text-3xl font-bold mt-5">
-                        {contractData.data.title ? contractData.data.title.toUpperCase() : ''}
+                        {contractData?.data.title ? contractData?.data.title.toUpperCase() : ''}
                     </p>
                     <p className="mt-3 text-base">
-                        <b>Số:</b> {contractData.data.contractNumber}
+                        <b>Số:</b> {contractData?.data.contractNumber}
                     </p>
 
                 </div>
@@ -575,20 +581,20 @@ const ContractDetail = () => {
                         <p className="font-bold text-lg mt-4 mb-3"><u>NỘI DUNG HỢP ĐỒNG</u></p>
                         <div
                             className="ml-1"
-                            dangerouslySetInnerHTML={{ __html: contractData.data.contractContent || "Chưa nhập" }}
+                            dangerouslySetInnerHTML={{ __html: contractData?.data.contractContent || "Chưa nhập" }}
                         />
                         <div className="mt-4">
                             <h4 className="font-bold text-lg"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
                             <p className="mt-4">
-                                - Tổng giá trị hợp đồng: <b>{new Intl.NumberFormat('vi-VN').format(contractData.data.amount)} VND</b>
-                                <span className="text-gray-600"> ( {numberToVietnamese(contractData.data.amount)} )</span>
+                                - Tổng giá trị hợp đồng: <b>{new Intl.NumberFormat('vi-VN').format(contractData?.data.amount)} VND</b>
+                                <span className="text-gray-600"> ( {numberToVietnamese(contractData?.data.amount)} )</span>
                             </p>
-                            {contractData.data?.paymentSchedules && contractData?.data.paymentSchedules.length > 0 && (
+                            {contractData?.data?.paymentSchedules && contractData?.data.paymentSchedules.length > 0 && (
                                 <div className="mt-5 ml-2">
                                     <p className="font-bold text-base">
-                                        Thanh toán qua {contractData.data.paymentSchedules.length} đợt:
+                                        Thanh toán qua {contractData?.data.paymentSchedules.length} đợt:
                                     </p>
-                                    {contractData.data.paymentSchedules.map((payment, index) => (
+                                    {contractData?.data.paymentSchedules.map((payment, index) => (
                                         <div key={index} className="mt-2 ml-6 flex flex-col gap-2">
                                             <p><b>Đợt: {payment.paymentOrder}</b></p>
                                             <p>- <b>Số tiền:</b> {payment.amount.toLocaleString()} ₫</p>
@@ -605,35 +611,35 @@ const ContractDetail = () => {
                                 </div>
                             )}
                             <div>
-                                {contractData.data?.isDateLateChecked && (
+                                {contractData?.data?.isDateLateChecked && (
                                     <p className="mt-3">
-                                        - Trong quá trình thanh toán cho phép trễ hạn tối đa {contractData.data.maxDateLate} (ngày)
+                                        - Trong quá trình thanh toán cho phép trễ hạn tối đa {contractData?.data?.maxDateLate} (ngày)
                                     </p>
                                 )}
-                                {contractData.data?.autoAddVAT && (
+                                {contractData?.data?.autoAddVAT && (
                                     <p className="mt-3">
-                                        - Thuế VAT được tính ({contractData.data.vatPercentage}%)
+                                        - Thuế VAT được tính ({contractData?.data?.vatPercentage}%)
                                     </p>
                                 )}
                             </div>
                             <div className="mt-4">
                                 <h4 className="font-bold text-lg"><u>THỜI GIAN HIỆU LỰC LIÊN QUAN</u></h4>
-                                {contractData.data?.effectiveDate && contractData.data?.expiryDate && (
+                                {contractData?.data?.effectiveDate && contractData?.data?.expiryDate && (
                                     <div className="mt-3">
                                         <p>
-                                            - Ngày bắt đầu hiệu lực: {dayjs(parseDate(contractData.data.effectiveDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.effectiveDate)).format('DD/MM/YYYY')}</b>
+                                            - Ngày bắt đầu hiệu lực: {dayjs(parseDate(contractData?.data?.effectiveDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.effectiveDate)).format('DD/MM/YYYY')}</b>
                                         </p>
                                         <p>
-                                            - Ngày chấm dứt hiệu lực: {dayjs(parseDate(contractData.data.expiryDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.expiryDate)).format('DD/MM/YYYY')}</b>
+                                            - Ngày chấm dứt hiệu lực: {dayjs(parseDate(contractData?.data?.expiryDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.expiryDate)).format('DD/MM/YYYY')}</b>
                                         </p>
                                     </div>
                                 )}
-                                {contractData.data?.autoRenew && (
+                                {contractData?.data?.autoRenew && (
                                     <p className="mt-3">
                                         - Tự động gia hạn khi hợp đồng hết hạn nếu không có phản hồi từ các phía
                                     </p>
                                 )}
-                                {contractData.data?.appendixEnabled && (
+                                {contractData?.data?.appendixEnabled && (
                                     <p className="mt-3">
                                         - Cho phép tạo phụ lục khi hợp đồng có hiệu lực
                                     </p>
@@ -653,8 +659,8 @@ const ContractDetail = () => {
                                     <div className="term-group mb-2">
                                         <p className="font-bold">Điều khoản riêng bên A</p>
                                         {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
-                                        {contractData.data.specialTermsA && contractData.data.specialTermsA.trim() !== "" && (
-                                            <p className="text-sm">- {contractData.data.specialTermsA}</p>
+                                        {contractData?.data?.specialTermsA && contractData?.data?.specialTermsA.trim() !== "" && (
+                                            <p className="text-sm">- {contractData?.data?.specialTermsA}</p>
                                         )}
                                     </div>
                                 )}
@@ -662,31 +668,31 @@ const ContractDetail = () => {
                                     <div className="term-group mb-2">
                                         <p className="font-bold">Điều khoản riêng bên B</p>
                                         {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
-                                        {contractData.data.specialTermsB && contractData.data.specialTermsB.trim() !== "" && (
-                                            <p className="text-sm">- {contractData.data.specialTermsB}</p>
+                                        {contractData?.data?.specialTermsB && contractData?.data?.specialTermsB.trim() !== "" && (
+                                            <p className="text-sm">- {contractData?.data?.specialTermsB}</p>
                                         )}
                                     </div>
                                 )}
                             </div>
                             <div className="mt-4">
-                                {(contractData.data?.appendixEnabled ||
-                                    contractData.data?.transferEnabled ||
-                                    contractData.data?.violate ||
-                                    contractData.data?.suspend) && (
+                                {(contractData?.data?.appendixEnabled ||
+                                    contractData?.data?.transferEnabled ||
+                                    contractData?.data?.violate ||
+                                    contractData?.data?.suspend) && (
                                         <div>
                                             <h4 className="font-bold text-lg"><u>CÁC THÔNG TIN KHÁC</u></h4>
-                                            {contractData.data?.appendixEnabled && (
+                                            {contractData?.data?.appendixEnabled && (
                                                 <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
                                             )}
-                                            {contractData.data?.transferEnabled && (
+                                            {contractData?.data?.transferEnabled && (
                                                 <p className="mt-3">- Cho phép chuyển nhượng hợp đồng</p>
                                             )}
-                                            {contractData.data?.violate && (
+                                            {contractData?.data?.violate && (
                                                 <p className="mt-3">
                                                     - Cho phép đơn phương hủy hợp đồng nếu 1 trong 2 vi phạm các quy định trong điều khoản
                                                 </p>
                                             )}
-                                            {contractData.data?.suspend && (
+                                            {contractData?.data?.suspend && (
                                                 <div>
                                                     <p className="mt-3">
                                                         - Cho phép tạm ngưng hợp đồng trong trường hợp bất khả kháng: {contractData.data.suspendContent}

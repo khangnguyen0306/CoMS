@@ -199,15 +199,7 @@ const ContractProcess = () => {
                                 },
                             ]
                             : [
-                                {
-                                    key: "update-contract",
-                                    icon: <EditFilled style={{ color: "#228eff" }} />,
-                                    label: (
-                                        <span onClick={() => navigate(`/EditContract/${record.id}`)}>
-                                            Cập nhật hợp đồng
-                                        </span>
-                                    ),
-                                },
+
                                 ...(record?.approvalWorkflowId == null
                                     ? [
                                         {
@@ -231,6 +223,15 @@ const ContractProcess = () => {
                                             ),
                                         },
                                     ]),
+                                {
+                                    key: "update-contract",
+                                    icon: <EditFilled style={{ color: "#228eff" }} />,
+                                    label: (
+                                        <span onClick={() => navigate(`/EditContract/${record.id}`)}>
+                                            Cập nhật hợp đồng
+                                        </span>
+                                    ),
+                                },
                             ]
 
                     }} trigger={["hover"]}>

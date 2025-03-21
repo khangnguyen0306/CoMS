@@ -11,11 +11,11 @@ const ContractPartner = ({ partnerId }) => {
     const [pageSize, setPageSize] = useState(10);
 
     // Gọi API với các tham số phân trang và tìm kiếm
-    const { 
-        data: partnerContractData, 
-        isLoading: isFetchingContractData, 
-        error: fetchErrorContractData, 
-        refetch: refetchContractData 
+    const {
+        data: partnerContractData,
+        isLoading: isFetchingContractData,
+        error: fetchErrorContractData,
+        refetch: refetchContractData
     } = useGetContractByPartnerIdQuery({
         partnerId: partnerId,
         page: currentPage - 1, // API thường bắt đầu từ page 0
@@ -36,12 +36,19 @@ const ContractPartner = ({ partnerId }) => {
 
     // Định nghĩa bộ lọc trạng thái
     const statusFilters = [
-        { text: 'Đã ký', value: 'Đã ký' },
-        { text: 'Đang hiệu lực', value: 'Đang hiệu lực' },
-        { text: 'Hết hiệu lực', value: 'Hết hiệu lực' },
-        { text: 'Đã hết hạn', value: 'Đã hết hạn' },
-        { text: 'Đang chờ ký', value: 'Đang chờ ký' },
+        { text: 'SIGNED', value: 'Đã ký' },
+        { text: 'ACTIVE', value: 'Đang hiệu lực' },
+        { text: 'ENDED', value: 'Hết hiệu lực' },
+        { text: 'EXPIRED', value: 'Đã hết hạn' },
+        { text: 'APPROVED', value: 'Đang chờ ký' },
     ];
+    const Displaystatus = {
+        'SIGNED': "Đã ký",
+        'ACTIVE': "Đang hiệu lực",
+        'ENDED': "Hết hiệu lực",
+        'EXPIRED': "Đã hết hạn",
+        'APPROVED': "Đang chờ ký"
+    };
 
     // Định nghĩa cột của bảng
     const columns = [
@@ -53,8 +60,8 @@ const ContractPartner = ({ partnerId }) => {
         },
         {
             title: 'Tên hợp đồng',
-            dataIndex: 'contractName',
-            key: 'contractName',
+            dataIndex: 'title',
+            key: 'title',
             render: text => <Link className='text-cyan-600 font-semibold' to={`/contract/${text}`}>{text}</Link>,
         },
         {
@@ -68,11 +75,11 @@ const ContractPartner = ({ partnerId }) => {
             dataIndex: 'status',
             key: 'status',
             render: status => (
-                <Tag color={status === 'Đang hiệu lực' ? 'green' :
-                            status === 'Đã hết hạn' ? 'red' :
-                            status === 'Đang chờ ký' ? 'blue' :
-                            status === 'Hết hiệu lực' ? 'orange' : 'default'}>
-                    {status}
+                <Tag color={status === 'SIGNED' ? 'green' :
+                    status === 'EXPIRED' ? 'red' :
+                        status === 'APPROVED' ? 'blue' :
+                            status === 'EDNED' ? 'orange' : 'default'}>
+                    {Displaystatus[status]}
                 </Tag>
             ),
             filters: statusFilters,
@@ -82,7 +89,7 @@ const ContractPartner = ({ partnerId }) => {
             title: 'Giá trị',
             dataIndex: 'value',
             key: 'value',
-            render: value => `${value.toLocaleString()} VND`,
+            render: value => `${value} VND`,
             sorter: (a, b) => a.value - b.value,
         },
         {
@@ -98,7 +105,7 @@ const ContractPartner = ({ partnerId }) => {
     if (fetchErrorContractData) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
 
     // Sắp xếp dữ liệu theo ngày ký giảm dần (mặc định)
-    const sortedData = (partnerContractData?.content || []).sort((a, b) => new Date(b.signDate) - new Date(a.signDate));
+    const sortedData = (partnerContractData?.data.content || []).sort((a, b) => new Date(b.signDate) - new Date(a.signDate));
 
     return (
         <div>
