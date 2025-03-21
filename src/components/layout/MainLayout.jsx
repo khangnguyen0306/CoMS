@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge, Button, Avatar } from "antd";
-import { BellOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled, UserOutlined } from "@ant-design/icons";
+import { BellOutlined, FolderOpenOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled, TagsOutlined, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
@@ -46,6 +46,7 @@ const MainLayout = () => {
     'contract': '/contract',
     'setting1': '/bsinformation',
     'templateCreate': '/createtemplate',
+    'appendix': '/appendix',
     'manageTemplate': '/managetemplate',
     'deletedtemplate': '/deletedtemplate',
     'clause': '/clause',
@@ -76,8 +77,8 @@ const MainLayout = () => {
         });
         navigate("/login");
       },
-      okText:"Đăng xuất",
-      cancelText:"Hủy"
+      okText: "Đăng xuất",
+      cancelText: "Hủy"
     });
   }, [dispatch, navigate]);
 
@@ -173,7 +174,6 @@ const MainLayout = () => {
 
   const navStaff = [
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
-    // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Quản lý điều khoản', key: "clause" },
 
 
@@ -181,12 +181,21 @@ const MainLayout = () => {
       icon: FaFileContract, label: 'Hợp đồng', children: [
         { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
-        // { icon: BsClipboard2DataFill, label: 'Trạng thái', key: "contractStatus" },
-        // { icon: FaHistory, label: 'Đã hủy / Tái Ký', key: "contractHistory" },
         { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
         { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
         { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval" },
+
+      ]
+    },
+    {
+      icon: TagsOutlined, label: 'Phụ lục hợp đồng', children: [
+        // { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
+        { icon: FolderOpenOutlined, label: 'Quản lý phụ lục', key: "appendix", default: true },
+        // { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
+        // { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
+        // { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
+        // { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval" },
 
       ]
     },

@@ -36,6 +36,7 @@ const ChatTest = Loadable({ loader: () => import("../components/AI-Gen/ChatTest"
 const Compare = Loadable({ loader: () => import("../components/CompareVersion/Compare") });
 const Department = Loadable({ loader: () => import("../pages/Department/Department") });
 const CreateAppendix = Loadable({ loader: () => import("../pages/appendix/CreateApependix") });
+const AppendixManagement = Loadable({ loader: () => import("../pages/appendix/AppendixManagement") });
 
 
 
@@ -157,6 +158,10 @@ export const router = createBrowserRouter([
                     {
                         path: "CreateAppendix",
                         element: CreateAppendix,
+                    },
+                    {
+                        path: "appendix",
+                        element: AppendixManagement,
                     }
                 ],
             },

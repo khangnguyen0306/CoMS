@@ -5,7 +5,7 @@ import { BE_API_LOCAL } from "../config/config";
 
 export const AppendixAPI = createApi({
     reducerPath: "AppendixAPI",
-    tagTypes: ["Appendix"],
+    tagTypes: ["Appendix", "appendixType"],
     baseQuery: fetchBaseQuery({
         baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
@@ -56,22 +56,44 @@ export const AppendixAPI = createApi({
             invalidatesTags: [{ type: "Appendix", id: "LIST" }],
         }),
 
+        createAppendixType: builder.mutation({
+            query: (name) => ({
+                url: `/addendum-types/create`,
+                method: "POST",
+                body: name,
+            }),
+            invalidatesTags: [{ type: "appendixType", id: "LIST" }],
+        }),
 
-        // getDataChangeByDate: builder.query({
-        //     query: ({ id, params }) => ({
-        //         url: `/audit-trails/original-contract/${id}/changes-by-date`,
-        //         params: {
-        //             page: params.page,
-        //             size: params.size,
-        //             order: "esc",
-        //             date: params.date
-        //         }
-        //     }),
-        //     providesTags: (result) =>
-        //         result
-        //             ? result.data.content.map(({ id }) => ({ type: "AuditTrail", id }))
-        //             : [{ type: "AuditTrail", id: "LIST" }],
-        // }),
+
+        getAllAppendixType: builder.query({
+            query: () => ({
+                url: `/addendum-types/get-all`,
+            }),
+            providesTags: (result) =>
+                result
+                    ? result.data.map(({ addendumTypeId }) => ({ type: "appendixType", addendumTypeId }))
+                    : [{ type: "appendixType", id: "LIST" }],
+        }),
+
+        editAppendixType: builder.mutation({
+            query: ({ id, name }) => ({
+                url: `/addendum-types/update/${id}`,
+                method: "PUT",
+                body: {name: name},
+            }),
+            invalidatesTags: (result, error, { addendumTypeId }) => [{ type: "appendixType", id: addendumTypeId }],
+        }),
+
+
+        deleteAppendixType: builder.mutation({
+            query: (appendixId) => ({
+                url: `/addendum-types/delete/${appendixId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: (result, error, appendixId) => [{ type: "appendixType", id: appendixId }],
+        }),
+
 
         // createDoctor: builder.mutation({
         //     query: (newDoctorData) => ({
@@ -105,5 +127,9 @@ export const AppendixAPI = createApi({
 export const {
     useCreateAppendixMutation,
     useGetAppendixByContractIdQuery,
-    useGetAppendixDetailQuery
+    useGetAppendixDetailQuery,
+    useGetAllAppendixTypeQuery,
+    useCreateAppendixTypeMutation,
+    useEditAppendixTypeMutation,
+    useDeleteAppendixTypeMutation
 } = AppendixAPI;

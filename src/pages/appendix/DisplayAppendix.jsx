@@ -13,6 +13,11 @@ const DisplayAppendix = ({ appendices }) => {
         skip: !selectedId,
     });
 
+    const generateColor = (id) => {
+        const hue = (id * 137.508) % 360;
+        return `hsl(${hue}, 65%, 75%)`;
+    };
+
     const handleCardClick = (id) => {
         setSelectedId(id);
         setVisible(true);
@@ -47,10 +52,10 @@ const DisplayAppendix = ({ appendices }) => {
                             hoverable
                             className="shadow-md rounded-md cursor-pointer"
                         >
-                            <div clas>
+                            <div >
                                 <div className='flex items-center gap-3 mb-4'>
-                                    <Image src={appendixIcon} width={40} height={40} />
-                                    <Tag className='w-fit h-fit'>Phụ lục hợp đồng</Tag>
+                                    <Image preview={false} src={appendixIcon} width={40} height={40} />
+                                    <Tag color={generateColor(item.addendumType.addendumTypeId)} className='w-fit h-fit'>{item.addendumType.name}</Tag>
                                 </div>
                                 <p className="text-lg ml-3 font-semibold break-words">{item.title}</p>
                             </div>
@@ -60,27 +65,30 @@ const DisplayAppendix = ({ appendices }) => {
             />
 
             <Modal
-                // title={appendixDetail?.data.title || 'Chi tiết phụ lục'}
                 open={visible}
                 onCancel={handleModalClose}
                 footer={null}
+                width={'80vw'}
             >
                 <div className="p-2">
                     {/* Tiêu đề của card */}
-                    <div className="mb-4 border-b border-gray-200 pb-3">
+                    <div className="mb-4 pb-3 flex flex-col gap-2">
+                        <Tag color={generateColor(appendixDetail?.data.addendumType.addendumTypeId)} className='w-fit h-fit'>{appendixDetail?.data.addendumType.name}</Tag>
                         <h2 className="text-2xl font-bold ">{appendixDetail?.data.title || 'Chi tiết phụ lục'}</h2>
+                        <p className="text-[13px]  ">Ngày Hiệu Lực:   
+                            <span className="ml-1  font-semibold ">
+                            {convertDate(appendixDetail?.data.effectiveDate)}
+                        </span></p>
                     </div>
                     <div className="space-y-6">
                         {/* Hiển thị ngày hiệu lực */}
                         <div className="flex items-center">
-                            <span className="text-sm font-medium ">Ngày Hiệu Lực:</span>
-                            <span className="ml-3  font-semibold ">
-                                {convertDate(appendixDetail?.data.effectiveDate)}
-                            </span>
+
+
                         </div>
                         {/* Hiển thị nội dung phụ lục */}
                         <div>
-                            <h3 className="text-lg font-semibold ">Nội Dung phụ lục:</h3>
+                            <h3 className="text-lg font-semibold mb-5">Nội Dung phụ lục:</h3>
                             <div className="mt-2 prose prose-sm " dangerouslySetInnerHTML={{ __html: appendixDetail?.data.content }} />
                         </div>
                     </div>

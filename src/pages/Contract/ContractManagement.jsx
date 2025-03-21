@@ -9,7 +9,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
-import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
+import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
+import ExpandRowContent from "./component/ExpandRowContent";
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -37,7 +38,6 @@ const ManageContracts = () => {
     console.log(contractManager)
     const isManager = user?.roles[0] === "ROLE_MANAGER";
     const tableData = isManager ? contractManager?.data : contracts?.data?.content;
-    // const totalElements = isManager ? contractManager?.data?.totalElements : contracts?.data?.totalElements;
 
     useEffect(() => {
         refetch();
@@ -112,7 +112,8 @@ const ManageContracts = () => {
         'EXPIRED': <Tag color="red">Hết hiệu lực</Tag>,
         'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
         'ENDED': <Tag color="default">Đã kết thúc</Tag>
-    };
+    }
+    
     const columns = [
         {
             title: "Mã hợp đồng",
@@ -324,6 +325,9 @@ const ManageContracts = () => {
                         showTotal: (total) => `Tổng ${total} hợp đồng`,
                     }}
                     onChange={handleTableChange}
+                    expandable={{
+                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                      }}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
             </div>
