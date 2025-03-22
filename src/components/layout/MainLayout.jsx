@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge, Button, Avatar } from "antd";
-import { BellOutlined, FolderOpenOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled, TagsOutlined, UserOutlined } from "@ant-design/icons";
+import { AuditOutlined, BellOutlined, FolderOpenOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled, TagsOutlined, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
@@ -61,6 +61,7 @@ const MainLayout = () => {
     'approvalContract': '/manager/approvalContract',
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
+    'managerAppendix':"/manager/appendix",
     '4': '/combo',
   }
 
@@ -100,6 +101,17 @@ const MainLayout = () => {
             { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
             { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
 
+          ]
+        },
+        {
+          icon: TagsOutlined, label: 'Phụ lục hợp đồng', children: [
+            // { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
+            { icon: AuditOutlined , label: 'Phê duyệt phụ lục', key: "managerAppendix", default: true },
+            // { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
+            // { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
+            // { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
+            // { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval" },
+    
           ]
         },
         {

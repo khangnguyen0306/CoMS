@@ -32,6 +32,32 @@ export const AppendixAPI = createApi({
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
 
+        getAllAppendixByApprover: builder.query({
+            query: ({ approverId, params }) => ({
+                url: `addendums/get-addendum-for-approver/${approverId}`,
+                // params: {
+                //     page: params.page,
+                //     size: params.size,
+                //     order: "esc"
+                // },
+                method: "GET",
+            }),
+            providesTags: (result, error, Appendix) => [{ type: "Appendix", id: Appendix }],
+        }),
+
+        getAllAppendixByManager: builder.query({
+            query: ({ managerId, params }) => ({
+                url: `addendums/get-addendum-for-manager/${managerId}`,
+                params: {
+                    page: params.page,
+                    size: params.size,
+                    order: "esc"
+                },
+                method: "GET",
+            }),
+            providesTags: (result, error, Appendix) => [{ type: "Appendix", id: Appendix }],
+        }),
+
         getAppendixDetail: builder.query({
             query: ({ id, params }) => ({
                 url: `/addendums/get-by-id/${id}`,
@@ -116,6 +142,55 @@ export const AppendixAPI = createApi({
             invalidatesTags: (result, error, appendixId) => [{ type: "appendixType", id: appendixId }],
         }),
 
+        deleteAppendix: builder.mutation({
+            query: (appendixId) => ({
+                url: `/addendums/delete/${appendixId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: (result, error, appendixId) => [{ type: "Appendix", id: appendixId }],
+        }),
+
+        createAppendixWorkFlow: builder.mutation({
+            query: (workflowData) => ({
+                url: `/addendums/create-workflow`,
+                method: "POST",
+                body: workflowData,
+            }),
+            invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+        }),
+
+        getProcessByAppendixTypeId: builder.query({
+            query: ({ appendixTypeId }) => ({
+                url: `/addendums/get-workflow-by-addendum-type/${appendixTypeId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, appendixTypeId) => [{ type: "Appendix", id: appendixTypeId }],
+        }),
+
+        getWorkFlowByAppendixId: builder.query({
+            query: ({ appendixId }) => ({
+                url: `/addendums/get-workflow-by-addendum/${appendixId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, appendixId) => [{ type: "Appendix", id: appendixId }],
+        }),
+
+        rejectAppendix: builder.mutation({
+            query: ({ appendixId, stageId,comment }) => ({
+                url: `/addendums/reject/${appendixId}/${stageId}`,
+                method: "PUT",
+                body: { comment },
+            }),
+            invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+        }),
+        approveAppendix: builder.mutation({
+            query: ({ appendixId, stageId }) => ({
+                url: `/addendums/approve/${appendixId}/${stageId}`,
+                method: "PUT",
+            }),
+            invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+        }),
+
 
         // createDoctor: builder.mutation({
         //     query: (newDoctorData) => ({
@@ -155,5 +230,13 @@ export const {
     useEditAppendixTypeMutation,
     useDeleteAppendixTypeMutation,
     useGetAllAppendixBySelfQuery,
-    useUpdateAppendixMutation
+    useUpdateAppendixMutation,
+    useDeleteAppendixMutation,
+    useCreateAppendixWorkFlowMutation,
+    useGetProcessByAppendixTypeIdQuery,
+    useGetAllAppendixByManagerQuery,
+    useGetAllAppendixByApproverQuery,
+    useGetWorkFlowByAppendixIdQuery,
+    useRejectAppendixMutation,
+    useApproveAppendixMutation,
 } = AppendixAPI;

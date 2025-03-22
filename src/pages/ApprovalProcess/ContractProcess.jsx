@@ -281,7 +281,6 @@ const ContractProcess = () => {
                     onOk={handleOk}
                     onCancel={handleCancel}
                 >
-                    {/* <p>{selectedRecord ? JSON.stringify(selectedRecord) : "Không có dữ liệu"}</p> */}
 
                     <Process
                         contractId={selectedRecord?.id}

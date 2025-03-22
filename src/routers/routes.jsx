@@ -35,8 +35,10 @@ const EditContract = Loadable({ loader: () => import("../pages/Contract/EditCont
 const ChatTest = Loadable({ loader: () => import("../components/AI-Gen/ChatTest") });
 const Compare = Loadable({ loader: () => import("../components/CompareVersion/Compare") });
 const Department = Loadable({ loader: () => import("../pages/Department/Department") });
-const CreateAppendix = Loadable({ loader: () => import("../pages/appendix/CreateApependix") });
-const AppendixManagement = Loadable({ loader: () => import("../pages/appendix/AppendixManagement") });
+const CreateAppendix = Loadable({ loader: () => import("../pages/appendix/staff/CreateApependix") });
+const AppendixManagement = Loadable({ loader: () => import("../pages/appendix/staff/AppendixManagement") });
+const AppendixManagerManagement = Loadable({ loader: () => import("../pages/appendix/manager/AppendixManagementManager") });
+const AppendixDetail = Loadable({ loader: () => import("../pages/appendix/AppendixDetail") });
 
 
 
@@ -162,6 +164,10 @@ export const router = createBrowserRouter([
                     {
                         path: "appendix",
                         element: AppendixManagement,
+                    },
+                    {
+                        path: "appendixDetail/:contractId/:appendixId",
+                        element: AppendixDetail,
                     }
                 ],
             },
@@ -275,7 +281,14 @@ export const router = createBrowserRouter([
                         path: "ContractDetail/:id",
                         element: ContractDetail,
                     },
-
+                    {
+                        path: "appendix",
+                        element: AppendixManagerManagement,
+                    },
+                    {
+                        path: "appendixDetail/:contractId/:appendixId",
+                        element: AppendixDetail,
+                    }
                 ],
             },
         ],
