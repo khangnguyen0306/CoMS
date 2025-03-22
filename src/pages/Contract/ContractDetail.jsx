@@ -14,7 +14,8 @@ import { selectCurrentUser } from '../../slices/authSlice';
 import note from "../../assets/Image/review.svg"
 import AuditrailContract from './component/AuditrailContract';
 import { useGetAppendixByContractIdQuery } from '../../services/AppendixAPI';
-import DisplayAppendix from '../appendix/DisplayAppendix';
+import DisplayAppendix from '../appendix/staff/DisplayAppendix';
+
 const ContractDetail = () => {
 
     const { id } = useParams();
