@@ -111,7 +111,7 @@ const AppendixManagement = () => {
             dataIndex: "title",
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
-            render: (text) => (
+            render: (text,record) => (
                 <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/appendixDetail/${record.contractId}/${record.addendumType.addendumTypeId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumType.addendumTypeId}`}`} className="font-bold text-[#228eff] cursor-pointer">
                 <p> {text} </p>
                  </Link>
