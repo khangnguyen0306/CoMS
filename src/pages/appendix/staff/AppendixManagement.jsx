@@ -40,7 +40,6 @@ const AppendixManagement = () => {
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const navigate = useNavigate()
     const [deleteappendix] = useDeleteAppendixMutation()
-    console.log(contractManager)
 
     // const isManager = user?.roles[0] === "ROLE_MANAGER";
     const tableData = appendixs?.data?.content;

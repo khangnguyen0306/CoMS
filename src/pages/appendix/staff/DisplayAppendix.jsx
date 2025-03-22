@@ -1,8 +1,9 @@
 import { Card, Image, List, Modal, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import { useGetAppendixDetailQuery } from '../../services/AppendixAPI';
-import appendixIcon from "../../assets/Image/appendix.svg"
+
+import appendixIcon from "../../../assets/Image/appendix.svg"
+import { useGetAppendixDetailQuery } from '../../../services/AppendixAPI';
 
 const DisplayAppendix = ({ appendices }) => {
     const [selectedId, setSelectedId] = useState(null);

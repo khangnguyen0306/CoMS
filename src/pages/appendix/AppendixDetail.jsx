@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 const { Panel } = Collapse;
 
 const AppendixDetail = () => {
-    const { appendixId } = useParams()
+    const { appendixId, contractId } = useParams()
     const navigate = useNavigate();
     const [approvalChoice, setApprovalChoice] = useState(null);
     const [reason, setReason] = useState('');
@@ -23,7 +23,7 @@ const AppendixDetail = () => {
     const stages = dataAppendixProcess?.data?.stages || [];
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
-    const userApproval = dataAppendixProcess?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
+    const userApproval = dataAppendixProcess?.data.stages.find(stage => stage.approver === user?.id && (stage.status === "APPROVED"));
 
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectAppendixMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveAppendixMutation();
@@ -124,7 +124,11 @@ const AppendixDetail = () => {
                 <div className='ml-[50px]'>
                     <div className="mb-6 ml-2">
                         <h2 className="text-xl font-semibold ">I. Thông tin chung</h2>
-                        <Button type="link" className="my-4 ml-[-17px]">
+                        <Button
+                            type="link"
+                            className="my-4 ml-[-17px]"
+                            onClick={() => navigate(user?.roles[0] === "ROLE_STAFF" ? `/contractDetail/${contractId}` : `/manager/contractDetail/${contractId}`)}
+                        >
                             <Image preview={false} width={30} height={30} src={ApIcon} />
                             <span className='font-bold text-base'>Xem hợp đồng sử dụng phụ lục </span>
                         </Button>
