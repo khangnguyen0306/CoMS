@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
 import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled } from "@ant-design/icons";
-import { useGetAllContractQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
 import { Link, useNavigate } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../slices/authSlice";
-import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
-import ExpandRowContent from "../Contract/component/ExpandRowContent";
-import { useGetAllAppendixBySelfQuery } from "../../services/AppendixAPI";
+import { selectCurrentUser } from "../../../slices/authSlice";
+import { useGetContractPorcessPendingQuery } from "../../../services/ProcessAPI";
+import ExpandRowContent from "../../Contract/component/ExpandRowContent";
+import { useDeleteAppendixMutation, useGetAllAppendixByApproverQuery, useGetAllAppendixBySelfQuery } from "../../../services/AppendixAPI";
+import Process from "../../Process/Process";
 
 const { Search } = Input;
 
-const AppendixManagement = () => {
-
+const AppendixManagementManager = () => {
+    const user = useSelector(selectCurrentUser)
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
     const [pagination, setPagination] = useState({
@@ -26,27 +26,29 @@ const AppendixManagement = () => {
     });
 
     const [status, setStatus] = useState(null);
-
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState(null);
     ////////////////////////////////////////////////////////////////
-    const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixBySelfQuery({
+    const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixByApproverQuery({
+        approverId: user.id,
         page: pagination.current - 1,
         size: pagination.pageSize,
-        keyword: searchText,
     });
+    console.log(appendixs)
 
 
-    const user = useSelector(selectCurrentUser)
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const navigate = useNavigate()
-    const [softDelete] = useSoftDeleteContractMutation()
-    console.log(contractManager)
+    const [deleteappendix] = useDeleteAppendixMutation()
+
 
     // const isManager = user?.roles[0] === "ROLE_MANAGER";
-    const tableData = appendixs?.data?.content;
+    const tableData = appendixs?.data.content;
 
     useEffect(() => {
         refetch();
     }, [])
+
 
 
 
@@ -59,8 +61,9 @@ const AppendixManagement = () => {
             title: 'Bạn có chắc muốn xóa phụ lục này không?',
             onOk: async () => {
                 try {
-                    await softDelete(record.id).unwrap();
+                    await deleteappendix(record.addendumId).unwrap();
                     message.success("Xóa phụ lục thành công!");
+                    refetch()
                 } catch (error) {
                     const errorMessage = error?.data?.message?.split(": ")?.[1] || "Xóa phụ lục thất bại, vui lòng thử lại!";
                     message.error(errorMessage);
@@ -108,10 +111,10 @@ const AppendixManagement = () => {
             dataIndex: "title",
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
-            render: (text) => (
-                // <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
-                <p> {text} </p>
-                // </Link>
+            render: (text,record) => (
+                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`}`} className="font-bold text-[#228eff] cursor-pointer">
+                    <p> {text} </p>
+                </Link>
             ),
         },
         {
@@ -195,16 +198,17 @@ const AppendixManagement = () => {
                                             onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
                                         }]
                                         : []),
-                                    {
-                                        key: "select-process",
-                                        icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
-                                        label: (
-                                            <span >
-                                                {/* onClick={() => showModal(record)} */}
-                                                Yêu cầu phê duyệt
-                                            </span>
-                                        ),
-                                    },
+                                    ...(record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+                                        {
+                                            key: "select-process",
+                                            icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                            label: (
+                                                <span onClick={() => showModal(record)}>
+
+                                                    Yêu cầu phê duyệt
+                                                </span>
+                                            ),
+                                        }] : [],
                                     {
                                         key: "delete",
                                         icon: <DeleteOutlined />,
@@ -233,15 +237,33 @@ const AppendixManagement = () => {
         }
     };
 
+    const showModal = (record) => {
+        console.log(record)
+        setSelectedRecord(record);
+        setIsModalVisible(true);
+    };
+
+    const handleOk = () => {
+        setIsModalVisible(false);
+        setSelectedRecord(null);
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+        setSelectedRecord(null);
+        refetch();
+
+    };
+
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                    QUẢN LÝ PHỤ LỤC HỢP ĐỒNG
+                    PHỤ LỤC CẦN PHÊ DUYỆT
                 </p>
                 <Space className="mb-[16px] flex items-center justify-between" >
                     <Search
-                        placeholder="Nhập tên phụ lục, tên partner hoặc tên người tạo"
+                        placeholder="Nhập tên phụ lục, mã hợp đồng"
                         allowClear
                         onSearch={setSearchText}
                         style={{ width: "100%", minWidth: 500, maxWidth: 1200, marginBottom: 20 }}
@@ -249,19 +271,11 @@ const AppendixManagement = () => {
                         enterButton="Tìm kiếm"
                         disabled={isLoading}
                     />
-                    <div>
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                        >
-                            <Link to={'/CreateAppendix'}> Tạo phụ lục</Link>
-                        </Button>
-                    </div>
                 </Space>
                 <Table
                     columns={columns}
                     dataSource={tableData}
-                    rowKey="id"
+                    rowKey={(record) => record.addendumId}
                     loading={isLoading}
                     pagination={{
                         current: pagination.current,
@@ -273,14 +287,15 @@ const AppendixManagement = () => {
                     }}
                     onChange={handleTableChange}
                     expandable={{
-                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                        expandedRowRender: (record) => <ExpandRowContent appendixId={record?.addendumId} />,
                     }}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
+
             </div>
 
         </div>
     );
 };
 
-export default AppendixManagement;
+export default AppendixManagementManager;

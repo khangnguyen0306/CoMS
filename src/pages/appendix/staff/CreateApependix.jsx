@@ -5,12 +5,12 @@ import dayjs from 'dayjs';
 import RichTextEditor from 'reactjs-tiptap-editor';
 import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css';
-import { extensions } from "../../utils/textEditor";
+import { extensions } from "../../../utils/textEditor";
 import { debounce } from "lodash";
-import { useCreateAppendixMutation, useCreateAppendixTypeMutation, useDeleteAppendixTypeMutation, useEditAppendixTypeMutation, useGetAllAppendixTypeQuery, useGetAppendixDetailQuery, useUpdateAppendixMutation } from '../../services/AppendixAPI';
+import { useCreateAppendixMutation, useCreateAppendixTypeMutation, useDeleteAppendixTypeMutation, useEditAppendixTypeMutation, useGetAllAppendixTypeQuery, useGetAppendixDetailQuery, useUpdateAppendixMutation } from '../../../services/AppendixAPI';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DeleteFilled, EditFilled, PlusOutlined } from '@ant-design/icons';
-import { useGetAllContractQuery } from '../../services/ContractAPI';
+import { useGetAllContractQuery } from '../../../services/ContractAPI';
 
 const { Option } = Select;
 

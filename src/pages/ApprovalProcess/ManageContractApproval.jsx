@@ -126,7 +126,7 @@ const ManageContractApproval = () => {
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.data?.filter(item =>
+                    dataSource={contracts?.data?.content.filter(item =>
                         item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.party?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())
