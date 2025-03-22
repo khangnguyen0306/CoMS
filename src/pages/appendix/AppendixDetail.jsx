@@ -24,6 +24,7 @@ const AppendixDetail = () => {
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
     const userApproval = dataAppendixProcess?.data.stages.find(stage => stage.approver === user?.id && (stage.status === "APPROVED"));
+    const userCreate = appendixData?.data.createdBy.userName == user?.id;
 
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectAppendixMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveAppendixMutation();
@@ -126,7 +127,7 @@ const AppendixDetail = () => {
                         <h2 className="text-xl font-semibold ">I. Thông tin chung</h2>
                         <Button
                             type="link"
-                            className="my-4 ml-[-17px]"
+                            className="my-4 ml-[-17px] mb-7"
                             onClick={() => navigate(user?.roles[0] === "ROLE_STAFF" ? `/contractDetail/${contractId}` : `/manager/contractDetail/${contractId}`)}
                         >
                             <Image preview={false} width={30} height={30} src={ApIcon} />
@@ -134,9 +135,9 @@ const AppendixDetail = () => {
                         </Button>
                         <div className='flex flex-col gap-2'>
                             <p className=""><b>Mã hợp đồng:</b> {appendixData?.data.contractNumber}</p>
-                            <p className=""><b>Người tạo:</b> [Tên người tạo]</p>
-                            <p className=""><b>Ngày tạo:</b>  {formatDate(appendixData?.data.createdAt)}</p>
-                            <p className=""><b>Ngày có hiệu lực:</b>  {formatDate(appendixData?.data.effectiveDate)}</p>
+                            <p className=""><b>Người tạo:</b> {appendixData?.data.createdBy?.userName}</p>
+                            <p className=""><b>Ngày tạo:</b>  {formatDate(appendixData?.data?.createdAt)}</p>
+                            <p className=""><b>Ngày có hiệu lực:</b>  {formatDate(appendixData?.data?.effectiveDate)}</p>
                         </div>
                     </div>
 
@@ -236,68 +237,70 @@ const AppendixDetail = () => {
 
                     {/* Collapse phê duyệt */}
                     {!userApproval && (
-                        <Collapse>
-                            <Panel header="Phê duyệt" key="1">
-                                <Radio.Group onChange={handleApprovalChange} value={approvalChoice}>
-                                    <Space direction="vertical">
-                                        <Radio value="approve">Đồng ý phê duyệt</Radio>
-                                        <Radio value="reject">Không đồng ý</Radio>
-                                    </Space>
-                                </Radio.Group>
+                        userCreate && (
+                            <Collapse>
+                                <Panel header="Phê duyệt" key="1">
+                                    <Radio.Group onChange={handleApprovalChange} value={approvalChoice}>
+                                        <Space direction="vertical">
+                                            <Radio value="approve">Đồng ý phê duyệt</Radio>
+                                            <Radio value="reject">Không đồng ý</Radio>
+                                        </Space>
+                                    </Radio.Group>
 
-                                {/* Nếu chọn Đồng ý phê duyệt */}
-                                {approvalChoice === 'approve' && (
-                                    <div className="mt-4 flex flex-col">
-                                        <Checkbox
-                                            onChange={(e) => setIsApproved(e.target.checked)}
-                                            disabled={isApproved}
-                                        >
-                                            Tôi đã đọc kỹ phụ lục và phê duyệt
-                                        </Checkbox>
-                                        {isApproved && (
-                                            <Button
-                                                type="primary"
-                                                onClick={handleConfirmApproval}
-                                                className="mt-2"
-                                                loading={approveLoading}
+                                    {/* Nếu chọn Đồng ý phê duyệt */}
+                                    {approvalChoice === 'approve' && (
+                                        <div className="mt-4 flex flex-col">
+                                            <Checkbox
+                                                onChange={(e) => setIsApproved(e.target.checked)}
+                                                disabled={isApproved}
                                             >
-                                                Phê duyệt
-                                            </Button>
-                                        )}
-                                    </div>
-                                )}
+                                                Tôi đã đọc kỹ phụ lục và phê duyệt
+                                            </Checkbox>
+                                            {isApproved && (
+                                                <Button
+                                                    type="primary"
+                                                    onClick={handleConfirmApproval}
+                                                    className="mt-2"
+                                                    loading={approveLoading}
+                                                >
+                                                    Phê duyệt
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
 
-                                {/* Nếu chọn Không đồng ý */}
-                                {approvalChoice === 'reject' && (
-                                    <Form className="mt-4 flex flex-col">
-                                        <Form.Item >
-                                            <Input.TextArea
-                                                rows={7}
-                                                value={reason}
-                                                onChange={(e) => setReason(e.target.value)}
-                                                placeholder="Nhập lý do từ chối"
-                                                style={{
-                                                    overflow: 'hidden',
-                                                    overflowY: 'auto',
-                                                    scrollbarWidth: 'none'
-                                                }}
-                                            />
-                                        </Form.Item>
-                                        <Form.Item >
-                                            <Button
-                                                type="primary"
-                                                danger
-                                                onClick={handleReject}
-                                                disabled={!reason}
-                                                loading={rejectLoading}
-                                            >
-                                                Từ chối phê duyệt
-                                            </Button>
-                                        </Form.Item>
-                                    </Form>
-                                )}
-                            </Panel>
-                        </Collapse>
+                                    {/* Nếu chọn Không đồng ý */}
+                                    {approvalChoice === 'reject' && (
+                                        <Form className="mt-4 flex flex-col">
+                                            <Form.Item >
+                                                <Input.TextArea
+                                                    rows={7}
+                                                    value={reason}
+                                                    onChange={(e) => setReason(e.target.value)}
+                                                    placeholder="Nhập lý do từ chối"
+                                                    style={{
+                                                        overflow: 'hidden',
+                                                        overflowY: 'auto',
+                                                        scrollbarWidth: 'none'
+                                                    }}
+                                                />
+                                            </Form.Item>
+                                            <Form.Item >
+                                                <Button
+                                                    type="primary"
+                                                    danger
+                                                    onClick={handleReject}
+                                                    disabled={!reason}
+                                                    loading={rejectLoading}
+                                                >
+                                                    Từ chối phê duyệt
+                                                </Button>
+                                            </Form.Item>
+                                        </Form>
+                                    )}
+                                </Panel>
+                            </Collapse>
+                        )
                     )}
                 </div>
             </Col>

@@ -6,7 +6,7 @@ import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
-import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
+import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, RollbackOutlined, SmallDashOutlined } from '@ant-design/icons';
 import { useLazyGetDataChangeByDateQuery, useLazyGetDateChangeContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery } from '../../services/ContractAPI';
 import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
@@ -315,7 +315,15 @@ const ContractDetail = () => {
     }
 
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center relative shadow-md p-4 pb-16 rounded-md`}>
+        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center  shadow-md p-4 pb-16 rounded-md`}>  
+         <Button
+            icon={<RollbackOutlined />}
+            type="primary"
+            onClick={() => navigate(-1)}
+            className="mb-4 absolute left-[150px]"
+        >
+            Quay về
+        </Button>
             <div className="flex justify-between relative">
                 {(!isApprover && user.roles[0] !== "ROLE_MANAGER") ? (
                     <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
@@ -403,7 +411,7 @@ const ContractDetail = () => {
                 open={visible}
                 width={500}
             >
-                <Tabs defaultActiveKey="1"  onChange={handleTabChange}>
+                <Tabs defaultActiveKey="1" onChange={handleTabChange}>
                     <Tabs.TabPane icon={<BookOutlined />} tab="Thông tin chung" key="1">
                         <div className='flex gap-2 flex-col ml-6 justify-center'>
                             <p> <b>phiên bản hợp đồng:</b> <Tag className='ml-2' color='blue-inverse'>{contractData?.data.version}.0.0 </Tag></p>

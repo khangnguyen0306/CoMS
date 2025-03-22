@@ -82,6 +82,7 @@ const AppendixManagementManager = () => {
         'UPDATED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
         'REJECTED': <Tag color="red-inverse">Từ chối</Tag>,
     }
+    
 
     const columns = [
         {
@@ -121,26 +122,14 @@ const AppendixManagementManager = () => {
             title: "Loại phụ lục",
             dataIndex: "addendumType",
             key: "addendumType",
-            render: (value) =>
-            // user.roles[0] === "ROLE_MANAGER" ? (
-            //     <Tag color="blue">{value}</Tag>
-            (
+            render: (value) => (
                 <Tag color="blue">{value.name}</Tag>
             ),
-            // filters:
-            //     user.roles[0] === "ROLE_MANAGER"
-            //         ? [...new Set(tableData?.data.map(appendix => appendix.addendumType))].map(type => ({
-            //             text: type,
-            //             value: type,
-            //         }))
-            //         : [...new Set(tableData?.data.map(appendix => appendix.appendixType.name))].map(type => ({
-            //             text: type,
-            //             value: type,
-            //         })),
-            // onFilter:
-            //     user.roles[0] === "ROLE_MANAGER"
-            //         ? (value, record) => record.addendumType === value
-            //         : (value, record) => record.appendixType.name === value,
+            filters: [...new Set(tableData?.map(appendix => appendix.addendumType.name))].map(name => ({
+                text: name,
+                value: name,
+            })),
+            onFilter: (value, record) => record.addendumType.name === value,
         },
 
         {
@@ -162,7 +151,7 @@ const AppendixManagementManager = () => {
             dataIndex: "status",
             key: "status",
             filters: Object.keys(statusAppendix).map(status => ({
-                text: status,
+                text: statusAppendix[status].props.children, 
                 value: status,
             })),
             onFilter: (value, record) => record.status === value,
