@@ -1,6 +1,6 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { data, Outlet, useNavigate } from "react-router-dom";
 import { Image, Layout, Menu, notification, theme, Modal, Dropdown, Badge, Button, Avatar } from "antd";
-import { AuditOutlined, BellOutlined, FolderOpenOutlined, LoginOutlined, NotificationFilled, PlusCircleFilled, TagsOutlined, UserOutlined } from "@ant-design/icons";
+import { AuditOutlined, BellOutlined, FolderOpenOutlined, LoginOutlined, MenuOutlined, NotificationFilled, PlusCircleFilled, TagsOutlined, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
@@ -31,12 +31,15 @@ import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
 import { toggleTheme } from "../../slices/themeSlice";
 import { HiMiniClipboardDocumentCheck } from "react-icons/hi2";
 import "./button.css"
+import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser);
+  const { data: numberNoti, isLoading: loadingNumber } = useGetNumberNotiForAllQuery()
+
   const router = {
     '1': '/',
     'dash': '/dashboard',
@@ -47,6 +50,7 @@ const MainLayout = () => {
     'setting1': '/bsinformation',
     'templateCreate': '/createtemplate',
     'appendix': '/appendix',
+    'appendixManageStaff': '/appendix',
     'manageTemplate': '/managetemplate',
     'deletedtemplate': '/deletedtemplate',
     'clause': '/clause',
@@ -61,7 +65,8 @@ const MainLayout = () => {
     'approvalContract': '/manager/approvalContract',
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
-    'managerAppendix':"/manager/appendix",
+    'managerAppendix': "/manager/appendix",
+    'managerAppendixForallStatus': "/manager/appendixFull",
     '4': '/combo',
   }
 
@@ -94,8 +99,11 @@ const MainLayout = () => {
         { icon: GoLaw, label: 'Điều khoản và loại hợp đồng', key: "clause" },
 
         {
-          icon: FaFileContract, label: 'Hợp đồng', children: [
-            { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract" },
+          icon: FaFileContract,
+          label: 'Hợp đồng',
+          badgeType: "contracts",
+          children: [
+            { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract", badgeCount: "contractsPendingApprovalForManager" },
             { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
             { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
             { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
@@ -104,14 +112,18 @@ const MainLayout = () => {
           ]
         },
         {
-          icon: TagsOutlined, label: 'Phụ lục hợp đồng', children: [
+          icon: TagsOutlined,
+          label: 'Phụ lục hợp đồng',
+          badgeType: "addenda",
+          children: [
             // { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
-            { icon: AuditOutlined , label: 'Phê duyệt phụ lục', key: "managerAppendix", default: true },
+            { icon: AuditOutlined, label: 'Phê duyệt phụ lục', key: "managerAppendix", default: true, badgeCount: "addendaPendingApprovalForManager" },
+            { icon: MenuOutlined, label: 'Quản lý phụ lục', key: "managerAppendixForallStatus" },
             // { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
             // { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
             // { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
             // { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval" },
-    
+
           ]
         },
         {
@@ -123,13 +135,6 @@ const MainLayout = () => {
         },
       ]
     },
-    // {
-    //   icon: SiAuth0, key: "right", label: 'Phân quyền', children: [
-    //     { icon: MdDashboard, label: 'Danh mục', key: "author" },
-    //     { icon: SiAuth0, label: 'Phân quyền', key: "author1" },
-    //     { icon: IoMdSettings, label: 'Cấu hình', key: "author2" },
-    //   ]
-    // },
     {
       icon: IoMdSettings, label: 'Cấu hình', key: "settingManagement", children: [
         { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
@@ -146,14 +151,30 @@ const MainLayout = () => {
       icon: React.createElement(item.icon),
       label: item.label,
       children: item.children?.map((childItem, childIndex) => {
+        const icon =
+          childItem.badgeType &&
+            numberNoti?.data[`${childItem.badgeType}PendingApprovalForManager`] > 0 ? (
+            <Badge dot>
+              {React.createElement(childItem.icon)}
+            </Badge>
+          ) : (
+            React.createElement(childItem.icon)
+          );
         return {
-          icon: React.createElement(childItem.icon),
+          icon: icon,
           key: childItem.key,
           label: childItem.label,
           path: childItem.path,
           children: childItem.children && childItem.children.length > 0 ? childItem.children.map((grandchildItem, grandchildIndex) => {
+            const grandchildIcon = grandchildItem.badgeCount ? (
+              <Badge size="small" count={numberNoti?.data[grandchildItem.badgeCount] || 0}>
+                {React.createElement(grandchildItem.icon)}
+              </Badge>
+            ) : (
+              React.createElement(grandchildItem.icon)
+            );
             return {
-              icon: React.createElement(grandchildItem.icon),
+              icon: grandchildIcon,
               key: grandchildItem.key,
               label: grandchildItem.label,
               path: grandchildItem.path,
@@ -190,20 +211,26 @@ const MainLayout = () => {
 
 
     {
-      icon: FaFileContract, label: 'Hợp đồng', children: [
-        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
+      icon: FaFileContract,
+      label: 'Hợp đồng',
+      badgeType: "contracts",
+      children: [
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff", badgeCount: "contractsPendingApproval" },
         { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true },
         { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
         { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
-        { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval" },
+        { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval", badgeCount: "contractsRejected" },
 
       ]
     },
     {
-      icon: TagsOutlined, label: 'Phụ lục hợp đồng', children: [
-        // { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
-        { icon: FolderOpenOutlined, label: 'Quản lý phụ lục', key: "appendix", default: true },
+      icon: TagsOutlined,
+      label: 'Phụ lục hợp đồng',
+      badgeType: "addenda",
+      children: [
+        { icon: AuditOutlined, label: 'Phê duyệt phụ lục', key: "appendix", badgeCount: "addendaRejected" },
+        { icon: MenuOutlined, label: 'Quản lý phụ lục', key: "appendixManageStaff", default: true, badgeCount: "addendaPendingApproval" },
         // { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
         // { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         // { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
@@ -227,14 +254,32 @@ const MainLayout = () => {
       icon: React.createElement(item.icon),
       label: item.label,
       children: item.children?.map((childItem, childIndex) => {
+        const icon =
+          childItem.badgeType &&
+
+            (numberNoti?.data[`${childItem.badgeType}contractsPendingApproval`] > 0 || numberNoti?.data[`${childItem.badgeType}addendaPendingApproval`] > 0)
+            ? (
+              <Badge dot>
+                {React.createElement(childItem.icon)}
+              </Badge>
+            ) : (
+              React.createElement(childItem.icon)
+            );
         return {
-          icon: React.createElement(childItem.icon),
+          icon: icon,
           key: childItem.key,
           label: childItem.label,
           path: childItem.path,
           children: childItem.children && childItem.children.length > 0 ? childItem.children.map((grandchildItem, grandchildIndex) => {
+            const grandchildIcon = grandchildItem.badgeCount ? (
+              <Badge size="small" count={numberNoti?.data[grandchildItem.badgeCount] || 0}>
+                {React.createElement(grandchildItem.icon)}
+              </Badge>
+            ) : (
+              React.createElement(grandchildItem.icon)
+            );
             return {
-              icon: React.createElement(grandchildItem.icon),
+              icon: grandchildIcon,
               key: grandchildItem.key,
               label: grandchildItem.label,
               path: grandchildItem.path,
@@ -263,7 +308,11 @@ const MainLayout = () => {
     dispatch(toggleTheme());
   };
 
-
+  if (loadingNumber) {
+    return (
+      <p>load</p>
+    )
+  }
   return (
     <Layout>
       <Sider

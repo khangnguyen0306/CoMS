@@ -15,6 +15,7 @@ import note from "../../assets/Image/review.svg"
 import AuditrailContract from './component/AuditrailContract';
 import { useGetAppendixByContractIdQuery } from '../../services/AppendixAPI';
 import DisplayAppendix from '../appendix/staff/DisplayAppendix';
+import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
 
 const ContractDetail = () => {
 
@@ -40,7 +41,7 @@ const ContractDetail = () => {
     const user = useSelector(selectCurrentUser);
     const location = useLocation();
     const [form] = Form.useForm();
-
+    const { refetch:refetchNoti } = useGetNumberNotiForAllQuery()
     const [openAprove, setOpenAprove] = useState(false);
     const [scrolledToBottom, setScrolledToBottom] = useState(false);
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectProcessMutation();
@@ -273,6 +274,7 @@ const ContractDetail = () => {
             await approveProcess({ contractId: id, stageId: StageIdMatching }).unwrap();
             message.success("Đã đồng ý phê duyệt thành công!");
             onClose();
+            refetchNoti()
             if (user?.roles?.includes("ROLE_STAFF")) {
                 navigate(`/approvalContract`);
             } else if (user?.roles?.includes("ROLE_MANAGER")) {
@@ -287,12 +289,11 @@ const ContractDetail = () => {
         // Lấy comment từ form
         const { comment } = values;
         try {
-            // Gọi mutation reject process với dữ liệu nhận được (ví dụ có thêm id hoặc thông tin cần thiết)
-            // console.log(comment);
             await rejectProcess({ comment: comment, contractId: id, stageId: StageIdMatching }).unwrap();
             message.success("Đã từ chối phê duyệt và gửi nhận xét thành công!");
             form.resetFields();
             onClose();
+            refetchNoti()
             if (user?.roles[0]?.includes("ROLE_STAFF")) {
                 navigate(`/approvalContract`);
             } else if (user?.roles[0]?.includes("ROLE_MANAGER")) {
@@ -320,7 +321,7 @@ const ContractDetail = () => {
             icon={<RollbackOutlined />}
             type="primary"
             onClick={() => navigate(-1)}
-            className="mb-4 absolute left-[150px]"
+            className="mb-4 absolute left-[120px] top-[90px]"
         >
             Quay về
         </Button>
@@ -446,7 +447,7 @@ const ContractDetail = () => {
                                                             {
                                                                 stage.status === "APPROVING"
                                                                     ? <div className="flex flex-col h-full justify-center items-center">
-                                                                        <p className="text-[12px]">
+                                                                        {/* <p className="text-[12px]">
                                                                             {new Date(
                                                                                 stage.startDate[0],
                                                                                 stage.startDate[1] - 1,
@@ -457,7 +458,7 @@ const ContractDetail = () => {
                                                                                 stage.endDate[1] - 1,
                                                                                 stage.endDate[2]
                                                                             ).toLocaleDateString("vi-VN")}
-                                                                        </p>
+                                                                        </p> */}
                                                                         <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
                                                                     </div>
                                                                     : stage.status === "APPROVED" && stage.approvedAt

@@ -1,7 +1,7 @@
 import { CheckOutlined, ClockCircleOutlined, CloseOutlined, ForwardOutlined, InfoCircleOutlined, LoadingOutlined, RollbackOutlined, SmallDashOutlined } from '@ant-design/icons';
-import { Button, Collapse, Radio, Form, Input, Space, Row, Col, Checkbox, Image, Skeleton, Card, Timeline, Tag, message } from 'antd';
+import { Button, Collapse, Radio, Form, Input, Space, Row, Col, Checkbox, Image, Skeleton, Card, Timeline, Tag, message, Breadcrumb } from 'antd';
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import ApIcon from '../../assets/Image/appendix.svg'
 import { useApproveAppendixMutation, useGetAppendixDetailQuery, useGetWorkFlowByAppendixIdQuery, useRejectAppendixMutation } from '../../services/AppendixAPI';
 import { selectCurrentUser } from '../../slices/authSlice';
@@ -101,16 +101,21 @@ const AppendixDetail = () => {
     }
     return (
         <Row gutter={16} className='min-h-[100vh]'>
-            {/* Cột bên trái */}
+
             <Col span={17} className=" rounded-lg ">
-                <Button
-                    icon={<RollbackOutlined />}
-                    type="primary"
-                    onClick={() => navigate(-1)}
-                    className="mb-4"
-                >
-                    Quay về
-                </Button>
+                <div>
+                    <Breadcrumb
+                    className='p-5'
+                        items={[
+                            {
+                                title: <Link to={user.roles[0] == "ROLE_STAFF" ? "/appendixFull" : "/manager/appendixFull"} >Quản lý phụ lục</Link>,
+                            },
+                            {
+                                title: <p className='font-bold'>{appendixData?.data.title}</p>,
+                            },
+                        ]}
+                    />
+                </div>
                 <div className="text-center mb-10">
                     <p
                         className="font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500"
@@ -158,7 +163,7 @@ const AppendixDetail = () => {
                     className=" p-4 rounded-lg shadow-md border"
                     style={{
                         position: 'fixed',
-                        right: '66px',
+                        right: '45px',
                         top: '100px',
                         minWidth: '400px',
                         width: 'fit-content',
@@ -237,7 +242,7 @@ const AppendixDetail = () => {
 
                     {/* Collapse phê duyệt */}
                     {!userApproval && (
-                        userCreate && (
+                        !userCreate && (
                             <Collapse>
                                 <Panel header="Phê duyệt" key="1">
                                     <Radio.Group onChange={handleApprovalChange} value={approvalChoice}>
