@@ -1,8 +1,8 @@
 import React from "react";
-import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input, Divider, Timeline, ConfigProvider } from "antd";
+import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input, Divider, Timeline, ConfigProvider, Breadcrumb } from "antd";
 import { FileSearchOutlined, CheckCircleOutlined, ClockCircleOutlined, LoadingOutlined, CheckOutlined, CloseOutlined, ForwardOutlined, SmallDashOutlined } from "@ant-design/icons";
 import { useGetContractDetailQuery } from "../../services/ContractAPI";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGetProcessByContractIdQuery } from "../../services/ProcessAPI";
 import { selectCurrentUser } from "../../slices/authSlice";
 import { useSelector } from "react-redux";
@@ -13,26 +13,22 @@ const { Title, Text } = Typography;
 const ReviewContract = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const user = useSelector(selectCurrentUser)
     const currentUser = useSelector(selectCurrentUser);
-    const contractId = id;
     const { data: contracts, isLoading, isError } = useGetContractDetailQuery(id);
-    const { data: process } = useGetProcessByContractIdQuery({ contractId });
+    const { data: process, isLoading: LoadingProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
 
     // Lấy mảng stages
-    const stages = process?.data?.stages || [];
+    const stages = process?.data?.stages;
 
-    console.log(stages);
+    // console.log(stages);
+    // console.log(contracts);
 
-    const matchingStage = stages.find(stage => stage.approver === currentUser?.id);
+    const matchingStage = stages?.find(stage => stage.approver === currentUser?.id);
     const StageIdMatching = matchingStage?.stageId;
 
-    if (isLoading)
-        return (
-            <div style={{ textAlign: "center", marginTop: "20px" }}>
-                <Skeleton active />
-            </div>
-        );
+
     if (isError)
         return (
             <div style={{ textAlign: "center", marginTop: "20px", color: "red" }}>
@@ -41,7 +37,7 @@ const ReviewContract = () => {
         );
 
     // Lấy hợp đồng đầu tiên trong danh sách
-    const contract = contracts.data
+    const contract = contracts?.data
 
     const handleNavigate = () => {
         if (currentUser?.roles?.includes("ROLE_STAFF")) {
@@ -60,16 +56,35 @@ const ReviewContract = () => {
     };
 
 
+    if (isLoading || LoadingProcess)
+        return (
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <Skeleton active />
+            </div>
+        );
 
     return (
         <div className='container mx-auto min-h-[100vh]'>
+            <Breadcrumb
+                className='p-5'
+                items={[
+                    {
+                        title: <Link to={user.roles[0] == "ROLE_STAFF" ? "/approvalContract" : "/manager/approvalContract"} >Hợp đồng cần phê duyệt </Link>,
+                    },
+                    {
+                        title: <p className='font-bold'>{contracts?.data.title}</p>,
+                    },
+                ]}
+            />
             <p className='font-bold text-[34px] justify-self-center pb-9 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                 THÔNG TIN PHÊ DUYỆT
             </p>
             {/* Nội dung chính */}
+
             <Row gutter={[16, 16]}>
                 {/* Thông tin hợp đồng */}
                 <Col xs={24} lg={16}>
+
                     <ConfigProvider
                         theme={{
                             components: {
@@ -159,7 +174,7 @@ const ReviewContract = () => {
                     >
                         <p className="mx-3 text-base font-bold mb-6" >Danh Sách Phê Duyệt</p>
                         <Timeline mode="left" className="mb-14">
-                            {stages?.map((stage) => (
+                            {stages.map((stage) => (
                                 <Timeline.Item
                                     children={
                                         <div className="min-h-[50px]">
@@ -169,20 +184,8 @@ const ReviewContract = () => {
                                     label={
                                         <div className="w-full">
                                             {
-                                                stage.status === "APPROVING"
+                                                stage?.status === "APPROVING"
                                                     ? <div className="flex flex-col justify-center items-center">
-                                                        <p className="text-[12px]">
-                                                            {new Date(
-                                                                stage.startDate[0],
-                                                                stage.startDate[1] - 1,
-                                                                stage.startDate[2]
-                                                            ).toLocaleDateString("vi-VN")} -
-                                                            {new Date(
-                                                                stage.endDate[0],
-                                                                stage.endDate[1] - 1,
-                                                                stage.endDate[2]
-                                                            ).toLocaleDateString("vi-VN")}
-                                                        </p>
                                                         <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
                                                     </div>
                                                     : stage.status === "APPROVED" && stage.approvedAt

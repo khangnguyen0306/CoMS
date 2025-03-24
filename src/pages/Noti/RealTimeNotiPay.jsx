@@ -6,13 +6,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentToken, selectCurrentUser, setNotiNumber } from "../../slices/authSlice";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 
 const RealTimeNotification = () => {
     const token = useSelector(selectCurrentToken);
     const user = useSelector(selectCurrentUser);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
     const [notifications, setNotifications] = useState([]);
 
 
@@ -93,7 +94,7 @@ const RealTimeNotification = () => {
         };
 
         stompClient.activate();
-
+        refetchNoti(    )
         return () => {
             stompClient.deactivate();
         };

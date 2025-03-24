@@ -38,6 +38,7 @@ const Department = Loadable({ loader: () => import("../pages/Department/Departme
 const CreateAppendix = Loadable({ loader: () => import("../pages/appendix/staff/CreateApependix") });
 const AppendixManagement = Loadable({ loader: () => import("../pages/appendix/staff/AppendixManagement") });
 const AppendixManagerManagement = Loadable({ loader: () => import("../pages/appendix/manager/AppendixManagementManager") });
+const AppendixManagerManagementAll = Loadable({ loader: () => import("../pages/appendix/manager/AppendixManagementForAllStatus") });
 const AppendixDetail = Loadable({ loader: () => import("../pages/appendix/AppendixDetail") });
 
 
@@ -284,6 +285,10 @@ export const router = createBrowserRouter([
                     {
                         path: "appendix",
                         element: AppendixManagerManagement,
+                    },
+                    {
+                        path: "appendixFull",
+                        element: AppendixManagerManagementAll,
                     },
                     {
                         path: "appendixDetail/:contractId/:appendixId",
