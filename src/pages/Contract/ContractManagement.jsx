@@ -9,7 +9,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
-import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
+import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
+import ExpandRowContent from "./component/ExpandRowContent";
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -36,8 +37,7 @@ const ManageContracts = () => {
     const [softDelete] = useSoftDeleteContractMutation()
     console.log(contractManager)
     const isManager = user?.roles[0] === "ROLE_MANAGER";
-    const tableData = isManager ? contractManager?.data?.content : contracts?.data?.content;
-    // const totalElements = isManager ? contractManager?.data?.totalElements : contracts?.data?.totalElements;
+    const tableData = isManager ? contractManager?.data.content : contracts?.data?.content;
 
     useEffect(() => {
         refetch();
@@ -81,31 +81,6 @@ const ManageContracts = () => {
 
     };
 
-    const generateColor = (id) => {
-        // Sử dụng HSL để tạo màu
-        // Hue: 0-360 độ trên vòng màu
-        // Saturation: 65% để có màu vừa đủ sống động
-        // Lightness: 75% để màu không quá tối hoặc quá sáng
-        const hue = (id * 137.508) % 360; // 137.508 là góc vàng, giúp phân bố màu đều
-        return `hsl(${hue}, 65%, 75%)`;
-    };
-
-    const statusToId = {
-        'DRAFT': 1,
-        'CREATED': 2,
-        'APPROVAL_PENDING': 3,
-        'APPROVED': 4,
-        'UPDATED': 5,
-        'PENDING': 6,
-        'REJECTED': 7,
-        'SIGNED': 8,
-        'ACTIVE': 9,
-        'COMPLETED': 10,
-        'EXPIRED': 11,
-        'CANCELLED': 12,
-        'ENDED': 13
-    };
-
     const statusContract = {
         'DRAFT': <Tag color="default">Đang tạo</Tag>,
         'CREATED': <Tag color="default">Đã tạo</Tag>,
@@ -120,7 +95,8 @@ const ManageContracts = () => {
         'EXPIRED': <Tag color="red">Hết hiệu lực</Tag>,
         'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
         'ENDED': <Tag color="default">Đã kết thúc</Tag>
-    };
+    }
+
     const columns = [
         {
             title: "Mã hợp đồng",
@@ -332,6 +308,9 @@ const ManageContracts = () => {
                         showTotal: (total) => `Tổng ${total} hợp đồng`,
                     }}
                     onChange={handleTableChange}
+                    expandable={{
+                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                    }}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
             </div>

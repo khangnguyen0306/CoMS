@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
 import { useGetContractPorcessPendingManagerQuery } from "../../services/ProcessAPI";
+import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 
 const { Search } = Input;
 const { Text } = Typography;
@@ -12,10 +13,11 @@ const ManageContractApproval = () => {
     const user = useSelector(selectCurrentUser);
     const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessPendingManagerQuery({ approverId: user?.id });
     const [searchText, setSearchText] = useState("");
-    console.log(contracts)
-    console.log(user?.id)
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
+    
     useEffect(() => {
         refetch();
+        refetchNoti();
     }, [contracts]);
 
     const columns = [
@@ -126,7 +128,7 @@ const ManageContractApproval = () => {
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.data?.filter(item =>
+                    dataSource={contracts?.data?.content.filter(item =>
                         item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.party?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
                         item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())

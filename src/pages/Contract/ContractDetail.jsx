@@ -6,7 +6,7 @@ import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
-import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
+import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, RollbackOutlined, SmallDashOutlined } from '@ant-design/icons';
 import { useLazyGetDataChangeByDateQuery, useLazyGetDateChangeContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery } from '../../services/ContractAPI';
 import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
@@ -14,14 +14,15 @@ import { selectCurrentUser } from '../../slices/authSlice';
 import note from "../../assets/Image/review.svg"
 import AuditrailContract from './component/AuditrailContract';
 import { useGetAppendixByContractIdQuery } from '../../services/AppendixAPI';
-import DisplayAppendix from '../appendix/DisplayAppendix';
+import DisplayAppendix from '../appendix/staff/DisplayAppendix';
+import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
+
 const ContractDetail = () => {
 
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
-    console.log(appendixData)
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -40,7 +41,7 @@ const ContractDetail = () => {
     const user = useSelector(selectCurrentUser);
     const location = useLocation();
     const [form] = Form.useForm();
-
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
     const [openAprove, setOpenAprove] = useState(false);
     const [scrolledToBottom, setScrolledToBottom] = useState(false);
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectProcessMutation();
@@ -273,6 +274,7 @@ const ContractDetail = () => {
             await approveProcess({ contractId: id, stageId: StageIdMatching }).unwrap();
             message.success("Đã đồng ý phê duyệt thành công!");
             onClose();
+            refetchNoti()
             if (user?.roles?.includes("ROLE_STAFF")) {
                 navigate(`/approvalContract`);
             } else if (user?.roles?.includes("ROLE_MANAGER")) {
@@ -287,12 +289,11 @@ const ContractDetail = () => {
         // Lấy comment từ form
         const { comment } = values;
         try {
-            // Gọi mutation reject process với dữ liệu nhận được (ví dụ có thêm id hoặc thông tin cần thiết)
-            // console.log(comment);
             await rejectProcess({ comment: comment, contractId: id, stageId: StageIdMatching }).unwrap();
             message.success("Đã từ chối phê duyệt và gửi nhận xét thành công!");
             form.resetFields();
             onClose();
+            refetchNoti()
             if (user?.roles[0]?.includes("ROLE_STAFF")) {
                 navigate(`/approvalContract`);
             } else if (user?.roles[0]?.includes("ROLE_MANAGER")) {
@@ -315,7 +316,15 @@ const ContractDetail = () => {
     }
 
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center relative shadow-md p-4 pb-16 rounded-md`}>
+        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center  shadow-md p-4 pb-16 rounded-md`}>
+            <Button
+                icon={<RollbackOutlined />}
+                type="primary"
+                onClick={() => navigate(-1)}
+                className="mb-4 absolute left-[120px] top-[90px]"
+            >
+                Quay về
+            </Button>
             <div className="flex justify-between relative">
                 {(!isApprover && user.roles[0] !== "ROLE_MANAGER") ? (
                     <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
@@ -403,7 +412,7 @@ const ContractDetail = () => {
                 open={visible}
                 width={500}
             >
-                <Tabs defaultActiveKey="1" centered onChange={handleTabChange}>
+                <Tabs defaultActiveKey="1" onChange={handleTabChange}>
                     <Tabs.TabPane icon={<BookOutlined />} tab="Thông tin chung" key="1">
                         <div className='flex gap-2 flex-col ml-6 justify-center'>
                             <p> <b>phiên bản hợp đồng:</b> <Tag className='ml-2' color='blue-inverse'>{contractData?.data.version}.0.0 </Tag></p>
@@ -438,8 +447,8 @@ const ContractDetail = () => {
                                                             {
                                                                 stage.status === "APPROVING"
                                                                     ? <div className="flex flex-col h-full justify-center items-center">
-                                                                        <p className="text-[12px]">
-                                                                            {/* {new Date(
+                                                                        {/* <p className="text-[12px]">
+                                                                            {new Date(
                                                                                 stage.startDate[0],
                                                                                 stage.startDate[1] - 1,
                                                                                 stage.startDate[2]
@@ -448,8 +457,8 @@ const ContractDetail = () => {
                                                                                 stage.endDate[0],
                                                                                 stage.endDate[1] - 1,
                                                                                 stage.endDate[2]
-                                                                            ).toLocaleDateString("vi-VN")} */}
-                                                                        </p>
+                                                                            ).toLocaleDateString("vi-VN")}
+                                                                        </p> */}
                                                                         <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
                                                                     </div>
                                                                     : stage.status === "APPROVED" && stage.approvedAt

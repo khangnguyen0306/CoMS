@@ -104,11 +104,9 @@ const { Step } = Steps;
 const CreateTemplate = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
-
     const [isExpanded, setIsExpanded] = useState(false);
-
     const [templateName, setTemplateName] = useState("");
-    const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()      ///fix rerendering
+    const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()   
     const { data: contractType, isLoading: isLoadingType, isError: ErrorLoadingType, refetch } = useGetContractTypeQuery()
     const [getAllTypeClause, { data: allTypeClause, isLoading: loadingType }] = useLazyGetAllTypeClauseQuery();
     const [getContractLegal, { data: legalData, isLoading: loadingLegal }] = useLazyGetLegalQuery();
@@ -138,7 +136,6 @@ const CreateTemplate = () => {
     });
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newLegalBasis, setNewLegalBasis] = useState({ name: '', content: '' });
-    const [promt, setPromt] = useState()
     const [isAddGeneralModalOpen, setIsAddGeneralModalOpen] = useState(false);
     const [newGeneralTerm, setNewGeneralTerm] = useState({ name: "", typeId: null, content: "" });
 
@@ -644,12 +641,12 @@ const CreateTemplate = () => {
       
       Thông tin các bên:
       - Bên A:
-        - Tên công ty: ${bsInfor?.businessName || "Chưa nhập"}
-        - Địa chỉ: ${bsInfor?.address || "Chưa nhập"}
-        - Người đại diện: ${bsInfor?.representativeName || "Chưa nhập"}
-        - Chức vụ: ${bsInfor?.representativeTitle || "Chưa nhập"}
-        - Mã số thuế: ${bsInfor?.taxCode || "Chưa nhập"}
-        - Email: ${bsInfor?.email || "Chưa nhập"}
+        - Tên công ty: ${bsInfor?.data.businessName || "Chưa nhập"}
+        - Địa chỉ: ${bsInfor?.data.address || "Chưa nhập"}
+        - Người đại diện: ${bsInfor?.data.representativeName || "Chưa nhập"}
+        - Chức vụ: ${bsInfor?.data.representativeTitle || "Chưa nhập"}
+        - Mã số thuế: ${bsInfor?.data.taxCode || "Chưa nhập"}
+        - Email: ${bsInfor?.data.email || "Chưa nhập"}
       - Bên B:
         - Tên công ty: ${formData.partyBName || "Chưa nhập"}
         - Địa chỉ: ${formData.partyBAddress || "Chưa nhập"}
@@ -974,12 +971,12 @@ const CreateTemplate = () => {
                                     <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} flex items-center shadow-md p-6 rounded-md gap-7 mt-[-70px]`} justify={"center"}>
                                         <div className="flex flex-col gap-2 pl-6" md={10} sm={24} >
                                             <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                            <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                                            <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                                            <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                                            <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.businessName}</p>
+                                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.representativeName} </p></p>
+                                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.representativeTitle}</p>
+                                            <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                                            <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
                                         </div>
                                         <div className="flex flex-col gap-2" md={10} sm={24}>
                                             <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>

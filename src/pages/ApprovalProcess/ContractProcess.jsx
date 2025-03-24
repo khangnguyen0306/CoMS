@@ -244,7 +244,6 @@ const ContractProcess = () => {
 
     ];
 
-    console.log(selectedRecord?.contractType?.id);
 
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
@@ -281,7 +280,6 @@ const ContractProcess = () => {
                     onOk={handleOk}
                     onCancel={handleCancel}
                 >
-                    {/* <p>{selectedRecord ? JSON.stringify(selectedRecord) : "Không có dữ liệu"}</p> */}
 
                     <Process
                         contractId={selectedRecord?.id}

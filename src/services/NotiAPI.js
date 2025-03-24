@@ -34,6 +34,15 @@ export const notiAPI = createApi({
             invalidatesTags: [{ type: "Notifications", id: "LIST" }],
         }),
 
+        getNumberNotiForAll: builder.query({
+            query: () => ({
+                url: `approval-workflows/get-approval-stats`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Notifications) => [{ type: "Notifications", id: Notifications }],
+
+        }),
+
     }),
 });
 
@@ -41,5 +50,5 @@ export const {
     useGetNotificationsQuery,
     useUpdateReadStatusMutation,
     useLazyGetNotificationsQuery,
-
+    useGetNumberNotiForAllQuery
 } = notiAPI;

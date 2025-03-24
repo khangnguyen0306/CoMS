@@ -4,7 +4,7 @@ import { BE_API_LOCAL } from "../config/config";
 
 export const processAPI = createApi({
     reducerPath: "processManagement",
-    tagTypes: ["ProcessList"],
+    tagTypes: ["ProcessList", "processAppendix"],
     baseQuery: fetchBaseQuery({
         baseUrl: BE_API_LOCAL,
         prepareHeaders: (headers, { getState }) => {
@@ -106,6 +106,15 @@ export const processAPI = createApi({
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
 
+        ////////////////////////////////////////////////// for appendix
+
+        approveOldWorkFlow: builder.mutation({
+            query: ({ appendixId }) => ({
+                url: `addendums/assign-old-workflow-of-contract/${appendixId}`,
+                method: "PUT",
+            }),
+            invalidatesTags: [{ type: "processAppendix", id: "LIST" }],
+        }),
     })
 });
 
@@ -123,4 +132,5 @@ export const {
     useGetcommentQuery,
     useResubmitProcessMutation,
     useGetContractPorcessPendingManagerQuery,
+    useApproveOldWorkFlowMutation
 } = processAPI;

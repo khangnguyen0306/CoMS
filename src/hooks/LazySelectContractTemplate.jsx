@@ -8,6 +8,8 @@ const LazySelectContractTemplate = ({
     children,
     ...restProps
 }) => {
+
+    
     const {
         handleDropdownVisibleChange,
         handleScroll,
@@ -31,7 +33,7 @@ const LazySelectContractTemplate = ({
         }, []);
     }, [data, keyword, initialOptions]);
 
-    // Render option với kiểm tra globalSelected
+
 
     const renderOptions = () => {
         if (children) {

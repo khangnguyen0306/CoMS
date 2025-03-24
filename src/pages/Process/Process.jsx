@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Radio, Steps, Form, Button, Select, message, Timeline, Card } from 'antd';
 import { MinusCircleOutlined } from '@ant-design/icons';
 import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
-import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation, useGetProcessByContractTypeIdQuery } from "../../services/ProcessAPI";
+import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation, useGetProcessByContractTypeIdQuery, useLazyGetProcessByContractIdQuery, useApproveOldWorkFlowMutation } from "../../services/ProcessAPI";
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../slices/authSlice';
+import { useCreateAppendixWorkFlowMutation, useGetProcessByAppendixTypeIdQuery } from '../../services/AppendixAPI';
 const { Step } = Steps;
 const { Option } = Select;
 
-const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
-    console.log("Contract ID:", contractTypeId);
+const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appendixId, appendixTypeId }) => {
+    console.log(appendixTypeId);
     const user = useSelector(selectCurrentUser);
 
     const [selection, setSelection] = useState("auto");
@@ -23,10 +24,16 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
         page: 0,
         limit: 10,
     });
+
     const { data: approvalData } = useGetProcessByContractTypeIdQuery({ contractTypeId: contractTypeId });
+    const { data: appendixPropose } = useGetProcessByAppendixTypeIdQuery({ appendixTypeId: appendixTypeId });
     const { data: processTemplates, refetch } = useGetProcessTemplatesQuery();
+    const [fetchProcessByContractId, { data: contractProcess, isLoading: loadingContractProcess }] = useLazyGetProcessByContractIdQuery();
+    console.log(contractProcess)
     const [create] = useCreateProcessMutation();
+    const [createAppendixWorkFlow] = useCreateAppendixWorkFlowMutation();
     const [assign, { isLoading }] = useAssignProcessMutation();
+    const [approveOldProcess, { isLoadingAppendixApprove }] = useApproveOldWorkFlowMutation();
 
     console.log(user)
 
@@ -39,6 +46,22 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
     // Số bước ký duyệt tự tạo (không bao gồm bước cuối) - mặc định chỉ có 1 bước (stage1)
     const [customStagesCount, setCustomStagesCount] = useState(1);
 
+
+    useEffect(() => {
+        // Lấy thông tin quy trình từ API khi contractId có s��n
+        if (contractId) {
+            fetchProcessByContractId({ contractId: contractId });
+        }
+        // Lấy danh sách quy trình m��u từ API
+        // refetch();
+        // // Lấy danh sách quy trình đã ký duyệt từ API
+        // if (contractTypeId) {
+        //     setApprovals(approvalData?.data?.content?.reduce((acc, item) => {
+        //         acc[item.stepKey] = item.userId;
+        //         return acc;
+        //     }, {}));
+        // }
+    }, [contractId, appendix])
 
 
     const getAvailableUsers = (currentStepKey) => {
@@ -185,23 +208,40 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
                             approverId,
                         });
                     }
+                    if (appendix == true && appendixId && appendixTypeId) {
+                        // gọi API tạo phụ lục
+                        const newAppendix = {
+                            name: "Quy trình duyệt phụ lục",
+                            stages: stagesArray,
+                            addendumTypeId: appendixTypeId,
+                        };
+                        const appendixResult = await createAppendixWorkFlow(newAppendix).unwrap();
+                        console.log(appendixResult);
+                        setSelectedProcessId(appendixResult?.data?.id);
+                        setIsCreate(true)
+                        // setApprovals({});
+                        // setCustomStagesCount(1);
+                        // setCurrent(0);
+                        form.resetFields();
+                        setHideAddStage(true);
+                    } else {
+                        const newProcess = {
+                            name: "Quy trình mới",
+                            stages: stagesArray,
+                            contractTypeId: contractTypeId, /////////////////////////////////////////////////// thêm logic ở đây để biến thành id phụ lục
+                        };
+                        const result = await create(newProcess).unwrap();
+                        console.log("New process:", result);
 
-                    const newProcess = {
-                        name: "Quy trình mới",
-                        stages: stagesArray,
-                        contractTypeId: contractTypeId,
-                    };
-                    const result = await create(newProcess).unwrap();
-                    console.log("New process:", result);
-
-                    // Nếu ở chế độ custom thì lưu id quy trình mới vào state
-                    setSelectedProcessId(result?.data?.id);
-                    setIsCreate(true)
-                    // setApprovals({});
-                    // setCustomStagesCount(1);
-                    // setCurrent(0);
-                    form.resetFields();
-                    setHideAddStage(true);
+                        // Nếu ở chế độ custom thì lưu id quy trình mới vào state
+                        setSelectedProcessId(result?.data?.id);
+                        setIsCreate(true)
+                        // setApprovals({});
+                        // setCustomStagesCount(1);
+                        // setCurrent(0);
+                        form.resetFields();
+                        setHideAddStage(true);
+                    }
                 }
 
 
@@ -249,11 +289,13 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
 
     // Hàm xử lý "Áp dụng quy trình" để console.log id của quy trình
     const handleApplyProcess = async () => {
-        const workflowId = selection === "auto" ? 1 : selectedProcessId;
-        console.log("Selected workflow ID:", workflowId);
-        try {
-            const result = await assign({ contractId, workflowId }).unwrap();
-            message.success("Quy trình đã được áp dụng thành công!");
+        if (appendix && appendix == true && appendixId) {
+            const result = await approveOldProcess({ appendixId: appendixId }).unwrap();
+            if (result.status === "OK") {
+                message.success("Quy trình đã được áp dụng thành công cho phụ lục!");
+            } else {
+                message.error("Lỗi khi áp dụng quy trình cho phụ lục!");
+            }
             if (onProcessApplied) {
                 onProcessApplied();
             }
@@ -262,16 +304,45 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
             setCurrent(0);
             setSelectedProcessId(null);
             setHideAddStage(false);
-        } catch (error) {
-            console.error("Assign process failed:", error);
+        } else {
+            const workflowId = selection === "auto" ? 1 : selectedProcessId;
+            console.log("Selected workflow ID:", workflowId);
+            try {
+                const result = await assign({ contractId, workflowId }).unwrap();
+                message.success("Quy trình đã được áp dụng thành công!");
+                if (onProcessApplied) {
+                    onProcessApplied();
+                }
+                setApprovals({});
+                setCustomStagesCount(1);
+                setCurrent(0);
+                setSelectedProcessId(null);
+                setHideAddStage(false);
+            } catch (error) {
+                console.error("Assign process failed:", error);
+            }
         }
     };
 
     // Lấy dữ liệu processTemplates (giả sử dữ liệu được trả về là mảng với một phần tử)
     const process = processTemplates?.data;
+    // dữ liệu data lớn hơn 10 là lỗi
     const item =
         process?.stages?.map((stage) => {
             const isFinal = stage.stageOrder === process.customStagesCount;
+            const foundUser = stage.approver
+                ? userData?.data?.content?.find((user) => user.id === stage.approver)?.full_name
+                : "";
+            return {
+                title: isFinal ? "Phê duyệt đợt cuối" : `Phê duyệt đợt ${stage.stageOrder}`,
+                description: `Người duyệt: ${foundUser || ""}`,
+            };
+        }) || [];
+
+    // dữ liệu data lớn hơn 10 là lỗi
+    const itemForAppendix =
+        contractProcess?.data?.stages?.map((stage) => {
+            const isFinal = stage.stageOrder === contractProcess.customStagesCount;
             const foundUser = stage.approver
                 ? userData?.data?.content?.find((user) => user.id === stage.approver)?.full_name
                 : "";
@@ -302,7 +373,26 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
         };
     }) || [];
 
-    console.log("Formatted Data:", formattedData);
+    const appendixProposeData = appendixPropose?.data?.map((process) => {
+        return {
+            id: process.id,
+            name: process.name,
+            customStagesCount: process.customStagesCount,
+            createdAt: process.createdAt,
+            stages: process.stages.map((stage) => {
+                const foundUser = userData?.data?.content.find((user) => user.id === stage.approver)?.full_name;
+                return {
+                    stageId: stage.stageId,
+                    stageOrder: stage.stageOrder,
+                    approver: stage.approver,
+                    approverName: foundUser || "Chưa xác định",
+                    status: stage.status,
+                    approvedAt: stage.approvedAt,
+                    comment: stage.comment,
+                };
+            }),
+        };
+    }) || [];
 
     const handleRadioChange = (e) => {
         setSelectedProcessId(e.target.value);
@@ -317,63 +407,114 @@ const Process = ({ contractId, onProcessApplied, contractTypeId }) => {
 
     return (
         <div >
-            <div className="flex flex-col gap-2                  p-4 rounded-xl shadow-lg">
-                <div className="flex items-center cursor-pointer">
-                    <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
-                        Mặc định (Hệ thống tự tạo)
-                    </Radio>
-                </div>
-
-
-                <div className='ml-8 my-4'>
-                    <Steps current={item.length - 1} items={item} />
-                </div>
-
-                {/* <div className="flex items-center cursor-pointer">
-                    <Radio checked={selection === "recomment"} onChange={handleChange} value="recomment">
-                        Chọn quy trình đã có trước đó
-                    </Radio>
-                </div> */}
-                <div>
-                    {/* Radio "Đề xuất" */}
-                    {formattedData.length > 0 && (
-                        <div className="flex items-center cursor-pointer mb-4">
-                            <Radio
-                                value="recomment"
-                                checked={selection === "recomment"}
-                                onChange={(e) => setSelection(e.target.value)}
-                            >
-                                Đề xuất
+            <div className="flex flex-col gap-2 p-4 rounded-xl shadow-lg">
+                {(appendix && appendix == true) ? (
+                    <div>
+                        <div className="flex items-center cursor-pointer">
+                            <Radio checked={selection === "auto"} onChange={handleChange} value="old">
+                                Duyệt lại theo quy trình duyệt của hợp đồng
                             </Radio>
                         </div>
-                    )}
 
-                    <div className="flex gap-4">
-                        {formattedData.map((process) => (
-                            <Card
-                                key={process.id}
-                                className={`mt-4 w-80 min-w-[355px] shadow-md cursor-pointer ${selection !== "recomment" ? "opacity-50 cursor-not-allowed" : ""
-                                    } ${selectedProcessId === process.id ? "bg-green-100" : ""}`}
-                                onClick={() => handleCardSelect(process.id)}
-                            >
-                                <Timeline
-                                    items={process.stages.map((stage) => ({
-                                        color: "blue",
-                                        children: (
-                                            <div>
-                                                <strong>{`Phê duyệt đợt ${stage.stageOrder}`}</strong>
-                                                <p>{`Người duyệt: ${stage.approverName}`}</p>
-                                            </div>
-                                        ),
-                                    }))}
-                                />
-                            </Card>
-                        ))}
+                        <div className='mx-7 my-4 mt-9'>
+                            <Steps current={itemForAppendix.length - 1} items={itemForAppendix} />
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div>
+                        <div className="flex items-center cursor-pointer">
+                            <Radio checked={selection === "auto"} onChange={handleChange} value="auto">
+                                Mặc định (Hệ thống tự tạo)
+                            </Radio>
+                        </div>
+
+                        <div className='ml-8 my-4'>
+                            <Steps current={item.length - 1} items={item} />
+                        </div>
+                    </div>
+                )}
+
+                {appendix == true && appendixId && appendixTypeId ? (
+                    <div>
+                        {/* Radio "Đề xuất" */}
+                        {appendixProposeData.length > 0 && (
+                            <div className="flex items-center cursor-pointer mb-4">
+                                <Radio
+                                    value="recomment"
+                                    checked={selection === "recomment"}
+                                    onChange={(e) => setSelection(e.target.value)}
+                                >
+                                    Đề xuất
+                                </Radio>
+                            </div>
+                        )}
+
+                        <div className="flex gap-4">
+                            {appendixProposeData.map((process) => (
+                                <Card
+                                    key={process.id}
+                                    className={`mt-4 w-80 min-w-[355px] shadow-md cursor-pointer ${selection !== "recomment" ? "opacity-50 cursor-not-allowed" : ""
+                                        } ${selectedProcessId === process.id ? "bg-green-100" : ""}`}
+                                    onClick={() => handleCardSelect(process.id)}
+                                >
+                                    <Timeline
+                                        items={process.stages.map((stage) => ({
+                                            color: "blue",
+                                            children: (
+                                                <div>
+                                                    <strong>{`Phê duyệt đợt ${stage.stageOrder}`}</strong>
+                                                    <p>{`Người duyệt: ${stage.approverName}`}</p>
+                                                </div>
+                                            ),
+                                        }))}
+                                    />
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div>
+                        {/* Radio "Đề xuất" */}
+                        {formattedData.length > 0 && (
+                            <div className="flex items-center cursor-pointer mb-4">
+                                <Radio
+                                    value="recomment"
+                                    checked={selection === "recomment"}
+                                    onChange={(e) => setSelection(e.target.value)}
+                                >
+                                    Đề xuất
+                                </Radio>
+                            </div>
+                        )}
+
+                        <div className="flex gap-4">
+                            {formattedData.map((process) => (
+                                <Card
+                                    key={process.id}
+                                    className={`mt-4 w-80 min-w-[355px] shadow-md cursor-pointer ${selection !== "recomment" ? "opacity-50 cursor-not-allowed" : ""
+                                        } ${selectedProcessId === process.id ? "bg-green-100" : ""}`}
+                                    onClick={() => handleCardSelect(process.id)}
+                                >
+                                    <Timeline
+                                        items={process.stages.map((stage) => ({
+                                            color: "blue",
+                                            children: (
+                                                <div>
+                                                    <strong>{`Phê duyệt đợt ${stage.stageOrder}`}</strong>
+                                                    <p>{`Người duyệt: ${stage.approverName}`}</p>
+                                                </div>
+                                            ),
+                                        }))}
+                                    />
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex items-center cursor-pointer mt-8">
                     <Radio checked={selection === "custom"} onChange={handleChange} value="custom">
-                        Tùy chỉnh (Nhân viên tự tạo 1 quy trình riêng)
+                        Tự chọn quy trình
                     </Radio>
                 </div>
                 {selection === "custom" && (
