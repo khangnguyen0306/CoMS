@@ -439,7 +439,7 @@ const ContractDetail = () => {
                                                                 stage.status === "APPROVING"
                                                                     ? <div className="flex flex-col h-full justify-center items-center">
                                                                         <p className="text-[12px]">
-                                                                            {new Date(
+                                                                            {/* {new Date(
                                                                                 stage.startDate[0],
                                                                                 stage.startDate[1] - 1,
                                                                                 stage.startDate[2]
@@ -448,7 +448,7 @@ const ContractDetail = () => {
                                                                                 stage.endDate[0],
                                                                                 stage.endDate[1] - 1,
                                                                                 stage.endDate[2]
-                                                                            ).toLocaleDateString("vi-VN")}
+                                                                            ).toLocaleDateString("vi-VN")} */}
                                                                         </p>
                                                                         <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
                                                                     </div>

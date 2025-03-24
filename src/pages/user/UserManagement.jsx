@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Radio, Col, Row, Tabs } from "antd";
-import { EditFilled, PlusOutlined, DeleteFilled, StarFilled } from "@ant-design/icons";
+import { EditFilled, PlusOutlined, DeleteFilled, StarFilled, StopOutlined } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
 import { validationPatterns } from "../../utils/ultil";
@@ -241,15 +241,17 @@ const UserManagement = () => {
             key: "action",
             render: (_, record) => (
                 <Space className="flex justify-center">
-                    <Button
-                        icon={<EditFilled style={{ color: '#2196f3' }} />}
-                        onClick={() => showEditModal(record)}
-                    />
+                    <Tooltip title="Cập nhật thông tin">
+                        <Button
+                            icon={<EditFilled style={{ color: '#2196f3' }} />}
+                            onClick={() => showEditModal(record)}
+                        />
+                    </Tooltip>
                     {!record.isCeo && (
                         record.is_active ? (
                             <Tooltip title="Cấm">
                                 <Button
-                                    icon={<DeleteFilled style={{ color: "#2196f3" }} />}
+                                    icon={<StopOutlined style={{ color: "#2196f3" }} />}
                                     onClick={() => handleDelete(record.id)}
                                 />
                             </Tooltip>

@@ -151,7 +151,7 @@ const NotificationDropdown = () => {
     <div className="flex items-center">
       <Dropdown
         arrow
-        overlay={dropdownContent}
+        menu={dropdownContent}
         trigger={["click"]}
         className={`p-2 rounded-full ${!isOpen ? "bg-gray-600" : "bg-slate-700"}`}
         onOpenChange={(visible) => {

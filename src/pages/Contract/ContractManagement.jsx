@@ -36,7 +36,7 @@ const ManageContracts = () => {
     const [softDelete] = useSoftDeleteContractMutation()
     console.log(contractManager)
     const isManager = user?.roles[0] === "ROLE_MANAGER";
-    const tableData = isManager ? contractManager?.data : contracts?.data?.content;
+    const tableData = isManager ? contractManager?.data?.content : contracts?.data?.content;
     // const totalElements = isManager ? contractManager?.data?.totalElements : contracts?.data?.totalElements;
 
     useEffect(() => {

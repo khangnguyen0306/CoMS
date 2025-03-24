@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, Button, message, Typography, Space, Skeleton, DatePicker, Select } from "antd";
+import { Modal, Form, Input, Button, message, Typography, Space, Skeleton, DatePicker, Select, Tooltip } from "antd";
 import { useParams } from "react-router-dom";
 import { useGetUserByIdQuery, useUpdateUserMutation } from "../../services/UserAPI";
 import LOGO from './../../assets/Image/letterC.svg'
 import dayjs from 'dayjs';
 import { useGetDepartmentsQuery } from "../../services/Department";
 import partnerIMG from "../../assets/Image/partner.jpg"
+import { CloseCircleOutlined } from "@ant-design/icons";
 const { Title } = Typography;
 
 
 const Profile = () => {
     const { id } = useParams();
-    const { data, isLoading } = useGetUserByIdQuery({ id });
+    const { data, isLoading, refetch } = useGetUserByIdQuery({ id });
     const { data: departmentData, error, isLoading: DepartmentLoading, refetch: DepartmentRefetch } = useGetDepartmentsQuery();
 
     const [updateUser] = useUpdateUserMutation();
@@ -58,6 +59,7 @@ const Profile = () => {
             message.success("Profile updated successfully!");
             setIsModalOpen(false);
             form.resetFields();
+            refetch();
         } catch (error) {
             message.error("Update failed, please try again.");
         }
@@ -72,6 +74,9 @@ const Profile = () => {
 
     return (
         <div className="flex justify-center p-6">
+            <div className="absolute top-24 left-32 cursor-pointer text-2xl " onClick={() => window.history.back()}            >
+                <CloseCircleOutlined style={{ color: "#2095f2" }} />
+            </div>
             {/* Profile Card */}
             <div className="w-[800px] bg-white rounded-lg shadow-lg overflow-hidden">
                 {/* Header */}
@@ -129,7 +134,14 @@ const Profile = () => {
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
                             Họ Và Tên
                         </span>
-                        <span className="text-gray-800 font-semibold text-lg">: {data?.full_name}</span>
+                        <Tooltip title={data?.full_name}>
+                            <span
+                                className=" text-gray-800 font-semibold text-lg overflow-hidden text-ellipsis whitespace-nowrap ml-1 "
+                            >
+                                : {data?.full_name || "Chưa cập nhật"}
+                            </span>
+                        </Tooltip>
+                        {/* <span className="text-gray-800 font-semibold text-lg">: {data?.full_name}</span> */}
                     </div>
 
                     <div className="flex items-center">
@@ -158,7 +170,13 @@ const Profile = () => {
                         <span className="w-32 font-medium text-gray-600 text-lg" style={{ color: "#2095f2" }}>
                             Email
                         </span>
-                        <span className="text-gray-800 font-semibold text-lg">: {data?.email}</span>
+                        <Tooltip title={data?.email}>
+                            <span
+                                className=" text-gray-800 font-semibold text-lg overflow-hidden text-ellipsis whitespace-nowrap "
+                            >
+                                : {data?.email || "Chưa cập nhật"}
+                            </span>
+                        </Tooltip>
                     </div>
                 </div>
                 {/* Update Button */}
@@ -205,11 +223,11 @@ const Profile = () => {
                         </Form.Item>
                         <Form.Item
                             name="date_of_birth"
-                            label="Năm Sinh"
+                            label="Ngày Tháng Năm Sinh"
                             rules={[
                                 {
                                     required: true,
-                                    message: "Vui lòng chọn năm sinh!",
+                                    message: "Vui lòng chọn ngày tháng năm sinh!",
                                 },
                                 {
                                     validator: (_, value) => {

@@ -168,6 +168,36 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, partnerId) => [{ type: "PartnerContract", id: partnerId }],
         }),
+        createContractPartner: builder.mutation({
+            query: (contractData) => ({
+                url: `/contract-partners/create`,
+                method: "POST",
+                body: contractData,
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
+        getContractPartnerQuery: builder.query({
+            query: () => ({
+                url: `/contract-partners/get-all`,
+                method: "GET",
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
+        deleteContractPartner: builder.mutation({
+            query: (contractPartnerId) => ({
+                url: `/contract-partners/delete/${contractPartnerId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
+        updateContractPartner: builder.mutation({
+            query: (contractPartnerId) => ({
+                url: `/contract-partners/update/${contractPartnerId}`,
+                method: "PUT",
+                body: contractData,
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
 
         // getPartnerInfoDetail: builder.query({
         //     query: (partnerId) => ({
@@ -225,6 +255,11 @@ export const {
     useGetContractStatusQuery,
     useGetDataContractCompareVersionQuery,
     useGetContractByPartnerIdQuery,
+    useCreateContractPartnerMutation,
+    useGetContractPartnerQueryQuery,
+    useDeleteContractPartnerMutation,
+    useUpdateContractPartnerMutation,
+
     // useGetContractByPartnerQuery
 } = ContractAPI;
 

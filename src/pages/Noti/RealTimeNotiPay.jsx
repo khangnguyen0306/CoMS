@@ -33,17 +33,17 @@ const RealTimeNotification = () => {
             isRead: false,
         };
 
-        setNotifications((prev) => {
-            // Kiểm tra xem thông báo mới đã có trong danh sách chưa
-            if (prev.some(noti => noti.id === newNotification.id)) {
-                return prev;
-            }
-            const updated = [...prev, newNotification];
-            // Tính lại số lượng thông báo chưa đọc
-            const newUnreadCount = updated.filter((noti) => !noti.isRead).length;
-            dispatch(setNotiNumber(newUnreadCount));
-            return updated;
-        });
+        // setNotifications((prev) => {
+        //     // Kiểm tra xem thông báo mới đã có trong danh sách chưa
+        //     if (prev.some(noti => noti.id === newNotification.id)) {
+        //         return prev;
+        //     }
+        //     const updated = [...prev, newNotification];
+        //     // Tính lại số lượng thông báo chưa đọc
+        //     const newUnreadCount = updated?.filter((noti) => !noti.isRead).length;
+        //     dispatch(setNotiNumber(newUnreadCount));
+        //     return updated;
+        // });
 
         notification.open({
             message: "Thông báo",
