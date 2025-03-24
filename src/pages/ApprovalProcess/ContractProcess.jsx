@@ -244,7 +244,6 @@ const ContractProcess = () => {
 
     ];
 
-    console.log(selectedRecord?.contractType?.id);
 
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
