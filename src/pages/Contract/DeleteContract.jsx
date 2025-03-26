@@ -226,7 +226,7 @@ const DeletedContract = () => {
     return (
         <div className="p-4 min-h-[100vh]">
             <p className="font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent" style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                <p className="flex items-center gap-4">KHO LƯU TRỮ <Image className="mb-3" width={50} height={50} preview={false} src={TrashIcon} /></p>
+                <div className="flex items-center gap-4">KHO LƯU TRỮ <Image className="mb-3" width={50} height={50} preview={false} src={TrashIcon} /></div>
             </p>
             <div className="flex w-3/5 gap-4">
                 <Search
@@ -339,7 +339,7 @@ const DeletedContract = () => {
                                 <p className="text-sm"><b>Tên công ty:</b> {contractDetail?.data?.partner.partnerName}</p>
                                 <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractDetail?.data?.partner.address}</p>
                                 <p className="text-sm"><b>Người đại diện:</b> {contractDetail?.data?.partner.spokesmanName}</p>
-                                <p className="text-sm"><b>Chức vụ:</b> {/* Thiếu thông tin chức vụ */}</p>
+                                <p className="text-sm"><b>Chức vụ:</b>{contractDetail?.data?.partner.position}</p>
                                 <p className="text-sm"><b>Mã số thuế:</b> {contractDetail?.data?.partner.taxCode}</p>
                                 <p className="text-sm"><b>Email:</b> {contractDetail?.data?.partner.email}</p>
                             </Col>
