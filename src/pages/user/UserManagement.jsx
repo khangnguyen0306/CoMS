@@ -26,6 +26,7 @@ const UserManagement = () => {
         page: page - 1,
         size: size,
     });
+    console.log("Data:", userData);
     const { data, error, isLoading: DepartmentLoading, refetch: DepartmentRefetch } = useGetDepartmentsQuery();
 
     const [BanUser, { isLoading: loadingDelete }] = useBanUserMutation();

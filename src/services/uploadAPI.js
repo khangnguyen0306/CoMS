@@ -1,22 +1,9 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { selectTokens } from "../slices/authSlice";
-import { BE_API_LOCAL } from "../config/config";
+//// uploadApi.js
+import { baseApi } from "./BaseAPI";
 
 // import { BE_API_LOCAL } from "../config";
 
-export const uploadAPI = createApi({
-  reducerPath: "uploadManagement",
-  tagTypes: [],
-  baseQuery: fetchBaseQuery({
-    baseUrl: BE_API_LOCAL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = selectTokens(getState());
-      if (token) {
-        headers.append("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+export const uploadAPI = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     uploadFilePDF: builder.mutation({
       query: ({ formData }) => ({
