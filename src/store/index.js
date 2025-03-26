@@ -10,18 +10,18 @@ import { processAPI } from "../services/ProcessAPI";
 import { ConfigAPI } from "../services/ConfigAPI";
 import { notiAPI } from "../services/NotiAPI";
 import { AuditTrailAPI } from "../services/AuditTrailAPI";
-import { AppendixAPI } from "../services/AppendixAPI";
+import { appendixApi } from "../services/AppendixAPI";
 import { DepartmentAPI } from "../services/Department";
 import AuthReducer from "../slices/authSlice";
 import themeReducer from "../slices/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
-import sessionStorage from 'redux-persist/lib/storage/session'
+import sessionStorage from "redux-persist/lib/storage/session";
 
 const persistConfig = {
-  key: 'root',
+  key: "root",
   storage: sessionStorage,
-  whitelist: ['user', 'token'],
+  whitelist: ["user", "token"],
 };
 
 const AuthPerisReducer = persistReducer(persistConfig, AuthReducer);
@@ -31,35 +31,26 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     auth: AuthPerisReducer,
     [bussinessAPI.reducerPath]: bussinessAPI.reducer,
-    bsInfo: bussinessAPI,
     [partnerAPI.reducerPath]: partnerAPI.reducer,
-    partner: partnerAPI,
     [ContractAPI.reducerPath]: ContractAPI.reducer,
-    contract: ContractAPI,
     [TemplateAPI.reducerPath]: TemplateAPI.reducer,
-    template: TemplateAPI,
     [taskAPI.reducerPath]: taskAPI.reducer,
-    task: taskAPI,
     [clauseAPI.reducerPath]: clauseAPI.reducer,
-    clause: clauseAPI,
     [userAPI.reducerPath]: userAPI.reducer,
-    user: userAPI,
     [processAPI.reducerPath]: processAPI.reducer,
-    user: processAPI,
     [ConfigAPI.reducerPath]: ConfigAPI.reducer,
-    config: ConfigAPI,
     [notiAPI.reducerPath]: notiAPI.reducer,
-    notifi: notiAPI,
     [AuditTrailAPI.reducerPath]: AuditTrailAPI.reducer,
-    auditrail: AuditTrailAPI,
     [DepartmentAPI.reducerPath]: DepartmentAPI.reducer,
-    department: DepartmentAPI,
-    [AppendixAPI.reducerPath]: AppendixAPI.reducer,
-    appendix: AppendixAPI,
+    [appendixApi.reducerPath]: appendixApi.reducer,
     theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
+      },
+    }).concat(
       authApi.middleware,
       bussinessAPI.middleware,
       partnerAPI.middleware,
@@ -73,7 +64,7 @@ export const store = configureStore({
       notiAPI.middleware,
       AuditTrailAPI.middleware,
       DepartmentAPI.middleware,
-      AppendixAPI.middleware
+      appendixApi.middleware
     ),
 });
 

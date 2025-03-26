@@ -20,20 +20,6 @@ export const authApi = createApi({
 
     registerUser: builder.mutation({
       query: (body) => {
-        // const users = {
-        //   address: body.address,
-        //   password: body.password,
-        //   username: body.username,
-        //   email: body.email,
-        //   phoneNumber: body.phoneNumber,
-        //   dob: body.dob,
-        //   // retype_password: body.retypePassword,
-        //   // role_id: body.UserType,
-        //   // created_by: "string",
-        //   // modified_by: "string",
-        //   Gender: body.Gender,
-        //   ImgURL:"https://static.vecteezy.com/system/resources/previews/024/983/914/original/simple-user-default-icon-free-png.png"
-        // }
         return {
           method: "POST",
           url: `user/create`,

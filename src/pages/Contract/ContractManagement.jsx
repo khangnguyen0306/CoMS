@@ -35,7 +35,7 @@ const ManageContracts = () => {
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
-    console.log(contractManager)
+    // console.log(contractManager)
     const isManager = user?.roles[0] === "ROLE_MANAGER";
     const tableData = isManager ? contractManager?.data.content : contracts?.data?.content;
 
