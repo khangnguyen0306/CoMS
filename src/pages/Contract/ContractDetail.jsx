@@ -41,7 +41,7 @@ const ContractDetail = () => {
     const user = useSelector(selectCurrentUser);
     const location = useLocation();
     const [form] = Form.useForm();
-    const { refetch:refetchNoti } = useGetNumberNotiForAllQuery()
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
     const [openAprove, setOpenAprove] = useState(false);
     const [scrolledToBottom, setScrolledToBottom] = useState(false);
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectProcessMutation();
@@ -316,15 +316,15 @@ const ContractDetail = () => {
     }
 
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center  shadow-md p-4 pb-16 rounded-md`}>  
-         <Button
-            icon={<RollbackOutlined />}
-            type="primary"
-            onClick={() => navigate(-1)}
-            className="mb-4 absolute left-[120px] top-[90px]"
-        >
-            Quay về
-        </Button>
+        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center  shadow-md p-4 pb-16 rounded-md`}>
+            <Button
+                icon={<RollbackOutlined />}
+                type="primary"
+                onClick={() => navigate(-1)}
+                className="mb-4 absolute left-[120px] top-[90px]"
+            >
+                Quay về
+            </Button>
             <div className="flex justify-between relative">
                 {(!isApprover && user.roles[0] !== "ROLE_MANAGER") ? (
                     <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>

@@ -96,7 +96,7 @@ const ManageContracts = () => {
         'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
         'ENDED': <Tag color="default">Đã kết thúc</Tag>
     }
-    
+
     const columns = [
         {
             title: "Mã hợp đồng",
@@ -310,7 +310,7 @@ const ManageContracts = () => {
                     onChange={handleTableChange}
                     expandable={{
                         expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
-                      }}
+                    }}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
             </div>

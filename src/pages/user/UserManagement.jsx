@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Radio, Col, Row, Tabs } from "antd";
-import { EditFilled, PlusOutlined, DeleteFilled, StarFilled } from "@ant-design/icons";
+import { EditFilled, PlusOutlined, DeleteFilled, StarFilled, StopOutlined } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
 import { validationPatterns } from "../../utils/ultil";
@@ -16,14 +16,17 @@ const UserManagement = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isModalUpdate, setIsModalUpdate] = useState(false);
     const [activeTab, setActiveTab] = useState("1");
+    const [page, setPage] = useState(1);
+    const [size, setSize] = useState(10);
 
     const [form] = Form.useForm();
 
     const { data: userData, isLoading, isError, refetch } = useGetAllUserQuery({
-        keyword: searchText,
-        page: 0,
-        limit: 10,
+        search: searchText,
+        page: page - 1,
+        size: size,
     });
+    console.log("Data:", userData);
     const { data, error, isLoading: DepartmentLoading, refetch: DepartmentRefetch } = useGetDepartmentsQuery();
 
     const [BanUser, { isLoading: loadingDelete }] = useBanUserMutation();
@@ -33,6 +36,7 @@ const UserManagement = () => {
 
     const isCEO = Form.useWatch('is_ceo', form);
 
+    console.log("Data:", userData);
 
     React.useEffect(() => {
         if (isCEO === true) {
@@ -241,15 +245,17 @@ const UserManagement = () => {
             key: "action",
             render: (_, record) => (
                 <Space className="flex justify-center">
-                    <Button
-                        icon={<EditFilled style={{ color: '#2196f3' }} />}
-                        onClick={() => showEditModal(record)}
-                    />
+                    <Tooltip title="Cập nhật thông tin">
+                        <Button
+                            icon={<EditFilled style={{ color: '#2196f3' }} />}
+                            onClick={() => showEditModal(record)}
+                        />
+                    </Tooltip>
                     {!record.isCeo && (
                         record.is_active ? (
                             <Tooltip title="Cấm">
                                 <Button
-                                    icon={<DeleteFilled style={{ color: "#2196f3" }} />}
+                                    icon={<StopOutlined style={{ color: "#2196f3" }} />}
                                     onClick={() => handleDelete(record.id)}
                                 />
                             </Tooltip>
@@ -278,6 +284,7 @@ const UserManagement = () => {
                 className="mt-10"
                 activeKey={activeTab}
                 onChange={setActiveTab}
+
             >
                 <TabPane tab="Quản lý nhân sự" key="1">
                     <div className="flex-1 p-4">
@@ -517,6 +524,16 @@ const UserManagement = () => {
                             columns={columns}
                             dataSource={filteredUsers}
                             rowKey="id"
+                            pagination={{
+                                current: page,
+                                pageSize: size,
+                                total: userData?.totalElements,
+                                showSizeChanger: true,
+                                onChange: (page, pageSize) => {
+                                    setPage(page);
+                                    setSize(pageSize);
+                                },
+                            }}
                         />
                     </div>
                 </TabPane>
