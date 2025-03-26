@@ -6,22 +6,21 @@ import Process from "../Process/Process";
 import dayjs from "dayjs";
 import { CheckCircleFilled, EditFilled, ReloadOutlined, SettingOutlined } from "@ant-design/icons";
 import { useResubmitProcessMutation } from "../../services/ProcessAPI";
+import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 const { Search } = Input;
 
 const ContractProcess = () => {
     const { data: contractsStatus, isLoading, isError, refetch } = useGetContractStatusQuery();
-
     const [resubmitProcess, { isLoading: loadingResubmit }] = useResubmitProcessMutation();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
-
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     useEffect(() => {
         refetch();
     }, [contractsStatus]);
     const contracts = contractsStatus?.data?.content
 
-    console.log(contracts);
     const navigate = useNavigate();
     const showModal = (record) => {
         setSelectedRecord(record);
@@ -43,8 +42,8 @@ const ContractProcess = () => {
         try {
             await resubmitProcess({ contractId: record.id });
             refetch();
-
             message.success("Gửi lại yêu cầu phê duyệt thành công");
+            refetchNoti()
         } catch (error) {
             console.error("Lỗi khi gửi lại yêu cầu:", error);
             message.error("Gửi lại yêu cầu phê duyệt thất bại. Vui lòng thử lại!");
@@ -287,6 +286,7 @@ const ContractProcess = () => {
                         onProcessApplied={() => {
                             handleCancel();
                             refetch();
+                            refetchNoti();
                         }}
                     />
                 </Modal>

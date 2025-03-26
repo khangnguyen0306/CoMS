@@ -1,54 +1,49 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { selectTokens } from "../slices/authSlice";
-import { BE_API_LOCAL } from "../config/config";
+// notiApi.js
+import { baseApi } from "./BaseAPI";
 
-export const notiAPI = createApi({
-    reducerPath: "notificationAPI",
-    tagTypes: ["Notification"],
-    baseQuery: fetchBaseQuery({
-        baseUrl: BE_API_LOCAL,
-        prepareHeaders: (headers, { getState }) => {
-            const token = selectTokens(getState());
-            if (token) {
-                headers.append("Authorization", `Bearer ${token}`);
-            }
-            headers.append("Content-Type", "application/json");
-            return headers;
+export const notiAPI = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    // Lấy danh sách thông báo
+    getNotifications: builder.query({
+      query: ({ page, size }) => ({
+        url: `notifications/get-all-by-user`,
+        params: {
+          page: page || 0,
+          size: size || 10,
         },
+        method: "GET",
+      }),
+      providesTags: (result) =>
+        result && Array.isArray(result.data?.content)
+          ? result.data.content.map(({ id }) => ({ type: "Notification", id }))
+          : [{ type: "Notification", id: "LIST" }],
     }),
-    endpoints: (builder) => ({
-        // Lấy danh sách thông báo
-        getNotifications: builder.query({
-            query: ({ page, size }) => ({
-                url: `notifications/get-all-by-user?page=${page || 0}&size=${size || 10}`,
-                method: "GET",
-            }),
-            providesTags: (result, error, Notifications) => [{ type: "Notifications", id: Notifications }],
-
-        }),
-        updateReadStatus: builder.mutation({
-            query: (id) => ({
-                url: `notifications/mark-as-read/${id}`,
-                method: "PUT",
-            }),
-            invalidatesTags: [{ type: "Notifications", id: "LIST" }],
-        }),
-
-        getNumberNotiForAll: builder.query({
-            query: () => ({
-                url: `approval-workflows/get-approval-stats`,
-                method: "GET",
-            }),
-            providesTags: (result, error, Notifications) => [{ type: "Notifications", id: Notifications }],
-
-        }),
-
+    // Cập nhật trạng thái đã đọc của thông báo
+    updateReadStatus: builder.mutation({
+      query: (id) => ({
+        url: `notifications/mark-as-read/${id}`,
+        method: "PUT",
+      }),
+      invalidatesTags: [{ type: "Notification", id: "LIST" }],
     }),
+    // Lấy số lượng thông báo hoặc thống kê liên quan
+    getNumberNotiForAll: builder.query({
+      query: () => ({
+        url: `approval-workflows/get-approval-stats`,
+        method: "GET",
+      }),
+      providesTags: (result) =>
+        result
+          ? [{ type: "Notification", id: "STATS" }]
+          : [{ type: "Notification", id: "LIST" }],
+    }),
+  }),
+  overrideExisting: false,
 });
 
 export const {
-    useGetNotificationsQuery,
-    useUpdateReadStatusMutation,
-    useLazyGetNotificationsQuery,
-    useGetNumberNotiForAllQuery
+  useGetNotificationsQuery,
+  useUpdateReadStatusMutation,
+  useLazyGetNotificationsQuery,
+  useGetNumberNotiForAllQuery,
 } = notiAPI;

@@ -1,32 +1,21 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { selectTokens } from "../slices/authSlice";
-import { BE_API_LOCAL } from "../config/config";
+// userApi.js
+import { baseApi } from "./BaseAPI";
 
-export const userAPI = createApi({
-    reducerPath: "userManagement",
-    tagTypes: ['USER', 'ROLE'],
-    baseQuery: fetchBaseQuery({
-        baseUrl: BE_API_LOCAL,
-        prepareHeaders: (headers, { getState }) => {
-            const token = selectTokens(getState());
-            if (token) {
-                headers.append("Authorization", `Bearer ${token}`);
-            }
-            headers.append("Content-Type", "application/json");
-            return headers;
-        },
-    }),
+export const userAPI = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getAllUser: builder.query({
             query: ({ search, page, size }) => ({
                 url: `/users/get-all-users?page=${page}&size=${size}&keyword=${search}`,
+                params: { page, limit, keyword },
                 method: "GET",
             }),
             providesTags: (result) =>
                 result?.users
-                    ? [...result.users.map(({ id }) => ({ type: "USER", id })), { type: "USER", id: "LIST" }]
+                    ? [
+                        ...result.users.map(({ id }) => ({ type: "USER", id })),
+                        { type: "USER", id: "LIST" },
+                    ]
                     : [{ type: "USER", id: "LIST" }],
-
         }),
         getUserById: builder.query({
             query: ({ id }) => ({
@@ -35,29 +24,29 @@ export const userAPI = createApi({
             }),
             providesTags: (result, error, userId) => [{ type: "USER", id: userId }],
         }),
-        BanUser: builder.mutation({
+        banUser: builder.mutation({
             query: ({ userId }) => ({
                 url: `/users/block-or-enable/${userId}/0`,
                 method: "PUT",
             }),
-            providesTags: (result, error, User) => [{ type: "User", id: User }],
+            invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
-        ActiveUser: builder.mutation({
+        activeUser: builder.mutation({
             query: ({ userId }) => ({
                 url: `/users/block-or-enable/${userId}/1`,
                 method: "PUT",
             }),
-            providesTags: (result, error, User) => [{ type: "User", id: User }],
+            invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
-        UpdateUser: builder.mutation({
+        updateUser: builder.mutation({
             query: ({ id, email, full_name, phone_number, address, role_id, is_ceo, departmentId, dateOfBirth }) => ({
                 url: `/users/update-user/${id}`,
                 method: "PUT",
                 body: { email, full_name, phone_number, address, role_id, is_ceo, departmentId, dateOfBirth },
             }),
-            invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
+            invalidatesTags: (result, error, { id }) => [{ type: "USER", id }],
         }),
-        AddUser: builder.mutation({
+        addUser: builder.mutation({
             query: ({ email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth }) => ({
                 url: `/users/register`,
                 method: "POST",
@@ -65,14 +54,18 @@ export const userAPI = createApi({
             }),
             invalidatesTags: [{ type: "USER", id: "LIST" }],
         }),
-        GetUserStaffManager: builder.query({
-            query: ({ page, size }) => ({
-                url: `/users/get-all-staff-and-manager?page=${page || 0}&size=${size || 10}`,
+        getUserStaffManager: builder.query({
+            query: () => ({
+                url: `/users/get-all-staff-and-manager`,
                 method: "GET",
             }),
-            providesTags: (result, error, User) => [{ type: "User", id: User }],
+            providesTags: (result) =>
+                result?.users
+                    ? result.users.map(({ id }) => ({ type: "USER", id }))
+                    : [{ type: "USER", id: "LIST" }],
         }),
     }),
+    overrideExisting: false,
 });
 
 export const {
@@ -85,5 +78,4 @@ export const {
     useGetUserStaffManagerQuery,
     useGetUserByIdQuery,
     useLazyGetUserStaffManagerQuery,
-
 } = userAPI;

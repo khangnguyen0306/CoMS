@@ -6,13 +6,13 @@ import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcess
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../slices/authSlice';
 import { useCreateAppendixWorkFlowMutation, useGetProcessByAppendixTypeIdQuery } from '../../services/AppendixAPI';
+import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
 const { Step } = Steps;
 const { Option } = Select;
 
 const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appendixId, appendixTypeId }) => {
-    console.log(appendixTypeId);
     const user = useSelector(selectCurrentUser);
-
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const [selection, setSelection] = useState("auto");
     const [hideAddStage, setHideAddStage] = useState(false)
     const [isCreate, setIsCreate] = useState(false)
@@ -44,13 +44,11 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     const { data: appendixPropose } = useGetProcessByAppendixTypeIdQuery({ appendixTypeId: appendixTypeId });
     const { data: processTemplates, refetch } = useGetProcessTemplatesQuery();
     const [fetchProcessByContractId, { data: contractProcess, isLoading: loadingContractProcess }] = useLazyGetProcessByContractIdQuery();
-    console.log(contractProcess)
     const [create] = useCreateProcessMutation();
     const [createAppendixWorkFlow] = useCreateAppendixWorkFlowMutation();
     const [assign, { isLoading }] = useAssignProcessMutation();
     const [approveOldProcess, { isLoadingAppendixApprove }] = useApproveOldWorkFlowMutation();
 
-    console.log(user)
 
     // Các state cho giao diện Steps (cho việc tạo/chỉnh sửa quy trình)
     const [current, setCurrent] = useState(0);
@@ -319,6 +317,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             const result = await approveOldProcess({ appendixId: appendixId }).unwrap();
             if (result.status === "OK") {
                 message.success("Quy trình đã được áp dụng thành công cho phụ lục!");
+                refetchNoti();
             } else {
                 message.error("Lỗi khi áp dụng quy trình cho phụ lục!");
             }
@@ -336,6 +335,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             try {
                 const result = await assign({ contractId, workflowId }).unwrap();
                 message.success("Quy trình đã được áp dụng thành công!");
+                refetchNoti();
                 if (onProcessApplied) {
                     onProcessApplied();
                 }
