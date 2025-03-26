@@ -16,13 +16,15 @@ const UserManagement = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isModalUpdate, setIsModalUpdate] = useState(false);
     const [activeTab, setActiveTab] = useState("1");
+    const [page, setPage] = useState(1);
+    const [size, setSize] = useState(10);
 
     const [form] = Form.useForm();
 
     const { data: userData, isLoading, isError, refetch } = useGetAllUserQuery({
-        keyword: searchText,
-        page: 0,
-        limit: 10,
+        search: searchText,
+        page: page - 1,
+        size: size,
     });
     const { data, error, isLoading: DepartmentLoading, refetch: DepartmentRefetch } = useGetDepartmentsQuery();
 
@@ -33,6 +35,7 @@ const UserManagement = () => {
 
     const isCEO = Form.useWatch('is_ceo', form);
 
+    console.log("Data:", userData);
 
     React.useEffect(() => {
         if (isCEO === true) {
@@ -280,6 +283,7 @@ const UserManagement = () => {
                 className="mt-10"
                 activeKey={activeTab}
                 onChange={setActiveTab}
+
             >
                 <TabPane tab="Quản lý nhân sự" key="1">
                     <div className="flex-1 p-4">
@@ -519,6 +523,16 @@ const UserManagement = () => {
                             columns={columns}
                             dataSource={filteredUsers}
                             rowKey="id"
+                            pagination={{
+                                current: page,
+                                pageSize: size,
+                                total: userData?.totalElements,
+                                showSizeChanger: true,
+                                onChange: (page, pageSize) => {
+                                    setPage(page);
+                                    setSize(pageSize);
+                                },
+                            }}
                         />
                     </div>
                 </TabPane>

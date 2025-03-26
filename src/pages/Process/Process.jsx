@@ -17,13 +17,28 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     const [hideAddStage, setHideAddStage] = useState(false)
     const [isCreate, setIsCreate] = useState(false)
     const [selectedProcessId, setSelectedProcessId] = useState(null);
+    const [appendixProcessId, setAppendixProcessId] = useState(null);
+    const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10);
+    const [managers, setManagers] = useState([]);
 
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
     const { data: userData } = useGetUserStaffManagerQuery({
-        keyword: "",
-        page: 0,
-        limit: 10,
+        page: page,
+        size: size,
     });
+
+    useEffect(() => {
+        if (userData?.data?.content) {
+            // Nếu đang load trang đầu, reset lại danh sách
+            if (page === 0) {
+                setManagers(userData.data.content);
+            } else {
+                // Nếu load trang tiếp theo, thêm vào danh sách hiện có
+                setManagers(prev => [...prev, ...userData.data.content]);
+            }
+        }
+    }, [userData]);
 
     const { data: approvalData } = useGetProcessByContractTypeIdQuery({ contractTypeId: contractTypeId });
     const { data: appendixPropose } = useGetProcessByAppendixTypeIdQuery({ appendixTypeId: appendixTypeId });
@@ -40,9 +55,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     // Các state cho giao diện Steps (cho việc tạo/chỉnh sửa quy trình)
     const [current, setCurrent] = useState(0);
     const [form] = Form.useForm();
-    const [approvals, setApprovals] = useState({
-
-    });
+    const [approvals, setApprovals] = useState({});
     // Số bước ký duyệt tự tạo (không bao gồm bước cuối) - mặc định chỉ có 1 bước (stage1)
     const [customStagesCount, setCustomStagesCount] = useState(1);
 
@@ -63,6 +76,15 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
         // }
     }, [contractId, appendix])
 
+    const handlePopupScroll = (e) => {
+        const target = e.target;
+        // Nếu đã cuộn đến dưới cùng của dropdown (sử dụng một offset để chắc chắn)
+        if (target.scrollTop + target.offsetHeight >= target.scrollHeight - 5) {
+            // Tăng page lên để load trang tiếp theo
+            setPage(prev => prev + 1);
+        }
+    };
+
 
     const getAvailableUsers = (currentStepKey) => {
         // Lấy danh sách các id đã được chọn ở các bước khác (ngoại trừ bước hiện tại)
@@ -73,7 +95,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             );
         // Nếu ở bước hiện tại đã có giá trị, giữ lại giá trị đó trong danh sách để hiển thị trong select
         const currentValue = approvals[currentStepKey];
-        return (userData?.data?.content || []).filter((manager) => {
+        return (managers || []).filter((manager) => {
             if (manager.id === user.id) {
                 return false;
             }
@@ -114,7 +136,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                         label={`Chọn manager duyệt đợt ${i}`}
                         rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
                     >
-                        <Select placeholder="Chọn manager">
+                        <Select placeholder="Chọn manager" onPopupScroll={handlePopupScroll} >
                             {getAvailableUsers(`stage${i}`).map((manager) => (
                                 <Option key={manager.id} value={manager.id}>
                                     {manager.full_name}
@@ -137,7 +159,11 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                             label="Chọn manager duyệt đợt cuối"
                             rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
                         >
-                            <Select placeholder="Chọn manager">
+                            <Select
+                                placeholder="Chọn manager"
+                                onPopupScroll={handlePopupScroll}
+
+                            >
                                 {getAvailableUsers("stageFinal").map((manager) => (
                                     <Option key={manager.id} value={manager.id}>
                                         {manager.full_name}
@@ -326,45 +352,37 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
 
     // Lấy dữ liệu processTemplates (giả sử dữ liệu được trả về là mảng với một phần tử)
     const process = processTemplates?.data;
-    // dữ liệu data lớn hơn 10 là lỗi
     const item =
         process?.stages?.map((stage) => {
             const isFinal = stage.stageOrder === process.customStagesCount;
-            const foundUser = stage.approver
-                ? userData?.data?.content?.find((user) => user.id === stage.approver)?.full_name
-                : "";
             return {
                 title: isFinal ? "Phê duyệt đợt cuối" : `Phê duyệt đợt ${stage.stageOrder}`,
-                description: `Người duyệt: ${foundUser || ""}`,
+                description: `Người duyệt: ${stage.approverName || ""}`,
             };
         }) || [];
 
-    // dữ liệu data lớn hơn 10 là lỗi
     const itemForAppendix =
         contractProcess?.data?.stages?.map((stage) => {
             const isFinal = stage.stageOrder === contractProcess.customStagesCount;
-            const foundUser = stage.approver
-                ? userData?.data?.content?.find((user) => user.id === stage.approver)?.full_name
-                : "";
             return {
                 title: isFinal ? "Phê duyệt đợt cuối" : `Phê duyệt đợt ${stage.stageOrder}`,
-                description: `Người duyệt: ${foundUser || ""}`,
+                description: `Người duyệt: ${stage.approverName || ""}`,
             };
         }) || [];
 
     const formattedData = approvalData?.data?.map((process) => {
+        console.log(process);
         return {
             id: process.id,
             name: process.name,
             customStagesCount: process.customStagesCount,
             createdAt: process.createdAt,
-            stages: process.stages.map((stage) => {
-                const foundUser = userData?.data?.content.find((user) => user.id === stage.approver)?.full_name;
+            stages: process?.stages?.map((stage) => {
                 return {
                     stageId: stage.stageId,
                     stageOrder: stage.stageOrder,
                     approver: stage.approver,
-                    approverName: foundUser || "Chưa xác định",
+                    approverName: stage.approverName || "Chưa xác định",
                     status: stage.status,
                     approvedAt: stage.approvedAt,
                     comment: stage.comment,
@@ -380,12 +398,11 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             customStagesCount: process.customStagesCount,
             createdAt: process.createdAt,
             stages: process.stages.map((stage) => {
-                const foundUser = userData?.data?.content.find((user) => user.id === stage.approver)?.full_name;
                 return {
                     stageId: stage.stageId,
                     stageOrder: stage.stageOrder,
                     approver: stage.approver,
-                    approverName: foundUser || "Chưa xác định",
+                    approverName: stage.approverName || "Chưa xác định",
                     status: stage.status,
                     approvedAt: stage.approvedAt,
                     comment: stage.comment,
@@ -527,6 +544,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                                     onChange={handleStepChange}
                                 >
                                     {stepsData.map((item, index) => {
+                                        console.log(item);
                                         const stageKey =
                                             index < customStagesCount ? `stage${index + 1}` : "stageFinal";
                                         return (

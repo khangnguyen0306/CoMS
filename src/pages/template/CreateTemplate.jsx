@@ -103,10 +103,11 @@ const { Step } = Steps;
 
 const CreateTemplate = () => {
     const [currentStep, setCurrentStep] = useState(0);
-    const [form] = Form.useForm();
     const [isExpanded, setIsExpanded] = useState(false);
+    const [form] = Form.useForm();
+    const [formLegal] = Form.useForm();
     const [templateName, setTemplateName] = useState("");
-    const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()   
+    const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()
     const { data: contractType, isLoading: isLoadingType, isError: ErrorLoadingType, refetch } = useGetContractTypeQuery()
     const [getAllTypeClause, { data: allTypeClause, isLoading: loadingType }] = useLazyGetAllTypeClauseQuery();
     const [getContractLegal, { data: legalData, isLoading: loadingLegal }] = useLazyGetLegalQuery();
@@ -500,8 +501,8 @@ const CreateTemplate = () => {
     };
 
     const handleAddOk = async () => {
-        let name = form.getFieldValue('legalLabel') || '';
-        let content = form.getFieldValue('legalContent') || '';
+        let name = formLegal.getFieldValue('legalLabel') || '';
+        let content = formLegal.getFieldValue('legalContent') || '';
         // console.log(name, content);
         try {
             const result = await createClause({ typeTermId: 8, label: name, value: content }).unwrap();
@@ -511,7 +512,7 @@ const CreateTemplate = () => {
             }
             loadLegalData();
             setIsAddModalOpen(false);
-            form.resetFields();
+            formLegal.resetFields();
         } catch (error) {
             // console.error("Lỗi tạo điều khoản:", error);
             message.error(error.data.message || "Có lỗi xảy ra khi tạo điều khoản");
@@ -910,7 +911,7 @@ const CreateTemplate = () => {
                                                             10. Phụ lục
                                                         </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                            {(  isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                            {(isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
                                                                 <span className="mr-[20px]"></span>}
                                                             11. Trường hợp đặc biệt
                                                         </div>
@@ -2165,7 +2166,7 @@ const CreateTemplate = () => {
             >
                 <Form
                     layout="vertical"
-                    form={form}
+                    form={formLegal}
                 >
                     <Form.Item
                         name="legalLabel"

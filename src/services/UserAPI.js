@@ -18,8 +18,8 @@ export const userAPI = createApi({
     }),
     endpoints: (builder) => ({
         getAllUser: builder.query({
-            query: ({ keyword, page, limit }) => ({
-                url: `/users/get-all-users?page=${page}&limit=${limit}&keyword=${keyword}`,
+            query: ({ search, page, size }) => ({
+                url: `/users/get-all-users?page=${page}&size=${size}&keyword=${search}`,
                 method: "GET",
             }),
             providesTags: (result) =>
@@ -66,8 +66,8 @@ export const userAPI = createApi({
             invalidatesTags: [{ type: "USER", id: "LIST" }],
         }),
         GetUserStaffManager: builder.query({
-            query: () => ({
-                url: `/users/get-all-staff-and-manager`,
+            query: ({ page, size }) => ({
+                url: `/users/get-all-staff-and-manager?page=${page || 0}&size=${size || 10}`,
                 method: "GET",
             }),
             providesTags: (result, error, User) => [{ type: "User", id: User }],
@@ -84,5 +84,6 @@ export const {
     useLazyGetAllUserQuery,
     useGetUserStaffManagerQuery,
     useGetUserByIdQuery,
+    useLazyGetUserStaffManagerQuery,
 
 } = userAPI;

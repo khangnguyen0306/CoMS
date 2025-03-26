@@ -57,7 +57,7 @@ export const ContractAPI = createApi({
             }),
             providesTags: (result, error, Partner) => [{ type: "Partner", id: Partner }],
         }),
-        
+
         getContractStatus: builder.query({
             query: () => ({
                 url: `contracts?page=0&size=10&statuses=CREATED&statuses=UPDATED&statuses=REJECTED&statuses=FIXED&sortBy=id&order=asc`,
@@ -178,24 +178,25 @@ export const ContractAPI = createApi({
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
         getContractPartnerQuery: builder.query({
-            query: () => ({
+            query: ({ search, page, size }) => ({
                 url: `/contract-partners/get-all`,
                 method: "GET",
+                params: { search, page, size },
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
         deleteContractPartner: builder.mutation({
-            query: (contractPartnerId) => ({
+            query: ({ contractPartnerId }) => ({
                 url: `/contract-partners/delete/${contractPartnerId}`,
                 method: "DELETE",
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
         updateContractPartner: builder.mutation({
-            query: (contractPartnerId) => ({
+            query: ({ contractPartnerId, body }) => ({
                 url: `/contract-partners/update/${contractPartnerId}`,
                 method: "PUT",
-                body: contractData,
+                body: body,
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
