@@ -75,12 +75,12 @@ const NotificationDropdown = () => {
 
   const getMessageIcon = (msg) => {
     const lowerMsg = msg.toLowerCase();
-    if (lowerMsg.includes("nhắc nhở") || lowerMsg.includes("phê duyệt")) {
+    if (lowerMsg.includes("nhắc nhở") || lowerMsg.includes("phê duyệt") || lowerMsg.includes("có hiệu lực")) {
       return <InfoCircleFilled style={{ color: "#1890ff" }} />;
-    } else if (lowerMsg.includes("quá hạn") || lowerMsg.includes("chỉnh sửa")) {
+    } else if (lowerMsg.includes("quá hạn")) {
       return <ExclamationCircleFilled style={{ color: "#faad14" }} />;
-    } else if (lowerMsg.includes("có hiệu lực")) {
-      return <BellFilled style={{ color: "#1890ff" }} />;
+    } else if (lowerMsg.includes("từ chối")) {
+      return <CloseCircleFilled style={{ color: "#ff4d4f" }} />;
     }
     return null; // Không trả về icon nào nếu không khớp
   };

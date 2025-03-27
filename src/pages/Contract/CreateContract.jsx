@@ -1966,7 +1966,7 @@ const CreateContractForm = () => {
                     <Form.Item
                         name="legalLabel"
                         label="Tên căn cứ pháp lý"
-                        rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                    // rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
                     >
                         <Input
                             value={newLegalBasis.name}
@@ -1975,7 +1975,7 @@ const CreateContractForm = () => {
                         />
                     </Form.Item>
                     <Form.Item
-                        rules={[{ required: true, message: "Vui lòng nhập nội dung căn cứ!" }]}
+                        // rules={[{ required: true, message: "Vui lòng nhập nội dung căn cứ!" }]}
                         label="Nội dung"
                         name="legalContent"
                     >

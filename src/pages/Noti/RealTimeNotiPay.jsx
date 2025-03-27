@@ -6,14 +6,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentToken, selectCurrentUser, setNotiNumber } from "../../slices/authSlice";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 
 const RealTimeNotification = () => {
     const token = useSelector(selectCurrentToken);
     const user = useSelector(selectCurrentUser);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
+
     const [notifications, setNotifications] = useState([]);
 
 
@@ -34,17 +33,17 @@ const RealTimeNotification = () => {
             isRead: false,
         };
 
-        // setNotifications((prev) => {
-        //     // Kiểm tra xem thông báo mới đã có trong danh sách chưa
-        //     if (prev.some(noti => noti.id === newNotification.id)) {
-        //         return prev;
-        //     }
-        //     const updated = [...prev, newNotification];
-        //     // Tính lại số lượng thông báo chưa đọc
-        //     const newUnreadCount = updated?.filter((noti) => !noti.isRead).length;
-        //     dispatch(setNotiNumber(newUnreadCount));
-        //     return updated;
-        // });
+        setNotifications((prev) => {
+            // Kiểm tra xem thông báo mới đã có trong danh sách chưa
+            if (prev.some(noti => noti.id === newNotification.id)) {
+                return prev;
+            }
+            const updated = [...prev, newNotification];
+            // Tính lại số lượng thông báo chưa đọc
+            const newUnreadCount = updated.filter((noti) => !noti.isRead).length;
+            dispatch(setNotiNumber(newUnreadCount));
+            return updated;
+        });
 
         notification.open({
             message: "Thông báo",
@@ -94,7 +93,7 @@ const RealTimeNotification = () => {
         };
 
         stompClient.activate();
-        refetchNoti(    )
+
         return () => {
             stompClient.deactivate();
         };

@@ -7,16 +7,18 @@ import { useGetDepartmentsQuery } from "../../services/Department";
 import partnerIMG from "../../assets/Image/partner.jpg";
 import { EditFilled, MailFilled } from "@ant-design/icons";
 import { MdPlace } from "react-icons/md";
-
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 const { Title } = Typography;
 
 const Profile = () => {
     const { id } = useParams();
-    const { data, isLoading } = useGetUserByIdQuery({ id });
+    const { data, isLoading, refetch } = useGetUserByIdQuery({ id });
     const { data: departmentData, isLoading: DepartmentLoading } = useGetDepartmentsQuery();
     const [updateUser] = useUpdateUserMutation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
+
 
     const handleUpdateClick = () => {
         form.setFieldsValue({
@@ -42,7 +44,7 @@ const Profile = () => {
                 email: values.email,
                 address: values.address,
                 phone_number: values.phone_number,
-                dateOfBirth: values.date_of_birth ? values.date_of_birth.toISOString() : null,
+                dateOfBirth: values.date_of_birth ? values.date_of_birth.utc(true).toISOString() : null,
                 full_name: values.full_name,
                 departmentId: values.department_id,
                 is_ceo: data?.is_ceo,
@@ -91,42 +93,71 @@ const Profile = () => {
                 <Button type="primary" icon={<EditFilled />} onClick={handleUpdateClick} className="absolute right-0">
                     Cập nhật thông tin
                 </Button>
-                <div className="space-y-4">
+                <div className="space-y-6">
                     <div className="flex items-end gap-8">
                         <p className="font-semibold text-black text-3xl">{data?.full_name}</p>
                         <p className="flex mb-1 items-center text-gray-700 text-sm"> <MdPlace style={{ fontSize: '20px', marginBottom: '5px', color: 'grey', marginRight: '7px' }} /> {data?.address || "Chưa cập nhật"}</p>
                     </div>
-                    <p></p>
-                    <div>
-                        <span className="font-bold text-black">Phone: </span>
+                    <p className="py-6 pt-0">
+                        <span className="font-semibold text-gray-500 text-xs">BASIC INFORMATION</span>
+                    </p>
+
+                    <div className="flex items-center mb-2">
+                        <span className="inline-block w-[200px] font-bold text-black">Mã nhân viên:</span>
+                        <span className="text-gray-800">{data?.staff_code || "EMP123"}</span>
+                    </div>
+
+                    <div className="flex items-center mb-2">
+                        <span className="inline-block w-[200px] font-bold text-black">Ngày tháng năm sinh:</span>
+                        <span className="text-gray-800">
+                            {data?.date_of_birth
+                                ? dayjs(
+                                    new Date(
+                                        data.date_of_birth[0],
+                                        data.date_of_birth[1] - 1,
+                                        data.date_of_birth[2]
+                                    )
+                                ).format("DD/MM/YYYY")
+                                : "05/06/1982"}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center mb-2">
+                        <span className="inline-block w-[200px] font-bold text-black">Gender:</span>
+                        <span className="text-gray-800">{data?.gender || "Male"}</span>
+                    </div>
+
+                    <div className="flex items-center mb-2">
+                        <span className="inline-block w-[200px] font-bold text-black">Phòng ban:</span>
+                        <span className="text-gray-800">{data?.department?.departmentName || "Phòng ban"}</span>
+                    </div>
+
+                    <p className="py-6">
+                        <span className="font-semibold text-gray-500 text-xs">CONTECT INFORMATION</span>
+                    </p>
+
+                    <div className="flex items-center mb-2">
+                        <span className="inline-block w-[200px] font-bold text-black">Số điện thoại:</span>
                         <a href={`tel:${data?.phone_number}`} className="text-[#007bff] underline">
                             {data?.phone_number || "+1 123 456 7890"}
                         </a>
                     </div>
-                    <div>
-                        <span className="font-bold text-black">Email: </span>
+
+                    <div className="flex items-center mb-2">
+                        <span className="inline-block w-[200px] font-bold text-black">Email:</span>
                         <a href={`mailto:${data?.email}`} className="text-[#007bff] underline">
                             {data?.email || "hello@jeremyrose.com"}
                         </a>
                     </div>
-                    <div>
-                        <span className="font-bold text-black">Site: </span>
+
+                    <div className="flex items-center mb-2">
+                        <span className="inline-block w-[200px] font-bold text-black">Trang web:</span>
                         <a href="https://jeremyrose.com" className="text-[#007bff] underline">
                             jeremyrose.com
                         </a>
                     </div>
-                    <div>
-                        <span className="font-bold text-black">Birthday: </span>
-                        <span className="text-gray-800">
-                            {data?.date_of_birth
-                                ? dayjs(new Date(data.date_of_birth[0], data.date_of_birth[1] - 1, data.date_of_birth[2])).format("MMMM D, YYYY")
-                                : "June 5, 1982"}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="font-bold text-black">Gender: </span>
-                        <span className="text-gray-800">Male</span>
-                    </div>
+
+
                 </div>
 
             </div>
