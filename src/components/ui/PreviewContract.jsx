@@ -324,7 +324,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
     return (
         <div className={`${isDarkMode ? 'bg-gray-[#141414] text-white' : 'bg-[#f5f5f5]'} shadow-md p-4 pb-16 rounded-md`}>
             <div className='fixed bottom-10 right-20 z-50'>
-                <ChatModalWrapper generatedPrompt={promtData} handleGenerateAIPrompt={handleGenerateAIPrompt} />
+                {/* <ChatModalWrapper generatedPrompt={promtData} handleGenerateAIPrompt={handleGenerateAIPrompt} /> */}
             </div>
             <div className="text-center">
                 <p className={`font-bold text-xl pt-8 ${isDarkMode ? 'text-white' : ''}`}>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
