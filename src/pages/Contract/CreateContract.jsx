@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline } from "antd";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Skeleton } from "antd";
 import dayjs from "dayjs";
 import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +43,7 @@ const DEFAULT_NOTIFICATIONS = {
 const CreateContractForm = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
+    const [formLegal] = Form.useForm();
     const inputRef = useRef(null);
     const navigate = useNavigate()
     const [newTypeCreate, setNewTypeCreate] = useState('')
@@ -429,8 +430,8 @@ const CreateContractForm = () => {
     }
 
     const handleAddOk = async () => {
-        let name = form.getFieldValue('legalLabel') || '';
-        let content = form.getFieldValue('legalContent') || '';
+        let name = formLegal.getFieldValue('legalLabel') || '';
+        let content = formLegal.getFieldValue('legalContent') || '';
         try {
             const result = await createClause({ label: name, value: content, typeTermId: 8 }).unwrap();
             // console.log(result);
@@ -439,7 +440,7 @@ const CreateContractForm = () => {
             }
             loadLegalData();
             setIsAddLegalModalOpen(false);
-            form.resetFields();
+            formLegal.resetFields();
         } catch (error) {
             // console.error("Lỗi tạo điều khoản:", error);
             message.error("Có lỗi xảy ra khi tạo điều khoản");
@@ -1218,24 +1219,32 @@ const CreateContractForm = () => {
                                 </div>
 
                                 <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
-                                    <div className="flex flex-col gap-2 pl-4 " md={10} sm={24} >
-                                        <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
-                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
-                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
-                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
-                                        <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
-                                    </div>
-                                    <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
-                                        <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
-                                        <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
-                                        <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
-                                        <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName}</p></p>
-                                        <p className="text-sm"><b>Chức vụ: {partnerDetail?.data.position}</b> </p>
-                                        <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
-                                        <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
-                                    </div>
+                                    {isLoadingBsData ? (
+                                        <Skeleton active paragraph={{ rows: 4 }} />
+                                    ) : (
+                                        <div className="flex flex-col gap-2 pl-4 " md={10} sm={24} >
+                                            <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                                            <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
+                                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
+                                            <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                                            <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
+                                        </div>
+                                    )}
+                                    {isLoadingInfoPartner ? (
+                                        <Skeleton active paragraph={{ rows: 4 }} />
+                                    ) : (
+                                        <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
+                                            <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
+                                            <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
+                                            <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
+                                            <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName}</p></p>
+                                            <p className="text-sm"><b>Chức vụ: {partnerDetail?.data.position}</b> </p>
+                                            <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
+                                            <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div ref={mainContentRef}>
@@ -1245,19 +1254,20 @@ const CreateContractForm = () => {
                                     className="mt-5"
                                     rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
                                 >
-                                    <RichTextEditor
-                                        output="html"
-                                        content={content}
-                                        onChangeContent={onValueChange}
-                                        extensions={extensions}
-                                        dark={isDarkMode}
-                                        hideBubble={true}
-                                        dense={false}
-                                        removeDefaultWrapper
-                                        placeholder="Nhập nội dung hợp đồng tại đây..."
-                                        contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
-                                    />
-
+                                    <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
+                                        <RichTextEditor
+                                            output="html"
+                                            content={content}
+                                            onChangeContent={onValueChange}
+                                            extensions={extensions}
+                                            dark={isDarkMode}
+                                            hideBubble={true}
+                                            dense={false}
+                                            removeDefaultWrapper
+                                            placeholder="Nhập nội dung hợp đồng tại đây..."
+                                            contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
+                                        />
+                                    </Suspense>
                                 </Form.Item>
 
 
@@ -1961,7 +1971,7 @@ const CreateContractForm = () => {
             >
                 <Form
                     layout="vertical"
-                    form={form}
+                    form={formLegal}
                 >
                     <Form.Item
                         name="legalLabel"

@@ -98,9 +98,13 @@ const ContractProcess = () => {
                     );
                 } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
                     return (
-                        <span className="block truncate max-w-[200px] text-[#40a9ff] font-bold" title={text}>
+                        <Link
+                            className="font-bold text-[#228eff] block truncate max-w-[200px]"
+                            to={`/contractDetail/${record.id}`}
+                            title={text}
+                        >
                             {text}
-                        </span>
+                        </Link>
                     );
                 }
             },
