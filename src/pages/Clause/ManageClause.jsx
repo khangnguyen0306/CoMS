@@ -512,19 +512,6 @@ const ManageClause = () => {
                                 </Form.Item>
 
                                 <Form.Item
-                                    name="type"
-                                    label="Loại điều khoản"
-                                >
-                                    <Select placeholder="Chọn loại điều khoản">
-                                        {typeData?.data.map(item => (
-                                            <Option key={item.original_term_id} value={item.original_term_id}>
-                                                {item.name}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
-
-                                <Form.Item
                                     name="value"
                                     label="Nội dung"
                                     rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
