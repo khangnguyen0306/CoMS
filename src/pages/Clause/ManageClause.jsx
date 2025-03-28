@@ -322,7 +322,7 @@ const ManageClause = () => {
 
 
     if (loadingClause || loadingType || loadingLegal || loadingTypeContract) return <Skeleton active />;
-    // if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+
     return (
         <ConfigProvider
             theme={{

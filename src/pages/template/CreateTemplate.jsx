@@ -104,6 +104,7 @@ const { Step } = Steps;
 const CreateTemplate = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
+    const [formLegal] = Form.useForm();
     const [isExpanded, setIsExpanded] = useState(false);
     const [templateName, setTemplateName] = useState("");
     const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()   
@@ -500,8 +501,8 @@ const CreateTemplate = () => {
     };
 
     const handleAddOk = async () => {
-        let name = form.getFieldValue('legalLabel') || '';
-        let content = form.getFieldValue('legalContent') || '';
+        let name = formLegal.getFieldValue('legalLabel') || '';
+        let content = formLegal.getFieldValue('legalContent') || '';
         // console.log(name, content);
         try {
             const result = await createClause({ typeTermId: 8, label: name, value: content }).unwrap();
@@ -511,7 +512,7 @@ const CreateTemplate = () => {
             }
             loadLegalData();
             setIsAddModalOpen(false);
-            form.resetFields();
+            formLegal.resetFields();
         } catch (error) {
             // console.error("Lỗi tạo điều khoản:", error);
             message.error(error.data.message || "Có lỗi xảy ra khi tạo điều khoản");
@@ -1784,12 +1785,12 @@ const CreateTemplate = () => {
                     </div>
                     <div className={`  p-4 pl-1 rounded-md `}>
                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                        <p className=" "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                        <p className=""><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                        <p className=""><b>Email:</b> {bsInfor?.email}</p>
+                        <p className=" "><b>Tên công ty:</b> {bsInfor?.data.businessName || "chưa cập nhật"}</p>
+                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.representativeName} </p></p>
+                        <p className=""><b>Chức vụ:</b> {bsInfor?.data.representativeTitle}</p>
+                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                        <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
                     </div>
                     <div className={` p-4 pl-1 rounded-md `}>
                         <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
@@ -2165,7 +2166,7 @@ const CreateTemplate = () => {
             >
                 <Form
                     layout="vertical"
-                    form={form}
+                    form={formLegal}
                 >
                     <Form.Item
                         name="legalLabel"
