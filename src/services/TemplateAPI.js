@@ -18,6 +18,21 @@ export const TemplateAPI = baseApi.injectEndpoints({
           ? result.data.content.map(({ id }) => ({ type: "Template", id }))
           : [{ type: "Template", id: "LIST" }],
     }),
+    getAllTemplateByContractTypeId: builder.query({
+      query: (params) => ({
+        url: `templates/by-contract-type/${params?.ContractTypeId}`,
+        params: {
+          page: params?.page || 0,
+          size: params?.size || 10,
+          keyword: params?.keyword || "",
+          // ContractTypeId: params?.status || "",
+        },
+      }),
+      providesTags: (result) =>
+        result && result.data?.content
+          ? result.content.map(({ id }) => ({ type: "Template", id }))
+          : [{ type: "Template", id: "LIST" }],
+    }),
 
     getAllDeletedTemplate: builder.query({
       query: (params) => ({
@@ -112,4 +127,6 @@ export const {
   useDeleteTemplateMutation,
   useDeleteTemplateNotRestoreMutation,
   useRestoreTemplateMutation,
+  useGetAllTemplateByContractTypeIdQuery,
+  useLazyGetAllTemplateByContractTypeIdQuery
 } = TemplateAPI;

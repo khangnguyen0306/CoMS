@@ -1,9 +1,9 @@
 import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Skeleton } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Skeleton, Table } from "antd";
 import dayjs from "dayjs";
 import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
-import { useLazyGetAllTemplateQuery, useLazyGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
+import { useLazyGetAllTemplateByContractTypeIdQuery, useLazyGetAllTemplateQuery, useLazyGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
 import { FcNext } from "react-icons/fc";
 import { useGetPartnerInfoDetailQuery, useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
 import LazySelectPartner from "../../hooks/LazySelectPartner";
@@ -79,7 +79,7 @@ const CreateContractForm = () => {
 
 
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery()
-    const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery({
+    const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateByContractTypeIdQuery({
         pollingInterval: 0,
         refetchOnMountOrArgChange: true,
     })
@@ -243,8 +243,21 @@ const CreateContractForm = () => {
     const loadDKKata = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
     };
+
     const loadTemplateData = async ({ page, size, keyword }) => {
-        return getTemplateData({ page, size, keyword }).unwrap();
+        // Lấy giá trị loại hợp đồng đang được chọn
+        const selectedContractType = form.getFieldValue('contractType');
+        console.log(selectedContractType)
+        if (!selectedContractType) {
+            return { content: [] };
+        }
+        // Gọi API với contractTypeId, page, size và keyword
+        return getTemplateData({
+            ContractTypeId: selectedContractType.value,
+            page,
+            size,
+            keyword,
+        }).unwrap();
     };
 
     const loadPartnerData = async ({ page, size, keyword }) => {
@@ -288,7 +301,7 @@ const CreateContractForm = () => {
     };
 
 
-    const onFinish = async (values) => {
+    const onFinish = async () => {
         const data = form.getFieldsValue(true);
 
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
@@ -397,6 +410,7 @@ const CreateContractForm = () => {
                 message.error(response.message);
             }
         } catch (error) {
+            console.log(error);
             message.error("Lỗi khi tạo hợp đồng!");
         }
     };
@@ -666,78 +680,78 @@ const CreateContractForm = () => {
         );
     };
 
-    const getTermsContent = (fieldName) => {
-        const fieldLabels = {
-            legalBasis: 'Căn cứ pháp lý',
-            generalTerms: 'Điều khoản chung',
-            additionalTerms: 'Điều khoản bổ sung',
-            rightsAndObligations: 'Quyền và nghĩa vụ các bên',
-            warrantyTerms: 'Điều khoản bảo hành và bảo trì',
-            breachTerms: 'Điều khoản về vi phạm và bồi thường',
-            terminationTerms: 'Điều khoản về chấm dứt hợp đồng',
-            disputeTerms: 'Điều khoản về giải quyết tranh chấp',
-            privacyTerms: 'Điều khoản bảo mật'
-        };
+    // const getTermsContent = (fieldName) => {
+    //     const fieldLabels = {
+    //         legalBasis: 'Căn cứ pháp lý',
+    //         generalTerms: 'Điều khoản chung',
+    //         additionalTerms: 'Điều khoản bổ sung',
+    //         rightsAndObligations: 'Quyền và nghĩa vụ các bên',
+    //         warrantyTerms: 'Điều khoản bảo hành và bảo trì',
+    //         breachTerms: 'Điều khoản về vi phạm và bồi thường',
+    //         terminationTerms: 'Điều khoản về chấm dứt hợp đồng',
+    //         disputeTerms: 'Điều khoản về giải quyết tranh chấp',
+    //         privacyTerms: 'Điều khoản bảo mật'
+    //     };
 
-        // Mapping from field names to template data properties
-        const templateDataMapping = {
-            legalBasis: 'legalBasisTerms',
-            generalTerms: 'generalTerms',
-            additionalTerms: 'additionalTerms',
-            rightsAndObligations: 'rightsAndObligationsTerms',
-            warrantyTerms: 'warrantyTerms',
-            breachTerms: 'breachTerms',
-            terminationTerms: 'terminationTerms',
-            disputeTerms: 'disputeTerms',
-            privacyTerms: 'privacyTerms'
-        };
+    //     // Mapping from field names to template data properties
+    //     const templateDataMapping = {
+    //         legalBasis: 'legalBasisTerms',
+    //         generalTerms: 'generalTerms',
+    //         additionalTerms: 'additionalTerms',
+    //         rightsAndObligations: 'rightsAndObligationsTerms',
+    //         warrantyTerms: 'warrantyTerms',
+    //         breachTerms: 'breachTerms',
+    //         terminationTerms: 'terminationTerms',
+    //         disputeTerms: 'disputeTerms',
+    //         privacyTerms: 'privacyTerms'
+    //     };
 
-        const terms = form.getFieldValue(fieldName) || [];
+    //     const terms = form.getFieldValue(fieldName) || [];
 
-        // Dynamically get the corresponding template data based on the field name
-        const templateProperty = templateDataMapping[fieldName];
-        const valuefromDetail = templateDataSelected?.[templateProperty] || [];
+    //     // Dynamically get the corresponding template data based on the field name
+    //     const templateProperty = templateDataMapping[fieldName];
+    //     const valuefromDetail = templateDataSelected?.[templateProperty] || [];
 
-        // Create a set to track unique term IDs
-        const uniqueTermIds = new Set();
-        const allUniqueTerms = [];
+    //     // Create a set to track unique term IDs
+    //     const uniqueTermIds = new Set();
+    //     const allUniqueTerms = [];
 
-        // First add terms from template data
-        if (valuefromDetail.length > 0) {
-            valuefromDetail.forEach(term => {
-                const termId = term.original_term_id;
-                if (!uniqueTermIds.has(termId)) {
-                    uniqueTermIds.add(termId);
-                    allUniqueTerms.push(term);
-                }
-            });
-        }
+    //     // First add terms from template data
+    //     if (valuefromDetail.length > 0) {
+    //         valuefromDetail.forEach(term => {
+    //             const termId = term.original_term_id;
+    //             if (!uniqueTermIds.has(termId)) {
+    //                 uniqueTermIds.add(termId);
+    //                 allUniqueTerms.push(term);
+    //             }
+    //         });
+    //     }
 
-        // Then add terms from form that aren't already included
-        if (terms.length > 0) {
-            terms.forEach(term => {
-                const termId = term.value || term.original_term_id;
-                if (termId && !uniqueTermIds.has(termId)) {
-                    uniqueTermIds.add(termId);
-                    allUniqueTerms.push(term);
-                }
-            });
-        }
+    //     // Then add terms from form that aren't already included
+    //     if (terms.length > 0) {
+    //         terms.forEach(term => {
+    //             const termId = term.value || term.original_term_id;
+    //             if (termId && !uniqueTermIds.has(termId)) {
+    //                 uniqueTermIds.add(termId);
+    //                 allUniqueTerms.push(term);
+    //             }
+    //         });
+    //     }
 
-        return (
-            <div className="max-w-md max-h-96 overflow-auto">
-                {allUniqueTerms.length > 0 ? (
-                    allUniqueTerms.map((term, index) => (
-                        <div key={index} className="mb-2 p-1 border-b last:border-b-0">
-                            {term?.label && <div className="text-gray-600">{index + 1}. {term?.label}</div>}
-                        </div>
-                    ))
-                ) : (
-                    <div className="text-gray-500 italic">Chưa có {fieldLabels[fieldName].toLowerCase()} nào được chọn</div>
-                )}
-            </div>
-        );
-    };
+    //     return (
+    //         <div className="max-w-md max-h-96 overflow-auto">
+    //             {allUniqueTerms.length > 0 ? (
+    //                 allUniqueTerms.map((term, index) => (
+    //                     <div key={index} className="mb-2 p-1 border-b last:border-b-0">
+    //                         {term?.label && <div className="text-gray-600">{index + 1}. {term?.label}</div>}
+    //                     </div>
+    //                 ))
+    //             ) : (
+    //                 <div className="text-gray-500 italic">Chưa có {fieldLabels[fieldName].toLowerCase()} nào được chọn</div>
+    //             )}
+    //         </div>
+    //     );
+    // };
 
     const handleCheckboxChange = (checkedValues) => {
         setSelectedOthersTerms(checkedValues);
@@ -912,6 +926,72 @@ const CreateContractForm = () => {
         }
     };
 
+    // Định nghĩa các cột của bảng
+
+    const columns = [
+        {
+            title: 'STT',
+            dataIndex: 'index',
+            key: 'index',
+            render: (text, record, index) => index + 1,
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'description',
+            key: 'description',
+            render: (text, record, index) => (
+                <Form.Item
+                    name={[index, 'description']}
+                    rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+                    noStyle
+                >
+                    <Input.TextArea placeholder="Nhập nội dung" rows={2} />
+                </Form.Item>
+
+            ),
+        },
+        {
+            title: 'Giá tiền',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (text, record, index) => (
+                <Form.Item
+                    name={[index, 'amount']}
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập giá tiền' },
+
+                    ]}
+
+                    noStyle
+                >
+                    <InputNumber
+                        style={{ width: '100%' }}
+                        placeholder="Nhập giá tiền"
+                        min={0}
+                        max={100000000000}
+                        onChange={(value) => {
+                            if (value > 100000000000) {
+                                message.warning('Giá tiền không được vượt quá 100 tỷ');
+                            }
+                        }}
+                        formatter={(value) =>
+                            value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ₫' : ''
+                        }
+                        parser={(value) => value.replace(/\D/g, '')}
+                    />
+                </Form.Item>
+            ),
+        },
+        {
+            title: 'Hành động',
+            key: 'action',
+            render: (text, record, index) => (
+                <Button type="primary" onClick={() => remove(index)} danger>
+                    <DeleteFilled />
+                </Button>
+            ),
+        },
+    ];
 
     // Các bước của form
     const steps = [
@@ -919,82 +999,104 @@ const CreateContractForm = () => {
             title: "Thông tin cơ bản",
             content: (
                 <div className="space-y-4">
-                    <Form.Item
-                        label="Chọn mẫu hợp đồng"
-                        name="templateId"
-                        rules={[{ required: true, message: "Vui lòng chọn mẫu hợp đồng!" }]}
-                    >
-                        <LazySelectContractTemplate
-                            onChange={handleSelectTemplate}
-                            loadDataCallback={loadTemplateData}
-                            options={templateData?.data.content}
-                            showSearch
-                            labelInValue
-                            placeholder="Chọn mẫu hợp đồng"
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Chọn đối tác"
-                        name="partnerId"
-                        rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}
-                    >
-                        <LazySelectPartner
-                            loadDataCallback={loadPartnerData}
-                            options={partnerData?.data.content}
-                            showSearch
-                            placeholder="Chọn thông tin khách hàng"
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider style={{ margin: "8px 0" }} />
-                                    <Space style={{ padding: "0 8px 4px" }}>
-                                        <Button type="primary" icon={FcNext} onClick={handleCreatePartner}>
-                                            Thêm thông tin khách hàng
-                                        </Button>
-                                    </Space>
-                                </>
-                            )}
-                        />
-                    </Form.Item>
-                    <Form.Item
-                        label="Tên hợp đồng"
-                        name="contractName"
-                        rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}
-                    >
-                        <Input placeholder="Nhập tên hợp đồng" />
-                    </Form.Item>
-                    <Form.Item
-                        label="Loại hợp đồng"
-                        name="contractType"
-                        rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}
-                    >
-                        {/* chưa có phân trang và search  */}
-                        <LazySelectContractType
-                            loadDataCallback={loadContractTypeData}
-                            options={contractTypeData}
-                            showSearch
-                            labelInValue
-                            placeholder="chọn loại hợp đồng"
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider style={{ margin: "8px 0" }} />
-                                    <Space style={{ padding: "0 8px 4px" }}>
-                                        <Input
-                                            placeholder="Nhập loại hợp đồng mới"
-                                            ref={inputRef}
-                                            value={newTypeCreate}
-                                            onChange={onNewTypeChange}
-                                            onKeyDown={(e) => e.stopPropagation()}
-                                        />
-                                        <Button type="text" icon={<PlusOutlined />} onClick={addNewType} loading={isLoadingCreateType} >
-                                            Thêm
-                                        </Button>
-                                    </Space>
-                                </>
-                            )}
-                        />
-                    </Form.Item>
+                    <div className="space-y-4">
+                        <Form.Item
+                            label="Loại hợp đồng"
+                            name="contractType"
+                            rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}
+                        >
+                            <LazySelectContractType
+                                loadDataCallback={loadContractTypeData}
+                                options={contractTypeData}
+                                showSearch
+                                labelInValue
+                                placeholder="chọn loại hợp đồng"
+                                onChange={(option) => {
+                                    form.setFieldsValue({ contractName: option?.label });
+                                }}
+                                dropdownRender={(menu) => (
+                                    <>
+                                        {menu}
+                                        <Divider style={{ margin: "8px 0" }} />
+                                        <Space style={{ padding: "0 8px 4px" }}>
+                                            <Input
+                                                placeholder="Nhập loại hợp đồng mới"
+                                                ref={inputRef}
+                                                value={newTypeCreate}
+                                                onChange={onNewTypeChange}
+                                                onKeyDown={(e) => e.stopPropagation()}
+                                            />
+                                            <Button
+                                                type="text"
+                                                icon={<PlusOutlined />}
+                                                onClick={addNewType}
+                                                loading={isLoadingCreateType}
+                                            >
+                                                Thêm
+                                            </Button>
+                                        </Space>
+                                    </>
+                                )}
+                            />
+                        </Form.Item>
+
+                        <Form.Item shouldUpdate={(prevValues, currentValues) =>
+                            prevValues.contractType !== currentValues.contractType
+                        }>
+                            {({ getFieldValue }) => {
+                                return getFieldValue('contractType') ? (
+                                    <>
+                                        <Form.Item
+                                            label="Chọn mẫu hợp đồng"
+                                            name="templateId"
+                                            rules={[{ required: true, message: "Vui lòng chọn mẫu hợp đồng!" }]}
+                                        >
+                                            <LazySelectContractTemplate
+                                                onChange={handleSelectTemplate}
+                                                loadDataCallback={loadTemplateData}
+                                                options={templateData?.content}
+                                                showSearch
+                                                labelInValue
+                                                placeholder="Chọn mẫu hợp đồng"
+                                            />
+                                        </Form.Item>
+
+                                        <Form.Item
+                                            label="Chọn đối tác"
+                                            name="partnerId"
+                                            rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}
+                                        >
+                                            <LazySelectPartner
+                                                loadDataCallback={loadPartnerData}
+                                                options={partnerData?.data.content}
+                                                showSearch
+                                                placeholder="Chọn thông tin khách hàng"
+                                                dropdownRender={(menu) => (
+                                                    <>
+                                                        {menu}
+                                                        <Divider style={{ margin: "8px 0" }} />
+                                                        <Space style={{ padding: "0 8px 4px" }}>
+                                                            <Button type="primary" icon={FcNext} onClick={handleCreatePartner}>
+                                                                Thêm thông tin khách hàng
+                                                            </Button>
+                                                        </Space>
+                                                    </>
+                                                )}
+                                            />
+                                        </Form.Item>
+
+                                        <Form.Item
+                                            label="Tên hợp đồng"
+                                            name="contractName"
+                                            rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}
+                                        >
+                                            <Input placeholder="Nhập tên hợp đồng" />
+                                        </Form.Item>
+                                    </>
+                                ) : null;
+                            }}
+                        </Form.Item>
+                    </div>
                 </div>
             ),
         },
@@ -1134,45 +1236,6 @@ const CreateContractForm = () => {
                         <Col xs={24} md={18}>
                             <div ref={generalInfoRef}>
                                 <div className="relative mt-[70px]">
-                                    <div className="absolute flex items-center top-[30%] right-5 gap-3">
-                                        <Form.Item
-                                            label="Nơi ký kết"
-                                            name="contractLocation"
-                                            rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}
-                                        >
-                                            <Select
-                                                showSearch
-                                                placeholder="Chọn nơi ký kết"
-                                                optionFilterProp="children"
-                                                filterOption={(input, option) =>
-                                                    (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
-                                                }
-                                            >
-                                                {VietnameseProvinces.map(province => (
-                                                    <Option key={province} value={province}>
-                                                        {province}
-                                                    </Option>
-                                                ))}
-                                            </Select>
-                                        </Form.Item>
-                                        <Form.Item
-                                            style={{ display: 'none' }}
-                                            name="contractNumber"
-                                        />
-                                        <Form.Item
-                                            label="Ngày ký kết"
-                                            name="signingDate"
-                                            rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
-                                        >
-                                            <DatePicker
-                                                className="w-full"
-                                                format="DD/MM/YYYY"
-                                                disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                            />
-                                        </Form.Item>
-
-
-                                    </div>
                                     <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-4 py-10 rounded-md text-center mt-[-70px]`}>
                                         <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                         <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
@@ -1182,8 +1245,65 @@ const CreateContractForm = () => {
                                         <p className="mt-3"><b>Số:</b> Ngày tháng năm - STT -Tên HD viết tắt  </p>
                                     </div>
                                 </div>
-                                <Form.Item
+                                <div className=" flex items-center gap-3 mt-5">
+                                    <Form.Item
+                                        label="Nơi ký kết"
+                                        name="contractLocation"
+                                        rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}
+                                    >
+                                        <Select
+                                            showSearch
+                                            placeholder="Chọn nơi ký kết"
+                                            optionFilterProp="children"
+                                            filterOption={(input, option) =>
+                                                (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
+                                            }
+                                        >
+                                            {VietnameseProvinces.map((province) => (
+                                                <Option key={province} value={province}>
+                                                    {province}
+                                                </Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
 
+                                    <Form.Item style={{ display: 'none' }} name="contractNumber" />
+
+                                    <Form.Item
+                                        label="Ngày ký kết"
+                                        name="signingDate"
+                                        rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
+                                    >
+                                        <DatePicker
+                                            className="w-full"
+                                            format="DD/MM/YYYY"
+                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                        />
+                                    </Form.Item>
+                                </div>
+
+                                {/* Render đoạn text hiển thị ngày và địa điểm khi cả 2 trường đã được chọn */}
+                                <Form.Item shouldUpdate={(prevValues, currentValues) =>
+                                    prevValues.contractLocation !== currentValues.contractLocation ||
+                                    prevValues.signingDate !== currentValues.signingDate
+                                }>
+                                    {({ getFieldValue }) => {
+                                        const contractLocation = getFieldValue('contractLocation');
+                                        const signingDate = getFieldValue('signingDate');
+                                        if (contractLocation && signingDate) {
+                                            return (
+                                                <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}  p-5 rounded-lg`}>
+                                                    Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
+                                                    {dayjs(signingDate).format("DD")} tháng{" "}
+                                                    {dayjs(signingDate).format("MM")} năm{" "}
+                                                    {dayjs(signingDate).format("YYYY")}, tại {contractLocation}, bởi và giữa:
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                </Form.Item>
+                                <Form.Item
                                     className="w-full mt-3"
                                     label={
                                         <div className="flex justify-between items-center gap-4">
@@ -1270,7 +1390,7 @@ const CreateContractForm = () => {
                                     </Suspense>
                                 </Form.Item>
 
-
+                                {/* 
                                 <Form.Item
                                     label="Tổng giá trị hợp đồng"
                                     name="totalValue"
@@ -1290,20 +1410,63 @@ const CreateContractForm = () => {
                                         parser={(value) => value.replace(/\D/g, "")}
                                         onChange={handleChange}
                                     />
+                                </Form.Item> */}
 
+                                <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
+                                <Form.List
+                                    name="contractItems"
+                                    rules={[
+                                        {
+                                            validator: async (_, contractItems) => {
+                                                if (!contractItems || contractItems.length < 1) {
+                                                    return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
+                                                }
+                                            },
+                                        },
+                                    ]}
+                                >
+                                    {(fields, { add, remove }) => {
+                                        // Gán remove vào biến toàn cục để sử dụng trong cột "Hành động"
+                                        window.remove = remove;
+                                        return (
+                                            <>
+                                                <Table
+                                                    dataSource={fields}
+                                                    columns={columns}
+                                                    pagination={false}
+                                                    rowKey={(record) => record.key}
+                                                />
+                                                <Button type="primary" onClick={() => add()} style={{ marginTop: 16 }}>
+                                                    <PlusOutlined />
+                                                </Button>
+                                            </>
+                                        );
+                                    }}
+                                </Form.List>
 
-                                </Form.Item>
-                                {textValue && (
-                                    <div className="mt-1 ml-1" ref={mainContentRef}>
-                                        <Typography.Text type="secondary">
-                                            (Bằng chữ: <span className="font-bold">{textValue}</span>)
-                                        </Typography.Text>
-                                    </div>
-                                )}
+                                <div className="mt-4    ">
+                                    <Form.Item name="totalValue" label="Tổng giá trị hợp đồng">
+                                        <InputNumber
+                                            style={{ width: '100%' }}
+                                            readOnly
+                                            formatter={(value) =>
+                                                value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ₫' : ''
+                                            }
+                                        />
+                                    </Form.Item>
+                                    {textValue && (
+                                        <div className="mt-1 ml-1" ref={mainContentRef}>
+                                            <Typography.Text type="secondary">
+                                                (Bằng chữ: <span className="font-bold">{textValue}</span>)
+                                            </Typography.Text>
+                                        </div>
+                                    )}
+                                </div>
 
                                 <Divider orientation="center">Thanh toán</Divider>
                                 <Form.List
                                     name="payments"
+                                    className="w-full"
                                     rules={[
                                         {
                                             validator: async (_, payments) => {
@@ -1317,7 +1480,14 @@ const CreateContractForm = () => {
                                     {(fields, { add, remove }) => (
                                         <>
                                             {fields.map(({ key, name, ...restField }) => (
-                                                <Space key={key} align="baseline" style={{ display: "flex", marginBottom: 8 }}>
+                                                <Space key={key} align="baseline" className="flex mb-4 items-center w-full">
+                                                    {/* <Form.Item
+                                                        {...restField}
+                                                        name={[name, "paymentContent"]}
+                                                        rules={[{ required: true, message: "Nhập nội dung thanh toán" }]}
+                                                    >
+                                                        <Input.TextArea placeholder="Nhập nội dung" rows={2} />
+                                                    </Form.Item> */}
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, "amount"]}
@@ -1336,6 +1506,7 @@ const CreateContractForm = () => {
                                                             parser={(value) => value.replace(/\D/g, "")}
                                                         />
                                                     </Form.Item>
+
                                                     <Form.Item
                                                         {...restField}
                                                         name={[name, "paymentDate"]}
@@ -1360,9 +1531,11 @@ const CreateContractForm = () => {
                                                             <Option value="creditCard">Thẻ tín dụng</Option>
                                                         </Select>
                                                     </Form.Item>
-                                                    <Button type="primary" onClick={() => remove(name)} danger>
-                                                        <DeleteFilled />
-                                                    </Button>
+                                                    <Form.Item>
+                                                        <Button type="primary" onClick={() => remove(name)} danger>
+                                                            <DeleteFilled />
+                                                        </Button>
+                                                    </Form.Item>
                                                 </Space>
                                             ))}
                                             <Button icon={<PlusOutlined />} type="primary" onClick={() => add()} block>
@@ -1447,9 +1620,6 @@ const CreateContractForm = () => {
                                         </Form.Item>
                                     )}
                                 </div>
-
-
-
 
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
 
@@ -1942,7 +2112,24 @@ const CreateContractForm = () => {
 
     return (
         <div className="min-h-[100vh]">
-            <Form form={form} layout="vertical" onFinish={onFinish}>
+            <Form form={form}
+                layout="vertical"
+                onFinish={onFinish}
+                onValuesChange={(changedValues, allValues) => {
+                    if (changedValues.contractItems) {
+                        const total = (allValues.contractItems || []).reduce(
+                            (sum, item) => sum + (item.amount || 0),
+                            0
+                        );
+                        console.log(total)
+                        handleChange(total)
+                        form.setFieldsValue({ totalValue: total });
+                    }
+                }}
+                initialValues={{
+                    contractItems: [{ description: '', amount: null }],
+                }}
+            >
                 <Steps current={currentStep} className="mb-8">
                     {steps.map((item, index) => (
                         <Step key={index} title={<p className="cursor-pointer" onClick={() => setCurrentStep(index)}>{item.title}</p>} />

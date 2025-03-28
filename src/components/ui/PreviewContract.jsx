@@ -344,12 +344,12 @@ const PreviewContract = ({ form, partnerId, data }) => {
             <Row gutter={16} className='flex flex-col mt-5 pl-10 gap-5' justify={"center"}>
                 <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
                     <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                    <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                    <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                    <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                    <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                    <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                    <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                    <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
+                    <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                    <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                    <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "Giám đốc"}</p>
+                    <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                    <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
                 </Col>
                 <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
                     <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>

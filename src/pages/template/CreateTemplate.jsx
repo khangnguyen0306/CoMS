@@ -103,9 +103,9 @@ const { Step } = Steps;
 
 const CreateTemplate = () => {
     const [currentStep, setCurrentStep] = useState(0);
-    const [isExpanded, setIsExpanded] = useState(false);
     const [form] = Form.useForm();
     const [formLegal] = Form.useForm();
+    const [isExpanded, setIsExpanded] = useState(false);
     const [templateName, setTemplateName] = useState("");
     const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()
     const { data: contractType, isLoading: isLoadingType, isError: ErrorLoadingType, refetch } = useGetContractTypeQuery()
@@ -1785,12 +1785,12 @@ const CreateTemplate = () => {
                     </div>
                     <div className={`  p-4 pl-1 rounded-md `}>
                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                        <p className=" "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                        <p className=""><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                        <p className=""><b>Email:</b> {bsInfor?.email}</p>
+                        <p className=" "><b>Tên công ty:</b> {bsInfor?.data.businessName || "chưa cập nhật"}</p>
+                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.representativeName} </p></p>
+                        <p className=""><b>Chức vụ:</b> {bsInfor?.data.representativeTitle}</p>
+                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                        <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
                     </div>
                     <div className={` p-4 pl-1 rounded-md `}>
                         <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
@@ -17,6 +17,7 @@ import { useGetAppendixByContractIdQuery } from '../../services/AppendixAPI';
 import DisplayAppendix from '../appendix/staff/DisplayAppendix';
 import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
 
+const { Title, Text } = Typography;
 const ContractDetail = () => {
 
     const { id } = useParams();
@@ -307,6 +308,62 @@ const ContractDetail = () => {
     const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
     const isApprover = processData?.data.stages?.some(stage => stage.approver === user?.id);
 
+    const paymentItemsColumns = [
+        {
+            title: 'STT',
+            dataIndex: 'itemOrder',
+            key: 'itemOrder',
+            align: 'center',
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'description',
+            key: 'description',
+        },
+        {
+            title: 'Số tiền (VND)',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (value) => new Intl.NumberFormat('vi-VN').format(value),
+        },
+
+    ];
+
+    // Cột cho bảng số lần thanh toán
+    const paymentSchedulesColumns = [
+        {
+            title: 'Đợt',
+            dataIndex: 'paymentOrder',
+            key: 'paymentOrder',
+            align: 'center',
+        },
+        {
+            title: 'Số tiền (VND)',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (value) => new Intl.NumberFormat('vi-VN').format(value),
+        },
+        {
+            title: 'Ngày thanh toán',
+            dataIndex: 'paymentDate',
+            key: 'paymentDate',
+            render: (paymentDate) =>
+                `Ngày ${dayjs(parseDate(paymentDate)).format('DD')} Tháng ${dayjs(parseDate(paymentDate)).format('MM')} năm ${dayjs(parseDate(paymentDate)).format('YYYY')}`,
+        },
+        {
+            title: 'Phương thức thanh toán',
+            dataIndex: 'paymentMethod',
+            key: 'paymentMethod',
+            render: (method) =>
+                method === 'cash'
+                    ? 'Tiền mặt'
+                    : method === 'creditCard'
+                        ? 'Thẻ tín dụng'
+                        : 'Chuyển khoản',
+        },
+    ];
+
+
     if (isLoadingBsData || loadingDataContract | loadingDataContractAppendix) {
         return (
             <div className="flex justify-center items-center">
@@ -548,8 +605,8 @@ const ContractDetail = () => {
                 <div className="text-center mt-9">
                     <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                     <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
-                    <p>---------------------------------</p>
-                    <p className='place-self-end mr-10'>
+                    <p>---------oOo---------</p>
+                    <p className='place-self-end mr-10 my-6'>
                         {contractData?.data?.contractLocation}, Ngày {dayjs(parseDate(contractData?.data?.createdAt)).format('DD')} Tháng {dayjs(parseDate(contractData?.data?.createdAt)).format('MM')} năm {dayjs(parseDate(contractData?.data?.createdAt)).format('YYYY')}
                     </p>
                     <p className="text-3xl font-bold mt-5">
@@ -594,32 +651,50 @@ const ContractDetail = () => {
                             dangerouslySetInnerHTML={{ __html: contractData?.data.contractContent || "Chưa nhập" }}
                         />
                         <div className="mt-4">
-                            <h4 className="font-bold text-lg"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
-                            <p className="mt-4">
-                                - Tổng giá trị hợp đồng: <b>{new Intl.NumberFormat('vi-VN').format(contractData?.data.amount)} VND</b>
-                                <span className="text-gray-600"> ( {numberToVietnamese(contractData?.data.amount)} )</span>
-                            </p>
-                            {contractData?.data?.paymentSchedules && contractData?.data.paymentSchedules.length > 0 && (
-                                <div className="mt-5 ml-2">
-                                    <p className="font-bold text-base">
-                                        Thanh toán qua {contractData?.data.paymentSchedules.length} đợt:
-                                    </p>
-                                    {contractData?.data.paymentSchedules.map((payment, index) => (
-                                        <div key={index} className="mt-2 ml-6 flex flex-col gap-2">
-                                            <p><b>Đợt: {payment.paymentOrder}</b></p>
-                                            <p>- <b>Số tiền:</b> {payment.amount.toLocaleString()} ₫</p>
-                                            <p>- <b>Ngày thanh toán:</b>  Ngày {dayjs(parseDate(payment?.paymentDate)).format('DD')} Tháng {dayjs(parseDate(payment?.paymentDate)).format('MM')} năm {dayjs(parseDate(payment?.paymentDate)).format('YYYY')}</p>
-                                            <p>
-                                                - <b>Phương thức thanh toán:</b> {payment.paymentMethod === 'cash'
-                                                    ? 'Tiền mặt'
-                                                    : payment.paymentMethod === 'creditCard'
-                                                        ? 'Thẻ tín dụng'
-                                                        : 'Chuyển khoản'}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            <p className="font-bold text-lg mt-4 mb-3"><u>GIÁ TRỊ VÀ THANH TOÁN</u></p>
+                            <div className="mb-4">
+                                <Text className='ml-3'>
+                                    - Tổng giá trị hợp đồng:{' '}
+                                    <b>
+                                        {new Intl.NumberFormat('vi-VN').format(contractData?.data.amount)} VND
+                                    </b>{' '}
+                                    <span className="text-gray-600">
+                                        ( {numberToVietnamese(contractData?.data.amount)} )
+                                    </span>
+                                </Text>
+                            </div>
+                            <div className=" space-y-4 mb-[40px]">
+                                {/* Bảng Hạng mục thanh toán */}
+                                <p className=" ml-3 font-bold">
+                                    1.  Hạng mục thanh toán
+                                </p>
+                                <Table
+                                    dataSource={contractData?.data.contractItems}
+                                    columns={paymentItemsColumns}
+                                    rowKey="id"
+                                    pagination={false}
+                                    bordered
+                                />
+                                {/* Bảng Giá trị hợp đồng và số lần thanh toán */}
+
+                                <p className=" ml-3 font-bold">
+                                    2. Tổng giá trị và số lần thanh toán
+                                </p>
+
+                                {contractData?.data?.paymentSchedules &&
+                                    contractData?.data.paymentSchedules.length > 0 && (
+                                        <>  
+                                            <Table
+                                                dataSource={contractData.data.paymentSchedules}
+                                                columns={paymentSchedulesColumns}
+                                                rowKey="paymentOrder"
+                                                pagination={false}
+                                                bordered
+                                            />
+                                        </>
+                                    )}
+
+                            </div>
                             <div>
                                 {contractData?.data?.isDateLateChecked && (
                                     <p className="mt-3">
