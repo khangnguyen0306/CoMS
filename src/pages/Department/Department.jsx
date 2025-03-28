@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Space, Skeleton } from 'antd';
+import { Table, Button, Modal, Form, Input, message, Space, Skeleton, List, Divider } from 'antd';
 import {
     useCreateDepartmentMutation,
     useGetDepartmentsQuery,
     useUpdateDepartmentMutation,
 } from '../../services/Department';
+import { EditFilled } from '@ant-design/icons';
 
 const Department = () => {
     const { data, isLoading, refetch } = useGetDepartmentsQuery();
@@ -86,12 +87,43 @@ const Department = () => {
                 </Button>
             </div>
 
-            <Table
+            {/* <Table
                 columns={columns}
                 dataSource={data?.data}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
-            />
+            /> */}
+
+            <div>
+                <List
+                    dataSource={data?.data}
+                    pagination={{ pageSize: 10 }}
+                    renderItem={(item, index) => (
+                        <>
+                            <List.Item
+                                actions={[
+                                    <Button
+                                        type="primary"
+                                        icon={<EditFilled />}
+                                        onClick={() => handleEditContractType(item)}
+                                    >
+                                        Sửa
+                                    </Button>,
+                                    // Thêm các hành động khác nếu cần
+                                ]}
+                                className="shadow-md border rounded-lg p-4 m-3"
+                            >
+                                <List.Item.Meta
+                                    title={<span className="ml-4 font-semibold text-lg">{item.departmentName}</span>}
+
+                                />
+                            </List.Item>
+                            {index !== data?.data.length - 1 && <Divider style={{ margin: 0 }} />}
+                        </>
+                    )}
+                />
+            </div>
+
 
             <Modal
                 title={isEditMode ? 'Chỉnh Sửa Phòng Ban' : 'Thêm Mới Phòng Ban'}

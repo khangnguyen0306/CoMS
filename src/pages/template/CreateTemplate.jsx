@@ -107,7 +107,7 @@ const CreateTemplate = () => {
     const [formLegal] = Form.useForm();
     const [isExpanded, setIsExpanded] = useState(false);
     const [templateName, setTemplateName] = useState("");
-    const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()   
+    const { data: bsInfor, isLoading, isError } = useGetBussinessInformatinQuery()
     const { data: contractType, isLoading: isLoadingType, isError: ErrorLoadingType, refetch } = useGetContractTypeQuery()
     const [getAllTypeClause, { data: allTypeClause, isLoading: loadingType }] = useLazyGetAllTypeClauseQuery();
     const [getContractLegal, { data: legalData, isLoading: loadingLegal }] = useLazyGetLegalQuery();
@@ -911,7 +911,7 @@ const CreateTemplate = () => {
                                                             10. Phụ lục
                                                         </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                            {(  isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
+                                                            {(isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
                                                                 <span className="mr-[20px]"></span>}
                                                             11. Trường hợp đặc biệt
                                                         </div>

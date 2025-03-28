@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import {
-    Table, Input, Space, Button, Modal, Tag, Form, Upload, Row, Col, DatePicker
+    Table, Input, Space, Button, Modal, Tag, Form, Upload, Row, Col, DatePicker,
+    message,
+    Tooltip
 } from "antd";
 import {
-    EditFilled, DownloadOutlined, UploadOutlined
+    EditFilled, DownloadOutlined, UploadOutlined,
+    LoadingOutlined,
+    StopOutlined,
+    DeleteFilled
 } from "@ant-design/icons";
-import { useGetAllContractPartnerQuery } from "../../services/ContractAPI";
+import { useCreateContractPartnerMutation, useDeleteContractPartnerMutation, useGetAllContractPartnerQuery, useGetContractPartnerQueryQuery, useUpdateContractPartnerMutation } from "../../services/ContractAPI";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-
+import { useUploadFilePDFMutation } from "../../services/uploadAPI";
+import dayjs from "dayjs";
 
 // Lấy API key từ biến môi trường (lưu ý rủi ro bảo mật nếu dùng trên FE)
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
@@ -77,17 +82,48 @@ const statusContract = {
 
 
 const ContractPartner = () => {
-    const { data: contracts, isLoading } = useGetAllContractPartnerQuery();
+
+    const [uploadFilePDF, { isLoading: uploadLoading }] = useUploadFilePDFMutation();
+    const [createContractPartner] = useCreateContractPartnerMutation();
+    const [updateContractPartner] = useUpdateContractPartnerMutation();
+    const [deleteContractPartner] = useDeleteContractPartnerMutation();
     const [searchText, setSearchText] = useState("");
+    const [page, setPage] = useState(1);
+    const [size, setSize] = useState(10);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [formUpload] = Form.useForm();
     const [fileList, setFileList] = useState([]);
-
+    const [Loading, setLoading] = useState(false);
+    const [currentRecord, setCurrentRecord] = useState(null);
+    const [url, setUrl] = useState(null);
+    const [isModalUpdate, setIsModalUpdate] = useState(false);
+    const { data: contracts, isLoading, refetch } = useGetContractPartnerQueryQuery({
+        search: searchText,
+        page: page - 1,  // Nếu backend dùng 0-based
+        size,
+    });
+    // console.log("contracts data:", contracts);
     // Xử lý upload file
     const onChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
         console.log("File list:", newFileList);
+    };
+
+    const onSearch = (value) => {
+        setSearchText(value);
+        setPage(1); // reset về trang 1 khi search
+    };
+
+    const handleTableChange = (pagination) => {
+        setPage(pagination.current);    // current là trang hiện tại (1-based)
+        setSize(pagination.pageSize);   // pageSize là số item trên mỗi trang
+    };
+
+    const closeModel = () => {
+        setIsModalVisible(false);
+        form.resetFields();
+        setFileList([]);
     };
 
     const text = `Vui lòng đọc file PDF hợp đồng tôi vừa upload và trích xuất các thông tin chính sau đây. Đối với mỗi trường, nếu không tìm thấy giá trị trong tài liệu, hãy trả về chữ null thay vì các giá trị mặc định như "unknown" hoặc các mảng mặc định.
@@ -163,99 +199,191 @@ chỗ ...Date nếu k có giá trị trả về cho tôi [0,0,0,0,0,0]`;
             throw error;
         }
     };
-
     // Hàm submit form: gọi AI để trích xuất dữ liệu, gán vào form, và gọi API tạo hợp đồng
-    const handleSubmit = async () => {
-        if (fileList.length === 0) {
-            message.error("Vui lòng chọn file PDF");
-            return;
-        }
-        const file = fileList[0].originFileObj;
+    const handleSubmit = async (values) => {
+        // if (fileList.length === 0) {
+        //     message.error("Vui lòng chọn file PDF");
+        //     return;
+        // }
         try {
-            // Bước 1: Gọi AI để trích xuất thông tin từ file PDF
-            const extractedData = await callAIForExtraction(file);
-            console.log("Extracted data:", extractedData);
-            // Bước 2: Gán dữ liệu trả về vào form
-            form.setFieldsValue({
-                field1: extractedData.partnerName,
-                field2: extractedData.contractNumber,
-                field3: extractedData.amount,
-                field4: extractedData.effectiveDate
-                    ? dayjs(new Date(...extractedData.effectiveDate))
-                    : null,
-                field5: extractedData.expiryDate
-                    ? dayjs(new Date(...extractedData.expiryDate))
-                    : null,
-                field6: extractedData.signingDate
-                    ? dayjs(new Date(...extractedData.signingDate))
-                    : null,
+            let values = form.getFieldsValue();
+            values.fileUrl = url;
+            values.effectiveDate = values.effectiveDate
+                ? [values.effectiveDate.year(), values.effectiveDate.month() + 1, values.effectiveDate.date(), 0, 0, 0]
+                : [0, 0, 0, 0, 0, 0];
+            values.expiryDate = values.expiryDate
+                ? [values.expiryDate.year(), values.expiryDate.month() + 1, values.expiryDate.date(), 0, 0, 0]
+                : [0, 0, 0, 0, 0, 0];
+            values.signingDate = values.signingDate
+                ? [values.signingDate.year(), values.signingDate.month() + 1, values.signingDate.date(), 0, 0, 0]
+                : [0, 0, 0, 0, 0, 0];
 
-                contractName: extractedData.title,
-            });
-            message.success("Đã trích xuất thông tin hợp đồng thành công!");
-            // Bước 3: Gọi API CreateContract với dữ liệu đã trích xuất
-            //   await axios.post("/api/create-contract", extractedData, {
-            //     headers: { "Content-Type": "application/json" },
-            //   });
+            console.log("Transformed form values:", values);
+
+            await createContractPartner(values).unwrap();
             message.success("Hợp đồng đã được tạo thành công!");
         } catch (error) {
             console.error(error);
             message.error("Lỗi khi xử lý file hoặc tạo hợp đồng.");
         }
-        //  finally {
-        //     // Reset lại modal và form
-        //     setIsModalVisible(false);
-        //     form.resetFields();
-        //     setFileList([]);
-        // }
+        finally {
+            refetch();
+            setIsModalVisible(false);
+            form.resetFields();
+            setFileList([]);
+        }
     };
 
+    const isDateEmpty = (dateArray) =>
+        Array.isArray(dateArray) &&
+        dateArray.length === 6 &&
+        dateArray.every((val) => val === 0);
+
+
+    const fillFormWithExtractedData = (extractedData) => {
+        form.setFieldsValue({
+            title: extractedData.title,
+            partnerName: extractedData.partnerName,
+            contractNumber: extractedData.contractNumber,
+            amount: extractedData.amount,
+            effectiveDate:
+                extractedData.effectiveDate && !isDateEmpty(extractedData.effectiveDate)
+                    ? dayjs(new Date(...extractedData.effectiveDate))
+                    : null,
+            expiryDate:
+                extractedData.expiryDate && !isDateEmpty(extractedData.expiryDate)
+                    ? dayjs(new Date(...extractedData.expiryDate))
+                    : null,
+            signingDate:
+                extractedData.signingDate && !isDateEmpty(extractedData.signingDate)
+                    ? dayjs(new Date(...extractedData.signingDate))
+                    : null,
+        });
+    };
+
+    const handleDelete = async (userId) => {
+        Modal.confirm({
+            title: 'Bạn có chắc muốn xóa hợp đồng này không?',
+            onOk: async () => {
+                try {
+                    const result = await deleteContractPartner({ contractPartnerId: userId });
+                    console.log(result);
+                    refetch();
+                    message.success(result?.data?.message);
+                }
+                catch (error) {
+                    console.error("Error during delete:", error);
+                    message.error('Cấm thất bại, vui lòng thử lại!');
+                }
+            },
+            okText: "Xóa",
+            cancelText: "Hủy"
+
+        });
+    };
+
+    const showEditModal = (record) => {
+        console.log("Record:", record);
+        setCurrentRecord(record);
+        setIsModalUpdate(true);
+        form.resetFields();
+        form.setFieldsValue({
+            contractPartnerId: record.contractPartnerId, // đảm bảo trường này trùng với dữ liệu record
+            fileUrl: record.fileUrl,
+            partnerName: record.partnerName,
+            contractNumber: record.contractNumber,
+            amount: record.amount,
+            effectiveDate: record.effectiveDate
+                ? dayjs(new Date(...record.effectiveDate))
+                : null,
+            expiryDate: record.expiryDate
+                ? dayjs(new Date(...record.expiryDate))
+                : null,
+            signingDate: record.signingDate
+                ? dayjs(new Date(...record.signingDate))
+                : null,
+            title: record.title,
+        });
+        console.log("Form set with record:", record);
+    };
+
+    const handleSubmitEditContractPartner = async (values) => {
+        try {
+            console.log("Form values:", values);
+            const transformedValues = {
+                ...values,
+                fileUrl: values.fileUrl,
+                paymentSchedules: values.paymentSchedules,
+                effectiveDate: values.effectiveDate
+                    ? [values.effectiveDate.year(), values.effectiveDate.month() + 1, values.effectiveDate.date(), 0, 0, 0]
+                    : [0, 0, 0, 0, 0, 0],
+                expiryDate: values.expiryDate
+                    ? [values.expiryDate.year(), values.expiryDate.month() + 1, values.expiryDate.date(), 0, 0, 0]
+                    : [0, 0, 0, 0, 0, 0],
+                signingDate: values.signingDate
+                    ? [values.signingDate.year(), values.signingDate.month() + 1, values.signingDate.date(), 0, 0, 0]
+                    : [0, 0, 0, 0, 0, 0],
+                paymentSchedules: currentRecord?.paymentSchedules || [],
+
+            };
+
+            console.log("Transformed form values:", transformedValues);
+            const { contractPartnerId, ...body } = transformedValues;
+            console.log("Body:", body);
+            console.log("Id:", contractPartnerId);
+            // Gọi API cập nhật (bỏ comment khi API sẵn)
+            await updateContractPartner({ contractPartnerId, body }).unwrap();
+
+            message.success("Cập nhật hợp đồng thành công!");
+            setIsModalUpdate(false);
+            form.resetFields();
+            refetch();
+        } catch (error) {
+            console.error("Lỗi cập nhật hợp đồng:", error);
+            message.error("Có lỗi xảy ra khi cập nhật hợp đồng!");
+        }
+    };
 
     const columns = [
         {
             title: "Mã hợp đồng",
-            dataIndex: "contract_code",
-            key: "contract_code",
+            dataIndex: "contractNumber",
+            key: "contractNumber",
         },
         {
-            title: "Ngày tạo",
-            dataIndex: "created_at",
-            key: "created_at",
-            sorter: (a, b) => new Date(b.created_at) - new Date(a.created_at),
-            render: (text) => new Date(text).toLocaleDateString("vi-VN"),
+            title: "Ngày ký",
+            dataIndex: "signingDate",
+            key: "signingDate",
+            sorter: (a, b) => new Date(b.signingDate) - new Date(a.signingDate),
+            render: (text) => {
+                if (Array.isArray(text) && text.length >= 3) {
+                    return dayjs(new Date(text[0], text[1] - 1, text[2])).format('DD/MM/YYYY');
+                }
+                return 'Không có dữ liệu';
+            },
             defaultSortOrder: 'ascend',
         },
         {
             title: "Tải file",
-            dataIndex: "file_name",
-            key: "file_name",
+            dataIndex: "fileUrl",
+            key: "fileUrl",
             render: (text, record) => (
                 <div className="flex flex-col items-center gap-3">
-                    <p>{text}</p>
+                    {/* <p>{text}</p> */}
                     <Button
                         type="primary"
-                        icon={<DownloadOutlined />}
+                        className=" px-2"
+                        icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
                         onClick={(e) => {
                             e.stopPropagation();
-
-                            let downloadUrl = record.file_url;
-
-                            // Kiểm tra nếu URL chứa "docs.google.com"
-                            if (downloadUrl.includes("docs.google.com")) {
-                                const fileIdMatch = downloadUrl.match(/\/d\/([^/]+)/);
-                                if (fileIdMatch && fileIdMatch[1]) {
-                                    const fileId = fileIdMatch[1];
-                                    // Chuyển đổi URL xem sang URL tải về PDF (bạn có thể thay đổi định dạng nếu cần)
-                                    downloadUrl = `https://docs.google.com/document/d/${fileId}/export?format=pdf`;
-                                }
-                            }
-                            // Tạo thẻ <a> ẩn để tải file
                             const link = document.createElement("a");
-                            link.href = downloadUrl;
-                            link.download = record.file_name;
+                            link.href = record.fileUrl;
+                            // Nếu có tên file, bạn có thể set thuộc tính download
+                            link.download = record.fileUrl.split("/").pop();
                             document.body.appendChild(link);
                             link.click();
                             document.body.removeChild(link);
+
                         }}
                     >
                         Tải file
@@ -265,45 +393,71 @@ chỗ ...Date nếu k có giá trị trả về cho tôi [0,0,0,0,0,0]`;
         },
         {
             title: "Tên hợp đồng",
-            dataIndex: "contract_name",
-            key: "contract_name",
-            sorter: (a, b) => a.contract_name.localeCompare(b.contract_name),
+            dataIndex: "title",
+            key: "title",
+            sorter: (a, b) => a.title.localeCompare(b.title),
         },
         {
             title: "Đối tác",
-            dataIndex: "partner",
-            key: "partner",
-            sorter: (a, b) => a.partner.localeCompare(b.partner),
+            dataIndex: "partnerName",
+            key: "partnerName",
+            sorter: (a, b) => a.partnerName.localeCompare(b.partnerName),
         },
         {
-            title: "Loại hợp đồng",
-            dataIndex: "contract_type",
-            key: "contract_type",
-            render: (type) => <Tag color="blue">{type.replace(/^Hợp đồng\s*/, "")}</Tag>,
-            filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
-                text: type.replace(/^Hợp đồng\s*/, ""),
-                value: type.replace(/^Hợp đồng\s*/, "")
-            })),
-            onFilter: (value, record) => record.contract_type.replace(/^Hợp đồng\s*/, "") === value,
+            title: "Ngày có hiệu lực",
+            dataIndex: "effectiveDate",
+            key: "effectiveDate",
+            sorter: (a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate),
+            render: (text) => {
+                if (Array.isArray(text) && text.length >= 3) {
+                    return dayjs(new Date(text[0], text[1] - 1, text[2])).format('DD/MM/YYYY');
+                }
+                return 'Không có dữ liệu';
+            },
+            defaultSortOrder: 'ascend',
         },
-
+        {
+            title: "Ngày hết hiệu lực",
+            dataIndex: "expiryDate",
+            key: "expiryDate",
+            sorter: (a, b) => new Date(b.expiryDate) - new Date(a.expiryDate),
+            render: (text) => {
+                if (Array.isArray(text) && text.length >= 3) {
+                    return dayjs(new Date(text[0], text[1] - 1, text[2])).format('DD/MM/YYYY');
+                }
+                return 'Không có dữ liệu';
+            },
+            defaultSortOrder: 'ascend',
+        },
         {
             title: "Giá trị",
-            dataIndex: "value",
-            key: "value",
-            render: (value) => value.toLocaleString("vi-VN") + " VND",
-            sorter: (a, b) => a.value - b.value,
+            dataIndex: "amount",
+            key: "amount",
+            render: (amount) => amount.toLocaleString("vi-VN") + " VND",
+            sorter: (a, b) => a.amount - b.amount,
         },
         {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            filters: Object.keys(statusContract).map(status => ({
-                text: status,
-                value: status,
-            })),
-            onFilter: (value, record) => record.status === value,
-            render: (type) => statusContract[type],
+            title: "Hành động",
+            key: "action",
+            render: (_, record) => (
+                <Space className="flex justify-center">
+                    <Tooltip title="Cập nhật">
+                        <Button
+                            icon={<EditFilled style={{ color: '#2196f3' }} />}
+                            onClick={() => showEditModal(record)}
+                        />
+                    </Tooltip>
+
+                    <Tooltip title="Xóa">
+                        <Button
+                            icon={<DeleteFilled style={{ color: "#2196f3" }} />}
+                            onClick={() => handleDelete(record.contractPartnerId)}
+                        />
+                    </Tooltip>
+
+
+                </Space>
+            ),
         },
 
     ];
@@ -319,7 +473,7 @@ chỗ ...Date nếu k có giá trị trả về cho tôi [0,0,0,0,0,0]`;
                         <Search
                             placeholder="Nhập tên hợp đồng, tên partner hoặc tên người tạo"
                             allowClear
-                            onSearch={setSearchText}
+                            onSearch={onSearch}
                             style={{ width: "100%", minWidth: 500, maxWidth: 1200, marginBottom: 20 }}
                             enterButton="Tìm kiếm"
                             disabled={isLoading}
@@ -338,30 +492,63 @@ chỗ ...Date nếu k có giá trị trả về cho tôi [0,0,0,0,0,0]`;
                 </div>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.filter(item =>
-                        item.contract_name.toLowerCase().includes(searchText?.toLowerCase()) ||
-                        item.partner.toLowerCase().includes(searchText?.toLowerCase()) ||
-                        item.contract_code.toLowerCase().includes(searchText?.toLowerCase())
+                    dataSource={contracts?.data?.content.filter(item =>
+                        item.title.toLowerCase().includes(searchText?.toLowerCase()) ||
+                        item.partnerName.toLowerCase().includes(searchText?.toLowerCase()) ||
+                        item.contractNumber.toLowerCase().includes(searchText?.toLowerCase())
                     )}
+                    pagination={{
+                        current: page,
+                        pageSize: size,
+                        total: contracts?.data?.totalElements,
+                    }}
+                    onChange={handleTableChange}
                     rowKey="id"
                     loading={isLoading}
-                    onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
                 <Modal
                     title="Tạo hợp đồng"
                     open={isModalVisible}
-                    onCancel={() => setIsModalVisible(false)}
+                    onCancel={closeModel}
                     footer={null}
                 >
                     <Form form={formUpload} layout="vertical">
                         <Form.Item >
                             <Upload
+                                beforeUpload={async (file) => {
+                                    setLoading(true);
+                                    try {
+                                        const extractedData = await callAIForExtraction(file);
+                                        console.log("Extracted data:", extractedData);
+                                        // setExtractedData(extractedData);
+
+                                        fillFormWithExtractedData(extractedData);
+
+                                        const formData = new FormData();
+                                        formData.append("file", file);
+                                        const url = await uploadFilePDF({ formData }).unwrap();
+                                        setUrl(url);
+                                        console.log("Uploaded file URL:", url);
+
+
+
+                                        console.log("Form values:", form.getFieldsValue());
+                                    } catch (error) {
+                                        console.error("Lỗi khi xử lý file:", error);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                    return false;
+                                }}
                                 onChange={onChange}
                                 fileList={fileList}
                                 accept="application/pdf"
                                 listType="text"
+                                maxCount={1}
                             >
-                                <Button icon={<UploadOutlined />}>Chọn file PDF</Button>
+                                <Button icon={Loading ? <LoadingOutlined /> : <UploadOutlined />}>
+                                    {Loading ? "AI đang xử lý..." : "Chọn file PDF"}
+                                </Button>
                             </Upload>
                         </Form.Item>
                     </Form>
@@ -369,67 +556,113 @@ chỗ ...Date nếu k có giá trị trả về cho tôi [0,0,0,0,0,0]`;
 
                         <Row gutter={16}>
                             <Col span={12}>
-                                <Form.Item
-                                    label="Tên đối tác"
-                                    name="field1"
-
-                                // initialValue={aiResponse?.field1}
-                                >
-                                    <Input disabled />
+                                <Form.Item label="Tên đối tác" name="partnerName">
+                                    <Input />
                                 </Form.Item>
-                                <Form.Item
-                                    label="Mã hợp đồng"
-                                    name="field2"
-                                // initialValue={aiResponse?.field2}
-                                >
-                                    <Input disabled />
+                                <Form.Item label="Mã hợp đồng" name="contractNumber">
+                                    <Input />
                                 </Form.Item>
-                                <Form.Item
-                                    label="Tổng giá trị"
-                                    name="field3"
-                                // initialValue={aiResponse?.field3}
-                                >
-                                    <Input disabled />
+                                <Form.Item label="Tổng giá trị" name="amount">
+                                    <Input />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
-                                <Form.Item
-                                    label="Ngày có hiệu lực"
-                                    name="field4"
-                                // initialValue={aiResponse?.field4}
-                                >
-                                    <DatePicker disabled className="w-[100%]" />
+                                <Form.Item label="Ngày có hiệu lực" name="effectiveDate">
+                                    <DatePicker className="w-[100%]" />
                                 </Form.Item>
-                                <Form.Item
-                                    label="Ngày hết hiệu lực"
-                                    name="field5"
-                                // initialValue={aiResponse?.field5}
-                                >
-                                    <DatePicker disabled className="w-[100%]" />
+                                <Form.Item label="Ngày hết hiệu lực" name="expiryDate">
+                                    <DatePicker className="w-[100%]" />
                                 </Form.Item>
-                                <Form.Item
-                                    label="Ngày ký"
-                                    name="field6"
-                                // initialValue={aiResponse?.field6}
-                                >
-                                    <DatePicker disabled className="w-[100%]" />
+                                <Form.Item label="Ngày ký" name="signingDate">
+                                    <DatePicker className="w-[100%]" />
                                 </Form.Item>
                             </Col>
                         </Row>
-                        <Form.Item
-                            label="Tên hợp đồng"
-                            name="contractName"
-                        // initialValue={aiResponse?.contractName}
-                        >
-                            <Input disabled />
+                        <Form.Item label="Tên hợp đồng" name="title">
+                            <Input />
                         </Form.Item>
                         <Form.Item>
-                            <Button type="primary" htmlType="submit">
+                            <Button disabled={Loading} type="primary" htmlType="submit">
                                 Tạo hợp đồng
                             </Button>
                         </Form.Item>
+
                     </Form>
                 </Modal>
+
+                <Modal
+                    title="Cập nhật hợp đồng đối tác"
+                    open={isModalUpdate}
+                    onCancel={() => {
+                        setIsModalUpdate(false);
+                        form.resetFields();
+                    }}
+                    footer={null}
+                >
+                    <Form form={form} layout="vertical" onFinish={handleSubmitEditContractPartner}>
+                        {/* Các trường ẩn cho id và fileUrl */}
+                        <Form.Item name="contractPartnerId" style={{ display: "none" }}>
+                            <Input />
+                        </Form.Item>
+                        <Form.Item name="fileUrl" style={{ display: "none" }}>
+                            <Input />
+                        </Form.Item>
+
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    label="Tên đối tác"
+                                    name="partnerName"
+                                    rules={[{ required: true, message: "Vui lòng nhập tên đối tác!" }]}
+                                >
+                                    <Input placeholder="Nhập tên đối tác" />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Mã hợp đồng"
+                                    name="contractNumber"
+                                    rules={[{ required: true, message: "Vui lòng nhập mã hợp đồng!" }]}
+                                >
+                                    <Input placeholder="Nhập mã hợp đồng" />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Tổng giá trị"
+                                    name="amount"
+                                    rules={[{ required: true, message: "Vui lòng nhập tổng giá trị!" }]}
+                                >
+                                    <Input placeholder="Nhập tổng giá trị" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item label="Ngày có hiệu lực" name="effectiveDate">
+                                    <DatePicker className="w-[100%]" />
+                                </Form.Item>
+                                <Form.Item label="Ngày hết hiệu lực" name="expiryDate">
+                                    <DatePicker className="w-[100%]" />
+                                </Form.Item>
+                                <Form.Item label="Ngày ký" name="signingDate">
+                                    <DatePicker className="w-[100%]" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+
+                        <Form.Item
+                            label="Tên hợp đồng"
+                            name="title"
+                            rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}
+                        >
+                            <Input placeholder="Nhập tên hợp đồng" />
+                        </Form.Item>
+
+                        <Form.Item>
+                            <div className="flex justify-center">
+                                <Button type="primary" htmlType="submit">
+                                    Cập nhật
+                                </Button>
+                            </div>
+                        </Form.Item>
+                    </Form>
+                </Modal>
+
             </div>
 
         </div>

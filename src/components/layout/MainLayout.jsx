@@ -444,7 +444,8 @@ const MainLayout = () => {
           <Footer
             style={{
               textAlign: 'center',
-              marginBottom: -30,
+              marginBottom: -25,
+              paddingBottom: 15,
             }}
           >
             Ant Design ©{new Date().getFullYear()} Created by Khang

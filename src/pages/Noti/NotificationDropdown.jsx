@@ -122,7 +122,6 @@ const NotificationDropdown = () => {
                 <div className="flex items-center">
                   {getMessageIcon(item.message)}
                   <div className="ml-2 font-semibold">{item.title}</div>
-                  <div className="ml-2 font-semibold">{item.title}</div>
                 </div>
                 <div
                   className="overflow-hidden"
@@ -151,7 +150,7 @@ const NotificationDropdown = () => {
     <div className="flex items-center">
       <Dropdown
         arrow
-        overlay={dropdownContent}
+        dropdownRender={() => dropdownContent}
         trigger={["click"]}
         className={`p-2 rounded-full ${!isOpen ? "bg-gray-600" : "bg-slate-700"}`}
         onOpenChange={(visible) => {

@@ -3,7 +3,7 @@ import { bussinessAPI } from "../services/BsAPI";
 import { partnerAPI } from "../services/PartnerAPI";
 import { ContractAPI } from "../services/ContractAPI";
 import { TemplateAPI } from "../services/TemplateAPI";
-import { taskAPI } from "../services/TaskAPI";
+import { uploadAPI } from "../services/uploadAPI";
 import { clauseAPI } from "../services/ClauseAPI";
 import { userAPI } from "../services/UserAPI";
 import { processAPI } from "../services/ProcessAPI";
@@ -34,7 +34,7 @@ export const store = configureStore({
     [partnerAPI.reducerPath]: partnerAPI.reducer,
     [ContractAPI.reducerPath]: ContractAPI.reducer,
     [TemplateAPI.reducerPath]: TemplateAPI.reducer,
-    [taskAPI.reducerPath]: taskAPI.reducer,
+    [uploadAPI.reducerPath]: uploadAPI.reducer,
     [clauseAPI.reducerPath]: clauseAPI.reducer,
     [userAPI.reducerPath]: userAPI.reducer,
     [processAPI.reducerPath]: processAPI.reducer,
@@ -56,7 +56,7 @@ export const store = configureStore({
       partnerAPI.middleware,
       ContractAPI.middleware,
       TemplateAPI.middleware,
-      taskAPI.middleware,
+      uploadAPI.middleware,
       userAPI.middleware,
       clauseAPI.middleware,
       processAPI.middleware,

@@ -186,6 +186,18 @@ const ReviewContract = () => {
                                             {
                                                 stage?.status === "APPROVING"
                                                     ? <div className="flex flex-col justify-center items-center">
+                                                        {/* <p className="text-[12px]">
+                                                            {new Date(
+                                                                stage.startDate[0],
+                                                                stage.startDate[1] - 1,
+                                                                stage.startDate[2]
+                                                            ).toLocaleDateString("vi-VN")} -
+                                                            {new Date(
+                                                                stage.endDate[0],
+                                                                stage.endDate[1] - 1,
+                                                                stage.endDate[2]
+                                                            ).toLocaleDateString("vi-VN")}
+                                                        </p> */}
                                                         <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
                                                     </div>
                                                     : stage.status === "APPROVED" && stage.approvedAt

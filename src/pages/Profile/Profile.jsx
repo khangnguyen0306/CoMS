@@ -51,6 +51,7 @@ const Profile = () => {
             message.success("Profile updated successfully!");
             setIsModalOpen(false);
             form.resetFields();
+            refetch();
         } catch (error) {
             message.error("Update failed, please try again.");
         }
@@ -93,7 +94,7 @@ const Profile = () => {
                 <div className="space-y-4">
                     <div className="flex items-end gap-8">
                         <p className="font-semibold text-black text-3xl">{data?.full_name}</p>
-                        <p className="flex mb-1 items-center text-gray-700 text-sm"> <MdPlace style={{ fontSize: '20px', marginBottom: '5px', color: 'grey',marginRight:'7px' }} /> {data?.address || "Chưa cập nhật"}</p>
+                        <p className="flex mb-1 items-center text-gray-700 text-sm"> <MdPlace style={{ fontSize: '20px', marginBottom: '5px', color: 'grey', marginRight: '7px' }} /> {data?.address || "Chưa cập nhật"}</p>
                     </div>
                     <p></p>
                     <div>
