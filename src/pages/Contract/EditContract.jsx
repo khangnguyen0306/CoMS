@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline, Drawer, Image, Card } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline, Drawer, Image, Card, Table } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLazyGetAllTemplateQuery } from "../../services/TemplateAPI";
@@ -8,7 +8,7 @@ import { useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractDetailQuery, useLazyGetContractTypeQuery, useUpdateContractMutation } from "../../services/ContractAPI";
-import { CheckCircleFilled, DeleteFilled, EyeFilled, LeftOutlined, PlusOutlined } from "@ant-design/icons";
+import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EyeFilled, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
@@ -157,6 +157,14 @@ const EditContract = () => {
                         : null,
                     notifyPaymentContent: payment.notifyPaymentContent,
                 })) || [],
+
+                contractItems: contractData?.data.contractItems?.map((item, index) => ({
+                    id: item.id,
+                    amount: item.amount,
+                    description: item.description,
+                    itemOrder: item.itemOrder
+                })) || [],
+
                 effectiveDateExpiryDate: [
                     dayjs(new Date(
                         contractData?.data.effectiveDate[0],
@@ -396,13 +404,14 @@ const EditContract = () => {
             }, {});
 
         const formattedData = {
+            // contractNumberFormat: data.contractNumberFormat,
             contractTypeId: data.contractTypeId,
             contractId: data.contractId,
             title: data.contractName,
             contractNumber: data.contractNumber,
             signingDate: formatDateArray(data.signingDate),
             contractLocation: data.contractLocation,
-            amount: data.totalValue,
+            totalValue: data.totalValue,
             effectiveDate: formatDateArray(data.effectiveDate),
             expiryDate: formatDateArray(data.expiryDate),
             notifyEffectiveDate: formatDateArray(data.notifyEffectiveDate),
@@ -434,6 +443,12 @@ const EditContract = () => {
                 notifyPaymentContent: payment.notifyPaymentContent,
                 reminderEmailSent: payment.reminderEmailSent,
                 overdueEmailSent: payment.overdueEmailSent,
+            })),
+            contractItems: data.contractItems.map((item, index) => ({
+                id: item.id,
+                itemOrder: index + 1,
+                amount: item.amount,
+                description: item.description,
             })),
             legalBasisTerms: data.legalBasisTerms,
             generalTerms: data.generalTerms,
@@ -789,6 +804,78 @@ const EditContract = () => {
         }
     };
 
+    const parseDate = (dateArray) => {
+        if (!Array.isArray(dateArray) || dateArray.length < 5) return null;
+        const [year, month, day, hour, minute] = dateArray;
+        return new Date(year, month - 1, day, hour, minute);
+    };
+
+
+    const columns = [
+        {
+            title: 'STT',
+            dataIndex: 'index',
+            key: 'index',
+            render: (text, record, index) => index + 1,
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'description',
+            key: 'description',
+            render: (text, record, index) => (
+                <Form.Item
+                    name={[index, 'description']}
+                    rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+                    noStyle
+                >
+                    <Input.TextArea placeholder="Nhập nội dung" rows={2} />
+                </Form.Item>
+
+            ),
+        },
+        {
+            title: 'Giá tiền',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (text, record, index) => (
+                <Form.Item
+                    name={[index, 'amount']}
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập giá tiền' },
+
+                    ]}
+
+                    noStyle
+                >
+                    <InputNumber
+                        style={{ width: '100%' }}
+                        placeholder="Nhập giá tiền"
+                        min={0}
+                        max={100000000000}
+                        onChange={(value) => {
+                            if (value > 100000000000) {
+                                message.warning('Giá tiền không được vượt quá 100 tỷ');
+                            }
+                        }}
+                        formatter={(value) =>
+                            value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ₫' : ''
+                        }
+                        parser={(value) => value.replace(/\D/g, '')}
+                    />
+                </Form.Item>
+            ),
+        },
+        {
+            title: 'Hành động',
+            key: 'action',
+            render: (text, record, index) => (
+                <Button type="primary" onClick={() => remove(index)} danger>
+                    <DeleteFilled />
+                </Button>
+            ),
+        },
+    ];
+
 
     console.log(form.getFieldsValue(true))
     const steps = [
@@ -797,7 +884,18 @@ const EditContract = () => {
             content: (
                 <div className="space-y-4">
                     <Form.Item hidden name="contractId" />
-
+                    <Form.Item label="Loại hợp đồng" name="contractTypeId" rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}>
+                        <LazySelectContractType loadDataCallback={loadContractTypeData} options={contractTypeData} showSearch labelInValue placeholder="Chọn loại hợp đồng" dropdownRender={(menu) => (
+                            <>
+                                {menu}
+                                <Divider style={{ margin: "8px 0" }} />
+                                <Space style={{ padding: "0 8px 4px" }}>
+                                    <Input placeholder="Nhập loại hợp đồng mới" ref={inputRef} value={newTypeCreate} onChange={onNewTypeChange} onKeyDown={(e) => e.stopPropagation()} />
+                                    <Button type="text" icon={<PlusOutlined />} onClick={addNewType} loading={isLoadingCreateType}>Thêm</Button>
+                                </Space>
+                            </>
+                        )} />
+                    </Form.Item>
                     <Form.Item label="Chọn đối tác" name="partnerId" rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}>
                         <LazySelectPartner
                             loadDataCallback={loadPartnerData}
@@ -817,18 +915,7 @@ const EditContract = () => {
                     <Form.Item label="Tên hợp đồng" name="contractName" rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}>
                         <Input placeholder="Nhập tên hợp đồng" />
                     </Form.Item>
-                    <Form.Item label="Loại hợp đồng" name="contractTypeId" rules={[{ required: true, message: "Vui lòng chọn loại hợp đồng!" }]}>
-                        <LazySelectContractType loadDataCallback={loadContractTypeData} options={contractTypeData} showSearch labelInValue placeholder="Chọn loại hợp đồng" dropdownRender={(menu) => (
-                            <>
-                                {menu}
-                                <Divider style={{ margin: "8px 0" }} />
-                                <Space style={{ padding: "0 8px 4px" }}>
-                                    <Input placeholder="Nhập loại hợp đồng mới" ref={inputRef} value={newTypeCreate} onChange={onNewTypeChange} onKeyDown={(e) => e.stopPropagation()} />
-                                    <Button type="text" icon={<PlusOutlined />} onClick={addNewType} loading={isLoadingCreateType}>Thêm</Button>
-                                </Space>
-                            </>
-                        )} />
-                    </Form.Item>
+
                 </div>
             ),
         },
@@ -973,19 +1060,19 @@ const EditContract = () => {
                                     <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                     <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
                                     <p>-------------------</p>
-                                    {/* <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm .......</p> */}
                                     <p className="text-2xl font-bold mt-10">{form.getFieldValue('contractName')?.toUpperCase()}</p>
                                     <p className="mt-3"><b>Số:</b> {form.getFieldValue('contractNumber')}  </p>
-                                    <div className="absolute flex items-center top-[70px] right-9 gap-3">
-                                        <Form.Item label="Nơi ký kết" name="contractLocation" rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}>
-                                            <Select showSearch placeholder="Chọn nơi ký kết" optionFilterProp="children" filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())}>
-                                                {VietnameseProvinces.map(province => <Option key={province} value={province}>{province}</Option>)}
-                                            </Select>
-                                        </Form.Item>
-                                        <Form.Item label="Ngày ký kết" name="signingDate" rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}>
-                                            <DatePicker className="w-full" format="DD/MM/YYYY" disabledDate={(current) => current && current < dayjs().startOf('day')} />
-                                        </Form.Item>
-                                    </div>
+
+                                </div>
+                                <div className=" flex items-center mt-5 right-9 gap-3">
+                                    <Form.Item label="Nơi ký kết" name="contractLocation" rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}>
+                                        <Select showSearch placeholder="Chọn nơi ký kết" optionFilterProp="children" filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())}>
+                                            {VietnameseProvinces.map(province => <Option key={province} value={province}>{province}</Option>)}
+                                        </Select>
+                                    </Form.Item>
+                                    <Form.Item label="Ngày ký kết" name="signingDate" rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}>
+                                        <DatePicker className="w-full" format="DD/MM/YYYY" disabledDate={(current) => current && current < dayjs().startOf('day')} />
+                                    </Form.Item>
                                 </div>
                                 <Form.Item
                                     className="w-full mt-6"
@@ -1013,6 +1100,26 @@ const EditContract = () => {
                                 </Form.Item>
                                 <div className={`px-4 pt-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
                                     {renderLegalBasisTerms()}
+                                    <Form.Item shouldUpdate={(prevValues, currentValues) =>
+                                        prevValues.contractLocation !== currentValues.contractLocation ||
+                                        prevValues.signingDate !== currentValues.signingDate
+                                    }>
+                                        {({ getFieldValue }) => {
+                                            const contractLocation = getFieldValue('contractLocation');
+                                            const signingDate = getFieldValue('signingDate');
+                                            if (contractLocation && signingDate) {
+                                                return (
+                                                    <div className={` p-1 rounded-lg`}>
+                                                        Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
+                                                        {dayjs(signingDate).format("DD")} tháng{" "}
+                                                        {dayjs(signingDate).format("MM")} năm{" "}
+                                                        {dayjs(signingDate).format("YYYY")}, tại {contractLocation}, bởi và giữa:
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    </Form.Item>
                                 </div>
 
                                 <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
@@ -1040,11 +1147,11 @@ const EditContract = () => {
                                 <Form.Item label={<div className="flex justify-between items-center gap-4"><p>Soạn thảo nội dung hợp đồng</p><Popover content={<PreviewSection className='w-[80%]' content={content} isDarkMode={isDarkMode} />} trigger="hover" placement="right"><Button icon={<EyeFilled />} /></Popover></div>} name="contractContent" className="mt-5" rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}>
                                     <RichTextEditor output="html" content={content} onChangeContent={onValueChange} extensions={extensions} dark={isDarkMode} hideBubble={true} dense={false} removeDefaultWrapper placeholder="Nhập nội dung hợp đồng tại đây..." contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200" />
                                 </Form.Item>
-                                <Form.Item label="Tổng giá trị hợp đồng" name="totalValue" rules={[{ required: true, message: "Vui lòng nhập tổng giá trị hợp đồng!" }]}>
+                                {/* <Form.Item label="Tổng giá trị hợp đồng" name="totalValue" rules={[{ required: true, message: "Vui lòng nhập tổng giá trị hợp đồng!" }]}>
                                     <InputNumber style={{ width: "100%" }} placeholder="Nhập tổng giá trị hợp đồng" min={0} max={1000000000000000} formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫" : ""} parser={(value) => value.replace(/\D/g, "")} onChange={handleChange} />
                                 </Form.Item>
-                                {textValue && <div className="mt-1 ml-1"><Typography.Text type="secondary">(Bằng chữ: <span className="font-bold">{textValue}</span>)</Typography.Text></div>}
-                                <Divider orientation="center">Thanh toán</Divider>
+                                {textValue && <div className="mt-1 ml-1"><Typography.Text type="secondary">(Bằng chữ: <span className="font-bold">{textValue}</span>)</Typography.Text></div>} */}
+                                {/* <Divider orientation="center">Thanh toán</Divider>
                                 <Form.List name="payments" rules={[{ validator: async (_, payments) => { if (!payments || payments.length < 1) return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!')); } }]}>
                                     {(fields, { add, remove }) => (
                                         <>
@@ -1071,7 +1178,140 @@ const EditContract = () => {
                                             <Button icon={<PlusOutlined />} type="primary" onClick={() => add()} block>Thêm đợt thanh toán</Button>
                                         </>
                                     )}
+                                </Form.List> */}
+                                <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
+                                <Form.List
+                                    name="contractItems"
+                                    rules={[
+                                        {
+                                            validator: async (_, contractItems) => {
+                                                if (!contractItems || contractItems.length < 1) {
+                                                    return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
+                                                }
+                                            },
+                                        },
+                                    ]}
+                                >
+                                    {(fields, { add, remove }) => {
+                                        // Gán remove vào biến toàn cục để sử dụng trong cột "Hành động"
+                                        window.remove = remove;
+                                        return (
+                                            <>
+                                                <Table
+                                                    dataSource={fields}
+                                                    columns={columns}
+                                                    pagination={false}
+                                                    rowKey={(record) => record.key}
+                                                />
+                                                <Button type="primary" onClick={() => add()} style={{ marginTop: 16 }}>
+                                                    <PlusOutlined />
+                                                </Button>
+                                            </>
+                                        );
+                                    }}
                                 </Form.List>
+
+                                <div className="mt-4    ">
+                                    <Form.Item name="totalValue" label="Tổng giá trị hợp đồng">
+                                        <InputNumber
+                                            style={{ width: '100%' }}
+                                            readOnly
+                                            formatter={(value) =>
+                                                value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ₫' : ''
+                                            }
+                                        />
+                                    </Form.Item>
+                                    {textValue && (
+                                        <div className="mt-1 ml-1" ref={mainContentRef}>
+                                            <Typography.Text type="secondary">
+                                                (Bằng chữ: <span className="font-bold">{textValue}</span>)
+                                            </Typography.Text>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <Divider orientation="center">Thanh toán</Divider>
+                                <Form.List
+                                    name="payments"
+                                    className="w-full"
+                                    rules={[
+                                        {
+                                            validator: async (_, payments) => {
+                                                if (!payments || payments.length < 1) {
+                                                    return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
+                                                }
+                                            },
+                                        },
+                                    ]}
+                                >
+                                    {(fields, { add, remove }) => (
+                                        <>
+                                            {fields.map(({ key, name, ...restField }) => (
+                                                <Space key={key} align="baseline" className="flex mb-4 items-center w-full">
+                                                    {/* <Form.Item
+                                                        {...restField}
+                                                        name={[name, "paymentContent"]}
+                                                        rules={[{ required: true, message: "Nhập nội dung thanh toán" }]}
+                                                    >
+                                                        <Input.TextArea placeholder="Nhập nội dung" rows={2} />
+                                                    </Form.Item> */}
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "amount"]}
+                                                        rules={[{ required: true, message: "Nhập số tiền thanh toán" }]}
+                                                    >
+                                                        <InputNumber
+                                                            style={{ width: "100%" }}
+                                                            placeholder="Số tiền"
+                                                            min={0}
+                                                            max={1000000000000000}
+                                                            formatter={(value) =>
+                                                                value
+                                                                    ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
+                                                                    : ""
+                                                            }
+                                                            parser={(value) => value.replace(/\D/g, "")}
+                                                        />
+                                                    </Form.Item>
+
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "paymentDate"]}
+                                                        rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
+                                                    >
+                                                        <DatePicker
+                                                            style={{ width: 150 }}
+                                                            placeholder="Ngày thanh toán"
+                                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                                            format="DD/MM/YYYY"
+                                                            onChange={(date) => handlePaymentDateChange(date, name)}
+                                                        />
+                                                    </Form.Item>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, "paymentMethod"]}
+                                                        rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}
+                                                    >
+                                                        <Select placeholder="Phương thức thanh toán" style={{ width: 200 }}>
+                                                            <Option value="transfer">Chuyển khoản</Option>
+                                                            <Option value="cash">Tiền mặt</Option>
+                                                            <Option value="creditCard">Thẻ tín dụng</Option>
+                                                        </Select>
+                                                    </Form.Item>
+                                                    <Form.Item>
+                                                        <Button type="primary" onClick={() => remove(name)} danger>
+                                                            <DeleteFilled />
+                                                        </Button>
+                                                    </Form.Item>
+                                                </Space>
+                                            ))}
+                                            <Button icon={<PlusOutlined />} type="primary" onClick={() => add()} block>
+                                                Thêm đợt thanh toán
+                                            </Button>
+                                        </>
+                                    )}
+                                </Form.List>
+
                                 <div className="flex items-center gap-5 mt-[50px]">
                                     <Form.Item name="autoAddVAT" valuePropName="checked">
                                         <div className="flex items-center min-w-[350px]">
@@ -1332,7 +1572,24 @@ const EditContract = () => {
     return (
         <div className="min-h-[100vh]">
             {isLoadingContract && <Spin tip="Đang tải dữ liệu hợp đồng..." />}
-            <Form form={form} layout="vertical" onFinish={onFinish}>
+            <Form form={form}
+                layout="vertical"
+                onFinish={onFinish}
+                onValuesChange={(changedValues, allValues) => {
+                    if (changedValues.contractItems) {
+                        const total = (allValues.contractItems || []).reduce(
+                            (sum, item) => sum + (item.amount || 0),
+                            0
+                        );
+                        // console.log(total)
+                        handleChange(total)
+                        form.setFieldsValue({ totalValue: total });
+                    }
+                }}
+                initialValues={{
+                    contractItems: [{ description: '', amount: null }],
+                }}
+            >
                 {cmtData?.data[0] && (
                     <div className="fixed top-20 right-4 z-50">
                         <Button
@@ -1348,10 +1605,10 @@ const EditContract = () => {
                 </Steps>
                 <div className="mb-6">{steps[currentStep].content}</div>
                 <div className="flex justify-end space-x-2">
-                    {currentStep > 0 && <Button onClick={prev}>Quay lại</Button>}
-                    {currentStep < steps.length - 1 && <Button type="primary" onClick={next}>Tiếp theo</Button>}
+                    {currentStep > 0 && <Button onClick={prev}><CaretLeftOutlined /> Quay lại</Button>}
+                    {currentStep < steps.length - 1 && <Button type="primary" onClick={next}>Tiếp theo <CaretRightOutlined /></Button>}
                     {currentStep === steps.length - 1 && (
-                        <Button type="primary" htmlType="submit" loading={loadingUpdateContract}>{"Cập nhật hợp đồng"}</Button>
+                        <Button type="primary" htmlType="submit" loading={loadingUpdateContract}>Cập nhật hợp đồng <CheckCircleOutlined /></Button>
                     )}
                 </div>
             </Form>

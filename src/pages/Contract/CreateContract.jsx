@@ -9,7 +9,7 @@ import { useGetPartnerInfoDetailQuery, useLazyGetPartnerListQuery } from "../../
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
-import { CheckCircleFilled, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
+import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
@@ -333,7 +333,7 @@ const CreateContractForm = () => {
             isDateLateChecked: data.isDateLateChecked || false,
             maxDateLate: data.maxDateLate || 0,
             autoRenew: data.autoRenew || false,
-            legalBasisTerms: data.legalBasis || [],
+            legalBasisTerms: data.legalBasisTerms || [],
             generalTerms: data.generalTerms || [],
             additionalTerms: data.additionalTerms || [],
             contractTypeId: data.contractType?.value || null,
@@ -1242,7 +1242,33 @@ const CreateContractForm = () => {
                                         <p>-------------------</p>
                                         {/* <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm .......</p> */}
                                         <p className="text-2xl font-bold mt-10">{form.getFieldValue('contractName')?.toUpperCase()}</p>
-                                        <p className="mt-3"><b>Số:</b> Ngày tháng năm - STT -Tên HD viết tắt  </p>
+                                        <Form.Item
+                                            name="contractNumberFormat"
+                                            label="Cách tạo số hợp đồng"
+                                            rules={[{ required: true, message: "Vui lòng chọn cách tạo số hợp đồng" }]}
+                                        >
+                                            <Select placeholder="Chọn cách tạo số hợp đồng">
+                                                <Select.Option value="1">
+                                                    [Tên viết tắt doanh nghiệp tạo] / [Tên viết tắt khách hàng] / [Loại hợp đồng] / [DDMMYY]-[Số thứ tự]
+                                                </Select.Option>
+                                                <Select.Option value="2">
+                                                    [Viết tắt hợp đồng] - [Loại hợp đồng] / [Ngày/Tháng/Năm]-[Số thứ tự]
+                                                </Select.Option>
+                                                <Select.Option value="3">
+                                                    [Viết tắt hợp đồng] / [Tên viết tắt khách hàng] / [Ngày/Tháng/Năm]-[Số thứ tự]
+                                                </Select.Option>
+                                                <Select.Option value="4">
+                                                    [Loại hợp đồng] / [Tên viết tắt doanh nghiệp tạo] / [Ngày/Tháng/Năm]-[Số thứ tự]
+                                                </Select.Option>
+                                                <Select.Option value="5">
+                                                    [Loại hợp đồng]-[Tên viết tắt doanh nghiệp tạo] / [Tên viết tắt khách hàng] / [DD/MM/YY]-[Số thứ tự]
+                                                </Select.Option>
+                                                <Select.Option value="6">
+                                                    [Viết tắt hợp đồng] / [Tên viết tắt khách hàng] / [Loại hợp đồng] / [DDMMYY]-[Số thứ tự]
+                                                </Select.Option>
+                                            </Select>
+                                        </Form.Item>
+
                                     </div>
                                 </div>
                                 <div className=" flex items-center gap-3 mt-5">
@@ -1283,26 +1309,7 @@ const CreateContractForm = () => {
                                 </div>
 
                                 {/* Render đoạn text hiển thị ngày và địa điểm khi cả 2 trường đã được chọn */}
-                                <Form.Item shouldUpdate={(prevValues, currentValues) =>
-                                    prevValues.contractLocation !== currentValues.contractLocation ||
-                                    prevValues.signingDate !== currentValues.signingDate
-                                }>
-                                    {({ getFieldValue }) => {
-                                        const contractLocation = getFieldValue('contractLocation');
-                                        const signingDate = getFieldValue('signingDate');
-                                        if (contractLocation && signingDate) {
-                                            return (
-                                                <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}  p-5 rounded-lg`}>
-                                                    Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
-                                                    {dayjs(signingDate).format("DD")} tháng{" "}
-                                                    {dayjs(signingDate).format("MM")} năm{" "}
-                                                    {dayjs(signingDate).format("YYYY")}, tại {contractLocation}, bởi và giữa:
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    }}
-                                </Form.Item>
+
                                 <Form.Item
                                     className="w-full mt-3"
                                     label={
@@ -1310,7 +1317,7 @@ const CreateContractForm = () => {
                                             <p>Căn phứ pháp lý</p>
                                         </div>
                                     }
-                                    name='legalBasis'
+                                    name='legalBasisTerms'
                                     rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
                                 >
                                     <LazyLegalSelect
@@ -1336,6 +1343,26 @@ const CreateContractForm = () => {
 
                                 <div className={`px-4 pt-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
                                     {renderLegalBasisTerms()}
+                                    <Form.Item shouldUpdate={(prevValues, currentValues) =>
+                                        prevValues.contractLocation !== currentValues.contractLocation ||
+                                        prevValues.signingDate !== currentValues.signingDate
+                                    }>
+                                        {({ getFieldValue }) => {
+                                            const contractLocation = getFieldValue('contractLocation');
+                                            const signingDate = getFieldValue('signingDate');
+                                            if (contractLocation && signingDate) {
+                                                return (
+                                                    <div className={` p-1 rounded-lg`}>
+                                                        Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
+                                                        {dayjs(signingDate).format("DD")} tháng{" "}
+                                                        {dayjs(signingDate).format("MM")} năm{" "}
+                                                        {dayjs(signingDate).format("YYYY")}, tại {contractLocation}, bởi và giữa:
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    </Form.Item>
                                 </div>
 
                                 <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
@@ -1389,28 +1416,6 @@ const CreateContractForm = () => {
                                         />
                                     </Suspense>
                                 </Form.Item>
-
-                                {/* 
-                                <Form.Item
-                                    label="Tổng giá trị hợp đồng"
-                                    name="totalValue"
-                                    rules={[{ required: true, message: "Vui lòng nhập tổng giá trị hợp đồng!" }]}
-                                >
-
-                                    <InputNumber
-                                        style={{ width: "100%" }}
-                                        placeholder="Nhập tổng giá trị hợp đồng"
-                                        min={0}
-                                        max={1000000000000000}
-                                        formatter={(value) =>
-                                            value
-                                                ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
-                                                : ""
-                                        }
-                                        parser={(value) => value.replace(/\D/g, "")}
-                                        onChange={handleChange}
-                                    />
-                                </Form.Item> */}
 
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
@@ -2121,7 +2126,7 @@ const CreateContractForm = () => {
                             (sum, item) => sum + (item.amount || 0),
                             0
                         );
-                        console.log(total)
+                        // console.log(total)
                         handleChange(total)
                         form.setFieldsValue({ totalValue: total });
                     }
@@ -2138,13 +2143,13 @@ const CreateContractForm = () => {
                 <div className="mb-6">{steps[currentStep].content}</div>
                 <div className="flex justify-end space-x-2">
                     {currentStep > 0 && (
-                        <Button onClick={prev}>Quay lại</Button>
+                        <Button onClick={prev}> <CaretLeftOutlined /> Quay lại</Button>
                     )}
                     {currentStep < steps.length - 1 && (
-                        <Button type="primary" onClick={next}>Tiếp theo</Button>
+                        <Button type="primary" onClick={next}>Tiếp theo <CaretRightOutlined /></Button>
                     )}
                     {currentStep === steps.length - 1 && (
-                        <Button type="primary" htmlType="submit" loading={loadingCreateContract}>Gửi hợp đồng</Button>
+                        <Button type="primary" htmlType="submit" loading={loadingCreateContract}>Gửi hợp đồng <CheckCircleOutlined /></Button>
                     )}
                 </div>
             </Form>
