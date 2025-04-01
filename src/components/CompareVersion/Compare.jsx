@@ -15,7 +15,8 @@ const Compare = () => {
 
 
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
-    if (!process || process.length < 2) {
+    
+    if (!process) {
         return <div>Loading or insufficient data...</div>;
     }
 

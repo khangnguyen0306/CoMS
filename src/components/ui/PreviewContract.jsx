@@ -9,8 +9,6 @@ import { useSelector } from 'react-redux';
 import ChatModalWrapper from './ChatModal';
 import { htmlToText } from 'html-to-text';
 
-const { Title, Text } = Typography;
-
 const PreviewContract = ({ form, partnerId, data }) => {
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
@@ -26,26 +24,27 @@ const PreviewContract = ({ form, partnerId, data }) => {
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: partnerId });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
-
     const formValues = data || (form ? form.getFieldsValue(true) : {});
 
 
+    console.log(formValues)
+
     // Load term details for legal basis
     useEffect(() => {
-        if (formValues?.legalBasis) {
-            formValues.legalBasis.forEach(termId => {
+        if (formValues?.legalBasisTerms) {
+            formValues.legalBasisTerms.forEach(termId => {
                 loadTermDetail(termId);
             });
         }
-    }, [formValues.legalBasis]);
+    }, [formValues.legalBasisTerms]);
 
     // Render the legal basis terms
     const renderLegalBasisTerms = () => {
-        if (!formValues?.legalBasis || formValues.legalBasis.length === 0) {
+        if (!formValues?.legalBasisTerms || formValues.legalBasisTerms.length === 0) {
             return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
         }
 
-        return formValues.legalBasis.map((termId, index) => {
+        return formValues.legalBasisTerms.map((termId, index) => {
             const term = termsData[termId];
             if (!term) {
                 return (
@@ -102,6 +101,8 @@ const PreviewContract = ({ form, partnerId, data }) => {
             "6": "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP",
             "7": "ĐIỀU KHOẢN BẢO MẬT"
         };
+
+
 
         // Thu thập từ tất cả các loại (1-7)
         for (let typeKey = 1; typeKey <= 7; typeKey++) {
@@ -317,9 +318,77 @@ const PreviewContract = ({ form, partnerId, data }) => {
             </div>
         );
     }
-
-    // Tổ chức điều khoản Common theo loại
+    // const parseDate = (dateArray) => {
+    //     if (!Array.isArray(dateArray) || dateArray.length < 5) return null;
+    //     const [year, month, day, hour, minute] = dateArray;
+    //     return new Date(year, month - 1, day, hour, minute);
+    // };
+    // // Tổ chức điều khoản Common theo loại
     const organizedCommonTerms = organizeCommonTermsByType();
+
+    const contractFormatTemplates = {
+        "1": "[Tên viết tắt doanh nghiệp tạo]/[Tên viết tắt khách hàng]/[Loại hợp đồng]/[DDMMYY]-[Số thứ tự]",
+        "2": "[Viết tắt hợp đồng]-[Loại hợp đồng]/[Ngày/Tháng/Năm]-[Số thứ tự]",
+        "3": "[Viết tắt hợp đồng]/[Tên viết tắt khách hàng]/[Ngày/Tháng/Năm]-[Số thứ tự]",
+        "4": "[Loại hợp đồng]/[Tên viết tắt doanh nghiệp tạo]/[Ngày/Tháng/Năm]-[Số thứ tự]",
+        "5": "[Loại hợp đồng]-[Tên viết tắt doanh nghiệp tạo]/[Tên viết tắt khách hàng]/[DD/MM/YY]-[Số thứ tự]",
+        "6": "[Viết tắt hợp đồng]/[Tên viết tắt khách hàng]/[Loại hợp đồng]/[DDMMYY]-[Số thứ tự]",
+    };
+
+    const paymentSchedulesColumns = [
+        {
+            title: 'Đợt',
+            key: 'paymentOrder',
+            align: 'center',
+            render: (_, record, index) => index + 1,
+        },
+        {
+            title: 'Số tiền (VND)',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (value) => new Intl.NumberFormat('vi-VN').format(value),
+        },
+        {
+            title: 'Ngày thanh toán',
+            dataIndex: 'paymentDate',
+            key: 'paymentDate',
+            render: (paymentDate) =>
+                `Ngày ${dayjs(paymentDate).format('DD')} Tháng ${dayjs(paymentDate).format('MM')} năm ${dayjs(paymentDate).format('YYYY')}`,
+        },
+        {
+            title: 'Phương thức thanh toán',
+            dataIndex: 'paymentMethod',
+            key: 'paymentMethod',
+            render: (method) =>
+                method === 'cash'
+                    ? 'Tiền mặt'
+                    : method === 'creditCard'
+                        ? 'Thẻ tín dụng'
+                        : 'Chuyển khoản',
+        },
+    ];
+
+    const paymentItemsColumns = [
+        {
+            title: 'STT',
+            dataIndex: 'itemOrder',
+            key: 'itemOrder',
+            align: 'center',
+            render: (_, record, index) => index + 1,
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'description',
+            key: 'description',
+        },
+        {
+            title: 'Số tiền (VND)',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (value) => new Intl.NumberFormat('vi-VN').format(value),
+        },
+
+    ];
 
     return (
         <div className={`${isDarkMode ? 'bg-gray-[#141414] text-white' : 'bg-[#f5f5f5]'} shadow-md p-4 pb-16 rounded-md`}>
@@ -334,11 +403,17 @@ const PreviewContract = ({ form, partnerId, data }) => {
                     {/* <i>{formValues?.contractLocation}, Ngày {formValues?.signingDate?.format('DD')} Tháng {formValues?.signingDate?.format('MM')} Năm {formValues?.signingDate?.format('YYYY')}</i> */}
                 </p>
                 <p className={`text-3xl font-bold mt-5 ${isDarkMode ? 'text-white' : ''}`}>{formValues.contractName ? formValues.contractName.toUpperCase() : ''}</p>
-                <p className={`mt-3 text-base ${isDarkMode ? 'text-white' : ''}`}><b>Số:</b> {formValues?.contractNumber}</p>
+                <p className={`mt-3 text-base ${isDarkMode ? 'text-white' : ''}`}><b>Số:</b> {contractFormatTemplates[formValues?.contractNumberFormat] || formValues?.contractNumber}</p>
             </div>
 
             <div className="px-4 flex pl-10 flex-col gap-2 mt-10">
                 {renderLegalBasisTerms()}
+                <div className={` p-1 rounded-lg`}>
+                    Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
+                    {dayjs(formValues?.signingDate).format("DD")} tháng{" "}
+                    {dayjs(formValues?.signingDate).format("MM")} năm{" "}
+                    {dayjs(formValues?.signingDate).format("YYYY")}, tại {formValues?.contractLocation}, bởi và giữa:
+                </div>
             </div>
 
             <Row gutter={16} className='flex flex-col mt-5 pl-10 gap-5' justify={"center"}>
@@ -374,24 +449,38 @@ const PreviewContract = ({ form, partnerId, data }) => {
                             <b>  {new Intl.NumberFormat('vi-VN').format(formValues?.totalValue)} VND</b>
                             <span className='text-gray-600'>  ( {numberToVietnamese(formValues.totalValue)} )</span>
                         </p>
-                        {formValues?.payments && formValues.payments.length > 0 && (
-                            <div className="mt-5 ml-2">
-                                <p className="font-bold text-base">Thanh toán qua {formValues.payments.length} đợt: </p>
-                                {formValues.payments.map((payment, index) => (
-                                    <div key={index} className="mt-2 ml-6 flex flex-col gap-2">
-                                        <p><b>Đợt {index + 1}:</b></p>
-                                        <p>- <b>Số tiền:</b>  {payment.amount.toLocaleString()} ₫</p>
-                                        <p>- <b>Ngày thanh toán:</b> {dayjs(payment.paymentDate).format('DD/MM/YYYY')}</p>
-                                        <p>- <b>Phương thức thanh toán:</b> {payment.paymentMethod === 'cash' ? 'Tiền mặt' : payment.paymentMethod === 'creditCard' ? 'Thẻ tín dụng' : 'Chuyển khoản'}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+
+                        <p className=" ml-3 font-bold my-5">
+                            1.  Hạng mục thanh toán
+                        </p>
+                        <Table
+                            dataSource={formValues?.contractItems}
+                            columns={paymentItemsColumns}
+                            rowKey="id"
+                            pagination={false}
+                            bordered
+                        />
+
+                        <p className=" ml-3 font-bold my-5">
+                            2. Tổng giá trị và số lần thanh toán
+                        </p>
+
+                        {formValues?.payments &&
+                            formValues.payments.length > 0 && (
+                                <>
+                                    <Table
+                                        dataSource={formValues.payments}
+                                        columns={paymentSchedulesColumns}
+                                        rowKey="paymentOrder"
+                                        pagination={false}
+                                        bordered
+                                    />
+                                </>
+                            )}
+
                         <div>
                             {formValues?.isDateLateChecked && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {formValues?.maxDateLate} (ngày) </p>}
                             {formValues?.autoAddVAT && <p className="mt-3">- Thuế VAT được tính ({formValues?.vatPercentage}%)</p>}
-
-
                         </div>
 
 

@@ -606,9 +606,9 @@ const ContractDetail = () => {
                     <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                     <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
                     <p>---------oOo---------</p>
-                    <p className='place-self-end mr-10 my-6'>
+                    {/* <p className='place-self-end mr-10 my-6'>
                         {contractData?.data?.contractLocation}, Ngày {dayjs(parseDate(contractData?.data?.createdAt)).format('DD')} Tháng {dayjs(parseDate(contractData?.data?.createdAt)).format('MM')} năm {dayjs(parseDate(contractData?.data?.createdAt)).format('YYYY')}
-                    </p>
+                    </p> */}
                     <p className="text-3xl font-bold mt-5">
                         {contractData?.data.title ? contractData?.data.title.toUpperCase() : ''}
                     </p>
@@ -620,6 +620,12 @@ const ContractDetail = () => {
 
                 <div className="px-4 flex pl-10 flex-col gap-2 mt-[100px]">
                     {renderLegalBasisTerms()}
+                    <div className={` p-1 rounded-lg`}>
+                    Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
+                    {dayjs(parseDate(contractData?.data?.signingDate)).format("DD")} tháng{" "}
+                    {dayjs(parseDate(contractData?.data?.signingDate)).format("MM")} năm{" "}
+                    {dayjs(parseDate(contractData?.data?.signingDate)).format("YYYY")}, tại {contractData?.data?.contractLocation}, bởi và giữa:
+                </div>
                 </div>
 
                 <Row gutter={16} className="flex flex-col mt-5 pl-10 gap-5" justify="center">
