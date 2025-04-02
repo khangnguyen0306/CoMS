@@ -184,7 +184,7 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
 
     const handleAddOkGeneralTerm = async () => {
         const { name, typeId, content } = newGeneralTerm;
-        console.log(name, typeId, content);
+        // console.log(name, typeId, content);
         if (!name || !typeId || !content) {
             message.error("Vui lòng nhập đầy đủ thông tin!");
             return;

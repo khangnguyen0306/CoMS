@@ -398,7 +398,7 @@ const CreateContractForm = () => {
         // Thêm TemplateData vào dữ liệu cuối cùng
         formattedData.TemplateData = templateData;
 
-        console.log("Formatted Data:", formattedData);
+        // console.log("Formatted Data:", formattedData);
 
         try {
             const response = await createContract(formattedData).unwrap();
