@@ -11,7 +11,7 @@ import Cookies from "js-cookie";
 import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
 import { useLoginUserMutation } from '../../services/AuthAPI';
-import { selectCurrentToken, selectNotiNumber, setNotiNumber, setToken, setUser } from '../../slices/authSlice';
+import { selectCurrentToken, selectNotiNumber, setAvatar, setNotiNumber, setToken, setUser } from '../../slices/authSlice';
 import ForgotPass from './ForgotPass';
 import helloIcon from "./../../assets/Image/hello.svg"
 import { useLazyGetNotificationsQuery } from '../../services/NotiAPI';
@@ -42,11 +42,11 @@ const Login = () => {
             handleGetNotiNumber()
                 .then(result => {
                     dispatch(setNotiNumber(result.data.content.filter(notification => notification.isRead === false).length));
-                    console.log(result.data.content.filter(notification => notification.isRead === false).length);
+                    // console.log(result.data.content.filter(notification => notification.isRead === false).length);
                     navigate("/");
                 })
                 .catch(error => {
-                    console.error(error);
+                    // console.error(error);
                 });
         }
     }, [token, navigate]);
@@ -95,7 +95,7 @@ const Login = () => {
         //   const avatar = data.data.avatar; // check for change
         dispatch(setUser(data.data));
         dispatch(setToken(data.data.token));
-
+        dispatch(setAvatar(data.data.avatar))
         // remember me
         if (rememberMe) {
             Cookies.set("rememberEmail", form.getFieldValue("login_identifier"), { expires: 1 });
@@ -135,7 +135,7 @@ const Login = () => {
     const handleSubmit = async (values) => {
         try {
             const result = await loginUser({ login_identifier: values.login_identifier, password: values.password });
-            console.log(result);
+            // console.log(result);
 
             if (result.data) {
                 handleLoginSuccess(result.data);
@@ -143,7 +143,7 @@ const Login = () => {
                 handleLoginFailure(result.error, values.login_identifier);
             }
         } catch (error) {
-            console.error("Login error:", error);
+            // console.error("Login error:", error);
             message.error("An unexpected error occurred. Please try again later.");
         }
     };

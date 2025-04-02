@@ -38,10 +38,10 @@ export const userAPI = baseApi.injectEndpoints({
             invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
         updateUser: builder.mutation({
-            query: ({ id, email, full_name, phone_number, address, role_id, is_ceo, departmentId, dateOfBirth }) => ({
-                url: `/users/update-user/${id}`,
+            query: ({ body, userId }) => ({
+                url: `/users/update-user/${userId}`,
                 method: "PUT",
-                body: { email, full_name, phone_number, address, role_id, is_ceo, departmentId, dateOfBirth },
+                body: body,
             }),
             invalidatesTags: (result, error, { id }) => [{ type: "USER", id }],
         }),
@@ -63,6 +63,23 @@ export const userAPI = baseApi.injectEndpoints({
                     ? result.users.map(({ id }) => ({ type: "USER", id }))
                     : [{ type: "USER", id: "LIST" }],
         }),
+        changePassWord: builder.mutation({
+            query: ({ body, userId }) => ({
+                url: `users/update-password/${userId}`,
+                method: "PUT",
+                body: body,
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: "USER", id }],
+        }),
+        updateAvatar: builder.mutation({
+            query: ({ formData, userId }) => ({
+                url: `/users/update-avatar/${userId}`,
+                method: "PUT",
+                body: formData,
+            }),
+            invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
+        }),
+        
     }),
     overrideExisting: false,
 });
@@ -77,4 +94,6 @@ export const {
     useGetUserStaffManagerQuery,
     useGetUserByIdQuery,
     useLazyGetUserStaffManagerQuery,
+    useChangePassWordMutation,
+    useUpdateAvatarMutation
 } = userAPI;

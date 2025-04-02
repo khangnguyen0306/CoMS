@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
 import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
 import ExpandRowContent from "./component/ExpandRowContent";
+import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -31,6 +32,7 @@ const ManageContracts = () => {
         keyword: searchText,
         status: status
     });
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const navigate = useNavigate()
@@ -50,7 +52,8 @@ const ManageContracts = () => {
             console.log(result);
             if (result?.status === "OK") {
                 message.success("Nhân bản hợp đồng thành công!");
-                refetch()
+                refetch();
+                refetchNoti();
             }
 
         } catch (error) {
@@ -69,6 +72,8 @@ const ManageContracts = () => {
                 try {
                     await softDelete(record.id).unwrap();
                     message.success("Xóa hợp đồng thành công!");
+                    refetch();
+                    refetchNoti();
                 } catch (error) {
                     const errorMessage = error?.data?.message?.split(": ")?.[1] || "Xóa hợp đồng thất bại, vui lòng thử lại!";
                     message.error(errorMessage);
