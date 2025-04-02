@@ -47,14 +47,18 @@ export const ContractAPI = baseApi.injectEndpoints({
         }),
 
         getContractStatus: builder.query({
-            query: () => ({
-                url: `contracts?page=0&size=10&statuses=CREATED&statuses=UPDATED&statuses=REJECTED&statuses=FIXED&sortBy=id&order=asc`,
-                method: "GET",
-            }),
-            providesTags: (result, error, Partner) => [
-                { type: "Partner", id: Partner },
+            query: ({ page, keyword, size, statuses, sortBy = 'id', order = 'asc' }) => {
+                const statusesQuery = statuses ? statuses.map(status => `statuses=${status}`).join('&') : ['CREATED', 'UPDATED', 'REJECTED', 'FIXED', 'APPROVAL_PENDING'];
+                return {
+                    url: `contracts?page=${page || 0}&size=${size || 0}&${statusesQuery}&sortBy=${sortBy}&order=${order}&keyword=${keyword}`,
+                    method: "GET",
+                };
+            },
+            providesTags: (result, error, arg) => [
+                { type: "Partner", id: arg.partnerId || 'LIST' },
             ],
         }),
+
 
         createContractType: builder.mutation({
             query: ({ name }) => ({

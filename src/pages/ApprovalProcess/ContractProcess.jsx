@@ -10,12 +10,27 @@ import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 const { Search } = Input;
 
 const ContractProcess = () => {
-    const { data: contractsStatus, isLoading, isError, refetch } = useGetContractStatusQuery();
+
     const [resubmitProcess, { isLoading: loadingResubmit }] = useResubmitProcessMutation();
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
+
+    const [filters, setFilters] = useState({
+        statuses: ['CREATED', 'UPDATED', 'REJECTED', 'FIXED', 'APPROVAL_PENDING']
+    });
+
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 10,
+    });
+    const { data: contractsStatus, isLoading, isError, refetch } = useGetContractStatusQuery({
+        page: pagination.current - 1, // Nếu API sử dụng index bắt đầu từ 0
+        size: pagination.pageSize,
+        statuses: filters.statuses,
+        keyword: searchText
+    });
     useEffect(() => {
         refetch();
     }, [contractsStatus]);
@@ -50,6 +65,16 @@ const ContractProcess = () => {
         }
     };
 
+    const handleTableChange = (pagination, filters, sorter) => {
+        console.log(filters)
+        setPagination({
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+        });
+        setFilters({
+            statuses: filters.status
+        });
+    };
 
     const columns = [
         {
@@ -136,6 +161,7 @@ const ContractProcess = () => {
                 { text: "Đã tạo", value: "CREATED" },
                 { text: "Chưa được duyệt", value: "REJECTED" },
                 { text: "Đã cập nhật", value: "UPDATED" },
+                { text: "Đã sửa lỗi", value: "FIXED" },
             ],
             onFilter: (value, record) => record.status === value,
             render: (status) => {
@@ -264,17 +290,23 @@ const ContractProcess = () => {
                         disabled={isLoading}
                     />
                 </Space>
+
                 <Table
                     columns={columns}
-                    dataSource={contracts?.filter(item =>
-                        item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item?.partner?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())
-                    )}
+                    dataSource={contracts}
                     rowKey="id"
                     loading={isLoading}
-                // onRow={(record) => ({ onClick: () => setSelectedContract(record) })}s
+                    onChange={handleTableChange}
+                    pagination={{
+                        current: pagination.current,
+                        pageSize: pagination.pageSize,
+                        total: contractsStatus?.data.totalElements,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        showTotal: (total) => `Tổng ${total} hợp đồng`,
+                    }}
                 />
+
                 <Modal
                     title="Chi tiết bản ghi"
                     width={"80%"}
