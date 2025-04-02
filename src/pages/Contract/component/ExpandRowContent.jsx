@@ -1,10 +1,11 @@
 import React from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
-import { Skeleton, Timeline, Tag, Empty } from 'antd';
-import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Skeleton, Timeline, Tag, Empty, Upload, Button } from 'antd';
+import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
 import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
+import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
 
 const ExpandRowContent = ({ id, appendixId }) => {
     const { data, isLoading, isError } = useGetProcessByContractIdQuery(
@@ -15,6 +16,9 @@ const ExpandRowContent = ({ id, appendixId }) => {
         { appendixId },
         { skip: !appendixId }
     );
+
+    const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
+
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(id)
     console.log(dataPayment?.data?.paymentSchedules)
@@ -57,6 +61,24 @@ const ExpandRowContent = ({ id, appendixId }) => {
             minute: '2-digit',
             second: '2-digit',
         });
+    };
+
+    const uploadFile = async (file, paymentScheduleId) => {
+        console.log("File:", file);
+        console.log("Payment Schedule ID:", paymentScheduleId);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            // Gọi API upload file, truyền paymentScheduleId và formData
+            const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
+            const parsedRes = JSON.parse(res);
+            message.success(parsedRes.message);
+
+            refetch();
+        } catch (error) {
+            console.error("Lỗi upload file:", error);
+            message.error("Upload thất bại!");
+        }
     };
 
     // Ánh xạ trạng thái sang tiếng Việt

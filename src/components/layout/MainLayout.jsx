@@ -36,6 +36,7 @@ const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser);
   const { data: numberNoti, isLoading: loadingNumber } = useGetNumberNotiForAllQuery()
+  // console.log(numberNoti)
 
   const router = {
     '1': '/',
@@ -88,7 +89,6 @@ const MainLayout = () => {
 
 
   const navManager = [
-
     { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     // { icon: FaTasks, label: 'Task', key: "task" },
@@ -140,20 +140,28 @@ const MainLayout = () => {
       icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
     },
   ].map((item, index) => {
+    const hasBadgeDot = item.children?.some(child => numberNoti?.data?.[child.badgeCount] > 0);
     return {
       key: item.key,
-      icon: React.createElement(item.icon),
+      icon: hasBadgeDot ? (
+        <Badge dot>
+          {React.createElement(item.icon)}
+        </Badge>
+      ) : (
+        React.createElement(item.icon)
+      ),
       label: item.label,
       children: item.children?.map((childItem, childIndex) => {
-        const icon =
-          childItem.badgeType &&
-            numberNoti?.data[`${childItem.badgeType}PendingApprovalForManager`] > 0 ? (
-            <Badge dot>
-              {React.createElement(childItem.icon)}
-            </Badge>
-          ) : (
-            React.createElement(childItem.icon)
-          );
+        const childBadgeCount = numberNoti?.data?.[childItem.badgeCount] || 0;
+
+        const icon = childBadgeCount > 0 ? (
+          <Badge size="small" count={childBadgeCount}>
+            {React.createElement(childItem.icon)}
+          </Badge>
+        ) : (
+          React.createElement(childItem.icon)
+        );
+
         return {
           icon: icon,
           key: childItem.key,
@@ -380,12 +388,12 @@ const MainLayout = () => {
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
 
             <Avatar
-            size="large"
-            src={avatar} 
-            // icon={!user.avatar && <UserOutlined />} 
-            className="bg-slate-500 cursor-pointer ml-4 hover:border-2"
-            onClick={() => navigate(`/profile/${user.id}`)}
-        />
+              size="large"
+              src={avatar}
+              // icon={!user.avatar && <UserOutlined />} 
+              className="bg-slate-500 cursor-pointer ml-4 hover:border-2"
+              onClick={() => navigate(`/profile/${user.id}`)}
+            />
             <label className="switch ml-6" >
               <input
                 checked={!isDarkMode}

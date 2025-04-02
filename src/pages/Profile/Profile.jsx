@@ -83,6 +83,11 @@ const Profile = () => {
             setLoadingUpdate(false)
         }
     };
+    const dislayGender = {
+        "MALE": "Nam",
+        "FEMALE": "Nữ",
+        "OTHER": "Khác"
+    }
 
     if (isLoading || DepartmentLoading) return <Skeleton active />;
 
@@ -238,7 +243,7 @@ const Profile = () => {
                                                     </Select>
                                                 </Form.Item>
                                             ) : (
-                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.gender || "Chưa cập nhật"}</span>
+                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{dislayGender[data?.gender] || "Chưa cập nhật"}</span>
                                             )}
                                         </div>
 
