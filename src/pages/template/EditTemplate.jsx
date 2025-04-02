@@ -697,7 +697,7 @@ const EditTemplate = () => {
                     <Form.Item
                         label="Tên mẫu hợp đồng"
                         name="contractTitle"
-                        rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}
+                        rules={[{ required: true,whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}
                     >
                         <Input placeholder="Nhập tên hợp đồng" />
                     </Form.Item>

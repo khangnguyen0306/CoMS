@@ -825,7 +825,7 @@ const EditContract = () => {
             render: (text, record, index) => (
                 <Form.Item
                     name={[index, 'description']}
-                    rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+                    rules={[{ required: true,whitespace: true, message: 'Vui lòng nhập nội dung' }]}
                     noStyle
                 >
                     <Input.TextArea placeholder="Nhập nội dung" rows={2} />
@@ -896,7 +896,10 @@ const EditContract = () => {
                             </>
                         )} />
                     </Form.Item>
-                    <Form.Item label="Chọn đối tác" name="partnerId" rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}>
+                    <Form.Item
+                        label="Chọn đối tác"
+                        name="partnerId"
+                        rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}>
                         <LazySelectPartner
                             loadDataCallback={loadPartnerData}
                             options={partnerData?.data.content}
@@ -912,7 +915,9 @@ const EditContract = () => {
                                 </>
                             )} />
                     </Form.Item>
-                    <Form.Item label="Tên hợp đồng" name="contractName" rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}>
+                    <Form.Item
+                        label="Tên hợp đồng"
+                        name="contractName" rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}>
                         <Input placeholder="Nhập tên hợp đồng" />
                     </Form.Item>
 
@@ -1065,7 +1070,10 @@ const EditContract = () => {
 
                                 </div>
                                 <div className=" flex items-center mt-5 right-9 gap-3">
-                                    <Form.Item label="Nơi ký kết" name="contractLocation" rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}>
+                                    <Form.Item
+                                        label="Nơi ký kết"
+                                        name="contractLocation"
+                                        rules={[{ required: true, whitespace: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}>
                                         <Select showSearch placeholder="Chọn nơi ký kết" optionFilterProp="children" filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())}>
                                             {VietnameseProvinces.map(province => <Option key={province} value={province}>{province}</Option>)}
                                         </Select>
@@ -1184,6 +1192,7 @@ const EditContract = () => {
                                     name="contractItems"
                                     rules={[
                                         {
+
                                             validator: async (_, contractItems) => {
                                                 if (!contractItems || contractItems.length < 1) {
                                                     return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
@@ -1400,7 +1409,8 @@ const EditContract = () => {
                                     ))}
                                 </div>
                                 <Divider orientation="center">Điều khoản đặc biệt</Divider>
-                                <Form.Item label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên A)</p></div>} name="specialTermsA">
+                                <Form.Item
+                                    label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên A)</p></div>} name="specialTermsA">
                                     <TextArea rows={4} placeholder="Nhập điều khoản bên A" />
                                 </Form.Item>
                                 <Form.Item label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN B</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên B)</p></div>} name="specialTermsB">
@@ -1506,7 +1516,7 @@ const EditContract = () => {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item label="Nội dung thông báo" name="notifyExpiryContent" rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} >
+                            <Form.Item label="Nội dung thông báo" name="notifyExpiryContent" rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]} >
                                 <Input.TextArea rows={2} placeholder="Nhập nội dung thông báo" />
                             </Form.Item>
                         </Col>
@@ -1524,7 +1534,10 @@ const EditContract = () => {
                                                 </Form.Item>
                                             </Col>
                                             <Col span={6}>
-                                                <Form.Item {...restField} label="Ngày thông báo" name={[name, "notifyPaymentDate"]} rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}>
+                                                <Form.Item {...restField}
+                                                    label="Ngày thông báo"
+                                                    name={[name, "notifyPaymentDate"]}
+                                                    rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}>
                                                     <DatePicker
                                                         className="w-full"
                                                         format="DD/MM/YYYY HH:mm:ss"
@@ -1536,7 +1549,10 @@ const EditContract = () => {
                                                 </Form.Item>
                                             </Col>
                                             <Col span={12}>
-                                                <Form.Item {...restField} label="Nội dung thông báo" name={[name, "notifyPaymentContent"]} rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]} >
+                                                <Form.Item {...restField}
+                                                    label="Nội dung thông báo"
+                                                    name={[name, "notifyPaymentContent"]}
+                                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]} >
                                                     <Input.TextArea rows={2} placeholder="Nhập nội dung thông báo" />
                                                 </Form.Item>
                                             </Col>
@@ -1554,7 +1570,9 @@ const EditContract = () => {
                                         <Form.Item {...restField} name={[name, "date"]} rules={[{ required: true, message: "Chọn ngày thông báo" }]}>
                                             <DatePicker style={{ width: 200 }} showTime placeholder="Chọn ngày thông báo" />
                                         </Form.Item>
-                                        <Form.Item {...restField} name={[name, "content"]} rules={[{ required: true, message: "Nhập nội dung thông báo" }]}>
+                                        <Form.Item {...restField}
+                                            name={[name, "content"]}
+                                            rules={[{ required: true, whitespace: true, message: "Nhập nội dung thông báo" }]}>
                                             <Input style={{ flex: 1 }} placeholder="Nhập nội dung thông báo" />
                                         </Form.Item>
                                         <Button type="text" danger icon={<DeleteFilled />} onClick={() => remove(name)} />
@@ -1614,10 +1632,16 @@ const EditContract = () => {
             </Form>
             <Modal title="Thêm căn cứ pháp lý" open={isAddLegalModalOpen} onOk={handleAddOk} onCancel={() => setIsAddLegalModalOpen(false)} okText="Lưu" cancelText="Hủy">
                 <Form layout="vertical" form={form}>
-                    <Form.Item name="legalLabel" label="Tên căn cứ pháp lý" rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}>
+                    <Form.Item
+                        name="legalLabel"
+                        label="Tên căn cứ pháp lý"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}>
                         <Input value={newLegalBasis.name} onChange={(e) => setNewLegalBasis({ ...newLegalBasis, name: e.target.value })} placeholder="Nhập tên căn cứ pháp lý" />
                     </Form.Item>
-                    <Form.Item name="legalContent" label="Nội dung" rules={[{ required: true, message: "Vui lòng nhập nội dung căn cứ!" }]}>
+                    <Form.Item
+                        name="legalContent"
+                        label="Nội dung"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung căn cứ!" }]}>
                         <TextArea value={newLegalBasis.content} onChange={(e) => setNewLegalBasis({ ...newLegalBasis, content: e.target.value })} placeholder="Nhập nội dung" rows={4} />
                     </Form.Item>
                 </Form>

@@ -936,6 +936,7 @@ const CreateTemplate = () => {
                                         <Form.Item
                                             name="contractTitle"
                                             initialValue={templateName}
+                                            rules={[{ required: true,whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}
                                         >
                                             <Input
                                                 onChange={handleContractTitleChange}
@@ -946,7 +947,6 @@ const CreateTemplate = () => {
                                             name="contractTypeId"
                                             initialValue={newType}
                                         />
-
                                     </div>
                                     <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} shadow-md p-4 rounded-md text-center mt-[-70px]`}>
                                         <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>

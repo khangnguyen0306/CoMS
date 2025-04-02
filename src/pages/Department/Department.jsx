@@ -146,7 +146,7 @@ const Department = () => {
                     <Form.Item
                         label="Tên Phòng Ban"
                         name="departmentName"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên phòng ban!' }]}
+                        rules={[{ required: true,whitespace: true, message: 'Vui lòng nhập tên phòng ban!' }]}
                     >
                         <Input placeholder="Nhập tên phòng ban" />
                     </Form.Item>

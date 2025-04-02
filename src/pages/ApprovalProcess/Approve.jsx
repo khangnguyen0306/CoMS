@@ -107,7 +107,7 @@ const Approve = () => {
                         <Form.Item
                             name="comment"
                             label="Đề xuất cải tiến :"
-                            rules={[{ required: true, message: "Vui lòng nhập nhận xét" }]}
+                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nhận xét" }]}
                         >
                             <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />
                         </Form.Item>
