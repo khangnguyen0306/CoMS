@@ -375,7 +375,7 @@ const ManageClause = () => {
                                     placeholder="Chọn loại điều khoản"
                                     value={selectedType}
                                     onChange={(value) => setSelectedType(value || "")}
-                                    className="mb-4 max-w-[250px] min-w-[170px]"
+                                    className="mb-4 min-w-[270px]"
                                     allowClear
                                 >
 

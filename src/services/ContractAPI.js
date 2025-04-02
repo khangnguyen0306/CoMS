@@ -211,6 +211,7 @@ export const ContractAPI = baseApi.injectEndpoints({
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
 
+
     }),
     overrideExisting: false,
 });

@@ -17,6 +17,8 @@ const Department = () => {
     const [form] = Form.useForm();
     const [currentDepartment, setCurrentDepartment] = useState(null);
 
+    console.log('data', currentDepartment);
+
     // Mở Modal Thêm Mới
     const showAddModal = () => {
         setIsEditMode(false);
@@ -35,11 +37,15 @@ const Department = () => {
     // Xử lý Thêm hoặc Cập Nhật
     const handleSubmit = async (values) => {
         try {
+            // Viết hoa chữ cái đầu tiên của tên phòng ban
+            values.departmentName =
+                values.departmentName.charAt(0).toUpperCase() +
+                values.departmentName.slice(1);
+
             if (isEditMode) {
                 await updateDepartment({
-                    id: currentDepartment.id,
+                    departmentId: currentDepartment.departmentId,
                     data: {
-                        departmentId: currentDepartment.id,
                         departmentName: values.departmentName,
                     },
                 }).unwrap();
@@ -51,6 +57,8 @@ const Department = () => {
                 message.success('Thêm mới phòng ban thành công!');
             }
             setIsModalOpen(false);
+
+            form.resetFields();
             refetch();
         } catch (err) {
             message.error('Đã xảy ra lỗi!');
@@ -105,7 +113,7 @@ const Department = () => {
                                     <Button
                                         type="primary"
                                         icon={<EditFilled />}
-                                        onClick={() => handleEditContractType(item)}
+                                        onClick={() => showEditModal(item)}
                                     >
                                         Sửa
                                     </Button>,
@@ -132,6 +140,7 @@ const Department = () => {
                 onOk={() => form.submit()}
                 okText="Lưu"
                 cancelText="Hủy"
+                centered
             >
                 <Form form={form} layout="vertical" onFinish={handleSubmit}>
                     <Form.Item

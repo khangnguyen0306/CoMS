@@ -127,9 +127,9 @@ const ManagePartner = () => {
             if (result.status === "CREATED") {
                 message.success('Thêm mới thành công!');
                 refetch();
+                setIsModalVisible(false);
                 form.resetFields();
                 setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
-                setIsModalVisible(false);
             } else {
                 message.error('Thêm mới thất bại vui lòng thử lại!');
             }
@@ -226,9 +226,9 @@ const ManagePartner = () => {
             if (result.data.status === "OK") {
                 message.success('Cập nhật thành công!');
                 refetch();
+                setIsModalVisible(false);
                 form.resetFields();
                 setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
-                setIsModalVisible(false);
                 setEditingPartner(null);
             } else {
                 message.error('Cập nhật thất bại vui lòng thử lại!');
@@ -355,11 +355,11 @@ const ManagePartner = () => {
                                     }}
                                 >
                                     <Space style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
-                                        <img
+                                        {/* <img
                                             src={item.img || partnerIMG}
                                             alt={item.partnerName}
                                             style={{ width: 30, height: 30, borderRadius: '50%' }}
-                                        />
+                                        /> */}
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             <span style={{ fontWeight: 'bold' }}>{item.partnerName}</span>
                                             <span style={{ fontSize: '12px', color: 'gray' }}>{item.email}</span>

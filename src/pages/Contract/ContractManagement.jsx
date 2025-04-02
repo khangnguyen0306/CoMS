@@ -16,25 +16,36 @@ const { Search } = Input;
 
 const ManageContracts = () => {
 
-    const [searchText, setSearchText] = useState("");
+    const [searchTextStaff, setSearchTextStaff] = useState("");
+    const [searchTextManager, setSearchTextManager] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
-    const [pagination, setPagination] = useState({
+    const [paginationStaff, setPaginationStaff] = useState({
         current: 1,
         pageSize: 10,
-        total: 0
+        total: 0,
+    });
+    const [paginationManager, setPaginationManager] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0,
     });
 
     const [status, setStatus] = useState(null);
     const [duplicateContract] = useDuplicateContractMutation();
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
-        page: pagination.current - 1,
-        size: pagination.pageSize,
-        keyword: searchText,
+        page: paginationStaff.current - 1,
+        size: paginationStaff.pageSize,
+        keyword: searchTextStaff,
         status: status
     });
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
-    const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
+    const { data: contractManager, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
+        approverId: user.id,
+        page: paginationManager.current - 1,
+        size: paginationManager.pageSize,
+        keyword: searchTextManager,
+    });
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
     // console.log(contractManager)
@@ -42,8 +53,12 @@ const ManageContracts = () => {
     const tableData = isManager ? contractManager?.data.content : contracts?.data?.content;
 
     useEffect(() => {
-        refetch();
-    }, [])
+        if (isManager) {
+            refetchManager();
+        } else {
+            refetch();
+        }
+    }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager]);
 
     // console.log(selectedContract)
     const handleDuplicate = async (contractId) => {
@@ -147,28 +162,20 @@ const ManageContracts = () => {
         },
         {
             title: "Loại hợp đồng",
-            dataIndex: user.roles[0] === "ROLE_MANAGER" ? "contractTypeName" : "contractType",
+            dataIndex: "contractType",
             key: "contractType",
             render: (value) =>
-                user.roles[0] === "ROLE_MANAGER" ? (
-                    <Tag color="blue">{value}</Tag>
-                ) : (
-                    <Tag color="blue">{value.name}</Tag>
-                ),
+            (
+                <Tag color="blue">{value.name}</Tag>
+            ),
             filters:
-                user.roles[0] === "ROLE_MANAGER"
-                    ? [...new Set(tableData?.map(contract => contract.contractTypeName))].map(type => ({
-                        text: type,
-                        value: type,
-                    }))
-                    : [...new Set(tableData?.map(contract => contract.contractType.name))].map(type => ({
-                        text: type,
-                        value: type,
-                    })),
+                [...new Set(tableData?.map(contract => contract.contractType.name))].map(type => ({
+                    text: type,
+                    value: type,
+                })),
             onFilter:
-                user.roles[0] === "ROLE_MANAGER"
-                    ? (value, record) => record.contractTypeName === value
-                    : (value, record) => record.contractType.name === value,
+
+                (value, record) => record.contractType.name === value,
         },
         {
             title: "Đối tác",
@@ -266,11 +273,23 @@ const ManageContracts = () => {
     ];
 
     const handleTableChange = (pagination, filters, sorter) => {
-        setPagination(pagination);
+        if (isManager) {
+            setPaginationManager(pagination);
+        } else {
+            setPaginationStaff(pagination);
+        }
         if (filters?.status && filters?.status.length > 0) {
             setStatus(filters?.status[0]);
         } else {
             setStatus(null);
+        }
+    };
+
+    const handleSearch = (value) => {
+        if (isManager) {
+            setSearchTextManager(value);
+        } else {
+            setSearchTextStaff(value);
         }
     };
 
@@ -284,7 +303,7 @@ const ManageContracts = () => {
                     <Search
                         placeholder="Nhập tên hợp đồng, tên partner hoặc tên người tạo"
                         allowClear
-                        onSearch={setSearchText}
+                        onSearch={handleSearch}
                         style={{ width: "100%", minWidth: 500, maxWidth: 1200, marginBottom: 20 }}
                         className="block"
                         enterButton="Tìm kiếm"
@@ -305,9 +324,9 @@ const ManageContracts = () => {
                     rowKey="id"
                     loading={isLoading}
                     pagination={{
-                        current: pagination.current,
-                        pageSize: pagination.pageSize,
-                        total: contracts?.data.totalElements || 0,
+                        current: isManager ? paginationManager.current : paginationStaff.current,
+                        pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
+                        total: isManager ? contractManager?.data.totalElements : contracts?.data?.totalElements || 0,
                         showSizeChanger: true,
                         showQuickJumper: true,
                         showTotal: (total) => `Tổng ${total} hợp đồng`,

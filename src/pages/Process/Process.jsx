@@ -23,21 +23,29 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     const [managers, setManagers] = useState([]);
 
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
-    const { data: userData } = useGetUserStaffManagerQuery({
+    const { data: userData, refetch: refetchUser } = useGetUserStaffManagerQuery({
         page: page,
         size: size,
     });
 
+
+    const filterUser = () => {
+        return user.id !== user.id;
+    };
+
     useEffect(() => {
         if (userData?.data?.content) {
+            const activeUsers = userData?.data?.content.filter(user => user.is_active);
+
             // Nếu đang load trang đầu, reset lại danh sách
             if (page === 0) {
-                setManagers(userData.data.content);
+                setManagers(activeUsers);
             } else {
                 // Nếu load trang tiếp theo, thêm vào danh sách hiện có
-                setManagers(prev => [...prev, ...userData.data.content]);
+                setManagers(prev => [...prev, ...activeUsers]);
             }
         }
+        refetchUser();
     }, [userData]);
 
     const { data: approvalData } = useGetProcessByContractTypeIdQuery({ contractTypeId: contractTypeId });
@@ -252,7 +260,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                         const newProcess = {
                             name: "Quy trình mới",
                             stages: stagesArray,
-                            contractTypeId: contractTypeId, /////////////////////////////////////////////////// thêm logic ở đây để biến thành id phụ lục
+                            contractTypeId: contractTypeId,
                         };
                         const result = await create(newProcess).unwrap();
                         console.log("New process:", result);
@@ -271,6 +279,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
 
             })
             .catch((error) => {
+                message.error(error.data.message);
                 console.log("Validation Failed:", error);
             });
     };
@@ -291,6 +300,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                     setCurrent(newStep);
                 })
                 .catch((error) => {
+                    message.error(error.data.message);
                     console.log("Validation Failed:", error);
                 });
         }
@@ -345,6 +355,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                 setSelectedProcessId(null);
                 setHideAddStage(false);
             } catch (error) {
+                message.error(error?.data?.message || "Lỗi khi áp dụng quy trình!");
                 console.error("Assign process failed:", error);
             }
         }
