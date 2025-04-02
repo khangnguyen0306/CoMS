@@ -322,7 +322,7 @@ const ManageClause = () => {
 
 
     if (loadingClause || loadingType || loadingLegal || loadingTypeContract) return <Skeleton active />;
-    // if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+
     return (
         <ConfigProvider
             theme={{
@@ -509,19 +509,6 @@ const ManageClause = () => {
                                     rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
                                 >
                                     <Input placeholder="Nhập tên điều khoản" />
-                                </Form.Item>
-
-                                <Form.Item
-                                    name="type"
-                                    label="Loại điều khoản"
-                                >
-                                    <Select placeholder="Chọn loại điều khoản">
-                                        {typeData?.data.map(item => (
-                                            <Option key={item.original_term_id} value={item.original_term_id}>
-                                                {item.name}
-                                            </Option>
-                                        ))}
-                                    </Select>
                                 </Form.Item>
 
                                 <Form.Item

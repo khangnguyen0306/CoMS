@@ -6,6 +6,7 @@ const authSlice = createSlice({
         token: sessionStorage.getItem("token") || null,
         user: null,
         notiNumber: 0,
+        avartar: null
     },
     reducers: {
         setToken: (state, action) => {
@@ -30,13 +31,16 @@ const authSlice = createSlice({
             sessionStorage.removeItem("token");
             // localStorage.removeItem("token"); 
         },
+        setAvatar: (state, action) => {
+            state.avartar = action.payload;
+        },
     },
     selectors: {
         selectTokens: (auth) => auth.token,
     },
 });
 
-export const { setToken, setUser, setCredentials, logOut, setNotiNumber } = authSlice.actions;
+export const { setToken, setUser, setCredentials, logOut, setNotiNumber, setAvatar } = authSlice.actions;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectCurrentToken = (state) => state.auth.token;
 export const selectNotiNumber = (state) => state.auth.notiNumber;

@@ -1,30 +1,38 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, Button, message, Typography, Space, Skeleton, DatePicker, Select, Divider } from "antd";
+import { Form, Input, Button, message, Typography, Space, Skeleton, DatePicker, Select, Divider, Tabs, Upload, Spin } from "antd";
 import { useParams } from "react-router-dom";
-import { useGetUserByIdQuery, useUpdateUserMutation } from "../../services/UserAPI";
+import { useGetUserByIdQuery, useUpdateAvatarMutation, useUpdateUserMutation } from "../../services/UserAPI";
 import dayjs from "dayjs";
 import { useGetDepartmentsQuery } from "../../services/Department";
 import partnerIMG from "../../assets/Image/partner.jpg";
-import { EditFilled, MailFilled } from "@ant-design/icons";
+import { EditFilled, MailFilled, SaveFilled, SettingOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
 import { MdPlace } from "react-icons/md";
-import utc from 'dayjs/plugin/utc';
+import utc from "dayjs/plugin/utc";
+import ChangePassword from "./ChangePassWord";
+import { useDispatch, useSelector } from "react-redux";
+import { setAvatar } from "../../slices/authSlice";
 dayjs.extend(utc);
-const { Title } = Typography;
+const { TabPane } = Tabs;
 
 const Profile = () => {
     const { id } = useParams();
-    const { data, isLoading, refetch } = useGetUserByIdQuery({ id });
+    const { data, isLoading, refetch } = useGetUserByIdQuery({ id }, { skip: !id });
     const { data: departmentData, isLoading: DepartmentLoading } = useGetDepartmentsQuery();
+    const [updateAvatar, { isLoadingUpdateAvatar }] = useUpdateAvatarMutation();
+    const dispatch = useDispatch()
     const [updateUser] = useUpdateUserMutation();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [form] = Form.useForm();
+    const [hover, setHover] = useState(false);
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const [loadingUpdate, setLoadingUpdate] = useState(false)
 
-
-    const handleUpdateClick = () => {
+    const handleEditClick = () => {
+        setIsEditing(true);
         form.setFieldsValue({
             full_name: data?.full_name,
             department_id: data?.department?.id,
-            date_of_birth: data?.date_of_birth
+            dateOfBirth: data?.date_of_birth
                 ? dayjs(
                     `${data.date_of_birth[0]}-${data.date_of_birth[1].toString().padStart(2, "0")}-${data.date_of_birth[2].toString().padStart(2, "0")}`
                 )
@@ -32,191 +40,271 @@ const Profile = () => {
             phone_number: data?.phone_number,
             address: data?.address,
             email: data?.email,
+            gender: data?.gender,
+            is_ceo: data?.isCeo,
+            role_id: data?.role.id
         });
-        setIsModalOpen(true);
     };
 
-    const handleOk = async () => {
+    // Khi nhấn nút "Lưu"
+    const handleSaveClick = async () => {
         try {
-            const values = await form.validateFields();
-            await updateUser({
-                id: id,
-                email: values.email,
-                address: values.address,
-                phone_number: values.phone_number,
-                dateOfBirth: values.date_of_birth ? values.date_of_birth.utc(true).toISOString() : null,
-                full_name: values.full_name,
-                departmentId: values.department_id,
-                is_ceo: data?.is_ceo,
-                role_id: data?.role.id,
-            }).unwrap();
-            message.success("Profile updated successfully!");
-            setIsModalOpen(false);
-            form.resetFields();
+            const values = await form.validateFields(true);
+            await updateUser({ body: values, userId: id }).unwrap();
+            message.success("Cập nhật hồ sơ thành công!");
+            setIsEditing(false);
             refetch();
         } catch (error) {
-            message.error("Update failed, please try again.");
+            message.error("Cập nhật thất bại, vui lòng thử lại.");
         }
     };
 
-    const handleCancel = () => {
+    // Khi nhấn nút "Hủy"
+    const handleCancelClick = () => {
+        setIsEditing(false);
         form.resetFields();
-        setIsModalOpen(false);
+    };
+
+    const handleUpload = async (file) => {
+        const formData = new FormData();
+        formData.append("avatar", file);
+        setLoadingUpdate(true)
+        try {
+            const result = await updateAvatar({ formData, userId: data?.id }).unwrap();
+            if (result.status == "OK") {
+                message.success(result.message);
+                dispatch(setAvatar(result.data.avatar))
+                refetch()
+            }
+
+        } catch (error) {
+            message.error(error.data.message);
+        } finally {
+            setLoadingUpdate(false)
+        }
     };
 
     if (isLoading || DepartmentLoading) return <Skeleton active />;
 
     return (
-        <div className="flex p-6 min-h-screen">
-            {/* Sidebar */}
-            <div className="w-[30%]  p-6 rounded-lg ">
-                <div className="flex flex-col items-center">
-                    <img
-                        src={data?.employeeCode || partnerIMG}
-                        alt="Profile"
-                        className="w-[220px] h-[220px] mb-[60px] border-4 border-white shadow-md object-cover"
-                    />
-                    <Divider className="mt-[40px]"><p>Liên lạc</p></Divider>
+        <div className="p-6 min-h-screen">
+            <Tabs defaultActiveKey="1">
+                {/* Tab Thông tin cá nhân */}
+                <TabPane tab="Thông tin cá nhân" key="1" icon={<UserOutlined />}>
+                    <div className="flex">
+                        {/* Thanh bên */}
+                        <div className="w-[30%] p-6 rounded-lg">
+                            <div className="flex flex-col items-center">
+                                {loadingUpdate ? (<Spin size="large" />) : (
+                                    <Upload
+                                        showUploadList={false}
+                                        disabled={isLoadingUpdateAvatar}
+                                        beforeUpload={(file) => {
+                                            handleUpload(file);
+                                            return false; // Ngăn Upload tự động
+                                        }}
+                                    >
+                                        <div
+                                            className="relative w-[220px] h-[220px] mb-[60px] cursor-pointer"
+                                            onMouseEnter={() => setHover(true)}
+                                            onMouseLeave={() => setHover(false)}
+                                        >
+                                            <img
+                                                src={data?.avatar || partnerIMG}
+                                                alt="Hồ sơ"
+                                                className="w-full h-full border-4 border-white shadow-md object-cover rounded-md"
+                                            />
+                                            {hover && (
+                                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-md transition-opacity duration-300">
+                                                    <UploadOutlined className="text-white text-4xl" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Upload>
+                                )}
+                                <Divider className="mt-[40px]">
+                                    <p>Liên lạc</p>
+                                </Divider>
+                                <div className="mt-4 flex flex-col gap-2 w-full">
+                                    <Button
+                                        type="primary"
+                                        icon={<MailFilled />}
+                                        onClick={() => (window.location.href = `mailto:${data?.email}`)}
+                                    >
+                                        Gửi email
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
 
-                    {/* Buttons */}
-                    <div className="mt-4 flex flex-col gap-2 w-full">
-                        <Button
-                            type="primary"
-                            icon={<MailFilled />}
-                            onClick={() => (window.location.href = `mailto:${data?.email}`)}
-                        >
-                            Gửi email
-                        </Button>
+                        {/* Khu vực nội dung chính */}
+                        <div className="w-[70%] ml-6 p-6 rounded-lg relative mt-5">
+                            {!isEditing ? (
+                                <Button type="primary" icon={<EditFilled />} onClick={handleEditClick} className="absolute right-0">
+                                    Cập nhật thông tin
+                                </Button>
+                            ) : (
+                                <Space className="absolute right-0 top-0">
+                                    <Button type="primary" onClick={handleSaveClick} icon={<SaveFilled />} className="bg-[#007bff]">
+                                        Lưu
+                                    </Button>
+                                    <Button onClick={handleCancelClick}>Hủy</Button>
+                                </Space>
+                            )}
+                            <Form form={form} layout="vertical">
+                                <Form.Item name="is_ceo" hidden />
+                                <Form.Item name="role_id" hidden />
+                                <div className="space-y-6">
+                                    <div className="flex items-end gap-8">
+                                        {isEditing ? (
+                                            <Form.Item label="Tên nhân viên" name="full_name" rules={[{ required: true, message: "Vui lòng nhập tên đầy đủ!" }]}>
+                                                <Input placeholder="Nhập tên đầy đủ" className="w-[200px]" />
+                                            </Form.Item>
+                                        ) : (
+                                            <p className="font-semibold text-3xl">{data?.full_name}</p>
+                                        )}
+                                        {isEditing ? (
+                                            <Form.Item label="Địa chỉ" name="address" rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}>
+                                                <Input placeholder="Nhập địa chỉ" className="w-[300px]" />
+                                            </Form.Item>
+                                        ) : (
+                                            <p className="flex mb-1 items-center text-gray-700 text-sm">
+                                                <MdPlace style={{ fontSize: '20px', marginBottom: '5px', color: 'grey', marginRight: '7px' }} />
+                                                {data?.address || "Chưa cập nhật"}
+                                            </p>
+                                        )}
+                                    </div>
 
+                                    <p className="py-3 pt-0">
+                                        <span className="font-semibold text-gray-500 text-base">THÔNG TIN CƠ BẢN</span>
+                                        <hr className="mt-4" />
+                                    </p>
+                                    <div className="ml-3">
+                                        <div className="flex items-center mb-2">
+                                            <span className={`inline-block w-[200px] font-bold`}>Mã nhân viên:</span>
+                                            <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.staff_code || "EMP123"}</span>
+                                        </div>
+
+                                        <div className="flex items-center mb-2">
+                                            <span className={`inline-block w-[200px] font-bold`}>Ngày tháng năm sinh:</span>
+                                            {isEditing ? (
+                                                <Form.Item
+                                                    name="dateOfBirth"
+                                                    rules={[
+                                                        {
+                                                            required: true,
+                                                            message: "Vui lòng chọn ngày sinh!"
+                                                        },
+                                                        {
+                                                            validator: (_, value) => {
+                                                                if (!value || dayjs().diff(value, 'year') < 18) {
+                                                                    return Promise.reject(new Error("Bạn phải ít nhất 18 tuổi!"));
+                                                                }
+                                                                return Promise.resolve();
+                                                            }
+                                                        }
+                                                    ]}
+                                                >
+                                                    <DatePicker
+                                                        className="w-[200px]"
+                                                        placeholder="Chọn ngày"
+                                                        format="DD-MM-YYYY"
+                                                        disabledDate={(current) => current && current > dayjs().endOf('day')}
+                                                    />
+                                                </Form.Item>
+                                            ) : (
+                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>
+                                                    {data?.date_of_birth
+                                                        ? dayjs(
+                                                            new Date(
+                                                                data.date_of_birth[0],
+                                                                data.date_of_birth[1] - 1,
+                                                                data.date_of_birth[2]
+                                                            )
+                                                        ).format("DD/MM/YYYY")
+                                                        : "05/06/1982"}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center mb-2">
+                                            <span className={`inline-block w-[200px] font-bold`}>Giới tính:</span>
+                                            {isEditing ? (
+                                                <Form.Item name="gender" rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}>
+                                                    <Select placeholder="Chọn giới tính" className="w-[200px]">
+                                                        <Select.Option value="MALE">Nam</Select.Option>
+                                                        <Select.Option value="FEMALE">Nữ</Select.Option>
+                                                        <Select.Option value="OTHER">Khác</Select.Option>
+                                                    </Select>
+                                                </Form.Item>
+                                            ) : (
+                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.gender || "Chưa cập nhật"}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center mb-2">
+                                            <span className={`inline-block w-[200px] font-bold`}>Phòng ban:</span>
+                                            {isEditing ? (
+                                                <Form.Item name="department_id" rules={[{ required: true, message: "Vui lòng chọn phòng ban" }]}>
+                                                    <Select placeholder="Chọn phòng ban" className="w-[200px]">
+                                                        {departmentData?.data?.map((dept) => (
+                                                            <Select.Option key={dept.departmentName} value={dept.departmentId}>
+                                                                {dept.departmentName}
+                                                            </Select.Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+                                            ) : (
+                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.department?.departmentName || "Phòng ban"}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="py-6">
+                                        <span className="font-semibold text-gray-500 text-base">THÔNG TIN LIÊN HỆ</span>
+                                        <hr className="mt-4" />
+                                    </p>
+                                    <div className="ml-3">
+                                        <div className="flex items-center mb-2">
+                                            <span className="inline-block w-[200px] font-bold">Số điện thoại:</span>
+                                            {isEditing ? (
+                                                <Form.Item name="phone_number" rules={[{ required: true, message: "Vui lòng nhập số điện thoại!" }]}>
+                                                    <Input placeholder="Nhập số điện thoại" className="w-[200px]" />
+                                                </Form.Item>
+                                            ) : (
+                                                <a href={`tel:${data?.phone_number}`} className="text-[#007bff] underline">
+                                                    {data?.phone_number || "Chưa cập nhật"}
+                                                </a>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center mb-2">
+                                            <span className="inline-block w-[200px] font-bold">Email:</span>
+                                            {isEditing ? (
+                                                <Form.Item name="email" rules={[{ required: true, message: "Vui lòng nhập email!" }]}>
+                                                    <Input placeholder="Nhập email" className="w-[200px]" />
+                                                </Form.Item>
+                                            ) : (
+                                                <a href={`mailto:${data?.email}`} className="text-[#007bff] underline">
+                                                    {data?.email}
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </Form>
+                        </div>
                     </div>
-
-                </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="w-[70%] ml-6 bg-white p-6 rounded-lg relative">
-                <Button type="primary" icon={<EditFilled />} onClick={handleUpdateClick} className="absolute right-0">
-                    Cập nhật thông tin
-                </Button>
-                <div className="space-y-6">
-                    <div className="flex items-end gap-8">
-                        <p className="font-semibold text-black text-3xl">{data?.full_name}</p>
-                        <p className="flex mb-1 items-center text-gray-700 text-sm"> <MdPlace style={{ fontSize: '20px', marginBottom: '5px', color: 'grey', marginRight: '7px' }} /> {data?.address || "Chưa cập nhật"}</p>
+                </TabPane>
+                {/* Tab Cài đặt */}
+                <TabPane tab="Cài đặt" key="2" icon={<SettingOutlined />}>
+                    <div className=" p-6 rounded-lg">
+                        <ChangePassword />
+                        {/* Các cài đặt khác có thể được bổ sung ở đây */}
+                        <Divider>Các cài đặt khác</Divider>
                     </div>
-                    <p className="py-6 pt-0">
-                        <span className="font-semibold text-gray-500 text-xs">BASIC INFORMATION</span>
-                    </p>
-
-                    <div className="flex items-center mb-2">
-                        <span className="inline-block w-[200px] font-bold text-black">Mã nhân viên:</span>
-                        <span className="text-gray-800">{data?.staff_code || "EMP123"}</span>
-                    </div>
-
-                    <div className="flex items-center mb-2">
-                        <span className="inline-block w-[200px] font-bold text-black">Ngày tháng năm sinh:</span>
-                        <span className="text-gray-800">
-                            {data?.date_of_birth
-                                ? dayjs(
-                                    new Date(
-                                        data.date_of_birth[0],
-                                        data.date_of_birth[1] - 1,
-                                        data.date_of_birth[2]
-                                    )
-                                ).format("DD/MM/YYYY")
-                                : "05/06/1982"}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center mb-2">
-                        <span className="inline-block w-[200px] font-bold text-black">Gender:</span>
-                        <span className="text-gray-800">{data?.gender || "Male"}</span>
-                    </div>
-
-                    <div className="flex items-center mb-2">
-                        <span className="inline-block w-[200px] font-bold text-black">Phòng ban:</span>
-                        <span className="text-gray-800">{data?.department?.departmentName || "Phòng ban"}</span>
-                    </div>
-
-                    <p className="py-6">
-                        <span className="font-semibold text-gray-500 text-xs">CONTECT INFORMATION</span>
-                    </p>
-
-                    <div className="flex items-center mb-2">
-                        <span className="inline-block w-[200px] font-bold text-black">Số điện thoại:</span>
-                        <a href={`tel:${data?.phone_number}`} className="text-[#007bff] underline">
-                            {data?.phone_number || "+1 123 456 7890"}
-                        </a>
-                    </div>
-
-                    <div className="flex items-center mb-2">
-                        <span className="inline-block w-[200px] font-bold text-black">Email:</span>
-                        <a href={`mailto:${data?.email}`} className="text-[#007bff] underline">
-                            {data?.email || "hello@jeremyrose.com"}
-                        </a>
-                    </div>
-
-                    <div className="flex items-center mb-2">
-                        <span className="inline-block w-[200px] font-bold text-black">Trang web:</span>
-                        <a href="https://jeremyrose.com" className="text-[#007bff] underline">
-                            jeremyrose.com
-                        </a>
-                    </div>
-
-
-                </div>
-
-            </div>
-
-            {/* Modal */}
-            <Modal
-                title="Update Personal Information"
-                open={isModalOpen}
-                onCancel={handleCancel}
-                footer={null}
-                className="rounded-lg"
-            >
-                <Form form={form} layout="vertical" onFinish={handleOk}>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Form.Item name="full_name" label="Full Name" rules={[{ required: true, message: "Please enter your full name!" }]}>
-                            <Input placeholder="Enter full name" />
-                        </Form.Item>
-                        <Form.Item name="department_id" label="Department" rules={[{ required: true, message: "Please select a department!" }]}>
-                            <Select placeholder="Select department">
-                                {departmentData?.data?.map((dept) => (
-                                    <Select.Option key={dept.departmentName} value={dept.departmentId}>
-                                        {dept.departmentName}
-                                    </Select.Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item
-                            name="date_of_birth"
-                            label="Date of Birth"
-                            rules={[{ required: true, message: "Please select your date of birth!" }]}
-                        >
-                            <DatePicker className="w-full" placeholder="Select date of birth" format="DD-MM-YYYY" />
-                        </Form.Item>
-                        <Form.Item name="phone_number" label="Phone" rules={[{ required: true, message: "Please enter your phone number!" }]}>
-                            <Input placeholder="Enter phone number" />
-                        </Form.Item>
-                        <Form.Item name="address" label="Address" rules={[{ required: true, message: "Please enter your address!" }]}>
-                            <Input placeholder="Enter address" />
-                        </Form.Item>
-                        <Form.Item name="email" label="Email" rules={[{ required: true, message: "Please enter your email!" }]}>
-                            <Input placeholder="Enter email" />
-                        </Form.Item>
-                    </div>
-                    <Form.Item>
-                        <Space className="flex justify-end">
-                            <Button type="primary" htmlType="submit" className="bg-[#007bff]">
-                                Save Updates
-                            </Button>
-                            <Button onClick={handleCancel}>Cancel</Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
-            </Modal>
-        </div>
+                </TabPane>
+            </Tabs>
+        </div >
     );
 };
 

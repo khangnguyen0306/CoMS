@@ -24,7 +24,7 @@ const generationConfig = {
 };
 
 function ChatWithAI({ initialPrompt, handleGenerateAIPrompt,...othersProps }) {
-  console.log(othersProps)
+
 
   const darkMode =  useSelector(isDarkMode);
 

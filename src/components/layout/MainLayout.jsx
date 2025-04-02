@@ -31,6 +31,7 @@ import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+  const avatar = useSelector((state) => state.auth.avartar);
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser);
@@ -268,7 +269,6 @@ const MainLayout = () => {
           path: childItem.path,
           children: childItem.children?.map((grandchildItem) => {
             const grandchildBadgeCount = numberNoti?.data?.[grandchildItem.badgeCount] || 0;
-
             const grandchildIcon = grandchildBadgeCount > 0 ? (
               <Badge size="small" count={grandchildBadgeCount}>
                 {React.createElement(grandchildItem.icon)}
@@ -376,15 +376,16 @@ const MainLayout = () => {
           </div>
 
           <div className="flex justify-center items-center mr-36">
-            <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p>
+            {/* <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p> */}
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
 
             <Avatar
-              size="large"
-              icon={<UserOutlined />}
-              className="bg-slate-500 cursor-pointer ml-4"
-              onClick={() => navigate(`/profile/${user.id}`)}
-            />
+            size="large"
+            src={avatar} 
+            // icon={!user.avatar && <UserOutlined />} 
+            className="bg-slate-500 cursor-pointer ml-4 hover:border-2"
+            onClick={() => navigate(`/profile/${user.id}`)}
+        />
             <label className="switch ml-6" >
               <input
                 checked={!isDarkMode}
