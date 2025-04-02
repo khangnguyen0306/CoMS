@@ -33,8 +33,8 @@ const ContractAppendixPage = () => {
     const { data: contracts, isLoading: isLoadingContracts } = useGetAllContractQuery(
         { status: "ACTIVE" },
         { skip: !!contractId }
-      );
-      
+    );
+
     console.log(contracts)
     const [createAppendixType, { isLoading: isLoadingCreateAppendixType }] = useCreateAppendixTypeMutation();
     const [updateAppendixType, { isLoading: isLoadingUpdateAppendixType }] = useEditAppendixTypeMutation();
@@ -211,7 +211,7 @@ const ContractAppendixPage = () => {
                     <Form.Item
                         label="Tên Phụ Lục"
                         name="title"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên phụ lục!' }]}
+                        rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên phụ lục!' }]}
                     >
                         <Input placeholder="Nhập tên phụ lục" />
                     </Form.Item>
@@ -291,7 +291,7 @@ const ContractAppendixPage = () => {
                     <Form.Item
                         label="Nội Dung"
                         name="content"
-                        rules={[{ required: true, message: 'Vui lòng nhập nội dung phụ lục!' }]}
+                        rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập nội dung phụ lục!' }]}
                     >
                         <RichTextEditor
                             output="html"
@@ -329,7 +329,7 @@ const ContractAppendixPage = () => {
                     <Form.Item
                         label="Tên loại phụ lục"
                         name="name"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên loại phụ lục!' }]}
+                        rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên loại phụ lục!' }]}
                     >
                         <Input placeholder="Nhập tên loại phụ lục" />
                     </Form.Item>

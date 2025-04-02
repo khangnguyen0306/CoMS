@@ -942,7 +942,7 @@ const CreateContractForm = () => {
             render: (text, record, index) => (
                 <Form.Item
                     name={[index, 'description']}
-                    rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
+                    rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập nội dung' }]}
                     noStyle
                 >
                     <Input.TextArea placeholder="Nhập nội dung" rows={2} />
@@ -1088,7 +1088,7 @@ const CreateContractForm = () => {
                                         <Form.Item
                                             label="Tên hợp đồng"
                                             name="contractName"
-                                            rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}
+                                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}
                                         >
                                             <Input placeholder="Nhập tên hợp đồng" />
                                         </Form.Item>
@@ -1399,7 +1399,7 @@ const CreateContractForm = () => {
                                     label=" Soạn thảo nội dung hợp đồng"
                                     name="contractContent"
                                     className="mt-5"
-                                    rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
                                 >
                                     <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
                                         <RichTextEditor
@@ -1945,7 +1945,7 @@ const CreateContractForm = () => {
                                 label="Nội dung thông báo"
                                 name="notifyEffectiveContent"
                                 initialValue={`${DEFAULT_NOTIFICATIONS.effective}`}
-                                rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
                             >
                                 <Input.TextArea
                                     rows={2}
@@ -1996,7 +1996,7 @@ const CreateContractForm = () => {
                             <Form.Item
                                 label="Nội dung thông báo"
                                 name="notifyExpiryContent"
-                                rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
                                 initialValue={`${DEFAULT_NOTIFICATIONS.expiry}`}
                             >
                                 <Input.TextArea
@@ -2062,7 +2062,7 @@ const CreateContractForm = () => {
                                                     label="Nội dung thông báo"
                                                     name={[name, "notifyPaymentContent"]}
                                                     initialValue={`${DEFAULT_NOTIFICATIONS.payment} ${index + 1}`}
-                                                    rules={[{ required: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+                                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
                                                 >
                                                     <Input.TextArea
                                                         rows={2}

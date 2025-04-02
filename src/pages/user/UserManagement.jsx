@@ -309,7 +309,7 @@ const UserManagement = () => {
                                         <Form.Item
                                             name="full_name"
                                             label="Tên nhân sự"
-                                            rules={[{ required: true, message: "Vui lòng nhập tên nhân sự!" }]}
+                                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên nhân sự!" }]}
                                         >
                                             <Input placeholder="Nhập tên nhân sự" />
                                         </Form.Item>
@@ -321,6 +321,7 @@ const UserManagement = () => {
                                             rules={[
                                                 {
                                                     required: true,
+                                                    whitespace: true,
                                                     pattern: validationPatterns.phoneNumber.pattern,
                                                     message: validationPatterns.phoneNumber.message,
                                                 },
@@ -338,6 +339,7 @@ const UserManagement = () => {
                                             rules={[
                                                 {
                                                     required: true,
+                                                    whitespace: true,
                                                     pattern: validationPatterns.email.pattern,
                                                     message: validationPatterns.email.message,
                                                 },
@@ -350,7 +352,7 @@ const UserManagement = () => {
                                         <Form.Item
                                             name="address"
                                             label="Địa chỉ"
-                                            rules={[{ required: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
+                                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
                                         >
                                             <Input placeholder="Nhập địa chỉ" />
                                         </Form.Item>
@@ -430,7 +432,7 @@ const UserManagement = () => {
                                 <Form.Item
                                     name="full_name"
                                     label="Tên nhân sự"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên nhân sự!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên nhân sự!" }]}
                                 >
                                     <Input placeholder="Nhập tên nhận sự" />
                                 </Form.Item>
@@ -440,6 +442,7 @@ const UserManagement = () => {
                                     label="Số điện thoại"
                                     rules={[{
                                         required: true,
+                                        whitespace: true,
                                         pattern: validationPatterns.phoneNumber.pattern,
                                         message: validationPatterns.phoneNumber.message
                                     }]}
@@ -452,6 +455,7 @@ const UserManagement = () => {
                                     label="Email"
                                     rules={[{
                                         required: true,
+                                        whitespace: true,
                                         pattern: validationPatterns.email.pattern,
                                         message: validationPatterns.email.message
                                     }]}                        >
@@ -461,7 +465,7 @@ const UserManagement = () => {
                                 <Form.Item
                                     name="address"
                                     label="Địa chỉ"
-                                    rules={[{ required: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
                                 >
                                     <Input placeholder="Nhập tên nhận sự" />
                                 </Form.Item>
