@@ -17,8 +17,8 @@ export const DepartmentAPI = baseApi.injectEndpoints({
 
     // Cập nhật thông tin phòng ban
     updateDepartment: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `departments/update/${id}`,
+      query: ({ departmentId, data }) => ({
+        url: `departments/update/${departmentId}`,
         method: "PUT",
         body: data,
       }),

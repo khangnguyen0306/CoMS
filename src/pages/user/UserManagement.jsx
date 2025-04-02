@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Radio, Col, Row, Tabs } from "antd";
 import { EditFilled, PlusOutlined, DeleteFilled, StarFilled, StopOutlined } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
@@ -18,6 +18,9 @@ const UserManagement = () => {
     const [activeTab, setActiveTab] = useState("1");
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(10);
+    const [roleId, setRoleId] = useState(null);
+    const [isCeoExists, setIsCeoExists] = useState(false);
+    const [isCurrentUserCeo, setIsCurrentUserCeo] = useState(false);
 
     const [form] = Form.useForm();
 
@@ -26,7 +29,6 @@ const UserManagement = () => {
         page: page - 1,
         size: size,
     });
-    console.log("Data:", userData);
     const { data, error, isLoading: DepartmentLoading, refetch: DepartmentRefetch } = useGetDepartmentsQuery();
 
     const [BanUser, { isLoading: loadingDelete }] = useBanUserMutation();
@@ -34,16 +36,13 @@ const UserManagement = () => {
     const [UpdateUser, { isLoading: loadingUpdate }] = useUpdateUserMutation();
     const [AddUser, { isLoading: loadingAdd }] = useAddUserMutation();
 
-    const isCEO = Form.useWatch('is_ceo', form);
 
     console.log("Data:", userData);
 
-    React.useEffect(() => {
-        if (isCEO === true) {
-            // Nếu là CEO thì tự động set role_id = 2 (Manage)
-            form.setFieldsValue({ role_id: 2 });
-        }
-    }, [isCEO, form]);
+    useEffect(() => {
+        const ceoExists = userData?.content?.some((user) => user.isCeo === true);
+        setIsCeoExists(ceoExists);
+    }, [userData?.content]);
 
 
     const filterUsers = (users) => {
@@ -90,7 +89,8 @@ const UserManagement = () => {
             is_ceo: record.isCeo,
             departmentId: record.department?.id,
         });
-        console.log("Record:", record);
+        setRoleId(record.role.id);
+        setIsCurrentUserCeo(record.isCeo);
     }
 
     const handleSubmitEditUser = async (values) => {
@@ -109,7 +109,8 @@ const UserManagement = () => {
 
     const handleDelete = async (userId) => {
         Modal.confirm({
-            title: 'Bạn có chắc muốn cấm không?',
+            centered: true,
+            title: 'Không cho tài khoản này đăng nhập vô hệ thống?',
             onOk: async () => {
                 try {
                     const result = await BanUser({ userId: userId });
@@ -119,17 +120,19 @@ const UserManagement = () => {
                 }
                 catch (error) {
                     console.error("Error during delete:", error);
-                    message.error('Cấm thất bại, vui lòng thử lại!');
+                    message.error('Chặn thất bại, vui lòng thử lại!');
                 }
             },
-            okText: "Cấm",
+
+            okText: "Có",
             cancelText: "Hủy"
 
         });
     };
     const handleActive = async (userId) => {
         Modal.confirm({
-            title: 'Bạn có chắc muốn kích hoạt không?',
+            centered: true,
+            title: 'Bạn có chắc muốn tái kích hoạt tài khoản này không?',
             onOk: async () => {
                 try {
                     const result = await ActiveUser({ userId: userId });
@@ -138,7 +141,7 @@ const UserManagement = () => {
                 }
                 catch (error) {
                     console.error("Error during delete:", error);
-                    message.error('Kích hoạt thất bại, vui lòng thử lại!');
+                    message.error('Gỡ chặn thất bại, vui lòng thử lại!');
                 }
             },
             okText: "Kích hoạt",
@@ -147,14 +150,16 @@ const UserManagement = () => {
     };
 
 
-
+    const handleRoleChange = (value) => {
+        setRoleId(value);
+    };
 
     const columns = [
         {
             title: "Mã nhân viên",
-            dataIndex: "id",
-            key: "id",
-            sorter: (a, b) => a.id - b.id,
+            dataIndex: "staff_code",
+            key: "staff_code",
+            sorter: (a, b) => a.staff_code - b.staff_code,
         },
         {
             title: "Tên nhân viên", dataIndex: "full_name", key: "full_name",
@@ -182,8 +187,8 @@ const UserManagement = () => {
                         record.role.id === 3 ? (
                             <p className="font-bold text-gray-500">{text}</p>
                         ) : record.isCeo ? (
-                            <p className="font-bold text-[#ff0000]">
-                                {text} <StarFilled />
+                            <p className="flex font-bold text-[#ff0000] w-full">
+                                <p>{text} <StarFilled /></p>
                             </p>
                         ) : (
                             <p className="font-bold text-[#228eff]">{text}</p>
@@ -358,7 +363,7 @@ const UserManagement = () => {
                                             label="Chọn vai trò"
                                             rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
                                         >
-                                            <Select placeholder="Chọn vai trò">
+                                            <Select placeholder="Chọn vai trò" onChange={handleRoleChange}>
                                                 <Option value={2}>Quản Lý</Option>
                                                 <Option value={3}>Nhân Viên</Option>
                                             </Select>
@@ -380,20 +385,22 @@ const UserManagement = () => {
                                         </Form.Item>
                                     </Col>
                                 </Row>
-                                <Row gutter={16}>
-                                    <Col span={12}>
-                                        <Form.Item
-                                            name="is_ceo"
-                                            label="CEO"
-                                            rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
-                                        >
-                                            <Radio.Group>
-                                                <Radio value={true}>Có</Radio>
-                                                <Radio value={false}>Không</Radio>
-                                            </Radio.Group>
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
+                                {roleId === 2 && !isCeoExists && (
+                                    <Row gutter={16}>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                name="is_ceo"
+                                                label="CEO"
+                                                rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
+                                            >
+                                                <Radio.Group>
+                                                    <Radio value={true}>Có</Radio>
+                                                    <Radio value={false}>Không</Radio>
+                                                </Radio.Group>
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                )}
                                 <Form.Item>
                                     <div className="flex justify-center">
                                         <Button type="primary" htmlType="submit" loading={loadingAdd}>
@@ -483,18 +490,18 @@ const UserManagement = () => {
                                         <Option value={3}>Nhân Viên</Option>
                                     </Select>
                                 </Form.Item>
-
-                                <Form.Item
-                                    name="is_ceo"
-                                    label="CEO"
-                                    rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
-                                >
-                                    <Radio.Group>
-                                        <Radio value={true}>Có</Radio>
-                                        <Radio value={false}>Không</Radio>
-                                    </Radio.Group>
-                                </Form.Item>
-
+                                {roleId === 2 && (!isCeoExists || isCurrentUserCeo) && (
+                                    <Form.Item
+                                        name="is_ceo"
+                                        label="CEO"
+                                        rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
+                                    >
+                                        <Radio.Group>
+                                            <Radio value={true}>Có</Radio>
+                                            <Radio value={false}>Không</Radio>
+                                        </Radio.Group>
+                                    </Form.Item>
+                                )}
                                 <Form.Item>
                                     <div className="flex justify-center">
                                         <Button type="primary" htmlType="submit">

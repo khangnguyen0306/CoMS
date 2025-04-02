@@ -23,10 +23,11 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     const [managers, setManagers] = useState([]);
 
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
-    const { data: userData } = useGetUserStaffManagerQuery({
+    const { data: userData, refetch: refetchUser } = useGetUserStaffManagerQuery({
         page: page,
         size: size,
     });
+
 
     const filterUser = () => {
         return user.id !== user.id;
@@ -44,6 +45,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                 setManagers(prev => [...prev, ...activeUsers]);
             }
         }
+        refetchUser();
     }, [userData]);
 
     const { data: approvalData } = useGetProcessByContractTypeIdQuery({ contractTypeId: contractTypeId });

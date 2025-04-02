@@ -80,9 +80,14 @@ const Profile = () => {
 
                     {/* Buttons */}
                     <div className="mt-4 flex flex-col gap-2 w-full">
-                        <Button type="primary" icon={<MailFilled />}>
+                        <Button
+                            type="primary"
+                            icon={<MailFilled />}
+                            onClick={() => (window.location.href = `mailto:${data?.email}`)}
+                        >
                             Gửi email
                         </Button>
+
                     </div>
 
                 </div>

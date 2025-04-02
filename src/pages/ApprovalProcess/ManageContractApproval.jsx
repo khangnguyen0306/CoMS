@@ -11,14 +11,27 @@ const { Search } = Input;
 const { Text } = Typography;
 const ManageContractApproval = () => {
     const user = useSelector(selectCurrentUser);
-    const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessPendingManagerQuery({ approverId: user?.id });
+
+    const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10);
     const [searchText, setSearchText] = useState("");
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
-    
+
+    const { data: contracts, isLoading, isError, refetch } = useGetContractPorcessPendingManagerQuery({
+        approverId: user?.id,
+        page,
+        size,
+        keyword: searchText
+    });
+
     useEffect(() => {
         refetch();
         refetchNoti();
     }, [contracts]);
+
+    useEffect(() => {
+        refetch();
+    }, [page, size, searchText]);
 
     const columns = [
         {
@@ -74,11 +87,11 @@ const ManageContractApproval = () => {
             dataIndex: "contractTypeName",
             key: "contractTypeName",
             render: (type) => <Tag color="blue">{type}</Tag>,
-            // filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
-            //     text: type,
-            //     value: type,
-            // })),
-            onFilter: (value, record) => record.contract_type === value,
+            filters: [...new Set(contracts?.data?.content.map(contract => contract.contractTypeName))].map(type => ({
+                text: type,
+                value: type,
+            })),
+            onFilter: (value, record) => record.contractTypeName === value,
         },
         {
             title: "Đối tác",
@@ -120,23 +133,28 @@ const ManageContractApproval = () => {
                     <Search
                         placeholder="Nhập tên hợp đồng, tên partner hoặc tên người tạo"
                         allowClear
-                        onSearch={setSearchText}
-                        style={{ width: "100%", minWidth: 500, maxWidth: 1200, marginBottom: 20 }}
+                        onSearch={(value) => setSearchText(value)}
+                        style={{ width: "100%", minWidth: 500, maxWidth: 1200 }}
                         enterButton="Tìm kiếm"
                         disabled={isLoading}
                     />
                 </Space>
                 <Table
                     columns={columns}
-                    dataSource={contracts?.data?.content.filter(item =>
-                        item?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item?.party?.partnerName?.toLowerCase().includes(searchText.toLowerCase()) ||
-                        item?.user?.full_name?.toLowerCase().includes(searchText.toLowerCase())
-                        // item.contract_code.toLowerCase().includes(searchText.toLowerCase())
-                    )}
+                    dataSource={contracts?.data?.content}
                     rowKey="id"
                     loading={isLoading}
-                // onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                    pagination={{
+                        current: page + 1,
+                        pageSize: size,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        total: contracts?.data?.totalElements,
+                        onChange: (newPage, newSize) => {
+                            setPage(newPage - 1);
+                            setSize(newSize);
+                        }
+                    }}
                 />
             </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider } from "antd";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider, Form } from "antd";
 import { useGetContractStatusQuery } from "../../services/ContractAPI";
 import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
@@ -16,6 +16,8 @@ const ContractProcess = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
+    const [form] = Form.useForm();
+
     useEffect(() => {
         refetch();
     }, [contractsStatus]);
@@ -33,6 +35,7 @@ const ContractProcess = () => {
     };
 
     const handleCancel = () => {
+        form.resetFields();
         setIsModalVisible(false);
         setSelectedRecord(null);
         refetch();
@@ -288,6 +291,7 @@ const ContractProcess = () => {
                             refetch();
                             refetchNoti();
                         }}
+
                     />
                 </Modal>
             </div>
