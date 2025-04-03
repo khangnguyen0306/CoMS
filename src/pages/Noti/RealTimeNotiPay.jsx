@@ -15,6 +15,7 @@ const RealTimeNotification = () => {
 
     const [notifications, setNotifications] = useState([]);
 
+    console.log("user", user.roles);
 
     const handleIncomingNotification = (data) => {
         const msg = data.message;
@@ -54,8 +55,13 @@ const RealTimeNotification = () => {
             showProgress: true,
             type: "warning",
             onClick: () => {
-                navigate(`/manager/approvalContract/reviewContract/${data.contractId}`);
+                if (user?.roles.includes("ROLE_STAFF")) {
+                    navigate(`/approvalContract/reviewContract/${data.contractId}`);
+                } else {
+                    navigate(`/manager/approvalContract/reviewContract/${data.contractId}`);
+                }
             },
+
         });
     };
 

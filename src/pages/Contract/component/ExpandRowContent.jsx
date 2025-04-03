@@ -1,10 +1,11 @@
 import React from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
-import { Skeleton, Timeline, Tag, Empty } from 'antd';
-import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Skeleton, Timeline, Tag, Empty, Tooltip } from 'antd';
+import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
 import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
+import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
 
 const ExpandRowContent = ({ id, appendixId }) => {
     const { data, isLoading, isError } = useGetProcessByContractIdQuery(
@@ -16,8 +17,8 @@ const ExpandRowContent = ({ id, appendixId }) => {
         { skip: !appendixId }
     );
 
+
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(id)
-    console.log(dataPayment?.data?.paymentSchedules)
     // Hiển thị thông báo lỗi nếu có lỗi xảy ra
     if (isError || isErrorAppendix) {
         return <p>Lỗi khi tải dữ liệu!</p>;
@@ -29,11 +30,11 @@ const ExpandRowContent = ({ id, appendixId }) => {
             return <Empty description="Chưa có quy trình duyệt" />;
         }
     } else {
-        if (!dataAppendix || !dataAppendix?.data.stages || dataAppendix?.data.stages.length === 0) {
+        if (!dataAppendix || !dataAppendix?.data.stages || dataAppendix?.data?.stages.length === 0) {
             return <Empty description="Chưa có quy trình duyệt" />;
         }
     }
-    const stages = id ? data?.data.stages : dataAppendix?.data.stages;
+    const stages = id ? data?.data?.stages : dataAppendix?.data?.stages;
 
     if (!stages || stages.length === 0) {
         return <Empty description="Chưa có quy trình duyệt" />;
@@ -122,67 +123,64 @@ const ExpandRowContent = ({ id, appendixId }) => {
             </div>
 
             {/* Cột bên phải: Các đợt thanh toán */}
-            <div className="w-1/2 pr-10 relative">
-                <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
-                    Các đợt thanh toán
-                </h3>
-                <Timeline className='mt-8' mode="left">
-                    {dataPayment?.data?.paymentSchedules.map((schedule, index) => (
-                        <Timeline.Item
-                            key={schedule.id || index}
-                            label={
-                                schedule.paymentDate
-                                    ? dayjs(
-                                        new Date(
-                                            schedule.paymentDate[0],
-                                            schedule.paymentDate[1] - 1,
-                                            schedule.paymentDate[2]
-                                        )
-                                    ).format("DD/MM/YYYY")
-                                    : "Không có dữ liệu"
-                            }
-                        >
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px", textAlign: "left" }}>
-                                <span style={{ fontWeight: "bold" }}>
-                                    {schedule.amount.toLocaleString()} VND
-                                </span>
-                                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                    {schedule.status === "UNPAID" ? (
-                                        <>
-                                            <Tag color="gold">Chưa thanh toán</Tag>
-                                            <Upload
-                                                name="invoice"
-                                                accept="image/png, image/jpeg"
-                                                beforeUpload={(file) => {
-                                                    const isValidType =
-                                                        file.type === "image/png" || file.type === "image/jpeg";
-                                                    if (!isValidType) {
-                                                        message.error("Bạn chỉ có thể tải file PNG hoặc JPEG!");
-                                                        return Upload.LIST_IGNORE;
-                                                    }
-                                                    uploadFile(file, schedule.id);
-                                                    return false;
-                                                }}
-                                                showUploadList={false}
-                                            >
-                                                <Button icon={LoadingBill ? <LoadingOutlined /> : <UploadOutlined />}>
-                                                    {LoadingBill ? "Đang tải..." : "Tải hình ảnh"}
-                                                </Button>
-                                            </Upload>
-                                        </>
-                                    ) : schedule.status === "PAID" ? (
-                                        <Tag color="green">Đã thanh toán</Tag>
-                                    ) : schedule.status === "OVERDUE" ? (
-                                        <Tag color="red">Quá hạn</Tag>
-                                    ) : (
-                                        schedule.status
-                                    )}
+            {(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(dataPayment?.data?.status)) ? (
+                <div className="w-1/2 pr-10 relative">
+                    <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
+                        Các đợt thanh toán
+                    </h3>
+
+                    <Timeline className='mt-8 -ml-[20%]' mode="left">
+                        {dataPayment?.data?.paymentSchedules.map((schedule, index) => (
+
+                            <Timeline.Item
+                                key={schedule.id || index}
+                                label={
+                                    schedule.paymentDate
+                                        ? dayjs(
+                                            new Date(
+                                                schedule.paymentDate[0],
+                                                schedule.paymentDate[1] - 1,
+                                                schedule.paymentDate[2]
+                                            )
+                                        ).format("DD/MM/YYYY")
+                                        : "Không có dữ liệu"
+                                }
+                            >
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", textAlign: "left" }}>
+                                    <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                        <span
+                                            className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                            style={{ maxWidth: "150px", display: "inline-block", whiteSpace: "nowrap", minWidth: "150px" }}
+                                            title={`${schedule.amount.toLocaleString()} VND`}
+                                        >
+                                            {schedule.amount.toLocaleString()} VND
+                                        </span>
+                                    </Tooltip>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                        {schedule.status === "UNPAID" ? (
+                                            <Tag color="red">Chưa thanh toán</Tag>
+                                        ) : schedule.status === "PAID" ? (
+                                            <Tag color="green">Đã thanh toán</Tag>
+                                        ) : schedule.status === "OVERDUE" ? (
+                                            <Tag color="red">Quá hạn</Tag>
+                                        ) : (
+                                            schedule.status
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </Timeline.Item>
-                    ))}
-                </Timeline>
-            </div>
+                            </Timeline.Item>
+                        ))}
+                    </Timeline>
+                </div>
+            ) :
+                <div className="w-1/2 pr-10 relative">
+                    <h3 className="text-xl font-semibold text-center absolute  top-[-40px] left-72 transform -translate-x-1/2">
+                        Các đợt thanh toán
+                    </h3>
+                    <Empty description="Chưa có đợt thanh toán" />
+                </div>
+            }
+
         </div>
 
 

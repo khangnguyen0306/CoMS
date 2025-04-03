@@ -114,6 +114,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             return !selectedIds.includes(manager.id);
         });
     };
+    console.log("Managers:", getAvailableUsers("step1").length);
 
 
     // Hàm tạo mảng các bước (Steps) dựa trên customStagesCount hiện tại
@@ -308,6 +309,13 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
 
     // Hàm xử lý thêm đợt ký duyệt (thêm vào cuối danh sách)
     const handleAddStage = () => {
+        const availableUsersCount = getAvailableUsers("step1").length - 1;
+
+        if (customStagesCount >= availableUsersCount) {
+            message.error(`Không thể tạo thêm vì đã đạt giới hạn số người duyệt (${availableUsersCount})`);
+            return;
+        }
+
         if (customStagesCount < 5) {
             setCustomStagesCount(customStagesCount + 1);
             setApprovals((prev) => ({ ...prev, [`stage${customStagesCount + 1}`]: null }));
@@ -315,6 +323,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             message.error("Chỉ được tạo tối đa 5 đợt ký duyệt");
         }
     };
+
 
     const handleChange = (e) => {
         setSelection(e.target.value);
@@ -581,7 +590,11 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                                     {!hideAddStage && (
                                         <div className='flex flex-row gap-4 mt-8'>
                                             <div className="flex gap-4 ">
-                                                <Button type="primary" onClick={handleAddStage}>
+                                                <Button
+                                                    type="primary"
+                                                    onClick={handleAddStage}
+                                                    disabled={customStagesCount >= getAvailableUsers("step1").length - 1}
+                                                >
                                                     Thêm đợt ký duyệt
                                                 </Button>
                                             </div>

@@ -47,13 +47,22 @@ const NotificationDropdown = () => {
         dispatch(setNotiNumber(newUnreadCount));
         return updatedNotis;
       });
+      const text = item.message.toLowerCase();
 
-      // Chuyển hướng dựa trên vai trò người dùng
-      if (user.roles[0] === "ROLE_STAFF") {
-        navigate("/approvalContract");
-      } else if (user.roles[0] === "ROLE_MANAGER") {
-        navigate("/manager/approvalContract");
+      if (text && text.includes("phụ lục")) {
+        if (user.roles[0] === "ROLE_STAFF") {
+          navigate("/appendix");
+        } else if (user.roles[0] === "ROLE_MANAGER") {
+          navigate("/manager/appendix");
+        }
+      } else {
+        if (user.roles[0] === "ROLE_STAFF") {
+          navigate("/approvalContract");
+        } else if (user.roles[0] === "ROLE_MANAGER") {
+          navigate("/manager/approvalContract");
+        }
       }
+
     } catch (error) {
       console.error("Error updating notification:", error);
     }

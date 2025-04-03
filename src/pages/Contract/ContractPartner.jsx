@@ -689,9 +689,15 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 }
                                             >
                                                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                                    <span style={{ fontWeight: "bold" }}>
-                                                        {schedule.amount.toLocaleString()} VND
-                                                    </span>
+                                                    <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                                        <span
+                                                            className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                            style={{ maxWidth: "200px", display: "inline-block", whiteSpace: "nowrap", minWidth: "150px" }}
+                                                            title={`${schedule.amount.toLocaleString()} VND`}
+                                                        >
+                                                            {schedule.amount.toLocaleString()} VND
+                                                        </span>
+                                                    </Tooltip>
                                                     <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                                                         {schedule.status === "UNPAID" ? (
                                                             <>
