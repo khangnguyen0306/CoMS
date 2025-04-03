@@ -1,13 +1,15 @@
 import React from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
 import { Skeleton, Timeline, Tag, Empty, Upload, Button, Tooltip } from 'antd';
-import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined, UploadOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
 import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
 import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
 
 const ExpandRowContent = ({ id, appendixId }) => {
+    console.log("ID:", id);
+    console.log("Appendix ID:", appendixId);
     const { data, isLoading, isError } = useGetProcessByContractIdQuery(
         { contractId: id },
         { skip: !id }
@@ -141,6 +143,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
             </div>
 
             {/* Cột bên phải: Các đợt thanh toán */}
+
             {(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(dataPayment?.data?.status)) ? (
                 <div className="w-1/2 pr-10 relative">
                     <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
