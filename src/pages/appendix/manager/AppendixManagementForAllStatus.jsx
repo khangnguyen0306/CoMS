@@ -35,10 +35,10 @@ const AppendixManagementForAllStatus = () => {
         size: pagination.pageSize,
         }
     });
-    console.log(appendixs)
+    // console.log(appendixs)
 
 
-    const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
+    // const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const navigate = useNavigate()
     const [deleteappendix] = useDeleteAppendixMutation()
 
