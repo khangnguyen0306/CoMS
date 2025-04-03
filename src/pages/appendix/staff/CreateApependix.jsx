@@ -35,7 +35,7 @@ const ContractAppendixPage = () => {
         { skip: !!contractId }
     );
 
-    console.log(contracts)
+    // console.log(contracts)
     const [createAppendixType, { isLoading: isLoadingCreateAppendixType }] = useCreateAppendixTypeMutation();
     const [updateAppendixType, { isLoading: isLoadingUpdateAppendixType }] = useEditAppendixTypeMutation();
     const [deleteAppendixType, { isLoading: isLoadingDeleteAppendixType }] = useDeleteAppendixTypeMutation();

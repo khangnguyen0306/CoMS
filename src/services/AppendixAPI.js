@@ -133,6 +133,22 @@ export const appendixApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'Appendix', id: 'LIST' }],
     }),
 
+    duplicateAppendix: builder.mutation({
+      query: ({ appendixId, contractId }) => ({
+        url: `addendums/duplicate/${appendixId}/${contractId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: [{ type: 'Appendix', id: 'LIST' }],
+    }),
+
+    resubmitAppendix: builder.mutation({
+      query: (appendixId) => ({
+        url: `addendums/resubmit/${appendixId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: [{ type: 'Appendix', id: 'LIST' }],
+    }),
+
     getProcessByAppendixTypeId: builder.query({
       query: ({ appendixTypeId }) => ({
         url: `addendums/get-workflow-by-addendum-type/${appendixTypeId}`,
@@ -186,4 +202,6 @@ export const {
   useGetWorkFlowByAppendixIdQuery,
   useRejectAppendixMutation,
   useApproveAppendixMutation,
+  useDuplicateAppendixMutation,
+  useResubmitAppendixMutation
 } = appendixApi;
