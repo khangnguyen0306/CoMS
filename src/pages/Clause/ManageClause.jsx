@@ -192,7 +192,11 @@ const ManageClause = () => {
     const handleOkAdd = async () => {
         try {
             const values = await form.validateFields();
-            await createContractType(values).unwrap();
+            const processedValues = {
+                ...values,
+                name: values.name ? values.name.charAt(0).toUpperCase() + values.name.slice(1) : values.name,
+            };
+            await createContractType(processedValues).unwrap();
             message.success("Thêm loại hợp đồng thành công!");
             setIsModalOpenAddContractType(false);
             refetch(); // Tải lại danh sách
@@ -204,8 +208,12 @@ const ManageClause = () => {
     const handleOkEdit = async () => {
         try {
             const values = await form.validateFields();
+            const processedValues = {
+                ...values,
+                name: values.name ? values.name.charAt(0).toUpperCase() + values.name.slice(1) : values.name,
+            };
             // Gọi API update
-            await editContractType({ id: currentContractType.id, ...values }).unwrap();
+            await editContractType({ id: currentContractType.id, ...processedValues }).unwrap();
             message.success("Cập nhật loại hợp đồng thành công!");
             setIsModalOpenContractType(false);
             refetch(); // Tải lại danh sách
@@ -373,7 +381,7 @@ const ManageClause = () => {
                                 />
                                 <Select
                                     placeholder="Chọn loại điều khoản"
-                                    value={selectedType}
+                                    value={selectedType || undefined}
                                     onChange={(value) => setSelectedType(value || "")}
                                     className="mb-4 min-w-[270px]"
                                     allowClear

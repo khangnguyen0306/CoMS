@@ -18,7 +18,7 @@ const ContractProcess = () => {
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
 
     const [filters, setFilters] = useState({
-        statuses: ['CREATED', 'UPDATED', 'REJECTED', 'FIXED', 'APPROVAL_PENDING']
+        statuses: ['CREATED', 'UPDATED', 'REJECTED', 'FIXED']
     });
 
     const [pagination, setPagination] = useState({
@@ -112,7 +112,7 @@ const ContractProcess = () => {
             title: "Tên hợp đồng",
             dataIndex: "title",
             key: "title",
-            sorter: (a, b) => a.title.localeCompare(b.title),
+            // sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => {
                 if (record.status === "REJECTED") {
                     return (
@@ -144,11 +144,11 @@ const ContractProcess = () => {
             dataIndex: ["contractType", "name"],
             key: "contractType.name",
             render: (type) => <Tag color="blue">{type}</Tag>,
-            // filters: [...new Set(contracts?.map(contract => contract.contract_type))].map(type => ({
-            //     text: type,
-            //     value: type,
-            // })),
-            onFilter: (value, record) => record.contract_type === value,
+            filters: [...new Set(contracts?.map(contract => contract.contractType.name))].map(type => ({
+                text: type,
+                value: type,
+            })),
+            onFilter: (value, record) => record.contractType.name === value,
         },
         {
             title: "Đối tác",

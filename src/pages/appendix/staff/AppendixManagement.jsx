@@ -340,7 +340,7 @@ const AppendixManagement = () => {
                 <Table
                     columns={columns}
                     dataSource={tableData}
-                    rowKey="id"
+                    rowKey="addendumId"
                     loading={isLoading}
                     pagination={{
                         current: pagination.current,
@@ -352,7 +352,7 @@ const AppendixManagement = () => {
                     }}
                     onChange={handleTableChange}
                     expandable={{
-                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                        expandedRowRender: (record) => <ExpandRowContent appendixId={record.addendumId} />,
                     }}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />

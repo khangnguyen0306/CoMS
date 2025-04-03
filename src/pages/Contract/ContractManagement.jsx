@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined } from "@ant-design/icons";
-import { useDuplicateContractMutation, useGetAllContractQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image } from "antd";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined } from "@ant-design/icons";
+import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -12,10 +12,11 @@ import { selectCurrentUser } from "../../slices/authSlice";
 import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
 import ExpandRowContent from "./component/ExpandRowContent";
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
+import { useUploadBillingContractMutation } from "../../services/uploadAPI";
 const { Search } = Input;
 
 const ManageContracts = () => {
-
+    const { Panel } = Collapse
     const [searchTextStaff, setSearchTextStaff] = useState("");
     const [searchTextManager, setSearchTextManager] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
@@ -29,7 +30,10 @@ const ManageContracts = () => {
         pageSize: 10,
         total: 0,
     });
-
+    const [isUpdateStatusModalVisible, setIsUpdateStatusModalVisible] = useState(false);
+    const [selectedContractId, setSelectedContractId] = useState(null);
+    const [fileList, setFileList] = useState([]);
+    const [hoveredIndex, setHoveredIndex] = useState(null);
     const [status, setStatus] = useState(null);
     const [duplicateContract] = useDuplicateContractMutation();
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
@@ -38,6 +42,12 @@ const ManageContracts = () => {
         keyword: searchTextStaff,
         status: status
     });
+    const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
+
+    const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(selectedContractId, {
+        skip: !selectedContractId, // chỉ gọi query khi đã có id
+    });
+
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
     const { data: contractManager, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
@@ -59,6 +69,20 @@ const ManageContracts = () => {
             refetch();
         }
     }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager]);
+
+    // Trong component cha, khai báo state cho modal cập nhật trạng thái
+
+    const openUpdateStatusModal = (contractId) => {
+        setSelectedContractId(contractId);
+        setIsUpdateStatusModalVisible(true);
+    };
+
+    // Hàm đóng modal cập nhật trạng thái
+    const handleCloseUpdateStatusModal = () => {
+        setIsUpdateStatusModalVisible(false);
+        setSelectedContractId(null);
+    };
+
 
     // console.log(selectedContract)
     const handleDuplicate = async (contractId) => {
@@ -213,64 +237,134 @@ const ManageContracts = () => {
             key: "action",
             render: (_, record) => (
                 <Space>
-                    {record?.status === "APPROVED" ? (
-                        <Button>Gửi ký</Button>
-                    ) : (
-                        <Dropdown
-                            menu={{
-                                items: [
-                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED" && record.status !== "SIGNED" && record.status !== "ACTIVE" && record.status !== "COMPLETED" && record.status !== "EXPIRED" && record.status !== "CANCELLED" && record.status !== "ENDED"
-                                        ? [{
+                    <Dropdown
+                        menu={{
+                            items: [
+                                // Nếu record.status là "APPROVED" thì thêm mục "Gửi ký"
+                                ...(record.status === "APPROVED"
+                                    ? [
+                                        {
+                                            key: "send-sign",
+                                            icon: <CheckCircleFilled style={{ color: "#228eff" }} />,
+                                            label: "Gửi ký",
+                                            onClick: () => {
+                                                // Logic gửi ký ở đây
+                                                message.success("Gửi ký thành công!");
+                                            },
+                                        },
+                                    ]
+                                    : []),
+                                // Nếu record.status không thuộc các trạng thái sau thì cho phép sửa
+                                ...(record.status !== "APPROVAL_PENDING" &&
+                                    record.status !== "APPROVED" &&
+                                    record.status !== "SIGNED" &&
+                                    record.status !== "ACTIVE" &&
+                                    record.status !== "COMPLETED" &&
+                                    record.status !== "EXPIRED" &&
+                                    record.status !== "CANCELLED" &&
+                                    record.status !== "ENDED"
+                                    ? [
+                                        {
                                             key: "edit",
-                                            icon: <EditFilled style={{ color: '#228eff' }} />,
+                                            icon: <EditFilled style={{ color: "#228eff" }} />,
                                             label: "Sửa",
                                             onClick: () => navigate(`/EditContract/${record.id}`),
-                                        }]
-                                        : []),
-                                    ...(record.status == "ACTIVE"
-                                        ? [{
+                                        },
+                                    ]
+                                    : []),
+                                // Nếu record.status là "ACTIVE" thì thêm mục "Tạo phụ lục"
+                                ...(record.status === "ACTIVE"
+                                    ? [
+                                        {
                                             key: "createAppendix",
-                                            icon: <PlusOutlined style={{ color: '#228eff' }} />,
+                                            icon: <PlusOutlined style={{ color: "#228eff" }} />,
                                             label: "Tạo phụ lục",
-                                            onClick: () => navigate(`/CreateAppendix/?contractId=${record.id}&contractNumber=${record.contractNumber}`),
-                                        }]
-                                        : []),
-
-                                    {
-                                        key: "duplicate",
-                                        icon: <BiDuplicate style={{ color: '#228eff' }} />,
-                                        label: "Nhân bản",
-                                        onClick: () => handleDuplicate(record.id),
-                                    },
-                                    {
-                                        key: "updateStatus",
-                                        icon: <BsClipboard2DataFill />,
-                                        label: "Cập nhật trạng thái",
-                                        onClick: () => message.info("Cập nhật trạng thái hợp đồng!"),
-                                    },
-                                    {
-                                        key: "updateNotification",
-                                        icon: <IoNotifications />,
-                                        label: "Cập nhật thông báo",
-                                        onClick: () => message.info("Cập nhật thông báo hợp đồng!"),
-                                    },
-                                    {
-                                        key: "delete",
-                                        icon: <DeleteOutlined />,
-                                        label: "Xóa",
-                                        danger: true,
-                                        onClick: () => handleDelete(record),
-                                    },
-                                ],
-                            }}
-                        >
-                            <Button><SettingOutlined /></Button>
-                        </Dropdown>
-                    )}
+                                            onClick: () =>
+                                                navigate(
+                                                    `/CreateAppendix/?contractId=${record.id}&contractNumber=${record.contractNumber}`
+                                                ),
+                                        },
+                                    ]
+                                    : []),
+                                {
+                                    key: "duplicate",
+                                    icon: <BiDuplicate style={{ color: "#228eff" }} />,
+                                    label: "Nhân bản",
+                                    onClick: () => handleDuplicate(record.id),
+                                },
+                                ...(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "updateStatus",
+                                            icon: <BsClipboard2DataFill />,
+                                            label: "Cập nhật trạng thái thanh toán",
+                                            onClick: () => openUpdateStatusModal(record.id),
+                                        },
+                                    ]
+                                    : []),
+                                {
+                                    key: "updateNotification",
+                                    icon: <IoNotifications />,
+                                    label: "Cập nhật thông báo",
+                                    onClick: () => message.info("Cập nhật thông báo hợp đồng!"),
+                                },
+                                {
+                                    key: "delete",
+                                    icon: <DeleteOutlined />,
+                                    label: "Xóa",
+                                    danger: true,
+                                    onClick: () => handleDelete(record),
+                                },
+                            ],
+                        }}
+                        trigger={["hover"]}
+                    >
+                        <Button>
+                            <SettingOutlined />
+                        </Button>
+                    </Dropdown>
                 </Space>
+
             ),
         },
     ];
+
+    const uploadFile = async (file, paymentScheduleId) => {
+        console.log("File:", file);
+        console.log("Payment Schedule ID:", paymentScheduleId);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            // Gọi API upload file, truyền paymentScheduleId và formData
+            // const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
+            const parsedRes = JSON.parse(res);
+            message.success(parsedRes.message);
+
+            refetch();
+        } catch (error) {
+            console.error("Lỗi upload file:", error);
+            message.error("Upload thất bại!");
+        }
+    };
+
+    const handleBeforeUpload = (file) => {
+        const isValidType =
+            file.type === "image/png" || file.type === "image/jpeg";
+        if (!isValidType) {
+            message.error("Bạn chỉ có thể tải file PNG hoặc JPEG!");
+            return Upload.LIST_IGNORE;
+        }
+
+        // Thêm file vào state
+        setFileList((prev) => [...prev, file]);
+
+        return false; // Ngăn không cho Upload.Dragger tự động tải lên
+    };
+
+    const handleDeleteImg = (index) => {
+        setFileList((prev) => prev.filter((_, i) => i !== index));
+    };
+
 
     const handleTableChange = (pagination, filters, sorter) => {
         if (isManager) {
@@ -338,6 +432,135 @@ const ManageContracts = () => {
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
             </div>
+            <Modal
+                title="Cập nhật trạng thái thanh toán"
+                open={isUpdateStatusModalVisible}
+                onCancel={handleCloseUpdateStatusModal}
+                footer={null}
+                width={700}
+            >
+                {isLoadingPayment ? (
+                    <Spin />
+                ) : isErrorPayment ? (
+                    <div className="text-center text-red-500">Có lỗi xảy ra khi tải dữ liệu</div>
+                ) : (
+                    <div className="p-4">
+                        <h3 className="text-2xl font-semibold text-center mb-4">Các đợt thanh toán</h3>
+                        <Collapse
+                            bordered
+                            className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
+                        >
+                            {dataPayment?.data?.paymentSchedules?.map((schedule, index) => (
+                                <Panel
+                                    key={schedule.id || index}
+                                    header={
+                                        <div className="flex items-center justify-between w-full">
+                                            {/* Số tiền */}
+                                            <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                                <span
+                                                    className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                    style={{ maxWidth: "250px" }}
+                                                >
+                                                    {schedule.amount.toLocaleString()} VND
+                                                </span>
+                                            </Tooltip>
+                                            {/* Ngày thanh toán */}
+                                            <span className="text-base text-gray-800">
+                                                {schedule.paymentDate
+                                                    ? dayjs(
+                                                        new Date(
+                                                            schedule.paymentDate[0],
+                                                            schedule.paymentDate[1] - 1,
+                                                            schedule.paymentDate[2]
+                                                        )
+                                                    ).format("DD/MM/YYYY")
+                                                    : "Không có dữ liệu"}
+                                            </span>
+                                            {/* Tag trạng thái */}
+                                            <div>
+                                                {schedule.status === "UNPAID" ? (
+                                                    <Tag color="red">Chưa thanh toán</Tag>
+                                                ) : schedule.status === "PAID" ? (
+                                                    <Tag color="green">Đã thanh toán</Tag>
+                                                ) : schedule.status === "OVERDUE" ? (
+                                                    <Tag color="red">Quá hạn</Tag>
+                                                ) : (
+                                                    schedule.status
+                                                )}
+                                            </div>
+                                        </div>
+                                    }
+                                    disabled={schedule.status === "PAID"} // Chặn mở nếu đã thanh toán
+                                >
+                                    {schedule.status === "PAID" ? (
+                                        <div className="text-gray-500 italic text-center">
+                                            Đợt thanh toán này đã hoàn thành, không thể cập nhật.
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Phần bên trong của Collapse.Panel dùng để upload hình ảnh */}
+                                            <Upload.Dragger
+                                                name="invoice"
+                                                accept="image/png, image/jpeg"
+                                                beforeUpload={handleBeforeUpload}
+                                                showUploadList={false} // Không để Ant Design quản lý danh sách file
+                                            >
+                                                <p className="ant-upload-drag-icon">
+                                                    <InboxOutlined />
+                                                </p>
+                                                <div className="ant-upload-text">
+                                                    Click hoặc kéo file vào đây để tải lên
+                                                </div>
+                                                <p className="ant-upload-hint">Hỗ trợ tải lên một hoặc nhiều file.</p>
+                                            </Upload.Dragger>
+
+                                            {/* Hiển thị danh sách ảnh đã chọn */}
+                                            <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "15px" }}>
+                                                {fileList.map((file, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="image-item"
+                                                        onMouseEnter={() => setHoveredIndex(index)}
+                                                        onMouseLeave={() => setHoveredIndex(null)}
+                                                        style={{ position: "relative", display: "inline-block" }}
+                                                    >
+                                                        <Image
+                                                            src={URL.createObjectURL(file)}
+                                                            alt="Uploaded"
+                                                            style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }}
+                                                        />
+                                                        {hoveredIndex === index && (
+                                                            <Button
+                                                                icon={<DeleteOutlined />}
+                                                                onClick={() => handleDeleteImg(index)}
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: "5px",
+                                                                    right: "5px",
+                                                                    backgroundColor: "red",
+                                                                    color: "white",
+                                                                    borderRadius: "50%",
+                                                                    padding: "5px",
+                                                                    border: "none",
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </Panel>
+                            ))}
+                        </Collapse>
+
+                        <div className="text-center mt-8">
+                            <Button onClick={handleCloseUpdateStatusModal}>Đóng</Button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
+
 
         </div>
     );

@@ -84,14 +84,14 @@ const ManageContractApproval = () => {
 
         {
             title: "Loại hợp đồng",
-            dataIndex: "contractTypeName",
-            key: "contractTypeName",
+            dataIndex: ["contractType", "name"],
+            key: "contractType.name",
             render: (type) => <Tag color="blue">{type}</Tag>,
-            filters: [...new Set(contracts?.data?.content.map(contract => contract.contractTypeName))].map(type => ({
+            filters: [...new Set(contracts?.data?.content.map(contract => contract.contractType.name))].map(type => ({
                 text: type,
                 value: type,
             })),
-            onFilter: (value, record) => record.contractTypeName === value,
+            onFilter: (value, record) => record.contractType.name === value,
         },
         {
             title: "Đối tác",
