@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, UndoOutlined } from "@ant-design/icons";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -10,13 +10,17 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../slices/authSlice";
 import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../../services/ProcessAPI";
 import ExpandRowContent from "../../Contract/component/ExpandRowContent";
-import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery } from "../../../services/AppendixAPI";
+import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery, useResubmitAppendixMutation } from "../../../services/AppendixAPI";
 import Process from "../../Process/Process";
-
+import { IoDuplicate } from "react-icons/io5";
+import { IoSend } from "react-icons/io5";
+import DuplicateModal from "../component/DuplicateAppendix";
 const { Search } = Input;
 
 const AppendixManagement = () => {
 
+    const navigate = useNavigate()
+    const user = useSelector(selectCurrentUser)
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
     const [pagination, setPagination] = useState({
@@ -24,25 +28,40 @@ const AppendixManagement = () => {
         pageSize: 10,
         total: 0
     });
-
     const [status, setStatus] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isVisibleDuplicate, setIsVisibleDuplicate] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
-    ////////////////////////////////////////////////////////////////
+    const [selectedContractId, setSelectedContractId] = useState(null);
+
+
     const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixBySelfQuery({
         page: pagination.current - 1,
         size: pagination.pageSize,
         keyword: searchText,
     });
 
-
-    const user = useSelector(selectCurrentUser)
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
-    const navigate = useNavigate()
     const [deleteappendix] = useDeleteAppendixMutation()
+    const [resubmitAppendix] = useResubmitAppendixMutation()
 
-    // const isManager = user?.roles[0] === "ROLE_MANAGER";
+
     const tableData = appendixs?.data?.content;
+
+
+
+    const handleOpenDuplicate = (record) => {
+        // console.log(record)
+        setSelectedContractId(record)
+        setIsVisibleDuplicate(true);
+    };
+
+    const handleCancelDuplicate = () => {
+        setIsVisibleDuplicate(false);
+    };
+
+
+
 
     useEffect(() => {
         refetch();
@@ -66,6 +85,31 @@ const AppendixManagement = () => {
                 } catch (error) {
                     const errorMessage = error?.data?.message?.split(": ")?.[1] || "Xóa phụ lục thất bại, vui lòng thử lại!";
                     message.error(errorMessage);
+                }
+            },
+            okText: 'Xóa',
+            cancelText: 'Hủy',
+        });
+
+    };
+
+    const handleResubmit = async (record) => {
+        Modal.confirm({
+            title: 'Phụ lục sẽ được gửi lại để phê duyệt',
+            onOk: async () => {
+                try {
+                    await resubmitAppendix(record.addendumId).unwrap();
+                } catch (error) {
+                    console.log(error)
+                    if (error.originalStatus == 200) {
+                        message.success(error.data);
+                        refetch()
+                    } else {
+                        const errorMessage = error?.data?.message?.split(": ")?.[1] || "Gửi yêu cầu phê duyệt phụ lục thất bại!";
+                        message.error(errorMessage);
+                    }
+
+
                 }
             },
             okText: 'Xóa',
@@ -174,8 +218,9 @@ const AppendixManagement = () => {
             render: (_, record) => (
                 <Space>
                     {record?.status === "APPROVED" ? (
-                        <div>
-                            <Button type="primary">Gửi ký <SendOutlined /></Button>
+                        <div className="flex gap-2">
+                            <Button type="default" onClick={() => handleOpenDuplicate(record)} icon={<IoDuplicate />}></Button>
+                            <Button type="default" icon={<IoSend style={{ color: '#40a9ff', fontSize: 15 }} />}></Button>
                         </div>
                     ) : (
                         <Dropdown
@@ -197,17 +242,32 @@ const AppendixManagement = () => {
                                             onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
                                         }]
                                         : []),
-                                    ...(record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+                                    ...(record.status === "REJECTED" ? [
                                         {
                                             key: "select-process",
-                                            icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                            icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
                                             label: (
-                                                <span onClick={() => showModal(record)}>
-
-                                                    Yêu cầu phê duyệt
+                                                <span onClick={() => handleResubmit(record)}>
+                                                    Gửi lại yêu cầu phê duyệt
                                                 </span>
                                             ),
-                                        }] : [],
+                                        }] :
+                                        (record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+                                            {
+                                                key: "select-process",
+                                                icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                                label: (
+                                                    <span onClick={() => showModal(record)}>
+                                                        Yêu cầu phê duyệt
+                                                    </span>
+                                                ),
+                                            }] : []),
+                                    {
+                                        key: "duplicate",
+                                        icon: <IoDuplicate />,
+                                        label: "Nhân bản phụ lục",
+                                        onClick: () => handleOpenDuplicate(record),
+                                    },
                                     {
                                         key: "delete",
                                         icon: <DeleteOutlined />,
@@ -215,7 +275,6 @@ const AppendixManagement = () => {
                                         danger: true,
                                         onClick: () => handleDelete(record),
                                     },
-
                                 ],
                             }}
                         >
@@ -318,6 +377,14 @@ const AppendixManagement = () => {
                         }}
                     />
                 </Modal>
+
+                <DuplicateModal
+                    visible={isVisibleDuplicate}
+                    handleCancelDuplicate={handleCancelDuplicate}
+                    record={selectedContractId}
+                    setSelectedContractId={setSelectedContractId}
+                    refetch={refetch}
+                />
             </div>
 
         </div>

@@ -1298,12 +1298,33 @@ const CreateContractForm = () => {
                                     <Form.Item
                                         label="Ngày ký kết"
                                         name="signingDate"
-                                        rules={[{ required: true, message: "Ngày ký kết không được để trống!" }]}
+                                        dependencies={['effectiveDate']} // Phụ thuộc vào ngày có hiệu lực
+                                        rules={[
+                                            { required: true, message: "Ngày ký kết không được để trống!" },
+                                            ({ getFieldValue }) => ({
+                                                validator(_, value) {
+                                                    const effectiveDate = getFieldValue('effectiveDate');
+                                                    if (!effectiveDate || !value) {
+                                                        return Promise.resolve();
+                                                    }
+                                                    if (value.isBefore(effectiveDate)) {
+                                                        return Promise.resolve();
+                                                    }
+                                                    return Promise.reject(new Error('Ngày ký kết phải trước ngày có hiệu lực!'));
+                                                },
+                                            }),
+                                        ]}
                                     >
                                         <DatePicker
                                             className="w-full"
                                             format="DD/MM/YYYY"
-                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                            disabledDate={(current) => {
+                                                const effectiveDate = form.getFieldValue('effectiveDate');
+                                                if (effectiveDate) {
+                                                    return current && current >= dayjs(effectiveDate).startOf('day');
+                                                }
+                                                return current && current < dayjs().startOf('day');
+                                            }}
                                         />
                                     </Form.Item>
                                 </div>
@@ -1627,25 +1648,50 @@ const CreateContractForm = () => {
                                 </div>
 
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
-
                                 <Form.Item
                                     label="Thời gian hiệu lực hợp đồng"
-                                    required
-                                    className="mb-4"
-                                    name="effectiveDate&expiryDate"
+                                    name="dateRange"
+                                    rules={[
+                                        { required: true, message: "Vui lòng chọn thời gian hiệu lực hợp đồng!" },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                if (!value || value.length !== 2) {
+                                                    return Promise.resolve();
+                                                }
+                                                const [effectiveDate, expiryDate] = value;
+                                                const signingDate = getFieldValue('signingDate');
+
+                                                // Kiểm tra effectiveDate phải sau signingDate
+                                                if (signingDate && effectiveDate.isBefore(signingDate)) {
+                                                    return Promise.reject(new Error('Ngày bắt đầu hiệu lực phải sau ngày ký kết!'));
+                                                }
+
+                                                // Kiểm tra expiryDate phải sau effectiveDate
+                                                if (expiryDate.isBefore(effectiveDate)) {
+                                                    return Promise.reject(new Error('Ngày kết thúc hiệu lực phải sau ngày bắt đầu!'));
+                                                }
+
+                                                return Promise.resolve();
+                                            },
+                                        }),
+                                    ]}
                                 >
                                     <DatePicker.RangePicker
                                         className="w-full"
                                         showTime={{ format: 'HH:mm' }}
                                         format="DD/MM/YYYY HH:mm"
-                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
-
+                                        disabledDate={(current) => {
+                                            const signingDate = form.getFieldValue('signingDate');
+                                            if (!current) return false;
+                                            // Không cho chọn ngày trước hôm nay hoặc trước signingDate
+                                            return current < dayjs().startOf('day') || (signingDate && current <= signingDate);
+                                        }}
                                         onChange={(dates) => {
                                             if (dates) {
                                                 form.setFieldsValue({
                                                     effectiveDate: dates[0],
-                                                    expiryDate: dates[1]
+                                                    expiryDate: dates[1],
                                                 });
                                                 handleEffectiveDateChange(dates[0]);
                                                 handleExpiryDateChange(dates[1]);
@@ -1654,7 +1700,7 @@ const CreateContractForm = () => {
                                                     effectiveDate: null,
                                                     expiryDate: null,
                                                     notifyEffectiveDate: null,
-                                                    notifyExpiryDate: null
+                                                    notifyExpiryDate: null,
                                                 });
                                             }
                                         }}

@@ -11,6 +11,7 @@ import utc from "dayjs/plugin/utc";
 import ChangePassword from "./ChangePassWord";
 import { useDispatch, useSelector } from "react-redux";
 import { setAvatar } from "../../slices/authSlice";
+import { validationPatterns } from "../../utils/ultil";
 dayjs.extend(utc);
 const { TabPane } = Tabs;
 
