@@ -485,7 +485,7 @@ const ManagePartner = () => {
                                 name="partnerName"
                                 label="Tên đối tác"
                                 rules={[
-                                    { required: true, message: "Vui lòng nhập tên đối tác" },
+                                    { required: true,whitespace: true, message: "Vui lòng nhập tên đối tác" },
                                     {
                                         validator: (_, value) => {
                                             if (!value) return Promise.resolve();
@@ -507,6 +507,7 @@ const ManagePartner = () => {
                                 name="spokesmanName"
                                 label="Người đại diện"
                                 rules={[
+                                    { required: true,whitespace: true, message: "Vui lòng nhập tên Người đại diện" },
                                     {
                                         validator: (_, value) => {
                                             if (!value) return Promise.resolve();
@@ -527,7 +528,7 @@ const ManagePartner = () => {
                             <Form.Item
                                 name="address"
                                 label="Địa chỉ"
-                                rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
+                                rules={[{ required: true,whitespace: true,message: "Vui lòng nhập địa chỉ" }]}
                             >
                                 <Input />
                             </Form.Item>
@@ -537,6 +538,7 @@ const ManagePartner = () => {
                                 rules={[
                                     {
                                         required: true,
+                                        whitespace: true,
                                         pattern: validationPatterns.email.pattern,
                                         message: validationPatterns.email.message,
                                     },
@@ -550,21 +552,21 @@ const ManagePartner = () => {
                             <Form.Item
                                 name="position"
                                 label="Chức vụ người đại diện"
-                                rules={[{ required: true, message: "Vui lòng nhập chức vụ" }]}
+                                rules={[{ required: true,whitespace: true, message: "Vui lòng nhập chức vụ" }]}
                             >
                                 <Input />
                             </Form.Item>
                             <Form.Item
                                 name="abbreviation"
                                 label="Viết tắt của partner"
-                                rules={[{ required: true, message: "Viết tắt không được để trống" }]}
+                                rules={[{ required: true,whitespace: true, message: "Viết tắt không được để trống" }]}
                             >
                                 <Input />
                             </Form.Item>
                             <Form.Item
                                 name="taxCode"
                                 label="Mã số thuế"
-                                rules={[{ required: true, message: "Vui lòng nhập mã số thuế" }]}
+                                rules={[{ required: true,whitespace: true, message: "Vui lòng nhập mã số thuế" }]}
                             >
                                 <Input />
                             </Form.Item>
@@ -574,6 +576,7 @@ const ManagePartner = () => {
                                 rules={[
                                     {
                                         required: true,
+                                        whitespace: true,
                                         pattern: validationPatterns.phoneNumber.pattern,
                                         message: validationPatterns.phoneNumber.message,
                                     },
@@ -595,6 +598,7 @@ const ManagePartner = () => {
                                         name={['banking', index, 'bankName']}
                                         rules={[
                                             {
+                                                whitespace: true,
                                                 pattern: /^[\p{L}\s.-]{3,100}$/u,
                                                 message:
                                                     'Tên ngân hàng không hợp lệ (3-100 ký tự, chỉ chứa chữ, khoảng trắng, dấu gạch ngang, dấu chấm)',
@@ -614,6 +618,7 @@ const ManagePartner = () => {
                                         name={['banking', index, 'backAccountNumber']}
                                         rules={[
                                             {
+                                                whitespace: true,
                                                 pattern: /^\d{6,20}$/,
                                                 message:
                                                     'Số tài khoản không hợp lệ (chỉ chứa số, từ 6-20 ký tự)',

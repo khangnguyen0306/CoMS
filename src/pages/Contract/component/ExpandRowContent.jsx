@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
-import { Skeleton, Timeline, Tag, Empty, Tooltip } from 'antd';
-import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
+import { Skeleton, Timeline, Tag, Empty, Upload, Button, Tooltip } from 'antd';
+import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
@@ -58,6 +58,24 @@ const ExpandRowContent = ({ id, appendixId }) => {
             minute: '2-digit',
             second: '2-digit',
         });
+    };
+
+    const uploadFile = async (file, paymentScheduleId) => {
+        console.log("File:", file);
+        console.log("Payment Schedule ID:", paymentScheduleId);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            // Gọi API upload file, truyền paymentScheduleId và formData
+            const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
+            const parsedRes = JSON.parse(res);
+            message.success(parsedRes.message);
+
+            refetch();
+        } catch (error) {
+            console.error("Lỗi upload file:", error);
+            message.error("Upload thất bại!");
+        }
     };
 
     // Ánh xạ trạng thái sang tiếng Việt

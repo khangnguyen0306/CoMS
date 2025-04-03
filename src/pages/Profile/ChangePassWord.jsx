@@ -35,14 +35,14 @@ const ChangePassword = () => {
                 <Form.Item
                     label="Mật khẩu cũ"
                     name="old_password"
-                    rules={[{ required: true, message: "Vui lòng nhập mật khẩu cũ!" }]}
+                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mật khẩu cũ!" }]}
                 >
                     <Input.Password placeholder="Nhập mật khẩu cũ" />
                 </Form.Item>
                 <Form.Item
                     label="Mật khẩu mới"
                     name="new_password"
-                    rules={[{ required: true, message: "Vui lòng nhập mật khẩu mới!" }]}
+                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mật khẩu mới!" }]}
                 >
                     <Input.Password placeholder="Nhập mật khẩu mới" />
                 </Form.Item>
@@ -50,7 +50,7 @@ const ChangePassword = () => {
                     label="Xác nhận mật khẩu mới"
                     name="confirm_password"
                     rules={[
-                        { required: true, message: "Vui lòng xác nhận mật khẩu mới!" },
+                        { required: true, whitespace: true, message: "Vui lòng xác nhận mật khẩu mới!" },
                         ({ getFieldValue }) => ({
                             validator(_, value) {
                                 if (!value || getFieldValue("new_password") === value) {

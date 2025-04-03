@@ -21,7 +21,7 @@ import sessionStorage from "redux-persist/lib/storage/session";
 const persistConfig = {
   key: "root",
   storage: sessionStorage,
-  whitelist: ["user", "token"],
+  whitelist: ["user", "token","avartar","notiNumber"],
 };
 
 const AuthPerisReducer = persistReducer(persistConfig, AuthReducer);

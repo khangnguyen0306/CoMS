@@ -15,7 +15,7 @@ const ApprovalProcess = () => {
         limit: 10,
     });
     const { data: processData, isLoading, refetch } = useGetProcessTemplatesQuery({});
-    console.log("userData", processData);
+    // console.log("userData", processData);
     // Sử dụng mutation cập nhật quy trình từ BE
     const [updateProcess] = useUpdateProcessMutation();
 

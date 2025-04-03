@@ -457,12 +457,19 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="label"
                                     label="Tên điều khoản"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
+                                    rules={[
+                                        { required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }
+                                    ]}
                                 >
                                     <Input placeholder="Nhập tên điều khoản" />
                                 </Form.Item>
 
-                                <Form.Item name="type" label="Loại điều khoản">
+
+                                <Form.Item
+                                    name="type"
+                                    label="Loại điều khoản"
+                                    rules={[{ required: true, message: "Vui lòng chọn loại điều khoản!" }]}
+                                >
                                     <Select placeholder="Chọn loại điều khoản">
                                         {typeData?.data.map(item => (
                                             <Option key={item.original_term_id} value={item.original_term_id}>
@@ -476,7 +483,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="value"
                                     label="Nội dung"
-                                    rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
                                 >
                                     <Input.TextArea rows={4} />
                                 </Form.Item>
@@ -514,7 +521,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="label"
                                     label="Tên điều khoản"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }]}
                                 >
                                     <Input placeholder="Nhập tên điều khoản" />
                                 </Form.Item>
@@ -522,7 +529,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="value"
                                     label="Nội dung"
-                                    rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
                                 >
                                     <Input.TextArea rows={4} />
                                 </Form.Item>
@@ -725,7 +732,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="label"
                                     label="Tên căn cứ"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
                                 >
                                     <Input placeholder="Nhập tên căn cứ" />
                                 </Form.Item>
@@ -733,7 +740,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="value"
                                     label="Nội dung"
-                                    rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
                                 >
                                     <Input.TextArea rows={4} />
                                 </Form.Item>
@@ -776,7 +783,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="label"
                                     label="Tên căn cứ"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                                    rules={[{ required: true,whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
                                 >
                                     <Input placeholder="Nhập tên căn cứ" />
                                 </Form.Item>
@@ -784,7 +791,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="value"
                                     label="Nội dung"
-                                    rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
+                                    rules={[{ required: true,whitespace: true, message: "Vui lòng nhập nội dung!" }]}
                                 >
                                     <Input.TextArea rows={4} />
                                 </Form.Item>

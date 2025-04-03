@@ -83,6 +83,11 @@ const Profile = () => {
             setLoadingUpdate(false)
         }
     };
+    const dislayGender = {
+        "MALE": "Nam",
+        "FEMALE": "Nữ",
+        "OTHER": "Khác"
+    }
 
     if (isLoading || DepartmentLoading) return <Skeleton active />;
 
@@ -157,14 +162,14 @@ const Profile = () => {
                                 <div className="space-y-6">
                                     <div className="flex items-end gap-8">
                                         {isEditing ? (
-                                            <Form.Item label="Tên nhân viên" name="full_name" rules={[{ required: true, message: "Vui lòng nhập tên đầy đủ!" }]}>
+                                            <Form.Item label="Tên nhân viên" name="full_name" rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên đầy đủ!" }]}>
                                                 <Input placeholder="Nhập tên đầy đủ" className="w-[200px]" />
                                             </Form.Item>
                                         ) : (
                                             <p className="font-semibold text-3xl">{data?.full_name}</p>
                                         )}
                                         {isEditing ? (
-                                            <Form.Item label="Địa chỉ" name="address" rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}>
+                                            <Form.Item label="Địa chỉ" name="address" rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ!" }]}>
                                                 <Input placeholder="Nhập địa chỉ" className="w-[300px]" />
                                             </Form.Item>
                                         ) : (
@@ -238,7 +243,7 @@ const Profile = () => {
                                                     </Select>
                                                 </Form.Item>
                                             ) : (
-                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.gender || "Chưa cập nhật"}</span>
+                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{dislayGender[data?.gender] || "Chưa cập nhật"}</span>
                                             )}
                                         </div>
 
@@ -267,7 +272,17 @@ const Profile = () => {
                                         <div className="flex items-center mb-2">
                                             <span className="inline-block w-[200px] font-bold">Số điện thoại:</span>
                                             {isEditing ? (
-                                                <Form.Item name="phone_number" rules={[{ required: true, message: "Vui lòng nhập số điện thoại!" }]}>
+                                                <Form.Item 
+                                                name="phone_number" 
+                                                rules={[
+                                                    {
+                                                        required: true,
+                                                        whitespace:true,
+                                                        pattern: validationPatterns.phoneNumber.pattern,
+                                                        message: validationPatterns.phoneNumber.message,
+                                                    },
+                                                ]}
+                                                >
                                                     <Input placeholder="Nhập số điện thoại" className="w-[200px]" />
                                                 </Form.Item>
                                             ) : (
@@ -280,7 +295,17 @@ const Profile = () => {
                                         <div className="flex items-center mb-2">
                                             <span className="inline-block w-[200px] font-bold">Email:</span>
                                             {isEditing ? (
-                                                <Form.Item name="email" rules={[{ required: true, message: "Vui lòng nhập email!" }]}>
+                                                <Form.Item 
+                                                name="email" 
+                                                rules={[
+                                                    {
+                                                        required: true,
+                                                        whitespace: true,
+                                                        pattern: validationPatterns.email.pattern,
+                                                        message: validationPatterns.email.message,
+                                                    },
+                                                ]}
+                                                >
                                                     <Input placeholder="Nhập email" className="w-[200px]" />
                                                 </Form.Item>
                                             ) : (

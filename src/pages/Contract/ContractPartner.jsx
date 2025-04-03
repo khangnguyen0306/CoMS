@@ -795,21 +795,21 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 <Form.Item
                                     label="Tên đối tác"
                                     name="partnerName"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên đối tác!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên đối tác!" }]}
                                 >
                                     <Input />
                                 </Form.Item>
                                 <Form.Item
                                     label="Mã hợp đồng"
                                     name="contractNumber"
-                                    rules={[{ required: true, message: "Vui lòng nhập mã hợp đồng!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mã hợp đồng!" }]}
                                 >
                                     <Input />
                                 </Form.Item>
                                 <Form.Item
                                     label="Tổng giá trị"
                                     name="totalValue"
-                                    rules={[{ required: true, message: "Vui lòng nhập tổng giá trị!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tổng giá trị!" }]}
                                 >
                                     <Input />
                                 </Form.Item>
@@ -841,7 +841,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         <Form.Item
                             label="Tên hợp đồng"
                             name="title"
-                            rules={[{ required: true, message: "Vui lòng nhập tên hợp đồng!" }]}
+                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}
                         >
                             <Input />
                         </Form.Item>
@@ -866,7 +866,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 {...restField}
                                                 label="Nội dung hạng mục"
                                                 name={[name, "description"]}
-                                                rules={[{ required: true, message: "Vui lòng nhập nội dung hạng mục!" }]}
+                                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung hạng mục!" }]}
                                             >
                                                 <Input />
                                             </Form.Item>
@@ -1004,21 +1004,21 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 <Form.Item
                                     label="Tên đối tác"
                                     name="partnerName"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên đối tác!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên đối tác!" }]}
                                 >
                                     <Input placeholder="Nhập tên đối tác" />
                                 </Form.Item>
                                 <Form.Item
                                     label="Mã hợp đồng"
                                     name="contractNumber"
-                                    rules={[{ required: true, message: "Vui lòng nhập mã hợp đồng!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mã hợp đồng!" }]}
                                 >
                                     <Input placeholder="Nhập mã hợp đồng" />
                                 </Form.Item>
                                 <Form.Item
                                     label="Tổng giá trị"
                                     name="totalValue"
-                                    rules={[{ required: true, message: "Vui lòng nhập tổng giá trị!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tổng giá trị!" }]}
                                 >
                                     <Input placeholder="Nhập tổng giá trị" />
                                 </Form.Item>
@@ -1063,7 +1063,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 {...restField}
                                                 label="Nội dung hạng mục"
                                                 name={[name, "description"]}
-                                                rules={[{ required: true, message: "Vui lòng nhập nội dung hạng mục!" }]}
+                                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung hạng mục!" }]}
                                             >
                                                 <Input />
                                             </Form.Item>
