@@ -417,7 +417,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
             </div>
 
             <Row gutter={16} className='flex flex-col mt-5 pl-10 ' justify={"center"}>
-                {form ? (
+                {(form && formValues?.partnerA?.partnerName) ? (
                     <div className='flex flex-col gap-5 mb-6'>
                         <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} >
                             <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
