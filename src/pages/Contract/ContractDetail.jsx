@@ -631,21 +631,21 @@ const ContractDetail = () => {
                 <Row gutter={16} className="flex flex-col mt-5 pl-10 gap-5" justify="center">
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
                         <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                        <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
-                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                        <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.data.spokesmanName}</p>
-                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
-                        <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p>
-                        <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
+                        <p className="text-sm"><b>Tên công ty:</b> {contractData?.data.partnerA.partnerName}</p>
+                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data.partnerA.partnerAddress}</p>
+                        <p className="text-sm"><b>Người đại diện:</b> {contractData?.data.partnerA.spokesmanName}</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerA.position }</p>
+                        <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data.partnerA.partnerTaxCode}</p>
+                        <p className="text-sm"><b>Email:</b> {contractData?.data.partnerA.partnerEmail}</p>
                     </Col>
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
-                        <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
-                        <p className="text-sm"><b>Tên công ty:</b> {contractData?.data?.partner.partnerName}</p>
-                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data?.partner.address}</p>
-                        <p className="text-sm"><b>Người đại diện:</b> {contractData?.data?.partner.spokesmanName}</p>
-                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data?.partner?.position}</p>
-                        <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data?.partner.taxCode}</p>
-                        <p className="text-sm"><b>Email:</b> {contractData?.data?.partner.email}</p>
+                    <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                        <p className="text-sm"><b>Tên công ty:</b> {contractData?.data.partnerB.partnerName}</p>
+                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data.partnerB.partnerAddress}</p>
+                        <p className="text-sm"><b>Người đại diện:</b> {contractData?.data.partnerB.spokesmanName}</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerB.position }</p>
+                        <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data.partnerB.partnerTaxCode}</p>
+                        <p className="text-sm"><b>Email:</b> {contractData?.data.partnerB.partnerEmail}</p>
                     </Col>
                     <div className="pl-2">
                         <p>
@@ -799,7 +799,7 @@ const ContractDetail = () => {
                 <div className="flex justify-center mt-10 items-center pb-24">
                     <div className="flex flex-col gap-2 px-[18%] text-center">
                         <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
-                        <p><b>{contractData?.data?.partner.partnerName?.toUpperCase()}</b></p>
+                        <p><b>{contractData?.data?.partnerB.partnerName?.toUpperCase()}</b></p>
                         <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                     </div>
                     <div className="flex flex-col gap-2 px-[18%] text-center">

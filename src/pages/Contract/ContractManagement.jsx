@@ -203,14 +203,14 @@ const ManageContracts = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: "partner",
-            key: "partner",
+            dataIndex: "partnerB",
+            key: "partnerB",
             render: (partner) => <p>{partner.partnerName}</p>,
-            filters: [...new Set(tableData?.map(contract => contract.partner.partnerName))].map(type => ({
+            filters: [...new Set(tableData?.map(contract => contract.partnerB.partnerName))].map(type => ({
                 text: type,
                 value: type,
             })),
-            sorter: (a, b) => a.partner.partnerName.localeCompare(b.partner.partnerName),
+            sorter: (a, b) => a.partnerB.partnerName.localeCompare(b.partnerB.partnerName),
         },
 
         {

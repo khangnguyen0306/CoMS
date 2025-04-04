@@ -936,7 +936,7 @@ const CreateTemplate = () => {
                                         <Form.Item
                                             name="contractTitle"
                                             initialValue={templateName}
-                                            rules={[{ required: true,whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}
+                                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}
                                         >
                                             <Input
                                                 onChange={handleContractTitleChange}
@@ -972,10 +972,10 @@ const CreateTemplate = () => {
                                     <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} flex items-center shadow-md p-6 rounded-md gap-7 mt-[-70px]`} justify={"center"}>
                                         <div className="flex flex-col gap-2 pl-6" md={10} sm={24} >
                                             <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                            <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.businessName}</p>
+                                            <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
                                             <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.representativeName} </p></p>
-                                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.representativeTitle}</p>
+                                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "Chưa cập nhật"}</p>
                                             <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
                                             <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
                                         </div>
@@ -1778,17 +1778,18 @@ const CreateTemplate = () => {
                         <p>-------------------</p>
                         <p className="text-right ">......................, Ngày ...... Tháng ...... Năm ............</p>
                         <p className="text-[28px] font-bold mt-3">{templateName.toUpperCase()}</p>
-                        <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
+                        {/* <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p> */}
                     </div>
                     <div className=" px-4 pt-[100px] flex flex-col gap-2">
                         {form.getFieldValue("legalBasis") ? form.getFieldValue("legalBasis").map(term => <p><i>- {term.title}</i></p>) : "chưa chọn căn cứ pháp lý"}
                     </div>
-                    <div className={`  p-4 pl-1 rounded-md `}>
+                    <p>Hôm nay, Hợp đồng dịch vụ này được lập vào ngày....... tháng ....... năm ................ Tại ..............................</p>
+                    <div className={`  p-4 pl-1 rounded-md flex flex-col gap-2 `}>
                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                        <p className=" "><b>Tên công ty:</b> {bsInfor?.data.businessName || "chưa cập nhật"}</p>
+                        <p className=" "><b>Tên công ty:</b> {bsInfor?.data.partnerName || "chưa cập nhật"}</p>
                         <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.representativeName} </p></p>
-                        <p className=""><b>Chức vụ:</b> {bsInfor?.data.representativeTitle}</p>
+                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                        <p className=""><b>Chức vụ:</b> {bsInfor?.data.position || "Chưa cập nhật"}</p>
                         <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
                         <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
                     </div>
