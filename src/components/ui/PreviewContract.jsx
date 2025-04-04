@@ -73,7 +73,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
                     [termId]: response.data
                 }));
             } catch (error) {
-                console.error(`Error loading term ${termId}:`, error);
+                // console.error(`Error loading term ${termId}:`, error);
             } finally {
                 setLoadingTerms(prev => ({ ...prev, [termId]: false }));
             }
@@ -403,7 +403,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
                     {/* <i>{formValues?.contractLocation}, Ngày {formValues?.signingDate?.format('DD')} Tháng {formValues?.signingDate?.format('MM')} Năm {formValues?.signingDate?.format('YYYY')}</i> */}
                 </p>
                 <p className={`text-3xl font-bold mt-5 ${isDarkMode ? 'text-white' : ''}`}>{formValues.contractName ? formValues.contractName.toUpperCase() : ''}</p>
-                <p className={`mt-3 text-base ${isDarkMode ? 'text-white' : ''}`}><b>Số:</b> {contractFormatTemplates[formValues?.contractNumberFormat] || formValues?.contractNumber}</p>
+                <p className={`mt-3 text-base ${isDarkMode ? 'text-white' : ''}`}><b>Số:</b> {contractFormatTemplates[formValues?.contractNumberFormat] || formValues?.contractNumber || "Được chọn tại hợp đồng"}</p>
             </div>
 
             <div className="px-4 flex pl-10 flex-col gap-2 mt-10">
@@ -412,29 +412,55 @@ const PreviewContract = ({ form, partnerId, data }) => {
                     Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
                     {dayjs(formValues?.signingDate).format("DD")} tháng{" "}
                     {dayjs(formValues?.signingDate).format("MM")} năm{" "}
-                    {dayjs(formValues?.signingDate).format("YYYY")}, tại {formValues?.contractLocation}, bởi và giữa:
+                    {dayjs(formValues?.signingDate).format("YYYY")}, tại {formValues?.contractLocation || "........................."}, bởi và giữa:
                 </div>
             </div>
 
-            <Row gutter={16} className='flex flex-col mt-5 pl-10 gap-5' justify={"center"}>
-                <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
-                    <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                    <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
-                    <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                    <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
-                    <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "Giám đốc"}</p>
-                    <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
-                    <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
-                </Col>
-                <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} md={10} sm={24}>
-                    <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
-                    <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
-                    <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
-                    <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName}</p></p>
-                    <p className="text-sm"><b>Chức vụ:</b> {partnerDetail?.data.position} </p>
-                    <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
-                    <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
-                </Col>
+            <Row gutter={16} className='flex flex-col mt-5 pl-10 ' justify={"center"}>
+                {form ? (
+                    <div className='flex flex-col gap-5 mb-6'>
+                        <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} >
+                            <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                            <p className="text-sm "><b>Tên công ty:</b> {formValues?.partnerA.partnerName}</p>
+                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {formValues?.partnerA.partnerAddress}</p>
+                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {formValues?.partnerA.spokesmanName} </p></p>
+                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerA.position }</p>
+                            <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {formValues?.partnerA.partnerTaxCode}</p></p>
+                            <p className="text-sm"><b>Email:</b> {formValues?.partnerA.partnerEmail}</p>
+                        </Col>
+                        <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} >
+                            <p className="font-bold text-lg "><u>BÊN SỬ DỤNG (BÊN B)</u></p>
+                            <p className="text-sm "><b>Tên công ty:</b> {formValues?.partnerB.partnerName}</p>
+                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {formValues?.partnerB.partnerAddress}</p>
+                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {formValues?.partnerB.spokesmanName} </p></p>
+                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerB.position }</p>
+                            <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {formValues?.partnerB.partnerTaxCode}</p></p>
+                            <p className="text-sm"><b>Email:</b> {formValues?.partnerB.partnerEmail}</p>
+                        </Col>
+                    </div>
+                ) : (
+                    <div className='flex flex-col gap-5 mb-6'>
+                        <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} >
+                            <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                            <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
+                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                            <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "Giám đốc"}</p>
+                            <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                            <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
+                        </Col>
+                        <Col className={`flex flex-col gap-2 ${isDarkMode ? 'text-gray-300' : ''}`} >
+                            <p className="font-bold text-lg "><u>BÊN SỬ DỤNG (Bên B)</u></p>
+                            <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName || "................................................................."}</p>
+                            <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address || "...................................................."}</p>
+                            <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName || "............................................................"}</p></p>
+                            <p className="text-sm"><b>Chức vụ:</b> {partnerDetail?.data.position || "......................................................................."} </p>
+                            <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode || ".................................................................."}</p></p>
+                            <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email || "............................................................................"}</p>
+                        </Col>
+                    </div>
+                )}
+
                 <div className={`pl-2 ${isDarkMode ? 'text-gray-300' : ''}`}>
                     <p>Sau khi bàn bạc và thống nhất chúng tôi cùng thỏa thuận ký kết bản hợp đồng với nội dung và các điều khoản sau: </p>
                     <p className="font-bold text-lg mt-4 mb-3"><u>NỘI DUNG HỢP ĐỒNG</u></p>
@@ -443,41 +469,43 @@ const PreviewContract = ({ form, partnerId, data }) => {
 
                     <div className="mt-4">
                         <h4 className="font-bold text-lg placeholder:"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
+                        {partnerId && (
+                            <div>
+                                <p className='mt-4'>
+                                    - Tổng giá trị hợp đồng:
+                                    <b>  {new Intl.NumberFormat('vi-VN').format(formValues?.totalValue)} VND</b>
+                                    <span className='text-gray-600'>  ( {numberToVietnamese(formValues.totalValue)} )</span>
+                                </p>
 
-                        <p className='mt-4'>
-                            - Tổng giá trị hợp đồng:
-                            <b>  {new Intl.NumberFormat('vi-VN').format(formValues?.totalValue)} VND</b>
-                            <span className='text-gray-600'>  ( {numberToVietnamese(formValues.totalValue)} )</span>
-                        </p>
+                                <p className=" ml-3 font-bold my-5">
+                                    1.  Hạng mục thanh toán
+                                </p>
+                                <Table
+                                    dataSource={formValues?.contractItems}
+                                    columns={paymentItemsColumns}
+                                    rowKey="id"
+                                    pagination={false}
+                                    bordered
+                                />
 
-                        <p className=" ml-3 font-bold my-5">
-                            1.  Hạng mục thanh toán
-                        </p>
-                        <Table
-                            dataSource={formValues?.contractItems}
-                            columns={paymentItemsColumns}
-                            rowKey="id"
-                            pagination={false}
-                            bordered
-                        />
+                                <p className=" ml-3 font-bold my-5">
+                                    2. Tổng giá trị và số lần thanh toán
+                                </p>
 
-                        <p className=" ml-3 font-bold my-5">
-                            2. Tổng giá trị và số lần thanh toán
-                        </p>
-
-                        {formValues?.payments &&
-                            formValues.payments.length > 0 && (
-                                <>
-                                    <Table
-                                        dataSource={formValues.payments}
-                                        columns={paymentSchedulesColumns}
-                                        rowKey="paymentOrder"
-                                        pagination={false}
-                                        bordered
-                                    />
-                                </>
-                            )}
-
+                                {formValues?.payments &&
+                                    formValues.payments.length > 0 && (
+                                        <>
+                                            <Table
+                                                dataSource={formValues.payments}
+                                                columns={paymentSchedulesColumns}
+                                                rowKey="paymentOrder"
+                                                pagination={false}
+                                                bordered
+                                            />
+                                        </>
+                                    )}
+                            </div>
+                        )}
                         <div>
                             {formValues?.isDateLateChecked && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {formValues?.maxDateLate} (ngày) </p>}
                             {formValues?.autoAddVAT && <p className="mt-3">- Thuế VAT được tính ({formValues?.vatPercentage}%)</p>}
