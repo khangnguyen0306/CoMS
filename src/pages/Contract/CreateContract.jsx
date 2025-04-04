@@ -488,7 +488,7 @@ const CreateContractForm = () => {
                     setIsSuspend(data.data?.suspend)
                     setIsisViolate(data.data?.violate)
                     form.setFieldsValue({
-                        legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
+                        legalBasisTerms: data.data.legalBasisTerms?.map(term => term.original_term_id),
                         generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
                         autoAddVAT: data.data?.autoAddVAT,
                         vatPercentage: data.data?.vatPercentage,
@@ -847,13 +847,13 @@ const CreateContractForm = () => {
     }, []);
 
     useEffect(() => {
-        const legalBasis = form.getFieldValue('legalBasis');
+        const legalBasis = form.getFieldValue('legalBasisTerms');
         if (legalBasis && legalBasis.length > 0) {
             legalBasis.forEach(termId => {
                 loadTermDetail(termId);
             });
         }
-    }, [form.getFieldValue('legalBasis'), changeCCPL]);
+    }, [form.getFieldValue('legalBasisTerms'), changeCCPL]);
 
 
     const handleScroll = useCallback(
@@ -886,11 +886,11 @@ const CreateContractForm = () => {
     );
 
     const renderLegalBasisTerms = () => {
-        if (!form.getFieldValue('legalBasis') || form.getFieldValue('legalBasis').length === 0) {
+        if (!form.getFieldValue('legalBasisTerms') || form.getFieldValue('legalBasisTerms').length === 0) {
             return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
         }
 
-        return form.getFieldValue('legalBasis').map((termId, index) => {
+        return form.getFieldValue('legalBasisTerms').map((termId, index) => {
             const term = termsData[termId];
             if (!term) {
                 return (
@@ -1132,7 +1132,7 @@ const CreateContractForm = () => {
                                                             2. Thông tin các bên
                                                         </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                            {form.getFieldValue('legalBasis') && form.getFieldValue('legalBasis').length > 0 ? (
+                                                            {form.getFieldValue('legalBasisTerms') && form.getFieldValue('legalBasisTerms').length > 0 ? (
                                                                 <CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />
                                                             ) : (
                                                                 <span className="mr-[20px]"></span>
