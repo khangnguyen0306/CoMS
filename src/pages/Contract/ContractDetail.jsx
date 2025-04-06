@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table } from 'antd';
@@ -16,8 +16,11 @@ import AuditrailContract from './component/AuditrailContract';
 import { useGetAppendixByContractIdQuery } from '../../services/AppendixAPI';
 import DisplayAppendix from '../appendix/staff/DisplayAppendix';
 import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
-
+import { IoSearchCircle } from "react-icons/io5";
+import ModalSearch from './component/ModalSearch';
 const { Title, Text } = Typography;
+
+
 const ContractDetail = () => {
 
     const { id } = useParams();
@@ -38,16 +41,18 @@ const ContractDetail = () => {
         B: []
     });
     const [confirmed, setConfirmed] = useState(false);
+    const [searchModalVisible, setSearchModalVisible] = useState(false);
+
+    const [selectedText, setSelectedText] = useState('');
+    const [showSearchButton, setShowSearchButton] = useState(false);
+    const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
 
     const user = useSelector(selectCurrentUser);
-    const location = useLocation();
     const [form] = Form.useForm();
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
     const [openAprove, setOpenAprove] = useState(false);
-    const [scrolledToBottom, setScrolledToBottom] = useState(false);
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectProcessMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveProcessMutation();
-
 
     // Lấy thông tin bên thuê theo partner_id
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
@@ -57,16 +62,14 @@ const ContractDetail = () => {
     const [fetchDataData] = useLazyGetDataChangeByDateQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
-
-
     const stages = processData?.data?.stages || [];
 
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
 
-    // console.log(processData)
-    // console.log(user.id)
-    // Hàm tải chi tiết điều khoản dựa theo termId (original_term_id)
+    const clauseRef = useRef(null);
+
+
     const loadTermDetail = async (termId) => {
         if (!termsData[termId]) {
             setLoadingTerms((prev) => ({ ...prev, [termId]: true }));
@@ -363,6 +366,39 @@ const ContractDetail = () => {
         },
     ];
 
+    // hàm hiển thị 
+    const handleMouseUp = (e) => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+        // Kiểm tra xem văn bản được chọn có nằm trong component không
+        if (text && clauseRef.current.contains(selection.anchorNode)) {
+            setSelectedText(text);
+            setShowSearchButton(true);
+            setButtonPosition({ x: e.pageX - 260, y: e.pageY - 100 });
+        } else {
+            setShowSearchButton(false);
+        }
+    };
+
+
+    const handleSearch = () => {
+        setSearchModalVisible(true)
+    };
+
+    //hover hiển thin nút
+    useEffect(() => {
+        const element = clauseRef.current;
+        if (element) {
+            element.addEventListener('mouseup', handleMouseUp, true); 
+        }
+        return () => {
+            if (element) {
+                element.removeEventListener('mouseup', handleMouseUp, true);
+            }
+        };
+    }, []);
+    
+
 
     if (isLoadingBsData || loadingDataContract | loadingDataContractAppendix) {
         return (
@@ -373,7 +409,7 @@ const ContractDetail = () => {
     }
 
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center  shadow-md p-4 pb-16 rounded-md`}>
+        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center   shadow-md p-4 pb-16 rounded-md`}>
             <Button
                 icon={<RollbackOutlined />}
                 type="primary"
@@ -421,7 +457,7 @@ const ContractDetail = () => {
                                 <Form.Item
                                     name="comment"
                                     label="Đề xuất sửa đổi hợp đồng :"
-                                    rules={[{ required: true,whitespace: true, message: "Vui lòng nhập nhận xét" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nhận xét" }]}
                                 >
                                     <Input.TextArea rows={8} placeholder="Vui lòng để lại ghi chú" style={{ resize: "none" }} />
                                 </Form.Item>
@@ -621,11 +657,11 @@ const ContractDetail = () => {
                 <div className="px-4 flex pl-10 flex-col gap-2 mt-[100px]">
                     {renderLegalBasisTerms()}
                     <div className={` p-1 rounded-lg`}>
-                    Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
-                    {dayjs(parseDate(contractData?.data?.signingDate)).format("DD")} tháng{" "}
-                    {dayjs(parseDate(contractData?.data?.signingDate)).format("MM")} năm{" "}
-                    {dayjs(parseDate(contractData?.data?.signingDate)).format("YYYY")}, tại {contractData?.data?.contractLocation}, bởi và giữa:
-                </div>
+                        Hôm nay, Hợp đồng dịch vụ này được lập vào ngày{" "}
+                        {dayjs(parseDate(contractData?.data?.signingDate)).format("DD")} tháng{" "}
+                        {dayjs(parseDate(contractData?.data?.signingDate)).format("MM")} năm{" "}
+                        {dayjs(parseDate(contractData?.data?.signingDate)).format("YYYY")}, tại {contractData?.data?.contractLocation}, bởi và giữa:
+                    </div>
                 </div>
 
                 <Row gutter={16} className="flex flex-col mt-5 pl-10 gap-5" justify="center">
@@ -634,16 +670,16 @@ const ContractDetail = () => {
                         <p className="text-sm"><b>Tên công ty:</b> {contractData?.data.partnerA.partnerName}</p>
                         <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data.partnerA.partnerAddress}</p>
                         <p className="text-sm"><b>Người đại diện:</b> {contractData?.data.partnerA.spokesmanName}</p>
-                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerA.position }</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerA.position}</p>
                         <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data.partnerA.partnerTaxCode}</p>
                         <p className="text-sm"><b>Email:</b> {contractData?.data.partnerA.partnerEmail}</p>
                     </Col>
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
-                    <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                        <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
                         <p className="text-sm"><b>Tên công ty:</b> {contractData?.data.partnerB.partnerName}</p>
                         <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data.partnerB.partnerAddress}</p>
                         <p className="text-sm"><b>Người đại diện:</b> {contractData?.data.partnerB.spokesmanName}</p>
-                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerB.position }</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerB.position}</p>
                         <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data.partnerB.partnerTaxCode}</p>
                         <p className="text-sm"><b>Email:</b> {contractData?.data.partnerB.partnerEmail}</p>
                     </Col>
@@ -689,7 +725,7 @@ const ContractDetail = () => {
 
                                 {contractData?.data?.paymentSchedules &&
                                     contractData?.data.paymentSchedules.length > 0 && (
-                                        <>  
+                                        <>
                                             <Table
                                                 dataSource={contractData.data.paymentSchedules}
                                                 columns={paymentSchedulesColumns}
@@ -737,7 +773,7 @@ const ContractDetail = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="mt-2">
+                        <div ref={clauseRef} onMouseUp={handleMouseUp} className="mt-2 relative">
                             <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
                             <div className="ml-5 mt-3 flex flex-col gap-3">
                                 {groupedTerms.Common.length > 0 && (
@@ -793,7 +829,24 @@ const ContractDetail = () => {
                                         </div>
                                     )}
                             </div>
+
                         </div>
+                        {showSearchButton && (
+                            <Button
+                                type="primary"
+                                style={{
+                                    position: 'absolute',
+                                    left: buttonPosition.x,
+                                    top: buttonPosition.y,
+                                    zIndex: 1000,
+                                }}
+                                icon={<IoSearchCircle />}
+                                onClick={handleSearch}
+                            >
+                                Tìm kiếm điều khoản
+                            </Button>
+                        )}
+
                     </div>
                 </Row>
                 <div className="flex justify-center mt-10 items-center pb-24">
@@ -810,7 +863,12 @@ const ContractDetail = () => {
                 </div>
 
             </div>
-
+            <ModalSearch
+                searchModalVisible={searchModalVisible}
+                setSearchModalVisible={setSearchModalVisible}
+                selectedText={selectedText}
+                setSelectedText={setSelectedText}
+            />
         </div>
     );
 };

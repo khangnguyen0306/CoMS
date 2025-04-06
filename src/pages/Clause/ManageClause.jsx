@@ -1,16 +1,18 @@
 // isDelete sẽ có 3 trạng thái : đang hoạt động, đã xóa(khi user xóa đk), đã cũ(khi user edit thì đk cũ sẽ chuyển sang trạng thái đã cũ và tạo đk mới)
 import React, { useState, useEffect } from 'react';
-import { Input, Button, Modal, List, Select, message, Skeleton, Card, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Divider } from 'antd';
+import { Input, Button, Modal, List, Select, message, Skeleton, Card, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Divider, Upload } from 'antd';
 import 'tailwindcss/tailwind.css';
-import { DeleteFilled, EditFilled, PlusCircleFilled } from '@ant-design/icons';
-import { useGetClauseManageQuery } from '../../services/ClauseAPI';
-import { useGetAllTypeClauseQuery, useCreateClauseMutation, useUpdateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
+import { DeleteFilled, DownloadOutlined, EditFilled, PlusCircleFilled, UploadOutlined } from '@ant-design/icons';
+import { useGetClauseManageQuery, useUpdateClauseMutation } from '../../services/ClauseAPI';
+import { useGetAllTypeClauseQuery, useCreateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
 import TabPane from 'antd/es/tabs/TabPane';
 import dayjs from 'dayjs';
 import { useGetContractTypeQuery, useEditContractTypeMutation, useCreateContractTypeMutation } from '../../services/ContractAPI';
+import { useUploadClauseBFileMutation } from '../../services/uploadAPI';
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
+// import file from "../../assets/file/sample_file.xlsx"
 
 const ManageClause = () => {
     const [searchTermClause, setSearchTermClause] = useState('');
@@ -38,6 +40,8 @@ const ManageClause = () => {
     const [isModalOpenContractType, setIsModalOpenContractType] = useState(false);
     const [currentContractType, setCurrentContractType] = useState(null);
 
+    const [isModalOpenImport, setIsModalOpenImport] = useState(false);
+
     const { data: clauseData, isLoading: loadingClause, isError: DataError, refetch: refetchClause } = useGetClauseManageQuery({
         keyword: searchTermClause,
         typeTermIds: selectedType,
@@ -55,7 +59,9 @@ const ManageClause = () => {
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
     const [updateClause, { isLoading: loadingUpdate }] = useUpdateClauseMutation();
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
+    const [importClause, { isLoading: loadingUploadFile }] = useUploadClauseBFileMutation();
     const [form] = Form.useForm();
+    const [formImport] = Form.useForm();
 
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
@@ -329,6 +335,34 @@ const ManageClause = () => {
     }
 
 
+    const handleImportFile = async (values) => {
+        // Lấy file gốc từ values.file
+        const fileObj = Array.isArray(values.file) ? values.file[0].originFileObj : values.file;
+
+        // Kiểm tra xem fileObj có phải là File object hợp lệ không
+        if (!(fileObj instanceof File)) {
+            console.error("Giá trị file không hợp lệ:", fileObj);
+            message.error("Đã có lỗi với file upload, vui lòng kiểm tra lại.");
+            return;
+        }
+
+        try {
+            // Gửi file trực tiếp lên server mà không đọc nội dung
+            const result = await importClause({
+                typeTermId: values.type,
+                file: fileObj,
+            }).unwrap();
+            message.success("Tải điều khoản từ file lên thành công !");
+            refetchClause()
+            formImport.resetFields()
+        } catch (error) {
+            console.error("Error importing file:", error);
+            message.error("Failed to import file.");
+        }
+        setIsModalOpenImport(false);
+    };
+
+
     if (loadingClause || loadingType || loadingLegal || loadingTypeContract) return <Skeleton active />;
 
     return (
@@ -431,6 +465,14 @@ const ManageClause = () => {
                                 icon={<PlusCircleFilled />}
                             >
                                 Thêm điều khoản
+                            </Button>
+                            <Button
+                                type="primary"
+                                onClick={() => setIsModalOpenImport(true)}
+                                className="mb-4"
+                                icon={<UploadOutlined />}
+                            >
+                                Tải lên Điều Khoản
                             </Button>
                         </div>
 
@@ -783,7 +825,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="label"
                                     label="Tên căn cứ"
-                                    rules={[{ required: true,whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
                                 >
                                     <Input placeholder="Nhập tên căn cứ" />
                                 </Form.Item>
@@ -791,7 +833,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="value"
                                     label="Nội dung"
-                                    rules={[{ required: true,whitespace: true, message: "Vui lòng nhập nội dung!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
                                 >
                                     <Input.TextArea rows={4} />
                                 </Form.Item>
@@ -1004,8 +1046,72 @@ const ManageClause = () => {
                     </div>
                 </TabPane>
 
+                {/* Add Import Button */}
+
+
+                {/* Import Modal */}
+
 
             </Tabs>
+            <Modal
+                title="Import File Điều Khoản"
+                open={isModalOpenImport}
+                onCancel={() => setIsModalOpenImport(false)}
+                footer={null}
+            >
+                <Form
+                    form={formImport}
+                    layout="vertical"
+                    onFinish={handleImportFile}
+                >
+                    <Button
+                        className='my-3'
+                        icon={<DownloadOutlined />}
+                        type="link"
+                        href="https://drive.google.com/uc?export=download&id=1PXVJcwYMcbBBhpqv56FBomGIeLO5pZxn"
+                        download
+                    >
+                        Tải xuống file mẫu
+                    </Button>
+
+                    <Form.Item
+                        name="type"
+                        label="Loại Điều Khoản"
+                        rules={[{ required: true, message: "Vui lòng chọn loại điều khoản!" }]}
+                    >
+                        <Select placeholder="Chọn loại điều khoản">
+                            {typeData?.data.map(item => (
+                                <Option key={item.original_term_id} value={item.original_term_id}>
+                                    {item.name}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="file"
+                        label="Tải lên File"
+                        valuePropName="fileList"
+                        getValueFromEvent={e => Array.isArray(e) ? e : e && e.fileList}
+                        rules={[{ required: true, message: "Vui lòng tải lên file!" }]}
+                    >
+                        <Upload
+                            beforeUpload={() => false}
+                            accept=".xlsx"
+                            maxCount={1}
+                        >
+                            <Button icon={<UploadOutlined />}>Chọn File</Button>
+                        </Upload>
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" loading={loadingUploadFile} htmlType="submit">
+                            Tải lên
+                        </Button>
+
+                    </Form.Item>
+                </Form>
+            </Modal>
         </ConfigProvider>
     );
 };
