@@ -159,7 +159,7 @@ const ManageTemplate = () => {
                                     key: "edit",
                                     icon: <EditFilled style={{ color: 'blue' }} />,
                                     label: "Sửa",
-                                    onClick: () => navigate(`/EditTemplate/${record.id}`)
+                                    onClick: () => navigate(`/admin/EditTemplate/${record.id}`)
 
                                 },
                                 {
