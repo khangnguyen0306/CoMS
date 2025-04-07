@@ -46,17 +46,19 @@ const ManageContracts = () => {
     const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(selectedContractId, {
-        skip: !selectedContractId, // chỉ gọi query khi đã có id
+        skip: !selectedContractId, 
     });
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
+    
     const { data: contractManager, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
         approverId: user.id,
         page: paginationManager.current - 1,
         size: paginationManager.pageSize,
         keyword: searchTextManager,
     });
+
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
     // console.log(contractManager)
@@ -208,17 +210,17 @@ const ManageContracts = () => {
 
                 (value, record) => record.contractType.name === value,
         },
-        {
-            title: "Đối tác",
-            dataIndex: "partnerB",
-            key: "partnerB",
-            render: (partner) => <p>{partner.partnerName}</p>,
-            filters: [...new Set(tableData?.map(contract => contract.partnerB.partnerName))].map(type => ({
-                text: type,
-                value: type,
-            })),
-            sorter: (a, b) => a.partnerB.partnerName.localeCompare(b.partnerB.partnerName),
-        },
+        // {
+        //     title: "Đối tác",
+        //     dataIndex: "partnerB",
+        //     key: "partnerB",
+        //     render: (partner) => <p>{partner.partnerName}</p>,
+        //     // filters: [...new Set(tableData?.map(contract => contract.partnerB.partnerName))].map(type => ({
+        //     //     text: type,
+        //     //     value: type,
+        //     // })),
+        //     sorter: (a, b) => a.partnerB.partnerName.localeCompare(b.partnerB.partnerName),
+        // },
 
         {
             title: "Giá trị",

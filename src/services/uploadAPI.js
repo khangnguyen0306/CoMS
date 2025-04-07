@@ -43,24 +43,38 @@ export const uploadAPI = createApi({
 
     uploadClauseBFile: builder.mutation({
       query: ({ typeTermId, file }) => {
-          const formData = new FormData();
-          formData.append("file", file); // Thêm file vào FormData
-          return {
-              url: `/terms/import-file-excel?typeTermId=${typeTermId}`,
-              method: "POST",
-              body: formData, // Gửi FormData thay vì object JSON
-          };
+        const formData = new FormData();
+        formData.append("file", file);
+        return {
+          url: `/terms/import-file-excel?typeTermId=${typeTermId}`,
+          method: "POST",
+          body: formData,
+        };
       },
       invalidatesTags: [{ type: "Clause", id: "LIST" }],
-  }),
+    }),
 
 
-    // Các endpoint khác có thể được thêm vào ở đây
+    findLocation: builder.mutation({
+      query: ({ file }) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return {
+          url: `/contracts/find-location/pdf`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: [{ type: "Clause", id: "LIST" }],
+    }),
+
   }),
+
 });
 
 export const {
   useUploadFilePDFMutation,
   useUploadBillingContractMutation,
-  useUploadClauseBFileMutation
+  useUploadClauseBFileMutation,
+  useFindLocationMutation
 } = uploadAPI;

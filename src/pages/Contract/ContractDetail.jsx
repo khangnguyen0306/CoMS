@@ -25,7 +25,6 @@ import jsPDF from 'jspdf';
 const ContractDetail = () => {
 
     const { id } = useParams();
-    const refExportPDF = useRef();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
@@ -413,7 +412,7 @@ const ContractDetail = () => {
 
     return (
         <div
-            ref={refExportPDF} id="contractContent"
+         id="contractContent"
             className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center   shadow-md p-4 pb-16 rounded-md`}
         >
             <Button
