@@ -64,6 +64,30 @@ export const partnerAPI = baseApi.injectEndpoints({
         { type: "Partner", id: partnerId },
       ],
     }),
+    getPartnerListByPartnerType: builder.query({
+      query: ({ keyword, page, size }) => ({
+        url: `parties/get-all`,
+        params: {
+          keyword: keyword,
+          page: page,
+          pageSize: size,
+          partnerType: "PARTNER_B",
+        },
+        method: "GET",
+      }),
+      providesTags: (result) =>
+        result && result.data?.content
+          ? result.data.content.map(({ id }) => ({ type: "Partner", id }))
+          : [{ type: "Partner", id: "LIST" }],
+    }),
+    checkExistPartner: builder.mutation({
+      query: (taxCode) => ({
+        url: `parties/check-exists`,
+        method: "GET",
+        params: { taxCode }
+      })
+    })
+
   }),
   overrideExisting: false,
 });
@@ -77,4 +101,7 @@ export const {
   useEditPartnerMutation,
   useDeletePartnerMutation,
   useLazyGetPartnerInfoDetailQuery,
+  useGetPartnerListByPartnerTypeQuery,
+  useLazyGetPartnerListByPartnerTypeQuery,
+  useCheckExistPartnerMutation
 } = partnerAPI;

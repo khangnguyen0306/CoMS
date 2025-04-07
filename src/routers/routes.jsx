@@ -40,6 +40,7 @@ const AppendixManagement = Loadable({ loader: () => import("../pages/appendix/st
 const AppendixManagerManagement = Loadable({ loader: () => import("../pages/appendix/manager/AppendixManagementManager") });
 const AppendixManagerManagementAll = Loadable({ loader: () => import("../pages/appendix/manager/AppendixManagementForAllStatus") });
 const AppendixDetail = Loadable({ loader: () => import("../pages/appendix/AppendixDetail") });
+const CreateContractPDF = Loadable({ loader: () => import("../pages/Contract/CreateContractPDF") });
 
 
 
@@ -51,7 +52,7 @@ export const router = createBrowserRouter([
         element: Login,
     },
     {
-        path:   "/chat",
+        path: "/chat",
         element: ChatTest,
     },
     {
@@ -117,6 +118,10 @@ export const router = createBrowserRouter([
                     {
                         path: "createContract",
                         element: CreateContract,
+                    },
+                    {
+                        path: "createContractPDF",
+                        element: CreateContractPDF,
                     },
                     {
                         path: "process",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Table,
     Input,
@@ -14,8 +14,9 @@ import {
     message,
     Tooltip,
     Empty,
-    Descriptions,
-    Timeline
+    Collapse,
+    Image,
+    Select
 } from "antd";
 import {
     EditFilled,
@@ -23,17 +24,23 @@ import {
     UploadOutlined,
     LoadingOutlined,
     DeleteFilled,
-    PlusCircleFilled
+    PlusCircleFilled,
+    InboxOutlined,
+    DeleteOutlined,
+    PlusOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
     useCreateContractPartnerMutation,
     useDeleteContractPartnerMutation,
     useGetContractPartnerQueryQuery,
+    useGetImgBillQuery,
     useUpdateContractPartnerMutation,
 } from "../../services/ContractAPI";
+import { validationPatterns } from "../../utils/ultil";
 import { useUploadFilePDFMutation, useUploadBillingContractMutation } from "../../services/uploadAPI";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useCheckExistPartnerMutation, useCreatePartnerMutation, useGetPartnerListQuery } from "../../services/PartnerAPI";
 
 // Lấy API key từ biến môi trường
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
@@ -53,7 +60,39 @@ const generationConfig = {
         type: "object",
         properties: {
             title: { type: "string" },
-            partnerName: { type: "string" },
+            partner: {
+                type: "object",
+                properties: {
+                    partnerName: { type: "string" },
+                    spokesmanName: { type: "string" },
+                    address: { type: "string" },
+                    email: { type: "string" },
+                    position: { type: "string" },
+                    taxCode: { type: "string" },
+                    phone: { type: "string" },
+                    banking: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                bankName: { type: "string" },
+                                backAccountNumber: { type: "string" }
+                            },
+                            required: ["bankName", "backAccountNumber"]
+                        }
+                    }
+                },
+                required: [
+                    "partnerName",
+                    "spokesmanName",
+                    "address",
+                    "email",
+                    "position",
+                    "taxCode",
+                    "phone",
+                    "banking"
+                ]
+            },
             contractNumber: { type: "string" },
             totalValue: { type: "number" },
             effectiveDate: { type: "array", items: { type: "integer" } },
@@ -93,7 +132,7 @@ const generationConfig = {
         },
         required: [
             "title",
-            "partnerName",
+            "partner",
             "contractNumber",
             "totalValue",
             "effectiveDate",
@@ -104,6 +143,7 @@ const generationConfig = {
         ]
     }
 };
+
 
 const { Search } = Input;
 
@@ -121,6 +161,7 @@ const statusContract = {
 };
 
 const ContractPartner = () => {
+    const { Panel } = Collapse;
     const [uploadFilePDF, { isLoading: uploadLoading }] = useUploadFilePDFMutation();
     const [createContractPartner] = useCreateContractPartnerMutation();
     const [updateContractPartner] = useUpdateContractPartnerMutation();
@@ -130,18 +171,42 @@ const ContractPartner = () => {
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(10);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalPartner, setIsModalPartner] = useState(false);
     const [isModalUpdate, setIsModalUpdate] = useState(false);
     const [form] = Form.useForm();
     const [formUpload] = Form.useForm();
     const [fileList, setFileList] = useState([]);
+    const [activePanel, setActivePanel] = useState([]);
+
+    const [paymentId, setPaymentId] = useState(null);
+    const [hoveredIndex, setHoveredIndex] = useState(null);
+
     const [Loading, setLoading] = useState(false);
     const [extractedData, setExtractedData] = useState(null);
+    const [bankAccounts, setBankAccounts] = useState([{ bankName: '', backAccountNumber: '' }]);
+    const [newCustomerData, setNewCustomerData] = useState(null);
+    const [partnerName, setPartnerName] = useState(null);
     const [url, setUrl] = useState(null);
+    const [taxCode, setTaxCode] = useState(null);
     const { data: contracts, isLoading, refetch } = useGetContractPartnerQueryQuery({
         search: searchText,
         page: page - 1,
         size
     });
+
+
+    const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
+        skip: !paymentId,
+    });
+
+
+
+    const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
+
+    const [checkExistPartner] = useCheckExistPartnerMutation();
+
+
+
 
     const onChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
@@ -169,7 +234,25 @@ const ContractPartner = () => {
 Trích xuất các trường sau:
 
 title: tiêu đề hợp đồng (string)
-partnerName: tên đối tác (string) – là tên bên A
+partner: đối tượng chứa thông tin bên A, gồm:
+
+    -partnerName: tên đối tác (string)
+
+    -spokesmanName: tên người đại diện (string)
+
+    -address: địa chỉ (string)
+
+    -email: email (string)
+
+    -position: vị trí của người đại diện trong công ty (string)
+
+    -taxCode: mã số thuế ghi đầy đủ ra không ghi tắt xxxxxx(string)
+
+    -phone: số điện thoại (string)
+
+    -bank: một mảng các tài khoản ngân hàng bên A :
+        - bankName: tên ngân hàng (string)
+        - backAccountNumber: số tài khoản ngân hàng (string)
 contractNumber: số hợp đồng (string)
 totalValue: giá trị hợp đồng (number)
 effectiveDate: mảng biểu diễn ngày có hiệu lực của hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị của giờ, phút hoặc giây, trả về [0, 0, 0, 0, 0, 0].
@@ -195,6 +278,21 @@ Trả về dữ liệu đã trích xuất sử dụng cấu trúc JSON như sau 
   "response": {
     "title": "string",
     "partnerName": "string",
+    "partner": {
+        "partnerName": "string",
+        "spokesmanName": "string",
+        "address": "string",
+        "email": "string",
+        "position": "string",
+        "taxCode": "string",
+        "phone": "string",
+        "banking": [
+            {
+            "bankName": "string",
+            "backAccountNumber": "string"
+            }
+        // ... Add more bank accounts if the partner has more accounts
+    ],
     "contractNumber": "string",
     "totalValue": "number",
     "effectiveDate": [ "number", "number", "number", "number", "number", "number" ],
@@ -249,6 +347,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         try {
             let values = form.getFieldsValue();
             values.fileUrl = url;
+            values.partnerName = partnerName;
             values.effectiveDate = values.effectiveDate
                 ? [
                     values.effectiveDate.year(),
@@ -301,6 +400,8 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             console.log("Transformed form values:", values);
             await createContractPartner(values).unwrap();
             message.success("Hợp đồng đã được tạo thành công!");
+
+
         } catch (error) {
             console.error(error);
             message.error("Lỗi khi xử lý file hoặc tạo hợp đồng.");
@@ -309,9 +410,62 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             setIsModalVisible(false);
             form.resetFields();
             setFileList([]);
+            checkPartner(taxCode);
         }
     };
 
+    useEffect(() => {
+        if (isModalPartner) {
+            form.setFieldsValue({
+                partnerName: newCustomerData.partnerName,
+                spokesmanName: newCustomerData.spokesmanName,
+                address: newCustomerData.address,
+                email: newCustomerData.email,
+                position: newCustomerData.position,
+                taxCode: newCustomerData.taxCode,
+                phone: newCustomerData.phone,
+                banking: newCustomerData.banking,
+            });
+
+            setBankAccounts(newCustomerData.banking || []);
+
+
+            // Nếu `abbreviation` chưa có, tự động tạo từ `spokesmanName`
+            if (newCustomerData.spokesmanName) {
+                const abbreviation = newCustomerData.spokesmanName
+                    .split(' ')
+                    .filter((word) => word)
+                    .map((word) => word[0])
+                    .join('')
+                    .toUpperCase();
+
+                // Kiểm tra nếu abbreviation chưa có giá trị trong form
+                if (!newCustomerData.abbreviation) {
+                    form.setFieldsValue({ abbreviation });
+                } else {
+                    // Nếu đã có `abbreviation`, sử dụng giá trị có sẵn
+                    form.setFieldsValue({ abbreviation: newCustomerData.abbreviation });
+                }
+            }
+        }
+    }, [isModalPartner, form, newCustomerData]);
+
+
+    const checkPartner = async (taxCode) => {
+        console.log("Checking partner with tax code:", taxCode);
+        try {
+            const response = await checkExistPartner(taxCode).unwrap();
+            console.log("Check partner response:", response);
+            if (response?.data === false) {
+                setIsModalPartner(true);
+            } else {
+                setNewCustomerData(null);
+            }
+        } catch (error) {
+            console.error("Error checking partner:", error);
+            message.error("Có lỗi xảy ra khi kiểm tra đối tác!");
+        }
+    }
 
     // Hàm kiểm tra mảng ngày rỗng ([0,0,0,0,0,0])
     const isDateEmpty = (dateArray) =>
@@ -321,7 +475,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     // Hàm điền dữ liệu trích xuất vào form
     const fillFormWithExtractedData = (extractedData) => {
-        console.log("Extracted data:", extractedData);
+        console.log("Extracted data:", extractedData.partner.partnerName);
         const paymentSchedulesConverted = extractedData.paymentSchedules
             ? extractedData.paymentSchedules.map((schedule) => ({
                 ...schedule,
@@ -333,9 +487,12 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             : [];
         form.setFieldsValue({
             title: extractedData.title,
-            partnerName: extractedData.partnerName,
+            partner: {
+                partnerName: extractedData.partner?.partnerName,
+            },
+
             contractNumber: extractedData.contractNumber,
-            totalValue: extractedData.totalValue,
+            totalValue: extractedData?.totalValue ? extractedData?.totalValue.toString() : "",
             effectiveDate:
                 extractedData.effectiveDate && !isDateEmpty(extractedData.effectiveDate)
                     ? dayjs(new Date(...extractedData.effectiveDate))
@@ -360,7 +517,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             title: "Bạn có chắc muốn xóa hợp đồng này không?",
             onOk: async () => {
                 try {
-                    const result = await deleteContractPartner({ contractPartnerId: userId });
+                    const result = await deleteContractPartner({ partnerContractId: userId });
                     console.log(result);
                     refetch();
                     message.success(result?.data?.message);
@@ -380,11 +537,13 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         setIsModalUpdate(true);
         form.resetFields();
         form.setFieldsValue({
-            contractPartnerId: record.contractPartnerId,
+            partnerContractId: record.partnerContractId,
             fileUrl: record.fileUrl,
             partnerName: record.partnerName,
             contractNumber: record.contractNumber,
-            totalValue: record.totalValue,
+            // totalValue: record.totalValue,
+            totalValue: record?.totalValue ? record?.totalValue.toString() : "",
+
             effectiveDate: record.effectiveDate
                 ? dayjs(new Date(...record.effectiveDate))
                 : null,
@@ -470,9 +629,9 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     : []
             };
 
-            const { contractPartnerId, ...body } = transformedValues;
+            const { partnerContractId, ...body } = transformedValues;
             console.log("Transformed values:", body);
-            await updateContractPartner({ contractPartnerId, body }).unwrap();
+            await updateContractPartner({ partnerContractId, body }).unwrap();
             message.success("Cập nhật hợp đồng thành công!");
             setIsModalUpdate(false);
             form.resetFields();
@@ -483,6 +642,73 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         }
     };
 
+
+
+    const handleOk = async () => {
+        try {
+            const values = await form.validateFields();
+            const bankingInfo = bankAccounts.map(account => ({
+                bankName: account.bankName,
+                backAccountNumber: account.backAccountNumber,
+            }));
+            const newPartnerData = {
+                ...values,
+                partnerType: "PARTNER_A",
+                banking: bankingInfo,
+            };
+            console.log(newPartnerData);
+            const result = await CreatePartner(newPartnerData).unwrap();
+            if (result.status === "CREATED") {
+                message.success('Thêm mới thành công!');
+                setIsModalPartner(false);
+                form.resetFields();
+                setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
+            } else {
+                message.error('Thêm mới thất bại vui lòng thử lại!');
+            }
+        } catch (error) {
+            console.error("Error creating partner:", error);
+        }
+    };
+
+    const handleCancel = () => {
+        setIsModalPartner(false);
+        form.resetFields();
+    };
+
+    const addBankAccount = () => {
+        setBankAccounts([...bankAccounts, { bankName: '', backAccountNumber: '' }]);
+    };
+    const removeBankAccount = (index) => {
+        if (bankAccounts.length > 1) {
+            const updatedBanks = bankAccounts.filter((_, i) => i !== index);
+            setBankAccounts(updatedBanks);
+            form.setFieldsValue({ banking: updatedBanks });
+        }
+    };
+
+
+    const handleBankChange = (index, field, value) => {
+        const newBankAccounts = bankAccounts.map((account, i) =>
+            i === index ? { ...account, [field]: value } : account
+        );
+
+        setBankAccounts(newBankAccounts);
+        form.setFieldsValue({ banking: newBankAccounts });
+    };
+
+    const handleNameChange = (e) => {
+        console.log("handleNameChange e", e);
+        const value = e?.target.value;
+        console.log("handleNameChange value", value);
+        const abbreviation = value
+            .split(' ')
+            .filter((word) => word)
+            .map((word) => word[0])
+            .join('')
+            .toUpperCase();
+        form.setFieldsValue({ abbreviation: abbreviation });
+    };
 
     // Định nghĩa các cột của Table
     const columns = [
@@ -539,8 +765,9 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             title: "Đối tác",
             dataIndex: "partnerName",
             key: "partnerName",
-            sorter: (a, b) => a.partnerName.localeCompare(b.partnerName)
+            sorter: (a, b) => a.partnerName.localeCompare(b.partnerName),
         },
+
         {
             title: "Ngày có hiệu lực",
             dataIndex: "effectiveDate",
@@ -588,7 +815,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     <Tooltip title="Xóa">
                         <Button
                             icon={<DeleteFilled style={{ color: "#2196f3" }} />}
-                            onClick={() => handleDelete(record.contractPartnerId)}
+                            onClick={() => handleDelete(record.partnerContractId)}
                         />
                     </Tooltip>
                 </Space>
@@ -596,25 +823,49 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         }
     ];
 
-    const uploadFile = async (file, paymentScheduleId) => {
-        console.log("File:", file);
-        console.log("Payment Schedule ID:", paymentScheduleId);
+
+
+    const handleUploadAll = async (paymentScheduleId) => {
         try {
+            // Tạo FormData và append tất cả file vào cùng một key (ví dụ: "files")
             const formData = new FormData();
-            formData.append("file", file);
+            fileList.forEach((file) => {
+                formData.append("files", file);
+            });
+
             // Gọi API upload file, truyền paymentScheduleId và formData
             const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
             const parsedRes = JSON.parse(res);
-            message.success(parsedRes.message);
 
+            message.success(parsedRes.message);
+            setFileList([]);
+            setActivePanel([]);
             refetch();
+            refetchBill();
         } catch (error) {
-            console.error("Lỗi upload file:", error);
-            message.error("Upload thất bại!");
+            console.error("Lỗi khi tải lên file:", error);
+            message.error("Có lỗi xảy ra khi tải lên file!");
         }
     };
 
 
+    const handleBeforeUpload = (file) => {
+        const isValidType =
+            file.type === "image/png" || file.type === "image/jpeg";
+        if (!isValidType) {
+            message.error("Bạn chỉ có thể tải file PNG hoặc JPEG!");
+            return Upload.LIST_IGNORE;
+        }
+
+        // Thêm file vào state
+        setFileList((prev) => [...prev, file]);
+
+        return false; // Ngăn không cho Upload.Dragger tự động tải lên
+    };
+
+    const handleDeleteImg = (index) => {
+        setFileList((prev) => prev.filter((_, i) => i !== index));
+    };
 
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
@@ -645,15 +896,23 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         >
                             Tạo hợp đồng
                         </Button>
+                        {/* <Button
+                            type="primary"
+                            icon={<EditFilled />}
+                            style={{ marginBottom: 16 }}
+                            onClick={showModal}
+                        >
+                            Tạo partner
+                        </Button> */}
                     </div>
                 </div>
                 <Table
                     columns={columns}
                     dataSource={contracts?.data?.content.filter(
                         (item) =>
-                            item.title.toLowerCase().includes(searchText?.toLowerCase()) ||
-                            item.partnerName.toLowerCase().includes(searchText?.toLowerCase()) ||
-                            item.contractNumber.toLowerCase().includes(searchText?.toLowerCase())
+                            item?.title?.toLowerCase().includes(searchText?.toLowerCase()) ||
+                            item?.partner?.partnerName?.toLowerCase().includes(searchText?.toLowerCase()) ||
+                            item?.contractNumber?.toLowerCase().includes(searchText?.toLowerCase())
                     )}
                     pagination={{
                         current: page,
@@ -665,85 +924,161 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             if (!record?.paymentSchedules || record.paymentSchedules.length === 0) {
                                 return <Empty description="Không có lịch thanh toán" />;
                             }
-                            console.log("Record:", record);
-                            console.log("Payment Schedules:", record.paymentSchedules);
+
                             return (
                                 <div className="relative p-4">
                                     <h3 className="text-xl font-semibold text-center mb-4">
                                         Các đợt thanh toán
                                     </h3>
-                                    <Timeline mode="left" className="mt-8 -ml-[20%]">
-                                        {record.paymentSchedules.map((schedule, index) => (
-                                            <Timeline.Item
+                                    <Collapse
+                                        bordered
+                                        className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
+                                        onChange={(key) => setActivePanel(key)}
+                                    >
+                                        {record?.paymentSchedules.map((schedule, index) => (
+                                            <Panel
                                                 key={schedule.id || index}
-                                                label={
-                                                    schedule.paymentDate
-                                                        ? dayjs(
-                                                            new Date(
-                                                                schedule.paymentDate[0],
-                                                                schedule.paymentDate[1] - 1,
-                                                                schedule.paymentDate[2]
-                                                            )
-                                                        ).format("DD/MM/YYYY")
-                                                        : "Không có dữ liệu"
-                                                }
-                                            >
-                                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                                    <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
-                                                        <span
-                                                            className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
-                                                            style={{ maxWidth: "200px", display: "inline-block", whiteSpace: "nowrap", minWidth: "150px" }}
-                                                            title={`${schedule.amount.toLocaleString()} VND`}
-                                                        >
-                                                            {schedule.amount.toLocaleString()} VND
+                                                header={
+                                                    <div className="flex items-center justify-between w-full">
+                                                        {/* Số tiền */}
+
+                                                        <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                                            <span
+                                                                className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                                style={{ maxWidth: "250px" }}
+                                                            >
+                                                                {schedule.amount.toLocaleString()} VND
+                                                            </span>
+                                                        </Tooltip>
+                                                        {/* Ngày thanh toán */}
+                                                        <span className="text-base text-gray-800">
+                                                            {schedule.paymentDate
+                                                                ? dayjs(
+                                                                    new Date(
+                                                                        schedule.paymentDate[0],
+                                                                        schedule.paymentDate[1] - 1,
+                                                                        schedule.paymentDate[2]
+                                                                    )
+                                                                ).format("DD/MM/YYYY")
+                                                                : "Không có dữ liệu"}
                                                         </span>
-                                                    </Tooltip>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                                        {schedule.status === "UNPAID" ? (
-                                                            <>
-                                                                <Tag color="gold">Chưa thanh toán</Tag>
-                                                                <Upload
-                                                                    name="invoice"
-                                                                    accept="image/png, image/jpeg"
-                                                                    beforeUpload={(file) => {
-                                                                        const isValidType =
-                                                                            file.type === "image/png" ||
-                                                                            file.type === "image/jpeg";
-                                                                        if (!isValidType) {
-                                                                            message.error(
-                                                                                "Bạn chỉ có thể tải file PNG hoặc JPEG!"
-                                                                            );
-                                                                            return Upload.LIST_IGNORE;
-                                                                        }
-                                                                        uploadFile(file, schedule.id);
-                                                                        return false;
-                                                                    }}
-                                                                    showUploadList={false}
-                                                                >
-                                                                    <Button icon={LoadingBill ? <LoadingOutlined /> : <UploadOutlined />}>
-                                                                        {LoadingBill ? "Đang tải..." : "Tải hình ảnh"}
-                                                                    </Button>
-                                                                </Upload>
-                                                            </>
-                                                        ) : schedule.status === "PAID" ? (
-                                                            <Tag color="green">Đã thanh toán</Tag>
-                                                        ) : schedule.status === "OVERDUE" ? (
-                                                            <Tag color="red">Quá hạn</Tag>
-                                                        ) : (
-                                                            schedule.status
-                                                        )}
+                                                        {/* Tag trạng thái */}
+                                                        <div>
+                                                            {schedule.status === "UNPAID" ? (
+                                                                <Tag color="red">Chưa thanh toán</Tag>
+                                                            ) : schedule.status === "PAID" ? (
+                                                                <Tag color="green">Đã thanh toán</Tag>
+                                                            ) : schedule.status === "OVERDUE" ? (
+                                                                <Tag color="red">Quá hạn</Tag>
+                                                            ) : (
+                                                                schedule.status
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </Timeline.Item>
+                                                }
+                                                onClick={() => {
+                                                    setPaymentId(schedule.id);
+                                                    // Mở panel này nếu chưa mở, hoặc đóng nếu đã mở
+                                                    setActivePanel((prev) =>
+                                                        prev.includes(schedule.id) ? [] : [schedule.id]
+                                                    );
+                                                }}                                            >
+                                                {schedule.status === "PAID" ? (
+                                                    // Nếu đã thanh toán, chỉ hiển thị danh sách ảnh từ API
+                                                    <div>
+
+                                                        <div className="text-gray-500 italic text-center mb-3">
+                                                            Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:
+                                                        </div>
+                                                        <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                                            {dataBill?.data && dataBill.data.length > 0 ? (
+                                                                dataBill.data.map((imgUrl, idx) => (
+                                                                    <Image
+                                                                        key={idx}
+                                                                        src={imgUrl}
+                                                                        alt={`Uploaded ${idx}`}
+                                                                        style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }}
+                                                                    />
+                                                                ))
+                                                            ) : (
+                                                                <div className="text-gray-500">Không có hóa đơn nào được tải lên.</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    // Nếu chưa thanh toán, hiển thị form tải lên
+                                                    <>
+                                                        <Upload.Dragger
+                                                            name="invoice"
+                                                            accept="image/png, image/jpeg"
+                                                            beforeUpload={handleBeforeUpload}
+                                                            showUploadList={false} // Không để Ant Design quản lý danh sách file
+                                                        >
+                                                            <p className="ant-upload-drag-icon">
+                                                                <InboxOutlined />
+                                                            </p>
+                                                            <div className="ant-upload-text">
+                                                                Click hoặc kéo file vào đây để tải lên
+                                                            </div>
+                                                            <p className="ant-upload-hint">Hỗ trợ tải lên một hoặc nhiều file.</p>
+                                                        </Upload.Dragger>
+
+                                                        {/* Hiển thị danh sách ảnh đã chọn */}
+                                                        <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "15px" }}>
+                                                            {fileList.map((file, index) => (
+                                                                <div
+                                                                    key={index}
+                                                                    className="image-item"
+                                                                    onMouseEnter={() => setHoveredIndex(index)}
+                                                                    onMouseLeave={() => setHoveredIndex(null)}
+                                                                    style={{ position: "relative", display: "inline-block" }}
+                                                                >
+                                                                    <Image
+                                                                        src={URL.createObjectURL(file)}
+                                                                        alt="Uploaded"
+                                                                        style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }}
+                                                                    />
+                                                                    {hoveredIndex === index && (
+                                                                        <Button
+                                                                            icon={<DeleteOutlined />}
+                                                                            onClick={() => handleDeleteImg(index)}
+                                                                            style={{
+                                                                                position: "absolute",
+                                                                                top: "5px",
+                                                                                right: "5px",
+                                                                                backgroundColor: "red",
+                                                                                color: "white",
+                                                                                borderRadius: "50%",
+                                                                                padding: "5px",
+                                                                                border: "none",
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        {/* Nút tải lên */}
+                                                        <Button
+                                                            type="primary"
+                                                            icon={LoadingBill ? <LoadingOutlined /> : <UploadOutlined />}
+                                                            onClick={() => handleUploadAll(schedule.id)}
+                                                            disabled={fileList.length === 0 || LoadingBill}
+                                                            style={{ marginTop: "10px" }}
+                                                        >
+                                                            {LoadingBill ? "Đang tải lên..." : "Tải lên"}
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </Panel>
                                         ))}
-                                    </Timeline>
+                                    </Collapse>
                                 </div>
 
                             );
                         }
                     }}
                     onChange={handleTableChange}
-                    rowKey={(record) => record.contractPartnerId}
+                    rowKey={(record) => record.partnerContractId}
                     loading={isLoading}
                 />
 
@@ -753,6 +1088,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     open={isModalVisible}
                     onCancel={closeModel}
                     footer={null}
+                    width={600}
                 >
                     <Form form={formUpload} layout="vertical">
                         <Form.Item>
@@ -763,11 +1099,15 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         const extractedData = await callAIForExtraction(file);
                                         console.log("Extracted data:", extractedData);
                                         setExtractedData(extractedData);
+                                        setPartnerName(extractedData?.partner.partnerName);
+                                        setTaxCode(extractedData?.partner?.taxCode || "");
+                                        setNewCustomerData(extractedData?.partner || {});
                                         fillFormWithExtractedData(extractedData);
                                         const formData = new FormData();
                                         formData.append("file", file);
                                         const url = await uploadFilePDF({ formData }).unwrap();
                                         setUrl(url);
+
                                         console.log("Uploaded file URL:", url);
                                     } catch (error) {
                                         console.error("Lỗi khi xử lý file:", error);
@@ -789,12 +1129,17 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         </Form.Item>
                     </Form>
 
-                    <Form form={form} layout="vertical" onFinish={handleSubmit}>
+                    <Form
+                        form={form}
+                        layout="vertical"
+
+                        onFinish={handleSubmit}
+                    >
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
                                     label="Tên đối tác"
-                                    name="partnerName"
+                                    name={["partner", "partnerName"]}
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên đối tác!" }]}
                                 >
                                     <Input />
@@ -905,11 +1250,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 <Form.Item
                                                     {...restField}
                                                     name={[name, "paymentOrder"]}
-                                                    initialValue={index + 1}
                                                     noStyle
                                                     rules={[{ required: true, message: "Vui lòng nhập số đợt thanh toán!" }]}
                                                 >
-                                                    <Input style={{ width: 100 }} />
+                                                    <Input style={{ width: 100 }} placeholder={`${index + 1}`} />
                                                 </Form.Item>
                                             </Space>
 
@@ -991,8 +1335,13 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     }}
                     footer={null}
                 >
-                    <Form form={form} layout="vertical" onFinish={handleSubmitEditContractPartner}>
-                        <Form.Item name="contractPartnerId" style={{ display: "none" }}>
+                    <Form
+                        form={form}
+                        layout="vertical"
+
+                        onFinish={handleSubmitEditContractPartner}
+                    >
+                        <Form.Item name="partnerContractId" style={{ display: "none" }}>
                             <Input />
                         </Form.Item>
                         <Form.Item name="fileUrl" style={{ display: "none" }}>
@@ -1003,7 +1352,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             <Col span={12}>
                                 <Form.Item
                                     label="Tên đối tác"
-                                    name="partnerName"
+                                    name={"partnerName"}
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên đối tác!" }]}
                                 >
                                     <Input placeholder="Nhập tên đối tác" />
@@ -1102,11 +1451,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 <Form.Item
                                                     {...restField}
                                                     name={[name, "paymentOrder"]}
-                                                    initialValue={index + 1}
                                                     noStyle
                                                     rules={[{ required: true, message: "Vui lòng nhập số đợt thanh toán!" }]}
                                                 >
-                                                    <Input style={{ width: 100 }} />
+                                                    <Input style={{ width: 100 }} placeholder={`${index + 1}`} />
                                                 </Form.Item>
                                             </Space>
 
@@ -1179,6 +1527,195 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         </Form.Item>
                     </Form>
                 </Modal>
+
+                {/* Modal tạo khách hàng */}
+                <Modal
+                    className="w-full"
+                    title="Tạo khách hàng Mới"
+                    open={isModalPartner}
+                    okText="Tạo khách hàng Mới"
+                    onOk={handleOk}
+                    onCancel={handleCancel}
+                    cancelText="Hủy"
+                    loading={isCreating}
+                >
+                    <Form form={form} layout="vertical" className="w-full">
+                        {/* Các trường chung được chia thành 2 cột */}
+                        <Row gutter={16} className="w-full">
+                            <Col xs={24} md={12}>
+                                <Form.Item name="partyId" style={{ display: "none" }} />
+
+                                <Form.Item
+                                    name="partnerName"
+                                    label="Tên đối tác"
+                                    rules={[
+                                        { required: true, whitespace: true, message: "Vui lòng nhập tên đối tác" },
+                                        {
+                                            validator: (_, value) => {
+                                                if (!value) return Promise.resolve();
+                                                const regex = /^[\p{L}0-9\s-]{2,100}$/u;
+                                                return regex.test(value)
+                                                    ? Promise.resolve()
+                                                    : Promise.reject(
+                                                        new Error(
+                                                            "Tên đối tác không hợp lệ (chỉ chứa chữ, số, dấu cách, dấu gạch ngang, từ 2-100 ký tự)"
+                                                        )
+                                                    );
+                                            },
+                                        },
+                                    ]}
+                                >
+                                    <Input onChange={handleNameChange} placeholder="Nhập tên đối tác" />
+                                </Form.Item>
+                                <Form.Item
+                                    name="spokesmanName"
+                                    label="Người đại diện"
+                                    rules={[
+                                        { required: true, whitespace: true, message: "Vui lòng nhập tên Người đại diện" },
+                                        {
+                                            validator: (_, value) => {
+                                                if (!value) return Promise.resolve();
+                                                const regex = /^[\p{L}\s-]{2,50}$/u;
+                                                return regex.test(value)
+                                                    ? Promise.resolve()
+                                                    : Promise.reject(
+                                                        new Error(
+                                                            "Tên người đại diện không hợp lệ (chỉ chứa chữ, dấu cách, dấu gạch ngang, từ 2-50 ký tự)"
+                                                        )
+                                                    );
+                                            },
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="Nhập tên người đại diện" />
+                                </Form.Item>
+                                <Form.Item
+                                    name="address"
+                                    label="Địa chỉ"
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ" }]}
+                                >
+                                    <Input placeholder="Nhập địa chỉ" />
+                                </Form.Item>
+                                <Form.Item
+                                    name="email"
+                                    label="Email"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            whitespace: true,
+                                            pattern: validationPatterns.email.pattern,
+                                            message: validationPatterns.email.message,
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="Nhập email" />
+                                </Form.Item>
+                            </Col>
+
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    name="position"
+                                    label="Chức vụ người đại diện"
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập chức vụ" }]}
+                                >
+                                    <Input placeholder="Nhập chức vụ" />
+                                </Form.Item>
+                                <Form.Item
+                                    name="abbreviation"
+                                    label="Viết tắt của partner"
+                                    rules={[{ required: true, whitespace: true, message: "Viết tắt không được để trống" }]}
+                                >
+                                    <Input placeholder="Nhập viết tắt của đối tác" />
+                                </Form.Item>
+                                <Form.Item
+                                    name="taxCode"
+                                    label="Mã số thuế"
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mã số thuế" }]}
+                                >
+                                    <Input placeholder="Nhập mã số thuế" />
+                                </Form.Item>
+                                <Form.Item
+                                    name="phone"
+                                    label="Điện thoại"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            whitespace: true,
+                                            pattern: validationPatterns.phoneNumber.pattern,
+                                            message: validationPatterns.phoneNumber.message,
+                                        },
+                                    ]}
+                                >
+                                    <Input placeholder="Nhập số điện thoại" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+
+                        {/* Phần ngân hàng */}
+                        <div style={{ marginTop: 24 }}>
+                            <h4 className="mb-4">Ngân hàng</h4>
+                            {bankAccounts.map((bank, index) => (
+                                <div key={index} className="flex items-center justify-center space-x-4">
+                                    <div className="w-full md:w-5/12">
+                                        <Form.Item
+                                            name={["banking", index, "bankName"]}
+                                            rules={[
+                                                {
+                                                    whitespace: true,
+                                                    pattern: /^[\p{L}\s.-]{3,100}$/u,
+                                                    message:
+                                                        "Tên ngân hàng không hợp lệ (3-100 ký tự, chỉ chứa chữ, khoảng trắng, dấu gạch ngang, dấu chấm)",
+                                                },
+                                            ]}
+                                        >
+                                            <Input
+                                                placeholder="Tên ngân hàng"
+                                                value={bank.bankName}
+                                                onChange={(e) => handleBankChange(index, "bankName", e.target.value)}
+                                            />
+                                        </Form.Item>
+                                    </div>
+
+                                    <div className="w-full md:w-5/12">
+                                        <Form.Item
+                                            name={["banking", index, "backAccountNumber"]}
+                                            rules={[
+                                                {
+                                                    whitespace: true,
+                                                    pattern: /^\d{6,20}$/,
+                                                    message: "Số tài khoản không hợp lệ (chỉ chứa số, từ 6-20 ký tự)",
+                                                },
+                                            ]}
+                                        >
+                                            <Input
+                                                placeholder="Số tài khoản"
+                                                value={bank.backAccountNumber}
+                                                onChange={(e) => handleBankChange(index, "backAccountNumber", e.target.value)}
+                                            />
+                                        </Form.Item>
+                                    </div>
+
+                                    {bankAccounts.length > 1 && (
+                                        <div>
+                                            <Button
+                                                type="primary"
+                                                className="block"
+                                                danger
+                                                onClick={() => removeBankAccount(index)}
+                                            >
+                                                <DeleteFilled />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                            <Button icon={<PlusOutlined />} onClick={addBankAccount}>
+                                Thêm ngân hàng
+                            </Button>
+                        </div>
+                    </Form>
+                </Modal>
+
             </div>
         </div>
     );

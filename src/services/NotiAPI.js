@@ -51,6 +51,13 @@ export const notiAPI = createApi({
           ? [{ type: "Notification", id: "STATS" }]
           : [{ type: "Notification", id: "LIST" }],
     }),
+    updateReadStatusAll: builder.mutation({
+      query: () => ({
+        url: `notifications/mark-all-as-read`,
+        method: "PUT",
+      }),
+      invalidatesTags: [{ type: "Notification", id: "LIST" }],
+    }),
   }),
   overrideExisting: false,
 });
@@ -60,4 +67,5 @@ export const {
   useUpdateReadStatusMutation,
   useLazyGetNotificationsQuery,
   useGetNumberNotiForAllQuery,
+  useUpdateReadStatusAllMutation,
 } = notiAPI;

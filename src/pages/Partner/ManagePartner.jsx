@@ -122,7 +122,7 @@ const ManagePartner = () => {
                 ...values,
                 banking: bankingInfo,
             };
-
+            console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData).unwrap();
             if (result.status === "CREATED") {
                 message.success('Thêm mới thành công!');
@@ -261,13 +261,13 @@ const ManagePartner = () => {
             dataIndex: 'partnerType',
             width: '150px',
             filters: [
-                { text: 'Nhà cung cấp', value: 'PARTY_B' },
-                { text: 'Khách hàng', value: 'PARTY_A' },
+                { text: 'Nhà cung cấp', value: 'PARTNER_A' },
+                { text: 'Khách hàng', value: 'PARTNER_B' },
             ],
             onFilter: (value, record) => record.partnerType === value,
             render: (type) => (
-                <Tag color={type === 'PARTY_B' ? 'blue' : 'green'}>
-                    {type === "PARTY_B" ? "Nhà cung cấp" : "Khách hàng  "}
+                <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
+                    {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
                 </Tag>
             ),
         },
@@ -315,7 +315,9 @@ const ManagePartner = () => {
     ];
 
     const handleNameChange = (e) => {
+        console.log('handleNameChange e', e);
         const value = e.target.value;
+        console.log('handleNameChange value', value);
         const abbreviation = value
             .split(' ')
             .filter((word) => word)
@@ -464,7 +466,7 @@ const ManagePartner = () => {
                 onCancel={handleCancel}
                 cancelText={"Hủy"}
                 loading={isCreating || isEditing}
-                
+
             >
                 <Form form={form} layout="vertical" className="w-full">
                     {/* Các trường chung được chia thành 2 cột */}
@@ -477,15 +479,15 @@ const ManagePartner = () => {
                                 rules={[{ required: true, message: "Vui lòng chọn loại đối tác" }]}
                             >
                                 <Select>
-                                    <Select.Option value="PARTNER_B">Nhà cung cấp</Select.Option>
-                                    <Select.Option value="PARTNER_A">Khách hàng</Select.Option>
+                                    <Select.Option value="PARTNER_A">Nhà cung cấp</Select.Option>
+                                    <Select.Option value="PARTNER_B">Khách hàng</Select.Option>
                                 </Select>
                             </Form.Item>
                             <Form.Item
                                 name="partnerName"
                                 label="Tên đối tác"
                                 rules={[
-                                    { required: true,whitespace: true, message: "Vui lòng nhập tên đối tác" },
+                                    { required: true, whitespace: true, message: "Vui lòng nhập tên đối tác" },
                                     {
                                         validator: (_, value) => {
                                             if (!value) return Promise.resolve();
@@ -507,7 +509,7 @@ const ManagePartner = () => {
                                 name="spokesmanName"
                                 label="Người đại diện"
                                 rules={[
-                                    { required: true,whitespace: true, message: "Vui lòng nhập tên Người đại diện" },
+                                    { required: true, whitespace: true, message: "Vui lòng nhập tên Người đại diện" },
                                     {
                                         validator: (_, value) => {
                                             if (!value) return Promise.resolve();
@@ -528,7 +530,7 @@ const ManagePartner = () => {
                             <Form.Item
                                 name="address"
                                 label="Địa chỉ"
-                                rules={[{ required: true,whitespace: true,message: "Vui lòng nhập địa chỉ" }]}
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ" }]}
                             >
                                 <Input />
                             </Form.Item>
@@ -552,21 +554,21 @@ const ManagePartner = () => {
                             <Form.Item
                                 name="position"
                                 label="Chức vụ người đại diện"
-                                rules={[{ required: true,whitespace: true, message: "Vui lòng nhập chức vụ" }]}
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập chức vụ" }]}
                             >
                                 <Input />
                             </Form.Item>
                             <Form.Item
                                 name="abbreviation"
                                 label="Viết tắt của partner"
-                                rules={[{ required: true,whitespace: true, message: "Viết tắt không được để trống" }]}
+                                rules={[{ required: true, whitespace: true, message: "Viết tắt không được để trống" }]}
                             >
                                 <Input />
                             </Form.Item>
                             <Form.Item
                                 name="taxCode"
                                 label="Mã số thuế"
-                                rules={[{ required: true,whitespace: true, message: "Vui lòng nhập mã số thuế" }]}
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mã số thuế" }]}
                             >
                                 <Input />
                             </Form.Item>

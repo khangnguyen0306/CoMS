@@ -22,19 +22,12 @@ const ReviewContract = () => {
     // Lấy mảng stages
     const stages = process?.data?.stages;
 
-    // console.log(stages);
-    // console.log(contracts);
+    console.log(contracts);
 
     const matchingStage = stages?.find(stage => stage.approver === currentUser?.id);
     const StageIdMatching = matchingStage?.stageId;
 
 
-    if (isError)
-        return (
-            <div style={{ textAlign: "center", marginTop: "20px", color: "red" }}>
-                Error loading contracts
-            </div>
-        );
 
     // Lấy hợp đồng đầu tiên trong danh sách
     const contract = contracts?.data
@@ -62,6 +55,14 @@ const ReviewContract = () => {
                 <Skeleton active />
             </div>
         );
+
+    if (isError) {
+        return (
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <p style={{ color: "red" }}>Có lỗi xảy ra khi tải dữ liệu.</p>
+            </div>
+        );
+    }
 
     return (
         <div className='container mx-auto min-h-[100vh]'>
@@ -104,7 +105,7 @@ const ReviewContract = () => {
                             }
                         >
                             <Tag className="w-fit top-4 right-4 absolute">
-                                Phiên bản: {contract?.version ? `${contract.version}.0.0` : "Chưa cập nhật"}
+                                Phiên bản: {contract?.version ? `${contract?.version}.0.0` : "Chưa cập nhật"}
                             </Tag>
 
                             <div className="flex flex-col md:flex-row justify-between items-start gap-6">
@@ -151,8 +152,8 @@ const ReviewContract = () => {
                                     >
                                         Xem Chi Tiết Hợp Đồng
                                     </Button>
-                                    {contract.version != 1 && (
-                                        <Button icon={<ClockCircleOutlined />} onClick={() => navigate(`/compare/${contracts?.data.originalContractId}/${contracts?.data.version}/${contracts?.data.version - 1}`)} type="default" className="rounded-lg">
+                                    {contract?.version != 1 && (
+                                        <Button icon={<ClockCircleOutlined />} onClick={() => navigate(`/compare/${contracts?.data.originalContractId}/${contracts?.data?.version}/${contracts?.data?.version - 1}`)} type="default" className="rounded-lg">
                                             So Sánh với phiên bản trước
                                         </Button>
                                     )}
@@ -174,8 +175,9 @@ const ReviewContract = () => {
                     >
                         <p className="mx-3 text-base font-bold mb-6" >Danh Sách Phê Duyệt</p>
                         <Timeline mode="left" className="mb-14">
-                            {stages.map((stage) => (
+                            {stages.map((stage, index) => (
                                 <Timeline.Item
+                                    key={index}
                                     children={
                                         <div className="min-h-[50px]">
                                             {stage.approverName}
