@@ -37,6 +37,7 @@ const Compare = Loadable({ loader: () => import("../components/CompareVersion/Co
 const Department = Loadable({ loader: () => import("../pages/Department/Department") });
 const CreateAppendix = Loadable({ loader: () => import("../pages/appendix/staff/CreateApependix") });
 const AppendixManagement = Loadable({ loader: () => import("../pages/appendix/staff/AppendixManagement") });
+const AppendixApproveStaff = Loadable({ loader: () => import("../pages/appendix/staff/AppendixApprove") });
 const AppendixManagerManagement = Loadable({ loader: () => import("../pages/appendix/manager/AppendixManagementManager") });
 const AppendixManagerManagementAll = Loadable({ loader: () => import("../pages/appendix/manager/AppendixManagementForAllStatus") });
 const AppendixDetail = Loadable({ loader: () => import("../pages/appendix/AppendixDetail") });
@@ -172,6 +173,10 @@ export const router = createBrowserRouter([
                         element: AppendixManagement,
                     },
                     {
+                        path: "approve/appendix",
+                        element: AppendixApproveStaff,
+                    },
+                    {
                         path: "appendixDetail/:contractId/:appendixId",
                         element: AppendixDetail,
                     }
@@ -200,6 +205,22 @@ export const router = createBrowserRouter([
                     {
                         path: "profile/:id",
                         element: Profile,
+                    },
+                    {
+                        path: "createtemplate",
+                        element: CreateTemplate,
+                    },
+                    {
+                        path: "EditTemplate/:id",
+                        element: EditTemplate,
+                    },
+                    {
+                        path: "managetemplate",
+                        element: ManageTemplate,
+                    },
+                    {
+                        path: "deletedtemplate",
+                        element: DeletedTemplate,
                     },
                 ],
             },

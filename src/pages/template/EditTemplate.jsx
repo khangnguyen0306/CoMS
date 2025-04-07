@@ -156,7 +156,7 @@ const EditTemplate = () => {
             templateId: parseInt(id, 10),
             contractTitle: data.contractTitle,
             contractTypeId: data.contractType,
-            legalBasisTerms: data.legalBasis ? data.legalBasis.map(item => item) : [],
+            legalBasisTerms: data.legalBasisTerms ? data.legalBasisTerms.map(item => item) : [],
             appendixEnabled: data.appendixEnabled,
             transferEnabled: data.transferEnabled,
             violate: data.violate,
@@ -179,7 +179,7 @@ const EditTemplate = () => {
         if (response.status === "CREATED") {
             form.resetFields();
             navigate('/managetemplate');
-            message.success("Cập nhật hợp đồng thành công!");
+            message.success("Cập nhật mẫu hợp đồng thành công!");
         } else {
             message.error(response.message);
         }
@@ -265,7 +265,7 @@ const EditTemplate = () => {
                         appendixEnabled: data.data?.appendixEnabled,
                         transferEnabled: data.data?.transferEnabled,
                         contractType: data.data?.contractTypeId,
-                        legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
+                        legalBasisTerms: data.data.legalBasisTerms?.map(term => term.original_term_id),
                         // contractContent: data.data.contractContent,
                         generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
                         autoAddVAT: data.data?.autoAddVAT,
@@ -880,7 +880,7 @@ const EditTemplate = () => {
                                         </Popover>
                                     </div>
                                 }
-                                name='legalBasis'
+                                name='legalBasisTerms'
                                 rules={[{ required: true, message: "Vui lòng chọn căn cứ pháp lý!" }]}
                             >
                                 <LazyLegalSelect

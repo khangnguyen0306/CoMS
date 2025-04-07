@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table, Collapse, Tooltip } from 'antd';
@@ -16,11 +16,17 @@ import AuditrailContract from './component/AuditrailContract';
 import { useGetAppendixByContractIdQuery } from '../../services/AppendixAPI';
 import DisplayAppendix from '../appendix/staff/DisplayAppendix';
 import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
-
+import { IoSearchCircle } from "react-icons/io5";
+import ModalSearch from './component/ModalSearch';
+import html2canvas from 'html2canvas';
 const { Title, Text } = Typography;
+import jsPDF from 'jspdf';
+
+
 const ContractDetail = () => {
     const { Panel } = Collapse;
     const { id } = useParams();
+    const refExportPDF = useRef();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
@@ -40,13 +46,16 @@ const ContractDetail = () => {
         B: []
     });
     const [confirmed, setConfirmed] = useState(false);
+    const [searchModalVisible, setSearchModalVisible] = useState(false);
+
+    const [selectedText, setSelectedText] = useState('');
+    const [showSearchButton, setShowSearchButton] = useState(false);
+    const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
 
     const user = useSelector(selectCurrentUser);
-    const location = useLocation();
     const [form] = Form.useForm();
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
     const [openAprove, setOpenAprove] = useState(false);
-    const [scrolledToBottom, setScrolledToBottom] = useState(false);
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectProcessMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveProcessMutation();
 
@@ -61,16 +70,14 @@ const ContractDetail = () => {
     const [fetchDataData] = useLazyGetDataChangeByDateQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
-
-
     const stages = processData?.data?.stages || [];
 
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
 
-    // console.log(processData)
-    // console.log(user.id)
-    // Hàm tải chi tiết điều khoản dựa theo termId (original_term_id)
+    const clauseRef = useRef(null);
+
+
     const loadTermDetail = async (termId) => {
         if (!termsData[termId]) {
             setLoadingTerms((prev) => ({ ...prev, [termId]: true }));
@@ -367,6 +374,39 @@ const ContractDetail = () => {
         },
     ];
 
+    // hàm hiển thị 
+    const handleMouseUp = (e) => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+        // Kiểm tra xem văn bản được chọn có nằm trong component không
+        if (text && clauseRef.current.contains(selection.anchorNode)) {
+            setSelectedText(text);
+            setShowSearchButton(true);
+            setButtonPosition({ x: e.pageX - 100, y: e.pageY + 10 });
+        } else {
+            setShowSearchButton(false);
+        }
+    };
+
+
+    const handleSearch = () => {
+        setSearchModalVisible(true)
+    };
+
+    //hover hiển thin nút
+    useEffect(() => {
+        const element = clauseRef.current;
+        if (element) {
+            element.addEventListener('mouseup', handleMouseUp, true);
+        }
+        return () => {
+            if (element) {
+                element.removeEventListener('mouseup', handleMouseUp, true);
+            }
+        };
+    }, []);
+
+
 
     if (isLoadingBsData || loadingDataContract | loadingDataContractAppendix) {
         return (
@@ -376,8 +416,12 @@ const ContractDetail = () => {
         );
     }
 
+
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center  shadow-md p-4 pb-16 rounded-md`}>
+        <div
+            ref={refExportPDF} id="contractContent"
+            className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center   shadow-md p-4 pb-16 rounded-md`}
+        >
             <Button
                 icon={<RollbackOutlined />}
                 type="primary"
@@ -386,6 +430,14 @@ const ContractDetail = () => {
             >
                 Quay về
             </Button>
+            {/* <Button
+                icon={<RollbackOutlined />}
+                type="primary"
+                onClick={exportPDF}
+                className="mb-4 absolute left-[120px] top-[90px]"
+            >
+                Export PDF
+            </Button> */}
             <div className="flex justify-between relative">
                 {contractData?.data?.status === "APPROVAL_PENDING" && (
                     !isApprover && user.roles[0] !== "ROLE_MANAGER" ? (
@@ -742,21 +794,21 @@ const ContractDetail = () => {
                 <Row gutter={16} className="flex flex-col mt-5 pl-10 gap-5" justify="center">
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
                         <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                        <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.data?.partnerName}</p>
-                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                        <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.data.spokesmanName}</p>
-                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
-                        <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p>
-                        <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
+                        <p className="text-sm"><b>Tên công ty:</b> {contractData?.data.partnerA.partnerName}</p>
+                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data.partnerA.partnerAddress}</p>
+                        <p className="text-sm"><b>Người đại diện:</b> {contractData?.data.partnerA.spokesmanName}</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerA.position}</p>
+                        <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data.partnerA.partnerTaxCode}</p>
+                        <p className="text-sm"><b>Email:</b> {contractData?.data.partnerA.partnerEmail}</p>
                     </Col>
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
-                        <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
-                        <p className="text-sm"><b>Tên công ty:</b> {contractData?.data?.partnerB?.partnerName}</p>
-                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data?.partnerB.partnerAddress}</p>
-                        <p className="text-sm"><b>Người đại diện:</b> {contractData?.data?.partnerB.spokesmanName}</p>
-                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data?.partnerB?.position}</p>
-                        <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data?.partnerB.partnerTaxCode}</p>
-                        <p className="text-sm"><b>Email:</b> {contractData?.data?.partnerB.partnerEmail}</p>
+                        <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                        <p className="text-sm"><b>Tên công ty:</b> {contractData?.data.partnerB.partnerName}</p>
+                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data.partnerB.partnerAddress}</p>
+                        <p className="text-sm"><b>Người đại diện:</b> {contractData?.data.partnerB.spokesmanName}</p>
+                        <p className="text-sm"><b>Chức vụ:</b> {contractData?.data.partnerB.position}</p>
+                        <p className="text-sm"><b>Mã số thuế:</b> {contractData?.data.partnerB.partnerTaxCode}</p>
+                        <p className="text-sm"><b>Email:</b> {contractData?.data.partnerB.partnerEmail}</p>
                     </Col>
                     <div className="pl-2">
                         <p>
@@ -848,7 +900,7 @@ const ContractDetail = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="mt-2">
+                        <div ref={clauseRef} onMouseUp={handleMouseUp} className="mt-2 relative">
                             <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
                             <div className="ml-5 mt-3 flex flex-col gap-3">
                                 {groupedTerms.Common.length > 0 && (
@@ -904,13 +956,30 @@ const ContractDetail = () => {
                                         </div>
                                     )}
                             </div>
+
                         </div>
+                        {showSearchButton && (
+                            <Button
+                                type="primary"
+                                style={{
+                                    position: 'absolute',
+                                    left: buttonPosition.x,
+                                    top: buttonPosition.y,
+                                    zIndex: 1000,
+                                }}
+                                icon={<IoSearchCircle />}
+                                onClick={handleSearch}
+                            >
+                                Tìm kiếm điều khoản
+                            </Button>
+                        )}
+
                     </div>
                 </Row>
                 <div className="flex justify-center mt-10 items-center pb-24">
                     <div className="flex flex-col gap-2 px-[18%] text-center">
                         <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
-                        <p><b>{contractData?.data?.partner?.partnerName?.toUpperCase()}</b></p>
+                        <p><b>{contractData?.data?.partnerB.partnerName?.toUpperCase()}</b></p>
                         <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                     </div>
                     <div className="flex flex-col gap-2 px-[18%] text-center">
@@ -922,6 +991,12 @@ const ContractDetail = () => {
 
             </div>
 
+            <ModalSearch
+                searchModalVisible={searchModalVisible}
+                setSearchModalVisible={setSearchModalVisible}
+                selectedText={selectedText}
+                setSelectedText={setSelectedText}
+            />
         </div>
     );
 };

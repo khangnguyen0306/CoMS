@@ -11,6 +11,7 @@ export const clauseAPI = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
     }),
+
     getLegal: builder.query({
       query: ({ page, size, keyword, order }) => ({
         url: `/terms/get-all`,
@@ -19,6 +20,7 @@ export const clauseAPI = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
     }),
+
     getLegalCreateContract: builder.query({
       query: ({ page, size, keyword, order }) => ({
         url: `/terms/get-all-less-field`,
@@ -27,6 +29,7 @@ export const clauseAPI = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
     }),
+
     getAllTypeClause: builder.query({
       query: () => ({
         url: `/terms/get-all-type-terms`,
@@ -34,6 +37,20 @@ export const clauseAPI = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
     }),
+
+    searchTermsByHover: builder.query({
+      query: (params) => ({
+        url: `/terms/search`,
+        params: {
+          page: params.page,
+          size: params.size,
+          keyword: params.keyword
+        },
+        method: "GET",
+      }),
+      providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+    }),
+
     CreateClause: builder.mutation({
       query: ({ label, value, typeTermId }) => ({
         url: `/terms/create/${typeTermId}`,
@@ -42,6 +59,8 @@ export const clauseAPI = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Clause", id: "LIST" }],
     }),
+
+
     UpdateClause: builder.mutation({
       query: ({ termId, label, value, typeTermId }) => ({
         url: `/terms/update/${termId}`,
@@ -50,6 +69,7 @@ export const clauseAPI = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
     }),
+
     DeleteClause: builder.mutation({
       query: ({ termId }) => ({
         url: `/terms/update-status/${termId}/true`,
@@ -81,4 +101,5 @@ export const {
   useGetLegalCreateContractQuery,
   useLazyGetLegalCreateContractQuery,
   useLazyGetTermDetailQuery,
+  useSearchTermsByHoverQuery
 } = clauseAPI;

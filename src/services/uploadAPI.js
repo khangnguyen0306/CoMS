@@ -41,6 +41,18 @@ export const uploadAPI = createApi({
       invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
     }),
 
+    uploadClauseBFile: builder.mutation({
+      query: ({ typeTermId, file }) => {
+          const formData = new FormData();
+          formData.append("file", file); // Thêm file vào FormData
+          return {
+              url: `/terms/import-file-excel?typeTermId=${typeTermId}`,
+              method: "POST",
+              body: formData, // Gửi FormData thay vì object JSON
+          };
+      },
+      invalidatesTags: [{ type: "Clause", id: "LIST" }],
+  }),
 
 
     // Các endpoint khác có thể được thêm vào ở đây
@@ -50,4 +62,5 @@ export const uploadAPI = createApi({
 export const {
   useUploadFilePDFMutation,
   useUploadBillingContractMutation,
+  useUploadClauseBFileMutation
 } = uploadAPI;

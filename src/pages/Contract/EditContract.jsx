@@ -8,7 +8,7 @@ import { useLazyGetPartnerListByPartnerTypeQuery, useLazyGetPartnerListQuery } f
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractDetailQuery, useLazyGetContractTypeQuery, useUpdateContractMutation } from "../../services/ContractAPI";
-import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EyeFilled, LeftOutlined, PlusOutlined } from "@ant-design/icons";
+import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EditFilled, EyeFilled, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
@@ -51,6 +51,8 @@ const EditContract = () => {
     const [selectedOthersTerms, setSelectedOthersTerms] = useState([]);
     const [isAppendixEnabled, setIsAppendixEnabled] = useState(false);
     const [isTransferEnabled, setIsTransferEnabled] = useState(false);
+    const [isEditA, setIsEditA] = useState(false);
+    const [isEditB, setIsEditB] = useState(false);
     const [isSuspend, setIsSuspend] = useState(false);
     const [isViolate, setIsisViolate] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
@@ -112,7 +114,27 @@ const EditContract = () => {
             form.setFieldsValue({
                 status: contractData.data.status,
                 contractTypeId: contractData?.data.contractTypeId,
-                partnerId: contractData?.data.partner.id,
+                partnerId: contractData?.data.partnerB.partnerId,
+                partnerA: {
+                    partnerId: 1,
+                    partnerName: contractData?.data.partnerA.partnerName,
+                    partnerAddress: contractData?.data.partnerA.partnerAddress,
+                    partnerTaxCode: contractData?.data.partnerA.partnerTaxCode,
+                    partnerPhone: contractData?.data.partnerA.partnerPhone,
+                    partnerEmail: contractData?.data.partnerA.partnerEmail,
+                    spokesmanName: contractData?.data.partnerA.spokesmanName,
+                    position: contractData?.data.partnerA.position
+                },
+                partnerB: {
+                    partnerId: contractData?.data.partnerB.partnerId,
+                    partnerName: contractData?.data.partnerB.partnerName,
+                    partnerAddress: contractData?.data.partnerB.partnerAddress,
+                    partnerTaxCode: contractData?.data.partnerB.partnerTaxCode,
+                    partnerPhone: contractData?.data.partnerB.partnerPhone,
+                    partnerEmail: contractData?.data.partnerB.partnerEmail,
+                    spokesmanName: contractData?.data.partnerB.spokesmanName,
+                    position: contractData?.data.partnerB.position
+                },
                 contractName: contractData?.data.title,
                 contractType: contractData?.data.contractTypeId,
                 contractNumber: contractData?.data.contractNumber,
@@ -404,11 +426,30 @@ const EditContract = () => {
             }, {});
 
         const formattedData = {
-            // contractNumberFormat: data.contractNumberFormat,
             contractTypeId: data.contractTypeId,
             contractId: data.contractId,
             title: data.contractName,
             contractNumber: data.contractNumber,
+            partnerA: {
+                partnerId: 1,
+                partnerName: data?.partnerA.partnerName,
+                partnerAddress: data?.partnerA.partnerAddress,
+                partnerTaxCode: data?.partnerA.partnerTaxCode,
+                partnerPhone: data?.partnerA.partnerPhone,
+                partnerEmail: data?.partnerA.partnerEmail,
+                spokesmanName: data?.partnerA.spokesmanName,
+                position: data?.partnerA.position
+            },
+            partnerB: {
+                partnerId: data?.partnerB.partnerId,
+                partnerName: data?.partnerB.partnerName,
+                partnerAddress: data?.partnerB.partnerAddress,
+                partnerTaxCode: data?.partnerB.partnerTaxCode,
+                partnerPhone: data?.partnerB.partnerPhone,
+                partnerEmail: data?.partnerB.partnerEmail,
+                spokesmanName: data?.partnerB.spokesmanName,
+                position: data?.partnerB.position
+            },
             signingDate: formatDateArray(data.signingDate),
             contractLocation: data.contractLocation,
             totalValue: data.totalValue,
@@ -876,6 +917,20 @@ const EditContract = () => {
         },
     ];
 
+    const handleSaveA = () => {
+        form.validateFields(['partnerA']).then(() => {
+            // Dữ liệu đã được lưu vào form, chỉ cần chuyển chế độ edit off
+            setIsEditA(false);
+        });
+    };
+
+    // Lưu dữ liệu của bên B vào form và chuyển về chế độ xem
+    const handleSaveB = () => {
+        form.validateFields(['partnerB']).then(() => {
+            setIsEditB(false);
+        });
+    };
+
 
     console.log(form.getFieldsValue(true))
     const steps = [
@@ -1130,25 +1185,169 @@ const EditContract = () => {
                                     </Form.Item>
                                 </div>
 
-                                <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-6 rounded-md gap-7 mt-[-10px]`} justify={"center"}>
-                                    <div className="flex flex-col gap-2 pl-4 " md={10} sm={24} >
-                                        <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                        <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
-                                        <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                                        <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
-                                        <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.data.position || "chưa cập nhật"}</p>
-                                        <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
-                                        <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
+                                <div className="flex flex-col gap-2 pl-4 mt-8" md={10} sm={24}>
+                                    <div className="flex items-center justify-between">
+                                        <p className="font-bold text-lg">
+                                            <u>BÊN CUNG CẤP (BÊN A)</u>
+                                        </p>
+                                        {isEditA ? (
+                                            <Button onClick={() => setIsEditA(false)}>Hoàn tất</Button>
+                                        ) : (
+                                            <Button type="primary" onClick={() => setIsEditA(true)}>
+                                                <EditFilled/>
+                                            </Button>
+                                        )}
                                     </div>
-                                    <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
-                                        <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
-                                        <p className="text-sm "><b>Tên công ty: </b>{contractData?.data.partner.partnerName}</p>
-                                        <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{contractData?.data.partner.address}</p>
-                                        <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {contractData?.data.partner.spokesmanName}</p></p>
-                                        <p className="text-sm"><b>Chức vụ: {contractData?.data.partner.position}</b> </p>
-                                        <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {contractData?.data.partner.taxCode}</p></p>
-                                        <p className="text-sm"><b>Email:</b> {contractData?.data.partner.email}</p>
+                                    {isEditA ? (
+                                        <>
+                                            <Form.Item
+                                                label="Tên công ty:"
+                                                name={['partnerA', 'partnerName']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Địa chỉ trụ sở chính:"
+                                                name={['partnerA', 'partnerAddress']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Số điện thoại:"
+                                                name={['partnerA', 'partnerPhone']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Mã số thuế:"
+                                                name={['partnerA', 'partnerTaxCode']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Email:"
+                                                name={['partnerA', 'partnerEmail']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Người đại diện:"
+                                                name={['partnerA', 'spokesmanName']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item label="Chức vụ:" name={['partnerA', 'position']}>
+                                                <Input />
+                                            </Form.Item>
+                                            {/* <Button type="primary" onClick={handleSaveA}>
+                                                Save
+                                            </Button> */}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-sm">
+                                                <b>Tên công ty:</b> {form.getFieldValue(['partnerA', 'partnerName'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Địa chỉ trụ sở chính:</b> {form.getFieldValue(['partnerA', 'partnerAddress'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Người đại diện:</b> {form.getFieldValue(['partnerA', 'spokesmanName']) || "Chưa cập nhật"}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Chức vụ:</b> {form.getFieldValue(['partnerA', 'position']) || "Chưa cập nhật"}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Mã số thuế:</b> {form.getFieldValue(['partnerA', 'partnerTaxCode'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Email:</b> {form.getFieldValue(['partnerA', 'partnerEmail'])}
+                                            </p>
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* BÊN B */}
+                                <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
+                                    <div className="flex items-center justify-between">
+                                        <p className="font-bold text-lg">
+                                            <u>Bên thuê (Bên B)</u>
+                                        </p>
+                                        {isEditB ? (
+                                            <Button onClick={() => setIsEditB(false)}>Hoàn tất</Button>
+                                        ) : (
+                                            <Button type="primary" onClick={() => setIsEditB(true)}>
+                                                <EditFilled/>
+                                            </Button>
+                                        )}
                                     </div>
+                                    {isEditB ? (
+                                        <>
+                                            <Form.Item
+                                                label="Tên công ty:"
+                                                name={['partnerB', 'partnerName']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Địa chỉ trụ sở chính:"
+                                                name={['partnerB', 'partnerAddress']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Số điện thoại:"
+                                                name={['partnerB', 'partnerPhone']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Mã số thuế:"
+                                                name={['partnerB', 'partnerTaxCode']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Email:"
+                                                name={['partnerB', 'partnerEmail']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item
+                                                label="Người đại diện:"
+                                                name={['partnerB', 'spokesmanName']}
+                                            >
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item label="Chức vụ:" name={['partnerB', 'position']}>
+                                                <Input />
+                                            </Form.Item>
+                                            {/* <Button type="primary" onClick={handleSaveB}>
+                                                Save
+                                            </Button> */}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-sm">
+                                                <b>Tên công ty:</b> {form.getFieldValue(['partnerB', 'partnerName'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Địa chỉ trụ sở chính:</b> {form.getFieldValue(['partnerB', 'partnerAddress'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Người đại diện:</b> {form.getFieldValue(['partnerB', 'spokesmanName'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Chức vụ:</b> {form.getFieldValue(['partnerB', 'position'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Mã số thuế:</b> {form.getFieldValue(['partnerB', 'partnerTaxCode'])}
+                                            </p>
+                                            <p className="text-sm">
+                                                <b>Email:</b> {form.getFieldValue(['partnerB', 'partnerEmail'])}
+                                            </p>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             <div ref={mainContentRef}>

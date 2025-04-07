@@ -46,11 +46,11 @@ const MainLayout = () => {
     'client': '/partner',
     'contract': '/contract',
     'setting1': '/bsinformation',
-    'templateCreate': '/createtemplate',
-    'appendix': '/appendix',
-    'appendixManageStaff': '/appendix',
-    'manageTemplate': '/managetemplate',
-    'deletedtemplate': '/deletedtemplate',
+    'templateCreate': '/admin/createtemplate',
+    'appendix': 'approve/appendix',
+    'appendixManageStaff': 'appendix',
+    'manageTemplate': '/admin/managetemplate',
+    'deletedtemplate': '/admin/deletedtemplate',
     'clause': '/clause',
     'user': '/admin/user',
     'workflow': '/admin/process',
@@ -194,17 +194,30 @@ const MainLayout = () => {
     {
       icon: LuWaypoints, key: "workflow", label: 'Quy trình duyệt'
     },
-
+    {
+      icon: MdLibraryBooks,
+      label: 'Mẫu Hợp đồng',
+      children: [
+        { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "manageTemplate" },
+        { icon: BsClipboard2DataFill, label: 'Tạo mẫu hợp đồng', key: "templateCreate" },
+        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
+      ]
+    },
     {
       icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
     },
-  ].map((item, index) => {
-    return {
-      key: item.key,
-      icon: React.createElement(item.icon),
-      label: item.label,
-    };
-  });
+  ].map((item) => ({
+    key: item.key,
+    icon: React.createElement(item.icon),
+    label: item.label,
+    // onClick: item.onClick,
+    children: item.children?.map((childItem) => ({
+      key: childItem.key,
+      icon: React.createElement(childItem.icon),
+      label: childItem.label,
+      path: childItem.path,
+    })),
+  }));
 
 
   const navStaff = [
@@ -233,15 +246,15 @@ const MainLayout = () => {
         { icon: MenuOutlined, label: 'Quản lý phụ lục', key: "appendixManageStaff", default: true, badgeCount: "addendaPendingApproval" },
       ]
     },
-    {
-      icon: MdLibraryBooks,
-      label: 'Mẫu Hợp đồng',
-      children: [
-        { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "manageTemplate" },
-        { icon: BsClipboard2DataFill, label: 'Tạo mẫu hợp đồng', key: "templateCreate" },
-        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
-      ]
-    },
+    // {
+    //   icon: MdLibraryBooks,
+    //   label: 'Mẫu Hợp đồng',
+    //   children: [
+    //     { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "manageTemplate" },
+    //     { icon: BsClipboard2DataFill, label: 'Tạo mẫu hợp đồng', key: "templateCreate" },
+    //     { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
+    //   ]
+    // },
     {
       icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
     },

@@ -24,7 +24,7 @@ const AppendixDetail = () => {
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
     const userApproval = dataAppendixProcess?.data.stages.find(stage => stage.approver === user?.id && (stage.status === "APPROVED"));
-    const userCreate = appendixData?.data.createdBy.userName == user?.id;
+    const userCreate = appendixData?.data.createdBy.userId == user?.id;
 
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectAppendixMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveAppendixMutation();

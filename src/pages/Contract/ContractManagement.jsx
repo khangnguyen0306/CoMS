@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined } from "@ant-design/icons";
 import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
@@ -13,6 +13,7 @@ import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useL
 import ExpandRowContent from "./component/ExpandRowContent";
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 import { useUploadBillingContractMutation } from "../../services/uploadAPI";
+import ExportContractPDF from "./component/ExportContractPDF";
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -69,6 +70,8 @@ const ManageContracts = () => {
     // console.log(contractManager)
     const isManager = user?.roles[0] === "ROLE_MANAGER";
     const tableData = isManager ? contractManager?.data.content : contracts?.data?.content;
+    const [selectedContractIdExport, setSelectedContractIdExport] = useState(null);
+
 
     useEffect(() => {
         if (isManager) {
@@ -149,6 +152,10 @@ const ManageContracts = () => {
         'ENDED': <Tag color="default">Đã kết thúc</Tag>
     }
 
+    const handleExport = (id) => {
+        setSelectedContractIdExport(id);
+    };
+
     const columns = [
         {
             title: "Mã hợp đồng",
@@ -211,10 +218,10 @@ const ManageContracts = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: "partner",
-            key: "partner",
+            dataIndex: "partnerB",
+            key: "partnerB",
             render: (partner) => <p>{partner?.partnerName}</p>,
-            filters: [...new Set(tableData?.map(contract => contract.partner?.partnerName))].map(type => ({
+            filters: [...new Set(tableData?.map(contract => contract.partner ? B.partnerName))].map(type => ({
                 text: type,
                 value: type,
             })),
@@ -317,6 +324,12 @@ const ManageContracts = () => {
                                     onClick: () => message.info("Cập nhật thông báo hợp đồng!"),
                                 },
                                 {
+                                    key: "export",
+                                    icon: <DownloadOutlined style={{ color: "#228eff" }} />,
+                                    label: "Export",
+                                    onClick: () => handleExport(record.id),
+                                },
+                                {
                                     key: "delete",
                                     icon: <DeleteOutlined />,
                                     label: "Xóa",
@@ -325,6 +338,7 @@ const ManageContracts = () => {
                                 },
                             ],
                         }}
+
                         trigger={["hover"]}
                     >
                         <Button>
@@ -619,7 +633,12 @@ const ManageContracts = () => {
                     </div>
                 )}
             </Modal>
-
+            {selectedContractIdExport && (
+                <ExportContractPDF
+                    contractId={selectedContractIdExport}
+                    onDone={() => setSelectedContractIdExport(null)}
+                />
+            )}
 
         </div>
     );
