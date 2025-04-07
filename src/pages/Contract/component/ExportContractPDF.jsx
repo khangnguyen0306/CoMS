@@ -12,8 +12,6 @@ pdfMake.vfs = pdfFonts.vfs;
 
 const ExportContractPDF = ({ contractId, onDone }) => {
   const [getContractDetail, { data: contract, isSuccess }] = useLazyGetContractDetailQuery();
-  const [termsData, setTermsData] = useState({});
-  const [loadingTerms, setLoadingTerms] = useState({});
 
   const [groupedTerms, setGroupedTerms] = useState(
     { A: [], B: [], Common: [] }
@@ -53,14 +51,14 @@ const ExportContractPDF = ({ contractId, onDone }) => {
         // Group A terms
         if (config.A && config.A.length > 0) {
           config.A.forEach((termObj) => {
-            allGrouped.A.push(termObj.value); // Push the value directly
+            allGrouped.A.push(termObj.value); 
           });
         }
 
         // Group B terms
         if (config.B && config.B.length > 0) {
           config.B.forEach((termObj) => {
-            allGrouped.B.push(termObj.value); // Push the value directly
+            allGrouped.B.push(termObj.value); 
           });
         }
       });
@@ -75,16 +73,10 @@ const ExportContractPDF = ({ contractId, onDone }) => {
 
 
 
-
-  const renderTerm = (term) => {
-    return { text: `-  ${term}`, margin: [0, 2] };
-  };
+  // console.log(contract)
 
 
-  console.log(contract)
-
-
-  console.log(groupedTerms)
+  // console.log(groupedTerms)
 
   useEffect(() => {
     if (isSuccess && contract) {

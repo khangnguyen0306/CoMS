@@ -59,12 +59,14 @@ const ManageContracts = () => {
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
+    
     const { data: contractManager, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
         approverId: user.id,
         page: paginationManager.current - 1,
         size: paginationManager.pageSize,
         keyword: searchTextManager,
     });
+
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
     // console.log(contractManager)

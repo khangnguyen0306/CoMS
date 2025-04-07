@@ -36,7 +36,6 @@ const RealTimeNotification = () => {
         };
 
         setNotifications((prev) => {
-            // Kiểm tra xem thông báo mới đã có trong danh sách chưa
             if (prev.some(noti => noti.id === newNotification.id)) {
                 return prev;
             }

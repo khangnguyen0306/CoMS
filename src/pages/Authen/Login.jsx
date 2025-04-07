@@ -71,7 +71,7 @@ const Login = () => {
     }, [form]);
 
     const handleLoginSuccess = (data) => {
-
+        console.log(data)
         switch (data.data.roles[0]) {
             case "ROLE_ADMIN":
                 setTimeout(() => {
@@ -153,7 +153,6 @@ const Login = () => {
     }
 
     const words = [
-
         {
             text: "HỢP",
             className: "text-3xl md:text-5xl font-bold text-white text-center",

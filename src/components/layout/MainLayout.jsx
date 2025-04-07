@@ -65,6 +65,7 @@ const MainLayout = () => {
     'department': '/admin/department',
     'managerAppendix': "/manager/appendix",
     'managerAppendixForallStatus': "/manager/appendixFull",
+    'contractsNeedSign':"/manager/contractReadyToSign",
     '4': '/combo',
   }
 
@@ -91,9 +92,7 @@ const MainLayout = () => {
   const navManager = [
     { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
-    // { icon: FaTasks, label: 'Task', key: "task" },
     { icon: GoLaw, label: 'Điều khoản và loại hợp đồng', key: "clause" },
-
     {
       icon: FaFileContract,
       label: 'Hợp đồng',
@@ -104,7 +103,9 @@ const MainLayout = () => {
         { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
         { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
-
+        ...(user?.roles[1] === "ROLE_CEO" ? [
+          { icon: HiMiniClipboardDocumentCheck, label: 'Hợp đồng cần ký', key: "contractsNeedSign" }
+        ] : [])
       ]
     },
     {
@@ -129,6 +130,7 @@ const MainLayout = () => {
         { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
       ]
     },
+    
     {
       icon: IoMdSettings, label: 'Cấu hình', key: "settingManagement", children: [
         { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
