@@ -18,12 +18,14 @@ import DisplayAppendix from '../appendix/staff/DisplayAppendix';
 import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
 import { IoSearchCircle } from "react-icons/io5";
 import ModalSearch from './component/ModalSearch';
+import html2canvas from 'html2canvas';
 const { Title, Text } = Typography;
-
+import jsPDF from 'jspdf';
 
 const ContractDetail = () => {
 
     const { id } = useParams();
+    const refExportPDF = useRef();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
@@ -374,7 +376,7 @@ const ContractDetail = () => {
         if (text && clauseRef.current.contains(selection.anchorNode)) {
             setSelectedText(text);
             setShowSearchButton(true);
-            setButtonPosition({ x: e.pageX - 260, y: e.pageY - 100 });
+            setButtonPosition({ x: e.pageX - 100, y: e.pageY + 10 });
         } else {
             setShowSearchButton(false);
         }
@@ -389,7 +391,7 @@ const ContractDetail = () => {
     useEffect(() => {
         const element = clauseRef.current;
         if (element) {
-            element.addEventListener('mouseup', handleMouseUp, true); 
+            element.addEventListener('mouseup', handleMouseUp, true);
         }
         return () => {
             if (element) {
@@ -397,7 +399,7 @@ const ContractDetail = () => {
             }
         };
     }, []);
-    
+
 
 
     if (isLoadingBsData || loadingDataContract | loadingDataContractAppendix) {
@@ -408,8 +410,12 @@ const ContractDetail = () => {
         );
     }
 
+
     return (
-        <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center   shadow-md p-4 pb-16 rounded-md`}>
+        <div
+            ref={refExportPDF} id="contractContent"
+            className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center   shadow-md p-4 pb-16 rounded-md`}
+        >
             <Button
                 icon={<RollbackOutlined />}
                 type="primary"
@@ -418,6 +424,14 @@ const ContractDetail = () => {
             >
                 Quay về
             </Button>
+            {/* <Button
+                icon={<RollbackOutlined />}
+                type="primary"
+                onClick={exportPDF}
+                className="mb-4 absolute left-[120px] top-[90px]"
+            >
+                Export PDF
+            </Button> */}
             <div className="flex justify-between relative">
                 {(!isApprover && user.roles[0] !== "ROLE_MANAGER") ? (
                     <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
@@ -863,6 +877,7 @@ const ContractDetail = () => {
                 </div>
 
             </div>
+
             <ModalSearch
                 searchModalVisible={searchModalVisible}
                 setSearchModalVisible={setSearchModalVisible}

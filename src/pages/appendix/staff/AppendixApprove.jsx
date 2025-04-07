@@ -110,8 +110,6 @@ const AppendixApprove = () => {
                         const errorMessage = error?.data?.message?.split(": ")?.[1] || "Gửi yêu cầu phê duyệt phụ lục thất bại!";
                         message.error(errorMessage);
                     }
-
-
                 }
             },
             okText: 'Xóa',
