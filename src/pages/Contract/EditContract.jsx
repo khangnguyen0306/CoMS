@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLazyGetAllTemplateQuery } from "../../services/TemplateAPI";
 import { FcNext } from "react-icons/fc";
-import { useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
+import { useLazyGetPartnerListByPartnerTypeQuery, useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractDetailQuery, useLazyGetContractTypeQuery, useUpdateContractMutation } from "../../services/ContractAPI";
@@ -62,7 +62,7 @@ const EditContract = () => {
 
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery();
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery();
-    const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListQuery();
+    const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListByPartnerTypeQuery();
     const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation();
     const [getContractLegal] = useLazyGetLegalCreateContractQuery();
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();

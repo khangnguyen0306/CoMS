@@ -199,18 +199,16 @@ const ApprovalProcess = () => {
             >
                 <div className="flex items-center">
                     <div className="flex-1"></div>
-                    <div className="flex-1 text-center font-bold text-[34px]">
+                    <div className="flex-1 text-center font-bold text-[34px] whitespace-nowrap">
                         Quản Lý Quy Trình Ký Duyệt
                     </div>
-                    {
-                        <div className="flex-1 text-right">
-                            <Button type="primary" onClick={() => setIsEditing(true)}>
-                                Chỉnh sửa quy trình
-                            </Button>
-                        </div>
-                    }
-
+                    <div className="flex-1 text-right">
+                        <Button type="primary" onClick={() => setIsEditing(true)}>
+                            Chỉnh sửa quy trình
+                        </Button>
+                    </div>
                 </div>
+
 
             </div>
 

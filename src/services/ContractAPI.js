@@ -181,7 +181,7 @@ export const ContractAPI = baseApi.injectEndpoints({
         }),
         createContractPartner: builder.mutation({
             query: (contractData) => ({
-                url: `/contract-partners/create`,
+                url: `/partner-contracts/create`,
                 method: "POST",
                 body: contractData,
             }),
@@ -189,26 +189,42 @@ export const ContractAPI = baseApi.injectEndpoints({
         }),
         getContractPartnerQuery: builder.query({
             query: ({ search, page, size }) => ({
-                url: `/contract-partners/get-all`,
+                url: `/partner-contracts/get-all`,
                 method: "GET",
                 params: { search, page, size },
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
         deleteContractPartner: builder.mutation({
-            query: ({ contractPartnerId }) => ({
-                url: `/contract-partners/delete/${contractPartnerId}`,
+            query: ({ partnerContractId }) => ({
+                url: `/partner-contracts/delete/${partnerContractId}`,
                 method: "DELETE",
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
         updateContractPartner: builder.mutation({
-            query: ({ contractPartnerId, body }) => ({
-                url: `/contract-partners/update/${contractPartnerId}`,
+            query: ({ partnerContractId, body }) => ({
+                url: `/partner-contracts/update/${partnerContractId}`,
                 method: "PUT",
                 body: body,
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
+        uploadBillingContract: builder.mutation({
+            query: ({ paymentScheduleId, formData }) => ({
+                url: `/partner-contracts/upload-bills/${paymentScheduleId}`,
+                method: "PUT",
+                body: formData,
+                responseHandler: (response) => response.text(),
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
+        getImgBill: builder.query({
+            query: (paymentScheduleId) => ({
+                url: `/payment-schedules/bill-urls/${paymentScheduleId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, paymentScheduleId) => [{ type: "Contract", id: paymentScheduleId }],
         }),
 
 
@@ -239,5 +255,8 @@ export const {
     useGetContractPartnerQueryQuery,
     useDeleteContractPartnerMutation,
     useUpdateContractPartnerMutation,
+    useUploadBillingContractMutation,
+    useGetImgBillQuery,
+
 
 } = ContractAPI;

@@ -487,6 +487,7 @@ const ManageClause = () => {
                             afterOpenChange={(open) => {
                                 if (open) form.resetFields();
                             }}
+                            width={600}
                         >
                             <Form
                                 form={form}
@@ -527,7 +528,7 @@ const ManageClause = () => {
                                     label="Nội dung"
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
                                 >
-                                    <Input.TextArea rows={4} />
+                                    <Input.TextArea rows={5} />
                                 </Form.Item>
 
 
@@ -573,7 +574,7 @@ const ManageClause = () => {
                                     label="Nội dung"
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
                                 >
-                                    <Input.TextArea rows={4} />
+                                    <Input.TextArea rows={5} />
                                 </Form.Item>
 
 
@@ -784,7 +785,7 @@ const ManageClause = () => {
                                     label="Nội dung"
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
                                 >
-                                    <Input.TextArea rows={4} />
+                                    <Input.TextArea rows={5} />
                                 </Form.Item>
 
                                 <Form.Item>
@@ -835,7 +836,7 @@ const ManageClause = () => {
                                     label="Nội dung"
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
                                 >
-                                    <Input.TextArea rows={4} />
+                                    <Input.TextArea rows={5} />
                                 </Form.Item>
 
                                 <Form.Item>

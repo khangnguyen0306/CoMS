@@ -20,7 +20,7 @@ export const uploadAPI = createApi({
   endpoints: (builder) => ({
     uploadFilePDF: builder.mutation({
       query: ({ formData }) => ({
-        url: `contract-partners/upload-contract-file`,
+        url: `partner-contracts/upload-contract-file`,
         method: "POST",
         body: formData,
         headers: {
@@ -33,7 +33,7 @@ export const uploadAPI = createApi({
     }),
     uploadBillingContract: builder.mutation({
       query: ({ paymentScheduleId, formData }) => ({
-        url: `/contract-partners/upload-bill/${paymentScheduleId}`,
+        url: `/partner-contracts/upload-bills/${paymentScheduleId}`,
         method: "PUT",
         body: formData,
         responseHandler: (response) => response.text(),
