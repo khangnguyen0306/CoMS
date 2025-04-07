@@ -218,14 +218,23 @@ const ManageContracts = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: "partnerB",
-            key: "partnerB",
+            dataIndex: isManager ? "partner" : "partnerB",
+            key: isManager ? "partner" : "partnerB",
             render: (partner) => <p>{partner?.partnerName}</p>,
-            filters: [...new Set(tableData?.map(contract => contract.partner ? B.partnerName))].map(type => ({
-                text: type,
-                value: type,
-            })),
-            sorter: (a, b) => a.partner?.partnerName.localeCompare(b.partner?.partnerName),
+            filters: [
+                ...new Set(
+                    tableData?.map(contract =>
+                        isManager ? contract.partner?.partnerName : contract.partnerB?.partnerName
+                    )
+                ),
+            ]
+                .filter(Boolean)
+                .map(name => ({
+                    text: name,
+                    value: name,
+                })),
+            onFilter: (value, record) =>
+                (isManager ? record.partnerB?.partnerName : record.partner?.partnerName) === value,
         },
 
         {
