@@ -6,18 +6,19 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentToken, selectCurrentUser, setNotiNumber } from "../../slices/authSlice";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 
 const RealTimeNotification = () => {
     const token = useSelector(selectCurrentToken);
     const user = useSelector(selectCurrentUser);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
     const [notifications, setNotifications] = useState([]);
 
-    console.log("user", user.roles);
 
     const handleIncomingNotification = (data) => {
+
         const msg = data.message;
         const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
         let formattedDate = "";
@@ -44,24 +45,32 @@ const RealTimeNotification = () => {
             dispatch(setNotiNumber(newUnreadCount));
             return updated;
         });
+        refetchNoti(),
+            notification.open({
+                message: "Thông báo",
+                description: displayMessage,
+                duration: 10,
+                placement: "topRight",
+                pauseOnHover: true,
+                showProgress: true,
+                type: "warning",
+                onClick: () => {
+                    if (text && text.includes("phụ lục")) {
+                        if (user.roles[0] === "ROLE_STAFF") {
+                            navigate("/appendix");
+                        } else if (user.roles[0] === "ROLE_MANAGER") {
+                            navigate("/manager/appendix");
+                        }
+                    } else {
+                        if (user.roles[0] === "ROLE_STAFF") {
+                            navigate("/approvalContract");
+                        } else if (user.roles[0] === "ROLE_MANAGER") {
+                            navigate("/manager/approvalContract");
+                        }
+                    }
+                },
 
-        notification.open({
-            message: "Thông báo",
-            description: displayMessage,
-            duration: 10,
-            placement: "topRight",
-            pauseOnHover: true,
-            showProgress: true,
-            type: "warning",
-            onClick: () => {
-                if (user?.roles.includes("ROLE_STAFF")) {
-                    navigate(`/approvalContract/reviewContract/${data.contractId}`);
-                } else {
-                    navigate(`/manager/approvalContract/reviewContract/${data.contractId}`);
-                }
-            },
-
-        });
+            });
     };
 
 
@@ -98,7 +107,7 @@ const RealTimeNotification = () => {
         };
 
         stompClient.activate();
-
+        refetchNoti();
         return () => {
             stompClient.deactivate();
         };

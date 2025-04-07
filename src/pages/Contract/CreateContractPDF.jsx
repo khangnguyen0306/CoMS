@@ -1,5 +1,5 @@
 import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Skeleton, Table } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Skeleton, Table, Upload } from "antd";
 import dayjs from "dayjs";
 import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ import { useGetPartnerInfoDetailQuery, useLazyGetPartnerListByPartnerTypeQuery, 
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
-import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
+import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EyeFilled, LoadingOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
@@ -40,7 +40,7 @@ const DEFAULT_NOTIFICATIONS = {
     payment: "Đến hạn thanh toán đợt"
 };
 
-const CreateContractForm = () => {
+const CreateContractPDF = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
     const [formLegal] = Form.useForm();
@@ -95,6 +95,8 @@ const CreateContractForm = () => {
     const [createContract, { isLoading: loadingCreateContract, isError: CreateError }] = useCreateContractMutation();
     const [termsData, setTermsData] = useState({});
     const [notifications, setNotifications] = useState([]);
+    const [Loading, setLoading] = useState(false);
+    const [fileList, setFileList] = useState([]);
 
     // Hàm thêm một thông báo mới
     const addNotification = () => {
@@ -106,6 +108,17 @@ const CreateContractForm = () => {
                 content: ''
             }
         ]);
+    };
+
+    const onChange = ({ fileList: newFileList }) => {
+        setFileList(newFileList);
+        console.log("File list:", newFileList);
+    };
+
+    const closeModel = () => {
+        setIsModalVisible(false);
+        form.resetFields();
+        setFileList([]);
     };
 
     // Hàm xóa một thông báo
@@ -488,7 +501,7 @@ const CreateContractForm = () => {
                     setIsSuspend(data.data?.suspend)
                     setIsisViolate(data.data?.violate)
                     form.setFieldsValue({
-                        legalBasisTerms: data.data.legalBasisTerms?.map(term => term.original_term_id),
+                        legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
                         generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
                         autoAddVAT: data.data?.autoAddVAT,
                         vatPercentage: data.data?.vatPercentage,
@@ -847,13 +860,13 @@ const CreateContractForm = () => {
     }, []);
 
     useEffect(() => {
-        const legalBasis = form.getFieldValue('legalBasisTerms');
+        const legalBasis = form.getFieldValue('legalBasis');
         if (legalBasis && legalBasis.length > 0) {
             legalBasis.forEach(termId => {
                 loadTermDetail(termId);
             });
         }
-    }, [form.getFieldValue('legalBasisTerms'), changeCCPL]);
+    }, [form.getFieldValue('legalBasis'), changeCCPL]);
 
 
     const handleScroll = useCallback(
@@ -886,11 +899,11 @@ const CreateContractForm = () => {
     );
 
     const renderLegalBasisTerms = () => {
-        if (!form.getFieldValue('legalBasisTerms') || form.getFieldValue('legalBasisTerms').length === 0) {
+        if (!form.getFieldValue('legalBasis') || form.getFieldValue('legalBasis').length === 0) {
             return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
         }
 
-        return form.getFieldValue('legalBasisTerms').map((termId, index) => {
+        return form.getFieldValue('legalBasis').map((termId, index) => {
             const term = termsData[termId];
             if (!term) {
                 return (
@@ -1044,56 +1057,44 @@ const CreateContractForm = () => {
                             prevValues.contractType !== currentValues.contractType
                         }>
                             {({ getFieldValue }) => {
-                                return getFieldValue('contractType') ? (
+                                const contractTypeSelected = getFieldValue('contractType');
+                                return (
                                     <>
                                         <Form.Item
-                                            label="Chọn mẫu hợp đồng"
-                                            name="templateId"
-                                            rules={[{ required: true, message: "Vui lòng chọn mẫu hợp đồng!" }]}
-                                        >
-                                            <LazySelectContractTemplate
-                                                onChange={handleSelectTemplate}
-                                                loadDataCallback={loadTemplateData}
-                                                options={templateData?.content}
-                                                showSearch
-                                                labelInValue
-                                                placeholder="Chọn mẫu hợp đồng"
-                                            />
-                                        </Form.Item>
+                                            label="Tải file hợp đồng"
 
-                                        <Form.Item
-                                            label="Chọn đối tác"
-                                            name="partnerId"
-                                            rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}
+                                            getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList}
+                                            rules={[{ required: true, message: "Vui lòng tải file hợp đồng!" }]}
                                         >
-                                            <LazySelectPartner
-                                                loadDataCallback={loadPartnerData}
-                                                options={partnerData?.data.content}
-                                                showSearch
-                                                placeholder="Chọn thông tin khách hàng"
-                                                dropdownRender={(menu) => (
-                                                    <>
-                                                        {menu}
-                                                        <Divider style={{ margin: "8px 0" }} />
-                                                        <Space style={{ padding: "0 8px 4px" }}>
-                                                            <Button type="primary" icon={FcNext} onClick={handleCreatePartner}>
-                                                                Thêm thông tin khách hàng
-                                                            </Button>
-                                                        </Space>
-                                                    </>
-                                                )}
-                                            />
-                                        </Form.Item>
+                                            <Upload
+                                                beforeUpload={async (file) => {
+                                                    console.log("hello");
+                                                    setLoading(true);
+                                                    try {
+                                                        const extractedData = await callAIForExtraction(file);
+                                                        console.log("Extracted data:", extractedData);
 
-                                        <Form.Item
-                                            label="Tên hợp đồng"
-                                            name="contractName"
-                                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên hợp đồng!" }]}
-                                        >
-                                            <Input placeholder="Nhập tên hợp đồng" />
+                                                    } catch (error) {
+                                                        console.error("Lỗi khi xử lý file:", error);
+                                                    } finally {
+                                                        setLoading(false);
+                                                    }
+                                                    return false;
+                                                }}
+                                                onChange={onChange}
+                                                fileList={fileList}
+                                                accept="application/pdf"
+                                                listType="text"
+                                                maxCount={1}
+                                                disabled={!contractTypeSelected}
+                                            >
+                                                <Button disabled={!contractTypeSelected} icon={Loading ? <LoadingOutlined /> : <UploadOutlined />}>
+                                                    {Loading ? "AI đang xử lý..." : "Chọn file PDF"}
+                                                </Button>
+                                            </Upload>
                                         </Form.Item>
                                     </>
-                                ) : null;
+                                )
                             }}
                         </Form.Item>
                     </div>
@@ -1132,7 +1133,7 @@ const CreateContractForm = () => {
                                                             2. Thông tin các bên
                                                         </div>
                                                         <div className="mt-1 cursor-pointer">
-                                                            {form.getFieldValue('legalBasisTerms') && form.getFieldValue('legalBasisTerms').length > 0 ? (
+                                                            {form.getFieldValue('legalBasis') && form.getFieldValue('legalBasis').length > 0 ? (
                                                                 <CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />
                                                             ) : (
                                                                 <span className="mr-[20px]"></span>
@@ -2214,7 +2215,7 @@ const CreateContractForm = () => {
                     <Form.Item
                         name="legalLabel"
                         label="Tên căn cứ pháp lý"
-                        rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                    // rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
                     >
                         <Input
                             value={newLegalBasis.name}
@@ -2223,7 +2224,7 @@ const CreateContractForm = () => {
                         />
                     </Form.Item>
                     <Form.Item
-                        rules={[{ required: true, message: "Vui lòng nhập nội dung căn cứ!" }]}
+                        // rules={[{ required: true, message: "Vui lòng nhập nội dung căn cứ!" }]}
                         label="Nội dung"
                         name="legalContent"
                     >
@@ -2241,4 +2242,4 @@ const CreateContractForm = () => {
     );
 };
 
-export default CreateContractForm;
+export default CreateContractPDF;

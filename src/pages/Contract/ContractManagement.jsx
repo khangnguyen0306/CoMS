@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image } from "antd";
 import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined } from "@ant-design/icons";
-import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
+import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -34,7 +34,10 @@ const ManageContracts = () => {
     const [isUpdateStatusModalVisible, setIsUpdateStatusModalVisible] = useState(false);
     const [selectedContractId, setSelectedContractId] = useState(null);
     const [fileList, setFileList] = useState([]);
+    const [paymentId, setPaymentId] = useState(null);
     const [hoveredIndex, setHoveredIndex] = useState(null);
+    const [activePanel, setActivePanel] = useState([]);
+
     const [status, setStatus] = useState(null);
     const [duplicateContract] = useDuplicateContractMutation();
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
@@ -46,8 +49,13 @@ const ManageContracts = () => {
     const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(selectedContractId, {
-        skip: !selectedContractId, 
+        skip: !selectedContractId,
     });
+    const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
+        skip: !paymentId,
+    });
+
+    console.log("dataBill", dataBill)
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
@@ -210,17 +218,26 @@ const ManageContracts = () => {
 
                 (value, record) => record.contractType.name === value,
         },
-        // {
-        //     title: "Đối tác",
-        //     dataIndex: "partnerB",
-        //     key: "partnerB",
-        //     render: (partner) => <p>{partner.partnerName}</p>,
-        //     // filters: [...new Set(tableData?.map(contract => contract.partnerB.partnerName))].map(type => ({
-        //     //     text: type,
-        //     //     value: type,
-        //     // })),
-        //     sorter: (a, b) => a.partnerB.partnerName.localeCompare(b.partnerB.partnerName),
-        // },
+        {
+            title: "Đối tác",
+            dataIndex: isManager ? "partner" : "partnerB",
+            key: isManager ? "partner" : "partnerB",
+            render: (partner) => <p>{partner?.partnerName}</p>,
+            filters: [
+                ...new Set(
+                    tableData?.map(contract =>
+                        isManager ? contract.partner?.partnerName : contract.partnerB?.partnerName
+                    )
+                ),
+            ]
+                .filter(Boolean)
+                .map(name => ({
+                    text: name,
+                    value: name,
+                })),
+            onFilter: (value, record) =>
+                (isManager ? record.partnerB?.partnerName : record.partner?.partnerName) === value,
+        },
 
         {
             title: "Giá trị",
@@ -345,23 +362,30 @@ const ManageContracts = () => {
         },
     ];
 
-    const uploadFile = async (file, paymentScheduleId) => {
-        console.log("File:", file);
-        console.log("Payment Schedule ID:", paymentScheduleId);
+    const handleUploadAll = async (paymentScheduleId) => {
         try {
+            // Tạo FormData và append tất cả file vào cùng một key (ví dụ: "files")
             const formData = new FormData();
-            formData.append("file", file);
-            // Gọi API upload file, truyền paymentScheduleId và formData
-            // const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
-            const parsedRes = JSON.parse(res);
-            message.success(parsedRes.message);
+            fileList.forEach((file) => {
+                formData.append("files", file);
+            });
 
+            // Gọi API upload file, truyền paymentScheduleId và formData
+            const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
+            const parsedRes = JSON.parse(res);
+
+            message.success(parsedRes.message);
+            setFileList([]);
+            setActivePanel([]);
+            setIsUpdateStatusModalVisible(false);
+            refetchBill();
             refetch();
         } catch (error) {
-            console.error("Lỗi upload file:", error);
-            message.error("Upload thất bại!");
+            console.error("Lỗi khi tải lên file:", error);
+            message.error("Có lỗi xảy ra khi tải lên file!");
         }
     };
+
 
     const handleBeforeUpload = (file) => {
         const isValidType =
@@ -422,6 +446,14 @@ const ManageContracts = () => {
                     <div>
                         <Button
                             type="primary"
+                            icon={<UploadOutlined />}
+                            className="mr-3"
+                        >
+                            <Link to={'/createContractPDF'}> Tải lên hợp đồng</Link>
+                        </Button>
+
+                        <Button
+                            type="primary"
                             icon={<PlusOutlined />}
                         >
                             <Link to={'/createContract'}> Tạo hợp đồng</Link>
@@ -464,6 +496,8 @@ const ManageContracts = () => {
                         <h3 className="text-2xl font-semibold text-center mb-4">Các đợt thanh toán</h3>
                         <Collapse
                             bordered
+                            activeKey={activePanel}
+                            onChange={(key) => setActivePanel(key)}
                             className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
                         >
                             {dataPayment?.data?.paymentSchedules?.map((schedule, index) => (
@@ -506,15 +540,38 @@ const ManageContracts = () => {
                                             </div>
                                         </div>
                                     }
-                                    disabled={schedule.status === "PAID"} // Chặn mở nếu đã thanh toán
-                                >
+                                    onClick={() => {
+                                        setPaymentId(schedule.id);
+                                        // Mở panel này nếu chưa mở, hoặc đóng nếu đã mở
+                                        setActivePanel((prev) =>
+                                            prev.includes(schedule.id) ? [] : [schedule.id]
+                                        );
+                                    }}                                >
                                     {schedule.status === "PAID" ? (
-                                        <div className="text-gray-500 italic text-center">
-                                            Đợt thanh toán này đã hoàn thành, không thể cập nhật.
+                                        // Nếu đã thanh toán, chỉ hiển thị danh sách ảnh từ API
+                                        <div>
+
+                                            <div className="text-gray-500 italic text-center mb-3">
+                                                Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:
+                                            </div>
+                                            <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                                {dataBill?.data && dataBill.data.length > 0 ? (
+                                                    dataBill.data.map((imgUrl, idx) => (
+                                                        <Image
+                                                            key={idx}
+                                                            src={imgUrl}
+                                                            alt={`Uploaded ${idx}`}
+                                                            style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }}
+                                                        />
+                                                    ))
+                                                ) : (
+                                                    <div className="text-gray-500">Không có hóa đơn nào được tải lên.</div>
+                                                )}
+                                            </div>
                                         </div>
                                     ) : (
+                                        // Nếu chưa thanh toán, hiển thị form tải lên
                                         <>
-                                            {/* Phần bên trong của Collapse.Panel dùng để upload hình ảnh */}
                                             <Upload.Dragger
                                                 name="invoice"
                                                 accept="image/png, image/jpeg"
@@ -564,11 +621,22 @@ const ManageContracts = () => {
                                                     </div>
                                                 ))}
                                             </div>
+                                            {/* Nút tải lên */}
+                                            <Button
+                                                type="primary"
+                                                icon={LoadingBill ? <LoadingOutlined /> : <UploadOutlined />}
+                                                onClick={() => handleUploadAll(schedule.id)}
+                                                disabled={fileList.length === 0 || LoadingBill}
+                                                style={{ marginTop: "10px" }}
+                                            >
+                                                {LoadingBill ? "Đang tải lên..." : "Tải lên"}
+                                            </Button>
                                         </>
                                     )}
                                 </Panel>
                             ))}
                         </Collapse>
+
 
                         <div className="text-center mt-8">
                             <Button onClick={handleCloseUpdateStatusModal}>Đóng</Button>

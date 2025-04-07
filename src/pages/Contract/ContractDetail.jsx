@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table, Collapse, Tooltip } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
-import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, EditFilled, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, RollbackOutlined, SmallDashOutlined } from '@ant-design/icons';
+import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, DollarOutlined, EditFilled, FileOutlined, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, PaperClipOutlined, RollbackOutlined, SmallDashOutlined } from '@ant-design/icons';
 import { useLazyGetDataChangeByDateQuery, useLazyGetDateChangeContractQuery } from '../../services/AuditTrailAPI';
-import { useGetContractDetailQuery } from '../../services/ContractAPI';
+import { useGetContractDetailQuery, useGetImgBillQuery } from '../../services/ContractAPI';
 import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
 import { selectCurrentUser } from '../../slices/authSlice';
 import note from "../../assets/Image/review.svg"
@@ -22,14 +22,17 @@ import html2canvas from 'html2canvas';
 const { Title, Text } = Typography;
 import jsPDF from 'jspdf';
 
-const ContractDetail = () => {
 
+const ContractDetail = () => {
+    const { Panel } = Collapse;
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
+    const [paymentId, setPaymentId] = useState(null);
+    const [activePanel, setActivePanel] = useState([]);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [visible, setVisible] = useState(false);
     const [auditTrails, setAuditTrails] = useState([]);
@@ -55,6 +58,9 @@ const ContractDetail = () => {
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectProcessMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveProcessMutation();
 
+    const { data: dataBill } = useGetImgBillQuery(paymentId, {
+        skip: !paymentId,
+    });
     // Lấy thông tin bên thuê theo partner_id
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
@@ -432,25 +438,32 @@ const ContractDetail = () => {
                 Export PDF
             </Button> */}
             <div className="flex justify-between relative">
-                {(!isApprover && user.roles[0] !== "ROLE_MANAGER") ? (
-                    <Button type='primary' icon={<EditFilled style={{ fontSize: 20 }} />} onClick={() => navigate(`/EditContract/${id}`)}>
-                        Sửa hợp đồng
-                    </Button>
-                ) : (
-                    <>
+                {contractData?.data?.status === "APPROVAL_PENDING" && (
+                    !isApprover && user.roles[0] !== "ROLE_MANAGER" ? (
+                        <Button
+                            type='primary'
+                            icon={<EditFilled style={{ fontSize: 20 }} />}
+                            onClick={() => navigate(`/EditContract/${id}`)}
+                        >
+                            Sửa hợp đồng
+                        </Button>
+                    ) : (
                         <Button
                             type="default"
                             className="fixed right-5 top-20 flex flex-col h-fit bg-[#2280ff]"
                             onClick={showDrawerAprove}
                         >
                             <div className='flex flex-col items-center'>
-                                <p className='flex items-center justify-center'> <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} /> <Image width={40} className='py-1' height={40} src={note} preview={false} /></p>
+                                <p className='flex items-center justify-center'>
+                                    <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} />
+                                    <Image width={40} className='py-1' height={40} src={note} preview={false} />
+                                </p>
                                 <p className={`${!isDarkMode ? "text-white" : ''}`}>Phê duyệt</p>
                             </div>
                         </Button>
-                    </>
-                )
-                }
+                    )
+                )}
+
                 <Button type='link' onClick={showDrawer}>
                     <InfoCircleOutlined style={{ fontSize: 30 }} /> Thông tin hợp đồng
                 </Button>
@@ -516,7 +529,7 @@ const ContractDetail = () => {
                 placement="right"
                 onClose={onClose}
                 open={visible}
-                width={500}
+                width={700}
             >
                 <Tabs defaultActiveKey="1" onChange={handleTabChange}>
                     <Tabs.TabPane icon={<BookOutlined />} tab="Thông tin chung" key="1">
@@ -641,13 +654,113 @@ const ContractDetail = () => {
                         )}
                     </Tabs.TabPane>
                     {appendixData?.data.length > 0 && (
-                        <Tabs.TabPane tab="Phụ Lục Hợp Đồng" key="3">
+                        <Tabs.TabPane icon={<FileOutlined />} tab="Phụ Lục Hợp Đồng" key="3">
                             <div className="flex flex-col">
                                 {/* <h3 className="text-lg font-bold">Danh sách phụ lục:</h3> */}
                                 <DisplayAppendix appendices={appendixData?.data} />
                             </div>
                         </Tabs.TabPane>
                     )}
+                    {["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(contractData?.data?.status) && (
+                        <Tabs.TabPane icon={<DollarOutlined />} tab="Các đợt thanh toán" key="4">
+                            <Collapse
+                                bordered
+                                activeKey={activePanel}
+                                className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
+                            >
+                                {contractData?.data?.paymentSchedules?.map((schedule, index) => (
+                                    <Panel
+                                        key={schedule.id || index}
+                                        header={
+                                            <div className="flex items-center justify-between w-full">
+                                                {/* Số tiền */}
+                                                <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                                    <span
+                                                        className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                        style={{ maxWidth: "250px" }}
+                                                    >
+                                                        {schedule.amount.toLocaleString()} VND
+                                                    </span>
+                                                </Tooltip>
+                                                {/* Ngày thanh toán */}
+                                                <span className="text-base text-gray-800">
+                                                    {schedule.paymentDate
+                                                        ? dayjs(
+                                                            new Date(
+                                                                schedule.paymentDate[0],
+                                                                schedule.paymentDate[1] - 1,
+                                                                schedule.paymentDate[2]
+                                                            )
+                                                        ).format("DD/MM/YYYY")
+                                                        : "Không có dữ liệu"}
+                                                </span>
+                                                {/* Tag trạng thái */}
+                                                <div>
+                                                    {schedule.status === "UNPAID" ? (
+                                                        <Tag color="red">Chưa thanh toán</Tag>
+                                                    ) : schedule.status === "PAID" ? (
+                                                        <Tag color="green">Đã thanh toán</Tag>
+                                                    ) : schedule.status === "OVERDUE" ? (
+                                                        <Tag color="red">Quá hạn</Tag>
+                                                    ) : (
+                                                        schedule.status
+                                                    )}
+                                                </div>
+                                            </div>
+                                        }
+                                        onClick={() => {
+                                            setPaymentId(schedule.id);
+                                            // Mở panel này nếu chưa mở, hoặc đóng nếu đã mở
+                                            setActivePanel((prev) =>
+                                                prev.includes(schedule.id) ? [] : [schedule.id]
+                                            );
+                                        }}
+                                    >
+                                        {schedule.status === "PAID" ? (
+                                            // Nếu đã thanh toán, chỉ hiển thị danh sách ảnh từ API
+                                            <div>
+                                                <div className="text-gray-500 italic text-center mb-3">
+                                                    Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:
+                                                </div>
+                                                <div className="image-preview flex gap-3 flex-wrap" style={{ justifyContent: "center" }}>
+                                                    {dataBill?.data && dataBill.data.length > 0 ? (
+                                                        dataBill.data.map((imgUrl, idx) => (
+                                                            <Image
+                                                                key={idx}
+                                                                src={imgUrl}
+                                                                alt={`Uploaded ${idx}`}
+                                                                style={{
+                                                                    width: "100px",
+                                                                    height: "100px",
+                                                                    objectFit: "cover",
+                                                                    borderRadius: "8px",
+                                                                }}
+                                                            />
+                                                        ))
+                                                    ) : (
+                                                        <div className="text-gray-500">
+                                                            Không có hóa đơn nào được tải lên.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            // Nếu chưa thanh toán, hiển thị thông báo "Chưa thanh toán" với UI đẹp
+                                            <div className="p-8 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 shadow-lg text-center">
+                                                <p className="text-3xl font-extrabold text-red-600">Chưa thanh toán</p>
+                                                <p className="mt-4 text-lg text-gray-700">
+                                                    Hóa đơn sẽ được cập nhật sau khi thanh toán được xác nhận.
+                                                </p>
+                                            </div>
+
+                                        )}
+                                    </Panel>
+                                ))}
+                            </Collapse>
+                        </Tabs.TabPane>
+                    )}
+
+
                 </Tabs>
             </Drawer>
             <div >

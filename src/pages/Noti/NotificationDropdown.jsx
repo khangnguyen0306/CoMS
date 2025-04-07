@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Badge, Dropdown, List } from "antd";
+import { Badge, Button, Divider, Dropdown, List } from "antd";
 import { BellFilled, CloseCircleFilled, ExclamationCircleFilled, InfoCircleFilled } from "@ant-design/icons";
-import { useLazyGetNotificationsQuery, useUpdateReadStatusMutation } from "../../services/NotiAPI";
+import { useLazyGetNotificationsQuery, useUpdateReadStatusAllMutation, useUpdateReadStatusMutation } from "../../services/NotiAPI";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCurrentUser, selectNotiNumber, setNotiNumber } from "../../slices/authSlice";
@@ -15,6 +15,7 @@ const NotificationDropdown = () => {
   const [updateNotification] = useUpdateReadStatusMutation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const [readAllNotifications] = useUpdateReadStatusAllMutation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -79,7 +80,16 @@ const NotificationDropdown = () => {
     }
   };
 
-
+  const handleMarkAllRead = async () => {
+    try {
+      await readAllNotifications().unwrap();
+      const updatedNotis = notifications.map((noti) => ({ ...noti, isRead: true }));
+      setNotifications(updatedNotis);
+      dispatch(setNotiNumber(0));
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  };
 
 
   const getMessageIcon = (msg) => {
@@ -115,6 +125,12 @@ const NotificationDropdown = () => {
         }`}
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
+      <div className="flex justify-end mb-2">
+        <Button onClick={handleMarkAllRead} className="mb-2 bg-blue-500 text-white rounded px-4 py-2">
+          Đánh dấu tất cả đã đọc
+        </Button>
+      </div>
+      <Divider className="-my-2" />
       {notifications.length === 0 ? (
         <p className="m-0">Không có thông báo</p>
       ) : (
