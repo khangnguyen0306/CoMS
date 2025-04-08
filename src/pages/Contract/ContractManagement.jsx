@@ -55,11 +55,10 @@ const ManageContracts = () => {
         skip: !paymentId,
     });
 
-    console.log("dataBill", dataBill)
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
-    
+
     const { data: contractManager, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
         approverId: user.id,
         page: paginationManager.current - 1,
@@ -69,9 +68,14 @@ const ManageContracts = () => {
 
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
-    // console.log(contractManager)
     const isManager = user?.roles[0] === "ROLE_MANAGER";
-    const tableData = isManager ? contractManager?.data.content : contracts?.data?.content;
+    const isCEO = user?.roles[1] === "ROLE_CEO";
+    const isStaff = user?.roles[0] === "ROLE_STAFF";
+    const tableData = isCEO || isStaff
+        ? contracts?.data?.content
+        : isManager
+            ? contractManager?.data?.content
+            : [];
     const [selectedContractIdExport, setSelectedContractIdExport] = useState(null);
 
 
@@ -151,7 +155,8 @@ const ManageContracts = () => {
         'COMPLETED': <Tag color="success">Hoàn thành</Tag>,
         'EXPIRED': <Tag color="red">Hết hiệu lực</Tag>,
         'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
-        'ENDED': <Tag color="default">Đã kết thúc</Tag>
+        'ENDED': <Tag color="default">Đã kết thúc</Tag>,
+        'DELETED': <Tag color="red">Đã xóa</Tag>,
     }
 
     const handleExport = (id) => {
@@ -220,13 +225,13 @@ const ManageContracts = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: isManager ? "partner" : "partnerB",
-            key: isManager ? "partner" : "partnerB",
+            dataIndex: isStaff || isCEO ? "partnerB" : "partner",
+            key: isStaff || isCEO ? "partnerB" : "partner",
             render: (partner) => <p>{partner?.partnerName}</p>,
             filters: [
                 ...new Set(
                     tableData?.map(contract =>
-                        isManager ? contract.partner?.partnerName : contract.partnerB?.partnerName
+                        isStaff || isCEO ? contract.partnerB?.partnerName : contract.partner?.partnerName
                     )
                 ),
             ]
@@ -571,8 +576,10 @@ const ManageContracts = () => {
                                         </div>
                                     ) : (
                                         // Nếu chưa thanh toán, hiển thị form tải lên
+
                                         <>
                                             <Upload.Dragger
+                                                disabled={isManager}
                                                 name="invoice"
                                                 accept="image/png, image/jpeg"
                                                 beforeUpload={handleBeforeUpload}

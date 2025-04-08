@@ -169,11 +169,16 @@ const UserManagement = () => {
                         <div className="flex flex-col gap-2">
                             <p>
                                 <strong>Vai trò:</strong>{" "}
-                                <Tag color={record.role.id === 2 ? "red" : "blue"} >
-                                    {record.role.roleName}
-
-                                </Tag>{record.isCeo && <StarFilled style={{ color: "#fadb14" }} />}
+                                <Tag color={record.role?.id === 2 ? "red" : "blue"}>
+                                    {record.isCeo
+                                        ? "Giám đốc"
+                                        : record.role?.id === 2
+                                            ? "Quản lý"
+                                            : "Nhân viên"}
+                                </Tag>
+                                {record.isCeo && <StarFilled style={{ color: "#fadb14", marginLeft: 4 }} />}
                             </p>
+
                             <p><strong>Tên:</strong> {record.full_name}</p>
                             <p><strong>Email:</strong> {record.email}</p>
                             <p><strong>Số điện thoại:</strong> {record.phone_number}</p>
@@ -207,13 +212,21 @@ const UserManagement = () => {
                     .map(roleName => ({ text: roleName, value: roleName }))
                 : [],
             onFilter: (value, record) => record.role?.roleName === value,
-            render: (role) => (
-                <Tag color={role?.roleName === "ADMIN" ? "red" : role?.roleName === "MANAGER" ? "blue" : "green"}>
-                    {role?.roleName || "N/A"}
-                </Tag>
-            ),
+            render: (role, record) => {
+                if (record?.isCeo) {
+                    return <Tag color="gold">Giám đốc</Tag>;
+                }
+
+                return (
+                    <Tag color={record.role?.id === 2 ? "red" : "blue"}>
+                        {record.role?.id === 2 ? "Quản lý" : "Nhân viên"}
+                    </Tag>
+                );
+
+            },
             sorter: (a, b) => a.role?.roleName?.localeCompare(b.role?.roleName),
         },
+
 
         {
             title: "Phòng ban",

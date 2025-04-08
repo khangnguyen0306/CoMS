@@ -5,7 +5,7 @@ import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
 import { useLazyGetAllTemplateByContractTypeIdQuery, useLazyGetAllTemplateQuery, useLazyGetTemplateDataDetailQuery } from "../../services/TemplateAPI";
 import { FcNext } from "react-icons/fc";
-import { useGetPartnerInfoDetailQuery, useLazyGetPartnerListByPartnerTypeQuery, useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
+import { useCheckExistPartnerBMutation, useCreatePartnerMutation, useGetPartnerInfoDetailQuery, useLazyGetPartnerListByPartnerTypeQuery, useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
@@ -13,6 +13,9 @@ import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOu
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { validationPatterns } from "../../utils/ultil";
+
 import RichTextEditor, {
 } from 'reactjs-tiptap-editor';
 import 'reactjs-tiptap-editor/style.css';
@@ -64,7 +67,10 @@ const CreateContractPDF = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [loadingTerms, setLoadingTerms] = useState({});
     const [changeCCPL, setChangeCCPL] = useState(false);
-
+    const [taxCode, setTaxCode] = useState(null);
+    const [contractTypeSelected, setContractTypeSelected] = useState(null);
+    const [newCustomerData, setNewCustomerData] = useState(null);
+    const [isModalPartner, setIsModalPartner] = useState(false);
 
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
@@ -97,6 +103,8 @@ const CreateContractPDF = () => {
     const [notifications, setNotifications] = useState([]);
     const [Loading, setLoading] = useState(false);
     const [fileList, setFileList] = useState([]);
+    const [checkExistPartner] = useCheckExistPartnerBMutation();
+    const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
 
     // Hàm thêm một thông báo mới
     const addNotification = () => {
@@ -158,68 +166,68 @@ const CreateContractPDF = () => {
     };
 
     // Cập nhật useEffect theo dõi thay đổi của các ngày
-    useEffect(() => {
-        // Lắng nghe sự thay đổi của ngày hiệu lực
-        const effectiveDate = form.getFieldValue('effectiveDate');
-        if (effectiveDate) {
-            form.setFieldsValue({
-                notifyEffectiveDate: calculateNotificationDate(effectiveDate)
-            });
-        }
+    // useEffect(() => {
+    //     // Lắng nghe sự thay đổi của ngày hiệu lực
+    //     const effectiveDate = form.getFieldValue('effectiveDate');
+    //     if (effectiveDate) {
+    //         form.setFieldsValue({
+    //             notifyEffectiveDate: calculateNotificationDate(effectiveDate)
+    //         });
+    //     }
 
-        // Lắng nghe sự thay đổi của ngày hết hiệu lực
-        const expiryDate = form.getFieldValue('expiryDate');
-        if (expiryDate) {
-            form.setFieldsValue({
-                notifyExpiryDate: calculateNotificationDate(expiryDate)
-            });
-        }
+    //     // Lắng nghe sự thay đổi của ngày hết hiệu lực
+    //     const expiryDate = form.getFieldValue('expiryDate');
+    //     if (expiryDate) {
+    //         form.setFieldsValue({
+    //             notifyExpiryDate: calculateNotificationDate(expiryDate)
+    //         });
+    //     }
 
-        // Lắng nghe sự thay đổi của các ngày thanh toán
-        const payments = form.getFieldValue('payments') || [];
-        if (payments.length > 0) {
-            const updatedPayments = payments.map(payment => {
-                if (payment?.paymentDate) {
-                    return {
-                        ...payment,
-                        notifyPaymentDate: calculateNotificationDate(payment.paymentDate)
-                    };
-                }
-                return payment;
-            });
-            form.setFieldsValue({ payments: updatedPayments });
-        }
-    }, [form.getFieldValue('effectiveDate'), form.getFieldValue('expiryDate'), form.getFieldValue('payments'), notificationDays]);
+    //     // Lắng nghe sự thay đổi của các ngày thanh toán
+    //     const payments = form.getFieldValue('payments') || [];
+    //     if (payments.length > 0) {
+    //         const updatedPayments = payments.map(payment => {
+    //             if (payment?.paymentDate) {
+    //                 return {
+    //                     ...payment,
+    //                     notifyPaymentDate: calculateNotificationDate(payment.paymentDate)
+    //                 };
+    //             }
+    //             return payment;
+    //         });
+    //         form.setFieldsValue({ payments: updatedPayments });
+    //     }
+    // }, [form.getFieldValue('effectiveDate'), form.getFieldValue('expiryDate'), form.getFieldValue('payments'), notificationDays]);
 
     // Cập nhật các hàm xử lý sự kiện
-    const handleEffectiveDateChange = (date) => {
-        if (date) {
-            form.setFieldsValue({
-                notifyEffectiveDate: calculateNotificationDate(date)
-            });
-        }
-    };
+    // const handleEffectiveDateChange = (date) => {
+    //     if (date) {
+    //         form.setFieldsValue({
+    //             notifyEffectiveDate: calculateNotificationDate(date)
+    //         });
+    //     }
+    // };
 
-    const handleExpiryDateChange = (date) => {
-        if (date) {
-            form.setFieldsValue({
-                notifyExpiryDate: calculateNotificationDate(date)
-            });
-        }
-    };
+    // const handleExpiryDateChange = (date) => {
+    //     if (date) {
+    //         form.setFieldsValue({
+    //             notifyExpiryDate: calculateNotificationDate(date)
+    //         });
+    //     }
+    // };
 
-    const handlePaymentDateChange = (date, name) => {
-        if (date) {
-            const notifyDate = calculateNotificationDate(date);
-            const payments = form.getFieldValue('payments') || [];
-            const updatedPayments = [...payments];
-            updatedPayments[name] = {
-                ...updatedPayments[name],
-                notifyPaymentDate: notifyDate
-            };
-            form.setFieldsValue({ payments: updatedPayments });
-        }
-    };
+    // const handlePaymentDateChange = (date, name) => {
+    //     if (date) {
+    //         const notifyDate = calculateNotificationDate(date);
+    //         const payments = form.getFieldValue('payments') || [];
+    //         const updatedPayments = [...payments];
+    //         updatedPayments[name] = {
+    //             ...updatedPayments[name],
+    //             notifyPaymentDate: notifyDate
+    //         };
+    //         form.setFieldsValue({ payments: updatedPayments });
+    //     }
+    // };
 
     // chuyển trang tạo partner
     const handleCreatePartner = () => {
@@ -693,78 +701,295 @@ const CreateContractPDF = () => {
         );
     };
 
-    // const getTermsContent = (fieldName) => {
-    //     const fieldLabels = {
-    //         legalBasis: 'Căn cứ pháp lý',
-    //         generalTerms: 'Điều khoản chung',
-    //         additionalTerms: 'Điều khoản bổ sung',
-    //         rightsAndObligations: 'Quyền và nghĩa vụ các bên',
-    //         warrantyTerms: 'Điều khoản bảo hành và bảo trì',
-    //         breachTerms: 'Điều khoản về vi phạm và bồi thường',
-    //         terminationTerms: 'Điều khoản về chấm dứt hợp đồng',
-    //         disputeTerms: 'Điều khoản về giải quyết tranh chấp',
-    //         privacyTerms: 'Điều khoản bảo mật'
-    //     };
+    // Lấy API key từ biến môi trường
+    const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-pro-exp-02-05",
+    });
 
-    //     // Mapping from field names to template data properties
-    //     const templateDataMapping = {
-    //         legalBasis: 'legalBasisTerms',
-    //         generalTerms: 'generalTerms',
-    //         additionalTerms: 'additionalTerms',
-    //         rightsAndObligations: 'rightsAndObligationsTerms',
-    //         warrantyTerms: 'warrantyTerms',
-    //         breachTerms: 'breachTerms',
-    //         terminationTerms: 'terminationTerms',
-    //         disputeTerms: 'disputeTerms',
-    //         privacyTerms: 'privacyTerms'
-    //     };
+    // Cấu hình generationConfig theo schema mới
+    const generationConfig = {
+        temperature: 1,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json",
+        responseSchema: {
+            type: "object",
+            properties: {
+                title: { type: "string" },
+                partner: {
+                    type: "object",
+                    properties: {
+                        partnerName: { type: "string" },
+                        spokesmanName: { type: "string" },
+                        address: { type: "string" },
+                        email: { type: "string" },
+                        position: { type: "string" },
+                        taxCode: { type: "string" },
+                        phone: { type: "string" },
 
-    //     const terms = form.getFieldValue(fieldName) || [];
+                    },
+                    required: [
+                        "partnerName",
+                        "spokesmanName",
+                        "address",
+                        "email",
+                        "position",
+                        "taxCode",
+                        "phone",
 
-    //     // Dynamically get the corresponding template data based on the field name
-    //     const templateProperty = templateDataMapping[fieldName];
-    //     const valuefromDetail = templateDataSelected?.[templateProperty] || [];
+                    ]
+                },
+                contractNumber: { type: "string" },
+                totalValue: { type: "number" },
+                effectiveDate: { type: "array", items: { type: "integer" } },
+                expiryDate: { type: "array", items: { type: "integer" } },
+                signingDate: { type: "array", items: { type: "integer" } },
+                signingPlance: { type: "string" },
+                content: {
+                    type: "object",
+                    properties: {
+                        contentContract: { type: "string" },
+                        term: { type: "string" },
+                        legal: { type: "string" }
+                    },
+                    required: ["contentContract", "term", "legal"]
+                },
+                items: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            description: { type: "string" },
+                            amount: { type: "number" }
+                        },
+                        required: ["description", "amount"]
+                    }
+                },
+                paymentSchedules: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
 
-    //     // Create a set to track unique term IDs
-    //     const uniqueTermIds = new Set();
-    //     const allUniqueTerms = [];
 
-    //     // First add terms from template data
-    //     if (valuefromDetail.length > 0) {
-    //         valuefromDetail.forEach(term => {
-    //             const termId = term.original_term_id;
-    //             if (!uniqueTermIds.has(termId)) {
-    //                 uniqueTermIds.add(termId);
-    //                 allUniqueTerms.push(term);
-    //             }
-    //         });
-    //     }
+                            paymentDate: { type: "array", items: { type: "integer" } },
+                            paymentMethod: { type: "string" },
+                            amount: { type: "number" }
+                        },
+                        required: [
 
-    //     // Then add terms from form that aren't already included
-    //     if (terms.length > 0) {
-    //         terms.forEach(term => {
-    //             const termId = term.value || term.original_term_id;
-    //             if (termId && !uniqueTermIds.has(termId)) {
-    //                 uniqueTermIds.add(termId);
-    //                 allUniqueTerms.push(term);
-    //             }
-    //         });
-    //     }
 
-    //     return (
-    //         <div className="max-w-md max-h-96 overflow-auto">
-    //             {allUniqueTerms.length > 0 ? (
-    //                 allUniqueTerms.map((term, index) => (
-    //                     <div key={index} className="mb-2 p-1 border-b last:border-b-0">
-    //                         {term?.label && <div className="text-gray-600">{index + 1}. {term?.label}</div>}
-    //                     </div>
-    //                 ))
-    //             ) : (
-    //                 <div className="text-gray-500 italic">Chưa có {fieldLabels[fieldName].toLowerCase()} nào được chọn</div>
-    //             )}
-    //         </div>
-    //     );
-    // };
+                            "paymentDate",
+                            "paymentMethod",
+                            "amount"
+                        ]
+                    }
+                }
+            },
+            required: [
+                "title",
+                "partner",
+                "contractNumber",
+                "totalValue",
+                "effectiveDate",
+                "expiryDate",
+                "signingDate",
+                "items",
+                "paymentSchedules",
+                "signingPlance",
+                "content"
+            ]
+        }
+    };
+
+    const text = `Vui lòng đọc file PDF hợp đồng mà tôi vừa upload và trích xuất các thông tin chính sau đây. Đối với mỗi trường, nếu không tìm thấy giá trị trong tài liệu, hãy trả về giá trị null đối với các trường kiểu chuỗi hoặc số. Tuy nhiên, với các trường ngày (các trường ...Date), nếu không có giá trị, hãy trả về mảng [0, 0, 0, 0, 0, 0] thay vì mảng mặc định hoặc null.
+
+Trích xuất các trường sau:
+
+title: tiêu đề hợp đồng (string)
+partner: đối tượng chứa thông tin bên B, gồm:
+
+    -partnerName: tên đối tác (string)
+
+    -spokesmanName: tên người đại diện (string)
+
+    -address: địa chỉ (string)
+
+    -email: email (string)
+
+    -position: vị trí của người đại diện trong công ty (string)
+
+    -taxCode: mã số thuế ghi đầy đủ ra không ghi tắt xxxxxx(string)
+
+    -phone: số điện thoại (string)
+
+   
+contractNumber: số hợp đồng (string)
+totalValue: giá trị hợp đồng (number)
+effectiveDate: mảng biểu diễn ngày có hiệu lực của hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị của giờ, phút hoặc giây, trả về [0, 0, 0, 0, 0, 0].
+expiryDate: mảng biểu diễn ngày hết hiệu lực của hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].
+signingDate: mảng biểu diễn ngày ký hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].
+signingPlance: địa điểm ký hợp đồng (string). Thường nằm gần phần ghi ngày ký, thường là tên thành phố.
+
+content: một đối tượng chứa 3 trường chính lưu ý phần này sẽ rất là dài vì lấy cả nội dung hợp đồng, gồm:
+  - contentContract: nội dung hợp đồng (string) — gồm phần trình bày nội dung chính, phạm vi, đối tượng thực hiện hợp đồng,...
+  - term: điều khoản hợp đồng (string) — gồm toàn bộ các điều khoản như thanh toán, điều kiện chấm dứt, trách nhiệm,...
+  - legal: căn cứ pháp lý (string) — gồm tất cả các điều luật, nghị định, văn bản pháp lý được viện dẫn trong hợp đồng
+items: một mảng các hạng mục của hợp đồng, mỗi hạng mục chứa:
+  - description: nội dung hạng mục (string)
+  - amount: số tiền của hạng mục (number)
+paymentSchedules: một mảng các đối tượng lịch thanh toán, mỗi đối tượng chứa:
+  - paymentDate: mảng biểu diễn ngày thanh toán theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].
+  - paymentMethod: phương thức thanh toán (string)
+  - amount: được tính bằng cách lấy totalValue nhân với paymentPercentage (number)
+
+
+đảm bảo rằng tất cả paymentPercentage các đợt cộng lại bằng 100% và paymentOrder các đợt được sắp xếp theo thứ tự tăng dần và tổng amount của tất cả các đợt cộng lại bằng totalValue
+amount của các hạng mục trong items cộng lại bằng totalValue
+
+Trả về dữ liệu đã trích xuất sử dụng cấu trúc JSON như sau (chỉ trả về đối tượng JSON với key "response"):
+
+{
+  "response": {
+    "title": "string",
+    "partner": {
+        "partnerName": "string",
+        "spokesmanName": "string",
+        "address": "string",
+        "email": "string",
+        "position": "string",
+        "taxCode": "string",
+        "phone": "string",
+        
+    ],
+    "contractNumber": "string",
+    "totalValue": "number",
+    "effectiveDate": [ "number", "number", "number", "number", "number", "number" ],
+    "expiryDate": [ "number", "number", "number", "number", "number", "number" ],
+    "signingDate": [ "number", "number", "number", "number", "number", "number" ],
+    "signingPlance": "string",
+    "content": {
+      "contentContract": "string",
+      "term": "string",
+      "legal": "string"
+    },
+    "items": [
+      {
+        "description": "string",
+        "amount": "number"
+      }
+      // ... Add more items if the contract has more items
+    ],
+    "paymentSchedules": [
+      {
+       
+        "paymentDate": [ "number", "number", "number", "number", "number", "number" ],
+        "paymentMethod": "string",
+        "amount": "number"
+      }
+      // ... Add more payment schedules if the contract has more payment schedules
+    ]
+  }
+}
+
+Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị trong file PDF, bạn trả về null (đối với kiểu chuỗi hoặc số) và với các trường ngày nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].`;
+
+
+    const callAIForExtraction = async (file) => {
+        try {
+            const fileUri = URL.createObjectURL(file);
+
+            const chatSession = model.startChat({
+                generationConfig,
+                history: []
+            });
+
+            const response = await chatSession.sendMessage(text, { file: fileUri });
+
+            const aiResponseText =
+                response.response.candidates[0]?.content?.parts[0]?.text || "";
+
+            // Hàm tách JSON từ markdown nếu cần
+            const extractJsonFromMarkdown = (text) => {
+                const match = text.match(/```json\s*([\s\S]*?)\s*```/);
+                if (match) {
+                    return match[1];
+                }
+                return text; // nếu không có markdown, trả lại text gốc
+            };
+
+            const rawJson = extractJsonFromMarkdown(aiResponseText);
+            const aiResponse = JSON.parse(rawJson); // parse sau khi đã xử lý
+
+            return aiResponse;
+
+        } catch (error) {
+            console.error("Lỗi gọi AI:", error);
+            throw error;
+        }
+    };
+
+    const checkPartner = async (taxCode) => {
+        console.log("Checking partner with tax code:", taxCode);
+        try {
+            const response = await checkExistPartner(taxCode).unwrap();
+            console.log("Check partner response:", response);
+            if (response?.data === false) {
+                Modal.confirm({
+                    title: "Không tìm thấy đối tác trong hệ thống, hãy tạo mới thông tin đói tác",
+                    okText: "Tạo mới",
+                    onOk: () => {
+                        setIsModalPartner(true);
+                    }
+                });
+            } else {
+                setNewCustomerData(null);
+            }
+        } catch (error) {
+            console.error("Error checking partner:", error);
+            message.error("Có lỗi xảy ra khi kiểm tra đối tác!");
+        }
+    }
+
+    const handleOk = async () => {
+        try {
+            const values = await form.validateFields();
+
+            const newPartnerData = {
+                ...values,
+                partnerType: "PARTNER_B",
+
+            };
+            console.log(newPartnerData);
+            const result = await CreatePartner(newPartnerData).unwrap();
+            if (result.status === "CREATED") {
+                message.success('Thêm mới thành công!');
+                setIsModalPartner(false);
+                form.resetFields();
+                setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
+            } else {
+                message.error('Thêm mới thất bại vui lòng thử lại!');
+            }
+        } catch (error) {
+            console.error("Error creating partner:", error);
+        }
+    };
+
+    const handleNameChange = (e) => {
+        console.log("handleNameChange e", e);
+        const value = e?.target.value;
+        console.log("handleNameChange value", value);
+        const abbreviation = value
+            .split(' ')
+            .filter((word) => word)
+            .map((word) => word[0])
+            .join('')
+            .toUpperCase();
+        form.setFieldsValue({ abbreviation: abbreviation });
+    };
 
     const handleCheckboxChange = (checkedValues) => {
         setSelectedOthersTerms(checkedValues);
@@ -1073,7 +1298,32 @@ const CreateContractPDF = () => {
                                                     try {
                                                         const extractedData = await callAIForExtraction(file);
                                                         console.log("Extracted data:", extractedData);
-
+                                                        next();
+                                                        setTaxCode(extractedData.partner.taxCode);
+                                                        setContractTypeSelected(extractedData.title);
+                                                        setNewCustomerData(extractedData?.partner || {});
+                                                        checkPartner(extractedData.partner.taxCode);
+                                                        form.setFieldsValue({
+                                                            contractName: extractedData.title,
+                                                            partnerId: {
+                                                                partnerName: extractedData.partner.partnerName,
+                                                                spokesmanName: extractedData.partner.spokesmanName,
+                                                                address: extractedData.partner.address,
+                                                                email: extractedData.partner.email,
+                                                                position: extractedData.partner.position,
+                                                                taxCode: extractedData.partner.taxCode,
+                                                                phone: extractedData.partner.phone,
+                                                            },
+                                                            contractNumber: extractedData.contractNumber,
+                                                            totalValue: extractedData.totalValue,
+                                                            effectiveDate: extractedData.effectiveDate,
+                                                            expiryDate: extractedData.expiryDate,
+                                                            signingDate: extractedData.signingDate,
+                                                            signingPlance: extractedData.signingPlance,
+                                                            contentContract: extractedData.content.contentContract,
+                                                            term: extractedData.content.term,
+                                                            legal: extractedData.content.legal,
+                                                        });
                                                     } catch (error) {
                                                         console.error("Lỗi khi xử lý file:", error);
                                                     } finally {
@@ -1176,56 +1426,7 @@ const CreateContractPDF = () => {
                                                 </div>
                                             ),
                                         },
-                                        {
-                                            color: 'red',
-                                            children: (
-                                                <div
 
-                                                    onClick={() => scrollToSection(termsRef, 'terms')}
-                                                >
-                                                    <p className={`cursor-pointer font-bold ${activeSection === 'terms' ? 'font-bold text-blue-500' : ''}`}>
-                                                        III. ĐIỀU KHOẢN VÀ CAM KẾT
-                                                    </p>
-                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
-                                                        <div className="mt-1 cursor-pointer">
-                                                            {(form.getFieldValue('generalTerms') && form.getFieldValue('generalTerms').length > 0) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
-                                                                <span className="mr-[20px]"></span>}
-                                                            7. Điều khoản chung
-                                                        </div>
-                                                        <div className="mt-1 cursor-pointer">
-                                                            {selectedOthersTerms.length > 0 ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
-                                                                <span className="mr-[20px]"></span>}
-                                                            8. Điều khoản khác
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ),
-                                        },
-                                        {
-                                            color: 'gray',
-                                            children: (
-                                                <div
-
-                                                    onClick={() => scrollToSection(otherContentRef, 'other')}
-                                                >
-                                                    <p className={`cursor-pointer font-bold ${activeSection === 'other' ? 'font-bold text-blue-500' : ''}`}>
-                                                        IV. CÁC NỘI DUNG KHÁC
-                                                    </p>
-                                                    <div className="ml-4 mt-2 flex flex-col gap-1 text-sm">
-                                                        <div className="mt-1 cursor-pointer">
-                                                            {isAppendixEnabled ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
-                                                                <span className="mr-[20px]"></span>}
-                                                            10. Phụ lục
-                                                        </div>
-                                                        <div className="mt-1 cursor-pointer">
-                                                            {(isAutoRenew || isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
-                                                                <span className="mr-[20px]"></span>}
-                                                            11. Trường hợp đặc biệt
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ),
-                                        },
                                         {
                                             children: <p className="cursor-pointer mt-6" onClick={() => scrollToSection(otherContentRef, 'other')}> Hoàn thành  </p>,
                                         }
@@ -1332,7 +1533,7 @@ const CreateContractPDF = () => {
 
                                 {/* Render đoạn text hiển thị ngày và địa điểm khi cả 2 trường đã được chọn */}
 
-                                <Form.Item
+                                {/* <Form.Item
                                     className="w-full mt-3"
                                     label={
                                         <div className="flex justify-between items-center gap-4">
@@ -1347,7 +1548,7 @@ const CreateContractPDF = () => {
                                         loadDataCallback={loadLegalData}
                                         showSearch
                                         mode="multiple"
-                                        defaultValue={templateDataSelected?.legalBasisTerms?.map(term => term.original_term_id) || []}
+                                        // defaultValue={templateDataSelected?.legalBasisTerms?.map(term => term.original_term_id) || []}
                                         placeholder="Chọn căn cứ pháp lý"
                                         dropdownRender={(menu) => (
                                             <>
@@ -1361,7 +1562,7 @@ const CreateContractPDF = () => {
                                             </>
                                         )}
                                     />
-                                </Form.Item>
+                                </Form.Item> */}
 
                                 <div className={`px-4 pt-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
                                     {renderLegalBasisTerms()}
@@ -1406,12 +1607,12 @@ const CreateContractPDF = () => {
                                     ) : (
                                         <div ref={containerRef} className="flex flex-col gap-2 mt-4 pl-4" md={10} sm={24}>
                                             <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
-                                            <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName}</p>
-                                            <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address}</p>
-                                            <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName}</p></p>
-                                            <p className="text-sm"><b>Chức vụ: {partnerDetail?.data.position}</b> </p>
-                                            <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode}</p></p>
-                                            <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email}</p>
+                                            <p className="text-sm "><b>Tên công ty: </b>{partnerDetail?.data.partnerName || "Chưa chọn partner"}</p>
+                                            <p className="text-sm"><b>Địa chỉ trụ sở chính: </b>{partnerDetail?.data.address || "Chưa chọn partner"}</p>
+                                            <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> {partnerDetail?.data.spokesmanName || "Chưa chọn partner"}</p></p>
+                                            <p className="text-sm"><b>Chức vụ: {partnerDetail?.data.position || "Chưa chọn partner"}</b> </p>
+                                            <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> {partnerDetail?.data.taxCode || "Chưa chọn partner"}</p></p>
+                                            <p className="text-sm"><b>Email:</b> {partnerDetail?.data.email || "Chưa chọn partner"}</p>
                                         </div>
                                     )}
                                 </div>
@@ -1944,221 +2145,221 @@ const CreateContractPDF = () => {
                 </div>
             ),
         },
-        {
-            title: " Thời gian thông báo",
-            content: (
-                <div className="p-4 space-y-4">
-                    <h3 className="font-bold">Thiết lập thời gian thông báo cho các mốc</h3>
+        // {
+        //     title: " Thời gian thông báo",
+        //     content: (
+        //         <div className="p-4 space-y-4">
+        //             <h3 className="font-bold">Thiết lập thời gian thông báo cho các mốc</h3>
 
-                    {/* Ngày có hiệu lực */}
-                    <Row gutter={16} justify={"center"}>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày có hiệu lực (đã chọn)"
-                                name="effectiveDate"
-                            >
-                                <DatePicker className="w-full" disabled format="DD/MM/YYYY " />
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày thông báo"
-                                name="notifyEffectiveDate"
-                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
-                            >
-                                <DatePicker
-                                    className="w-full"
-                                    format="DD/MM/YYYY HH:mm:ss"
-                                    showTime
-                                    disabledDate={(current) => {
-                                        const effectiveDate = form.getFieldValue('effectiveDate');
-                                        return !current || current > effectiveDate || current < dayjs().startOf('day');
-                                    }}
-                                    onChange={(date) => {
-                                        if (!date) {
-                                            const effectiveDate = form.getFieldValue('effectiveDate');
-                                            if (effectiveDate) {
-                                                form.setFieldsValue({
-                                                    notifyEffectiveDate: calculateNotificationDate(effectiveDate, notificationDays)
-                                                });
-                                            }
-                                        }
-                                    }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                label="Nội dung thông báo"
-                                name="notifyEffectiveContent"
-                                initialValue={`${DEFAULT_NOTIFICATIONS.effective}`}
-                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
-                            >
-                                <Input.TextArea
-                                    rows={2}
-                                    placeholder="Nhập nội dung thông báo"
-                                />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+        //             {/* Ngày có hiệu lực */}
+        //             <Row gutter={16} justify={"center"}>
+        //                 <Col span={6}>
+        //                     <Form.Item
+        //                         label="Ngày có hiệu lực (đã chọn)"
+        //                         name="effectiveDate"
+        //                     >
+        //                         <DatePicker className="w-full" disabled format="DD/MM/YYYY " />
+        //                     </Form.Item>
+        //                 </Col>
+        //                 <Col span={6}>
+        //                     <Form.Item
+        //                         label="Ngày thông báo"
+        //                         name="notifyEffectiveDate"
+        //                         rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
+        //                     >
+        //                         <DatePicker
+        //                             className="w-full"
+        //                             format="DD/MM/YYYY HH:mm:ss"
+        //                             showTime
+        //                             disabledDate={(current) => {
+        //                                 const effectiveDate = form.getFieldValue('effectiveDate');
+        //                                 return !current || current > effectiveDate || current < dayjs().startOf('day');
+        //                             }}
+        //                             onChange={(date) => {
+        //                                 if (!date) {
+        //                                     const effectiveDate = form.getFieldValue('effectiveDate');
+        //                                     if (effectiveDate) {
+        //                                         form.setFieldsValue({
+        //                                             notifyEffectiveDate: calculateNotificationDate(effectiveDate, notificationDays)
+        //                                         });
+        //                                     }
+        //                                 }
+        //                             }}
+        //                         />
+        //                     </Form.Item>
+        //                 </Col>
+        //                 <Col span={12}>
+        //                     <Form.Item
+        //                         label="Nội dung thông báo"
+        //                         name="notifyEffectiveContent"
+        //                         initialValue={`${DEFAULT_NOTIFICATIONS.effective}`}
+        //                         rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+        //                     >
+        //                         <Input.TextArea
+        //                             rows={2}
+        //                             placeholder="Nhập nội dung thông báo"
+        //                         />
+        //                     </Form.Item>
+        //                 </Col>
+        //             </Row>
 
-                    {/* Ngày hết hiệu lực */}
-                    <Row gutter={16} justify={"center"}>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày hết hiệu lực (đã chọn)"
-                                name="expiryDate"
-                            >
-                                <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label="Ngày thông báo"
-                                name="notifyExpiryDate"
-                                rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
-                            >
-                                <DatePicker
-                                    className="w-full"
-                                    format="DD/MM/YYYY HH:mm:ss"
-                                    showTime
-                                    disabledDate={(current) => {
-                                        const expiryDate = form.getFieldValue('expiryDate');
-                                        return !current || current > expiryDate || current < dayjs().startOf('day');
-                                    }}
-                                    onChange={(date) => {
-                                        if (!date) {
-                                            const expiryDate = form.getFieldValue('expiryDate');
-                                            if (expiryDate) {
-                                                form.setFieldsValue({
-                                                    notifyExpiryDate: calculateNotificationDate(expiryDate, notificationDays)
-                                                });
-                                            }
-                                        }
-                                    }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                label="Nội dung thông báo"
-                                name="notifyExpiryContent"
-                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
-                                initialValue={`${DEFAULT_NOTIFICATIONS.expiry}`}
-                            >
-                                <Input.TextArea
-                                    rows={2}
-                                    placeholder="Nhập nội dung thông báo"
-                                />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+        //             {/* Ngày hết hiệu lực */}
+        //             <Row gutter={16} justify={"center"}>
+        //                 <Col span={6}>
+        //                     <Form.Item
+        //                         label="Ngày hết hiệu lực (đã chọn)"
+        //                         name="expiryDate"
+        //                     >
+        //                         <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
+        //                     </Form.Item>
+        //                 </Col>
+        //                 <Col span={6}>
+        //                     <Form.Item
+        //                         label="Ngày thông báo"
+        //                         name="notifyExpiryDate"
+        //                         rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
+        //                     >
+        //                         <DatePicker
+        //                             className="w-full"
+        //                             format="DD/MM/YYYY HH:mm:ss"
+        //                             showTime
+        //                             disabledDate={(current) => {
+        //                                 const expiryDate = form.getFieldValue('expiryDate');
+        //                                 return !current || current > expiryDate || current < dayjs().startOf('day');
+        //                             }}
+        //                             onChange={(date) => {
+        //                                 if (!date) {
+        //                                     const expiryDate = form.getFieldValue('expiryDate');
+        //                                     if (expiryDate) {
+        //                                         form.setFieldsValue({
+        //                                             notifyExpiryDate: calculateNotificationDate(expiryDate, notificationDays)
+        //                                         });
+        //                                     }
+        //                                 }
+        //                             }}
+        //                         />
+        //                     </Form.Item>
+        //                 </Col>
+        //                 <Col span={12}>
+        //                     <Form.Item
+        //                         label="Nội dung thông báo"
+        //                         name="notifyExpiryContent"
+        //                         rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+        //                         initialValue={`${DEFAULT_NOTIFICATIONS.expiry}`}
+        //                     >
+        //                         <Input.TextArea
+        //                             rows={2}
+        //                             placeholder="Nhập nội dung thông báo"
+        //                         />
+        //                     </Form.Item>
+        //                 </Col>
+        //             </Row>
 
-                    {/* Các đợt thanh toán */}
-                    <Form.List name="payments">
-                        {(fields, { add, remove }) => (
-                            <>
-                                {fields.map(({ key, name, ...restField }, index) => (
-                                    <div key={key} className="border p-3 rounded mb-4">
-                                        <h4 className="font-bold">Đợt thanh toán {index + 1}</h4>
-                                        <Row gutter={16} justify={"center"}>
-                                            <Col span={6}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Ngày thanh toán (đã chọn)"
-                                                    name={[name, "paymentDate"]}
-                                                >
-                                                    <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={6}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Ngày thông báo"
-                                                    name={[name, "notifyPaymentDate"]}
-                                                    rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
-                                                >
-                                                    <DatePicker
-                                                        className="w-full"
-                                                        format="DD/MM/YYYY HH:mm:ss"
-                                                        showTime
-                                                        disabledDate={(current) => {
-                                                            const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
-                                                            return !current || current > paymentDate || current < dayjs().startOf('day');
-                                                        }}
-                                                        onChange={(date) => {
-                                                            if (!date) {
-                                                                const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
-                                                                if (paymentDate) {
-                                                                    form.setFieldsValue({
-                                                                        payments: {
-                                                                            [name]: {
-                                                                                notifyPaymentDate: calculateNotificationDate(paymentDate, notificationDays)
-                                                                            }
-                                                                        }
-                                                                    });
-                                                                }
-                                                            }
-                                                        }}
-                                                    />
-                                                </Form.Item>
-                                            </Col>
-                                            <Col span={12}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Nội dung thông báo"
-                                                    name={[name, "notifyPaymentContent"]}
-                                                    initialValue={`${DEFAULT_NOTIFICATIONS.payment} ${index + 1}`}
-                                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
-                                                >
-                                                    <Input.TextArea
-                                                        rows={2}
-                                                        placeholder="Nhập nội dung thông báo"
-                                                    />
-                                                </Form.Item>
-                                            </Col>
-                                        </Row>
+        //             {/* Các đợt thanh toán */}
+        //             <Form.List name="payments">
+        //                 {(fields, { add, remove }) => (
+        //                     <>
+        //                         {fields.map(({ key, name, ...restField }, index) => (
+        //                             <div key={key} className="border p-3 rounded mb-4">
+        //                                 <h4 className="font-bold">Đợt thanh toán {index + 1}</h4>
+        //                                 <Row gutter={16} justify={"center"}>
+        //                                     <Col span={6}>
+        //                                         <Form.Item
+        //                                             {...restField}
+        //                                             label="Ngày thanh toán (đã chọn)"
+        //                                             name={[name, "paymentDate"]}
+        //                                         >
+        //                                             <DatePicker className="w-full" disabled format="DD/MM/YYYY" />
+        //                                         </Form.Item>
+        //                                     </Col>
+        //                                     <Col span={6}>
+        //                                         <Form.Item
+        //                                             {...restField}
+        //                                             label="Ngày thông báo"
+        //                                             name={[name, "notifyPaymentDate"]}
+        //                                             rules={[{ required: true, message: "Vui lòng chọn ngày thông báo!" }]}
+        //                                         >
+        //                                             <DatePicker
+        //                                                 className="w-full"
+        //                                                 format="DD/MM/YYYY HH:mm:ss"
+        //                                                 showTime
+        //                                                 disabledDate={(current) => {
+        //                                                     const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
+        //                                                     return !current || current > paymentDate || current < dayjs().startOf('day');
+        //                                                 }}
+        //                                                 onChange={(date) => {
+        //                                                     if (!date) {
+        //                                                         const paymentDate = form.getFieldValue(['payments', name, 'paymentDate']);
+        //                                                         if (paymentDate) {
+        //                                                             form.setFieldsValue({
+        //                                                                 payments: {
+        //                                                                     [name]: {
+        //                                                                         notifyPaymentDate: calculateNotificationDate(paymentDate, notificationDays)
+        //                                                                     }
+        //                                                                 }
+        //                                                             });
+        //                                                         }
+        //                                                     }
+        //                                                 }}
+        //                                             />
+        //                                         </Form.Item>
+        //                                     </Col>
+        //                                     <Col span={12}>
+        //                                         <Form.Item
+        //                                             {...restField}
+        //                                             label="Nội dung thông báo"
+        //                                             name={[name, "notifyPaymentContent"]}
+        //                                             initialValue={`${DEFAULT_NOTIFICATIONS.payment} ${index + 1}`}
+        //                                             rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thông báo!" }]}
+        //                                         >
+        //                                             <Input.TextArea
+        //                                                 rows={2}
+        //                                                 placeholder="Nhập nội dung thông báo"
+        //                                             />
+        //                                         </Form.Item>
+        //                                     </Col>
+        //                                 </Row>
 
-                                    </div>
-                                ))}
-                            </>
-                        )}
-                    </Form.List>
-                    <Form.Item >
-                        {notifications.map(notification => (
-                            <div key={notification.id} style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                                <DatePicker
-                                    style={{ width: '200px' }}
-                                    value={notification.date}
-                                    showTime
-                                    onChange={(date) => updateNotification(notification.id, 'date', date)}
-                                    placeholder="Chọn ngày thông báo"
-                                />
-                                <Input
-                                    style={{ flex: 1 }}
-                                    value={notification.content}
-                                    onChange={(e) => updateNotification(notification.id, 'content', e.target.value)}
-                                    placeholder="Nhập nội dung thông báo"
-                                />
-                                <Button
-                                    type="text"
-                                    danger
-                                    icon={<DeleteFilled />}
-                                    onClick={() => removeNotification(notification.id)}
-                                />
-                            </div>
-                        ))}
-                        <Button
-                            type="dashed"
-                            onClick={addNotification}
-                            icon={<PlusOutlined />}
-                        >
-                            Thêm thông báo
-                        </Button>
-                    </Form.Item>
-                </div>
-            ),
-        },
+        //                             </div>
+        //                         ))}
+        //                     </>
+        //                 )}
+        //             </Form.List>
+        //             <Form.Item >
+        //                 {notifications.map(notification => (
+        //                     <div key={notification.id} style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+        //                         <DatePicker
+        //                             style={{ width: '200px' }}
+        //                             value={notification.date}
+        //                             showTime
+        //                             onChange={(date) => updateNotification(notification.id, 'date', date)}
+        //                             placeholder="Chọn ngày thông báo"
+        //                         />
+        //                         <Input
+        //                             style={{ flex: 1 }}
+        //                             value={notification.content}
+        //                             onChange={(e) => updateNotification(notification.id, 'content', e.target.value)}
+        //                             placeholder="Nhập nội dung thông báo"
+        //                         />
+        //                         <Button
+        //                             type="text"
+        //                             danger
+        //                             icon={<DeleteFilled />}
+        //                             onClick={() => removeNotification(notification.id)}
+        //                         />
+        //                     </div>
+        //                 ))}
+        //                 <Button
+        //                     type="dashed"
+        //                     onClick={addNotification}
+        //                     icon={<PlusOutlined />}
+        //                 >
+        //                     Thêm thông báo
+        //                 </Button>
+        //             </Form.Item>
+        //         </div>
+        //     ),
+        // },
 
     ];
 
@@ -2200,6 +2401,8 @@ const CreateContractPDF = () => {
                     )}
                 </div>
             </Form>
+            {/* Modal thêm điều khoản chung */}
+
             <Modal
                 title="Thêm căn cứ pháp lý"
                 open={isAddLegalModalOpen}
@@ -2238,6 +2441,131 @@ const CreateContractPDF = () => {
                 </Form>
             </Modal>
 
+            {/* Modal thêm đối tác */}
+
+            <Modal
+                className="w-full"
+                title="Tạo Đối Tác Mới"
+                open={isModalPartner}
+                okText="Tạo Mới"
+                onOk={handleOk}
+                loading={isCreating}
+            >
+                <Form form={form} layout="vertical" className="w-full">
+                    {/* Các trường chung được chia thành 2 cột */}
+                    <Row gutter={16} className="w-full">
+                        <Col xs={24} md={12}>
+                            <Form.Item name="partyId" style={{ display: "none" }} />
+
+                            <Form.Item
+                                name="partnerName"
+                                label="Tên đối tác"
+                                rules={[
+                                    { required: true, whitespace: true, message: "Vui lòng nhập tên đối tác" },
+                                    {
+                                        validator: (_, value) => {
+                                            if (!value) return Promise.resolve();
+                                            const regex = /^[\p{L}0-9\s-]{2,100}$/u;
+                                            return regex.test(value)
+                                                ? Promise.resolve()
+                                                : Promise.reject(
+                                                    new Error(
+                                                        "Tên đối tác không hợp lệ (chỉ chứa chữ, số, dấu cách, dấu gạch ngang, từ 2-100 ký tự)"
+                                                    )
+                                                );
+                                        },
+                                    },
+                                ]}
+                            >
+                                <Input onChange={handleNameChange} placeholder="Nhập tên đối tác" />
+                            </Form.Item>
+                            <Form.Item
+                                name="spokesmanName"
+                                label="Người đại diện"
+                                rules={[
+                                    { required: true, whitespace: true, message: "Vui lòng nhập tên Người đại diện" },
+                                    {
+                                        validator: (_, value) => {
+                                            if (!value) return Promise.resolve();
+                                            const regex = /^[\p{L}\s-]{2,50}$/u;
+                                            return regex.test(value)
+                                                ? Promise.resolve()
+                                                : Promise.reject(
+                                                    new Error(
+                                                        "Tên người đại diện không hợp lệ (chỉ chứa chữ, dấu cách, dấu gạch ngang, từ 2-50 ký tự)"
+                                                    )
+                                                );
+                                        },
+                                    },
+                                ]}
+                            >
+                                <Input placeholder="Nhập tên người đại diện" />
+                            </Form.Item>
+                            <Form.Item
+                                name="address"
+                                label="Địa chỉ"
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ" }]}
+                            >
+                                <Input placeholder="Nhập địa chỉ" />
+                            </Form.Item>
+                            <Form.Item
+                                name="email"
+                                label="Email"
+                                rules={[
+                                    {
+                                        required: true,
+                                        whitespace: true,
+                                        pattern: validationPatterns.email.pattern,
+                                        message: validationPatterns.email.message,
+                                    },
+                                ]}
+                            >
+                                <Input placeholder="Nhập email" />
+                            </Form.Item>
+                        </Col>
+
+                        <Col xs={24} md={12}>
+                            <Form.Item
+                                name="position"
+                                label="Chức vụ người đại diện"
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập chức vụ" }]}
+                            >
+                                <Input placeholder="Nhập chức vụ" />
+                            </Form.Item>
+                            <Form.Item
+                                name="abbreviation"
+                                label="Viết tắt của partner"
+                                rules={[{ required: true, whitespace: true, message: "Viết tắt không được để trống" }]}
+                            >
+                                <Input placeholder="Nhập viết tắt của đối tác" />
+                            </Form.Item>
+                            <Form.Item
+                                name="taxCode"
+                                label="Mã số thuế"
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mã số thuế" }]}
+                            >
+                                <Input placeholder="Nhập mã số thuế" />
+                            </Form.Item>
+                            <Form.Item
+                                name="phone"
+                                label="Điện thoại"
+                                rules={[
+                                    {
+                                        required: true,
+                                        whitespace: true,
+                                        pattern: validationPatterns.phoneNumber.pattern,
+                                        message: validationPatterns.phoneNumber.message,
+                                    },
+                                ]}
+                            >
+                                <Input placeholder="Nhập số điện thoại" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+
+                </Form>
+            </Modal>
         </div>
     );
 };
