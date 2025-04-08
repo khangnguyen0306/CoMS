@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
-import { useGetContractDetailQuery } from '../../../services/ContractAPI';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useGetContractDetailQuery, useUploadContractAlreadySignedMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
-import { Button, Col, Divider, Drawer, Row, Spin, Table, Tabs, Tag, Timeline } from 'antd';
+import { Button, Col, Divider, Drawer, message, Row, Spin, Table, Tabs, Tag, Timeline, Checkbox } from 'antd';
 import { numberToVietnamese } from '../../../utils/ConvertMoney';
 import { useLazyGetTermDetailQuery } from '../../../services/ClauseAPI';
-import { BookOutlined, CheckOutlined, ClockCircleOutlined, CloseOutlined, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
+import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
 import AuditrailContract from '../component/AuditrailContract';
 import DisplayAppendix from '../../appendix/staff/DisplayAppendix';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
@@ -14,10 +14,9 @@ import { selectCurrentUser } from '../../../slices/authSlice';
 import { useLazyGetDataChangeByDateQuery, useLazyGetDateChangeContractQuery } from '../../../services/AuditTrailAPI';
 import { useGetAppendixByContractIdQuery } from '../../../services/AppendixAPI';
 import { convert } from 'html-to-text';
-import { useFindLocationMutation } from '../../../services/uploadAPI';
+import { useFindLocationMutation, useUploadContractToSignMutation } from '../../../services/uploadAPI';
 import pdfMake from "pdfmake/build/pdfmake";
-import * as pdfFonts from "pdfmake/build/vfs_fonts";
-
+import { FaPenNib } from "react-icons/fa6";
 
 const SignContract = () => {
     const { contractId } = useParams();
@@ -26,6 +25,7 @@ const SignContract = () => {
     const [fetchDdateAudittrail, { data: auditTrailDate, isLoading: loadingAuditTrailDate }] = useLazyGetDateChangeContractQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
     const [fetchDataData] = useLazyGetDataChangeByDateQuery();
+    const [uploadFileToSign] = useUploadContractToSignMutation();
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
@@ -33,7 +33,9 @@ const SignContract = () => {
     const [hasMore, setHasMore] = useState(true);
     const [visible, setVisible] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
+    const navite = useNavigate()
     const pageSize = 20;
+
     const [groupedTerms, setGroupedTerms] = useState({
         Common: [],
         A: [],
@@ -44,17 +46,32 @@ const SignContract = () => {
         A: [],
         B: []
     });
+    const [dataToSign, setDataToSign] = useState({
+        llx: null,
+        lly: null,
+        urx: null,
+        ury: null,
+        FileType: 'PDF',
+        FileName: '',
+        page: null,
+    });
+
     const user = useSelector(selectCurrentUser);
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: contractId });
     const [uploadFilePDF] = useFindLocationMutation();
+    const [uploadFileSignedAlready] = useUploadContractAlreadySignedMutation();
 
     const stages = processData?.data?.stages || [];
 
-    const matchingStage = stages.find(stage => stage.approver === user?.id);
-
-
-
-
+    const [connection, setConnection] = useState(null);
+    const [hubProxy, setHubProxy] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [signedFile, setSignedFile] = useState(null);
+    const [error, setError] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [loadingCreateFile, setLoadingCreateFile] = useState(false);
+    const [logs, setLogs] = useState([]);
+    const [isConfirmed, setIsConfirmed] = useState(false);
 
     const parseDate = (dateArray) => {
         if (!Array.isArray(dateArray) || dateArray.length < 5) return null;
@@ -82,7 +99,6 @@ const SignContract = () => {
             );
         });
     };
-
 
     const loadTermDetail = async (termId) => {
         if (!termsData[termId]) {
@@ -336,6 +352,7 @@ const SignContract = () => {
 
     useEffect(() => {
         if (isSuccess && contractData) {
+            setLoadingCreateFile(true);
             const docDefinition = {
                 content: [
                     { text: "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", style: "header" },
@@ -810,18 +827,168 @@ const SignContract = () => {
             };
 
             pdfMake.createPdf(docDefinition).getBlob((blob) => {
-                const file = new File([blob], "document.pdf", { type: "application/pdf" }); 
+                console.log(blob)
+                const file = new File([blob], `${contractData.data.title}-${contractData.data.partnerB.partnerName}.pdf`, { type: "application/pdf" });
+                setSelectedFile(file);
+
                 uploadFilePDF({ file })
                     .then((response) => {
                         console.log("Upload thành công:", response);
+                        if (response.data.status === "OK" && response.data.data) {
+                            const { llx, lly, urx, ury, page } = response.data.data;
+                            dataToSign.llx = llx
+                            dataToSign.lly = lly
+                            dataToSign.urx = urx
+                            dataToSign.ury = ury
+                            dataToSign.page = page
+                        }
                     })
                     .catch((error) => {
                         console.error("Lỗi khi upload:", error);
                     });
             });
+
+
+
+            setLoadingCreateFile(false)
         }
-        
+
     }, [isSuccess, contractData]);
+
+
+
+    const writeToLog = (message) => {
+        setLogs((prevLogs) => [
+            ...prevLogs,
+            `${new Date().toLocaleTimeString()} - ${message}`,
+        ]);
+    };
+
+    useEffect(() => {
+        // Check if jQuery and SignalR are loaded
+        if (typeof $ === 'undefined') {
+            setError('jQuery không được tải');
+            writeToLog('jQuery không được tải');
+            return;
+        }
+        if (typeof $.signalR === 'undefined') {
+            setError('SignalR không được tải');
+            writeToLog('SignalR không được tải');
+            return;
+        }
+
+        // Load the SignalR hubs script dynamically
+        $.getScript('http://localhost:8888/signalr/hubs')
+            .done(() => {
+                // Create a new SignalR connection and hub proxy
+                const conn = $.hubConnection('http://localhost:8888/signalr');
+                const proxy = conn.createHubProxy('simpleHub');
+
+                // Define the callback when the signed file is received from the server.
+                proxy.on('ReceiveSignedFile', (fileName, fileBase64, serverSignTime) => {
+                    setSignedFile({ fileName, fileBase64 });
+                    writeToLog(`File đã ký: ${fileName}`);
+                    writeToLog(`Thời gian ký từ server: ${serverSignTime}`);
+                    // Upload the signed file to your API.
+                    uploadSignedFile(fileName, fileBase64, serverSignTime);
+                });
+
+                // Define the error callback from the server.
+                proxy.on('ShowError', (err) => {
+                    setError(err);
+                    setIsUploading(false);
+                    writeToLog(`Lỗi: ${err}`);
+                });
+
+                // Start the connection.
+                conn
+                    .start()
+                    .done(() => {
+                        console.log('Đã kết nối với SignalR');
+                        writeToLog('Đã kết nối tới server SignalR');
+                        setConnection(conn);
+                        setHubProxy(proxy);
+                    })
+                    .fail((err) => {
+                        setError('Kết nối SignalR thất bại: ' + err);
+                        writeToLog('Kết nối SignalR thất bại: ' + err);
+                    });
+
+                // Cleanup: Stop SignalR connection when component unmounts.
+                return () => {
+                    if (conn) {
+                        conn.stop();
+                    }
+                };
+            })
+            .fail(() => {
+                setError('Không thể tải /signalr/hubs');
+                writeToLog('Không thể tải /signalr/hubs');
+            });
+        // Empty dependency array means this runs only once at mount
+    }, []);
+
+    const handleSign = async () => {
+        if (!selectedFile) {
+            setError('Vui lòng chọn file PDF trước khi ký');
+            return;
+        }
+
+        if (!connection || !hubProxy) {
+            setError('Chưa kết nối tới SignalR');
+            return;
+        }
+
+        setIsUploading(true);
+        setError(null);
+
+        try {
+            const data = await uploadFileToSign({ file: selectedFile }).unwrap();
+            const signInfo = {
+                llx: dataToSign.llx,
+                lly: dataToSign.lly,
+                urx: dataToSign.urx,
+                ury: dataToSign.ury,
+                FileType: 'PDF',
+                page: dataToSign.page,
+                FileName: selectedFile.name,
+            };
+
+            hubProxy.invoke('SignDocument', data.FileId, signInfo, dataToSign.page);
+
+
+            setSelectedFile(null)
+            setSignedFile(null)
+
+        } catch (err) {
+            setError(err.message);
+            writeToLog(err.message);
+            setIsUploading(false);
+        }
+    };
+
+    const uploadSignedFile = async (fileName, fileBase64, serverSignTime) => {
+        try {
+            const result = await uploadFileSignedAlready(
+                {
+                    contractId: contractId,
+                    fileName: fileName,
+                    fileBase64: fileBase64,
+                    signedBy: 'Director',
+                    signedAt: serverSignTime,
+                }
+            ).unwrap()
+
+            message.success("Ký hợp đồng thành công !")
+            navite('/manager/contractReadyToSign', { replace: true })
+        } catch (err) {
+            console.error('Error uploading file:', err);
+            setError('Lỗi khi upload file đã ký');
+            writeToLog('Lỗi khi upload file đã ký: ' + (err.response?.data || err.message));
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     return (
         <div className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center   shadow-md p-4 pb-16 rounded-md`}>
@@ -1102,25 +1269,25 @@ const SignContract = () => {
                     <div className="mt-2 relative">
                         <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
                         <div className="ml-5 mt-3 flex flex-col gap-3">
-                            {groupedTermsExport.Common.length > 0 && (
+                            {groupedTerms.Common.length > 0 && (
                                 <div className="term-group mb-2">
                                     <p className="text-base font-bold">Điều khoản chung</p>
-                                    {groupedTermsExport.Common.map((termId, index) => renderTerm(termId, index))}
+                                    {groupedTerms.Common.map((termId, index) => renderTerm(termId, index))}
                                 </div>
                             )}
-                            {groupedTermsExport.A.length > 0 && (
+                            {groupedTerms.A.length > 0 && (
                                 <div className="term-group mb-2">
                                     <p className="font-bold">Điều khoản riêng bên A</p>
-                                    {groupedTermsExport.A.map((termId, index) => renderTerm(termId, index))}
+                                    {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
                                     {contractData?.data?.specialTermsA && contractData?.data?.specialTermsA.trim() !== "" && (
                                         <p className="text-sm">- {contractData?.data?.specialTermsA}</p>
                                     )}
                                 </div>
                             )}
-                            {groupedTermsExport.B.length > 0 && (
+                            {groupedTerms.B.length > 0 && (
                                 <div className="term-group mb-2">
                                     <p className="font-bold">Điều khoản riêng bên B</p>
-                                    {groupedTermsExport.B.map((termId, index) => renderTerm(termId, index))}
+                                    {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
                                     {contractData?.data?.specialTermsB && contractData?.data?.specialTermsB.trim() !== "" && (
                                         <p className="text-sm">- {contractData?.data?.specialTermsB}</p>
                                     )}
@@ -1172,7 +1339,53 @@ const SignContract = () => {
                     <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                 </div>
             </div>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '20px',
+                }}
+            >
+                <div>
+                    {loadingCreateFile == true ? (
+                        <Tag color='gold-inverse' icon={<Spin color="red" />}>Đang tải dữ liệu</Tag>
+                    ) :
+                        (
+                            <div className='flex flex-col gap-2 items-center'>
+                                <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>sẵn sàng ký</Tag>
+                                {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox
+                                        checked={isConfirmed}
+                                        onChange={(e) => setIsConfirmed(e.target.checked)}
+                                    >
+                                        Tôi xác nhận đã đọc và đồng ý với nội dung hợp đồng
+                                    </Checkbox>
+                                </div>
 
+                                {isConfirmed && (
+                                    <Button
+                                        icon={<FaPenNib />}
+                                        onClick={handleSign}
+                                        disabled={ (loadingCreateFile == true) || isUploading}
+                                        style={{
+                                            padding: '8px 16px',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: !selectedFile || isUploading ? 'not-allowed' : 'pointer',
+                                        }}
+                                    >
+                                        {isUploading ? 'Đang xử lý...' : 'Ký hợp đồng'}
+                                    </Button>
+                                )}
+
+                            </div>
+                        )
+                    }
+
+                </div>
+            </div>
         </div>
     )
 }
