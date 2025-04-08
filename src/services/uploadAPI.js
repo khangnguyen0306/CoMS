@@ -54,7 +54,20 @@ export const uploadAPI = createApi({
       invalidatesTags: [{ type: "Clause", id: "LIST" }],
     }),
 
+    uploadContractToSign: builder.mutation({
+      query: ({ file }) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return {
+          url: `http://localhost:8888/api/upload`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: [{ type: "Contract", id: "LIST" }],
+    }),
 
+   
     findLocation: builder.mutation({
       query: ({ file }) => {
         const formData = new FormData();
@@ -76,5 +89,6 @@ export const {
   useUploadFilePDFMutation,
   useUploadBillingContractMutation,
   useUploadClauseBFileMutation,
-  useFindLocationMutation
+  useFindLocationMutation,
+  useUploadContractToSignMutation
 } = uploadAPI;

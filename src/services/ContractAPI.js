@@ -219,6 +219,20 @@ export const ContractAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
+
+        uploadContractAlreadySigned: builder.mutation({
+            query: (body) => {
+                return {
+                    // url: `http://localhost:8088/api/v1/contracts/sign`,
+                    url: `contracts/sign`,
+                    method: "POST",
+                    body: body,
+                };
+            },
+            invalidatesTags: [{ type: "Contract", id: "LIST" }],
+        }),
+
+
         getImgBill: builder.query({
             query: (paymentScheduleId) => ({
                 url: `/payment-schedules/bill-urls/${paymentScheduleId}`,
@@ -257,6 +271,6 @@ export const {
     useUpdateContractPartnerMutation,
     useUploadBillingContractMutation,
     useGetImgBillQuery,
-
+    useUploadContractAlreadySignedMutation
 
 } = ContractAPI;
