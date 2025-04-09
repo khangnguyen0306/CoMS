@@ -21,7 +21,7 @@ import ModalSearch from './component/ModalSearch';
 import html2canvas from 'html2canvas';
 const { Title, Text } = Typography;
 import jsPDF from 'jspdf';
-
+import { MdMarkChatRead } from "react-icons/md";
 
 const ContractDetail = () => {
     const { Panel } = Collapse;
@@ -449,8 +449,8 @@ const ContractDetail = () => {
                         </Button>
                     ) : (
                         <Button
-                            type="default"
-                            className="fixed right-5 top-20 flex flex-col h-fit bg-[#2280ff]"
+                            type="primary"
+                            className="fixed right-5 top-20 flex flex-col h-fit "
                             onClick={showDrawerAprove}
                         >
                             <div className='flex flex-col items-center'>

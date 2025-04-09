@@ -108,6 +108,17 @@ export const ContractAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Contract", id: "LIST" }],
         }),
+        duplicateContractWithNewPartner: builder.mutation({
+            query: ({ contractId, partnerId }) => ({
+                url: `contracts/${contractId}/duplicate-with-partner`,
+                params: {
+                    partnerId: partnerId
+                },
+                method: "POST",
+                body: contractId,
+            }),
+            invalidatesTags: [{ type: "Contract", id: "LIST" }],
+        }),
 
         softDeleteContract: builder.mutation({
             query: (contractId) => ({
@@ -279,6 +290,7 @@ export const {
     useUploadBillingContractMutation,
     useGetImgBillQuery,
     useUploadContractAlreadySignedMutation,
+    useDuplicateContractWithNewPartnerMutation,
     useGetImgSignQuery,
 
 } = ContractAPI;

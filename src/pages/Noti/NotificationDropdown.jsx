@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCurrentUser, selectNotiNumber, setNotiNumber } from "../../slices/authSlice";
 import { useNavigate } from "react-router-dom";
-
+import { MdMarkChatRead } from "react-icons/md";
 const NotificationDropdown = () => {
   const [page, setPage] = useState(0);
   const pageSize = 10;
@@ -52,15 +52,18 @@ const NotificationDropdown = () => {
 
       if (text && text.includes("phụ lục")) {
         if (user.roles[0] === "ROLE_STAFF") {
-          navigate("/appendix");
+          navigate("/appendix", { replace: true });
         } else if (user.roles[0] === "ROLE_MANAGER") {
-          navigate("/manager/appendix");
+          navigate("/manager/appendix", { replace: true });
         }
-      } else {
+      } else if (text && text.includes("từ chối")) {
+        navigate("/contractsApproval", { replace: true })
+      }
+      else {
         if (user.roles[0] === "ROLE_STAFF") {
-          navigate("/approvalContract");
+          navigate("/approvalContract", { replace: true });
         } else if (user.roles[0] === "ROLE_MANAGER") {
-          navigate("/manager/approvalContract");
+          navigate("/manager/approvalContract", { replace: true });
         }
       }
 
@@ -126,7 +129,10 @@ const NotificationDropdown = () => {
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       <div className="flex justify-end mb-2">
-        <Button onClick={handleMarkAllRead} className="mb-2 bg-blue-500 text-white rounded px-4 py-2">
+        <Button type="link"
+          icon={<MdMarkChatRead />}
+          onClick={handleMarkAllRead}
+          className="mb-2 rounded px-4 py-2">
           Đánh dấu tất cả đã đọc
         </Button>
       </div>

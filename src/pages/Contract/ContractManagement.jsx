@@ -14,6 +14,7 @@ import ExpandRowContent from "./component/ExpandRowContent";
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
 import { useUploadBillingContractMutation, useUploadContractToSignMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
 import ExportContractPDF from "./component/ExportContractPDF";
+import DuplicateContractModal from './component/DuplicateContractModal';
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -86,6 +87,8 @@ const ManageContracts = () => {
             ? contractManager?.data?.content
             : [];
     const [selectedContractIdExport, setSelectedContractIdExport] = useState(null);
+    const [isDuplicateModalVisible, setIsDuplicateModalVisible] = useState(false);
+    const [selectedContractForDuplicate, setSelectedContractForDuplicate] = useState(null);
 
 
     useEffect(() => {
@@ -124,21 +127,17 @@ const ManageContracts = () => {
     };
 
     // console.log(selectedContract)
-    const handleDuplicate = async (contractId) => {
-        try {
-            const result = await duplicateContract(contractId).unwrap();
-            console.log(result);
-            if (result?.status === "OK") {
-                message.success("Nhân bản hợp đồng thành công!");
-                refetch();
-                refetchNoti();
-            }
-
-        } catch (error) {
-            console.error("Error duplicating template:", error);
-            message.error("Lỗi khi nhân bản hợp đồng!");
-        }
+    const handleDuplicate = (contractId) => {
+        setSelectedContractForDuplicate(contractId);
+        setIsDuplicateModalVisible(true);
     };
+
+    const handleCloseDuplicateModal = () => {
+        setIsDuplicateModalVisible(false);
+        setSelectedContractForDuplicate(null);
+    };
+
+
     const handleDelete = (record) => {
         if (record?.status === "ACTIVE" || record?.status === "SIGNED") {
             message.warning("Không thể xóa hợp đồng đang hiệu lực hoặc đã thanh toán.");
@@ -869,7 +868,13 @@ const ManageContracts = () => {
                     onDone={() => setSelectedContractIdExport(null)}
                 />
             )}
-
+            <DuplicateContractModal
+                visible={isDuplicateModalVisible}
+                onCancel={handleCloseDuplicateModal}
+                contractId={selectedContractForDuplicate}
+                refetch={refetch}
+                refetchNoti={refetchNoti}
+            />
         </div>
     );
 };
