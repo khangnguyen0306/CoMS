@@ -16,7 +16,8 @@ import {
     Empty,
     Collapse,
     Image,
-    Select
+    Select,
+    InputNumber
 } from "antd";
 import {
     EditFilled,
@@ -40,7 +41,7 @@ import {
 import { validationPatterns } from "../../utils/ultil";
 import { useUploadFilePDFMutation, useUploadBillingContractMutation } from "../../services/uploadAPI";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { useCheckExistPartnerMutation, useCreatePartnerMutation, useGetPartnerListQuery } from "../../services/PartnerAPI";
+import { useCheckExistPartnerAMutation, useCreatePartnerMutation, useGetPartnerListQuery } from "../../services/PartnerAPI";
 
 // Lấy API key từ biến môi trường
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
@@ -203,7 +204,7 @@ const ContractPartner = () => {
 
     const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
 
-    const [checkExistPartner] = useCheckExistPartnerMutation();
+    const [checkExistPartner] = useCheckExistPartnerAMutation();
 
 
 
@@ -1156,7 +1157,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     name="totalValue"
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tổng giá trị!" }]}
                                 >
-                                    <Input />
+                                    <InputNumber
+                                        style={{ width: '100%' }}
+                                        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND'}
+                                        parser={value => value.replace(/\s?VND|\./g, '')}
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
@@ -1205,7 +1210,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 name={[name, "amount"]}
                                                 rules={[{ required: true, message: "Vui lòng nhập giá trị hạng mục!" }]}
                                             >
-                                                <Input suffix=" VND" />
+                                                <InputNumber
+                                                    style={{ width: '100%' }}
+                                                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND'}
+                                                    parser={value => value.replace(/\s?VND|\./g, '')}
+                                                />
                                             </Form.Item>
                                             <Form.Item
                                                 {...restField}
@@ -1369,7 +1378,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     name="totalValue"
                                     rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tổng giá trị!" }]}
                                 >
-                                    <Input placeholder="Nhập tổng giá trị" />
+                                    <InputNumber
+                                        style={{ width: '100%' }}
+                                        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND'}
+                                        parser={value => value.replace(/\s?VND|\./g, '')}
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
@@ -1406,7 +1419,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 name={[name, "amount"]}
                                                 rules={[{ required: true, message: "Vui lòng nhập giá trị hạng mục!" }]}
                                             >
-                                                <Input suffix=" VND" />
+                                                <InputNumber
+                                                    style={{ width: '100%' }}
+                                                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND'}
+                                                    parser={value => value.replace(/\s?VND|\./g, '')}
+                                                />
                                             </Form.Item>
                                             <Form.Item
                                                 {...restField}

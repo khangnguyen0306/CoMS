@@ -77,7 +77,6 @@ const CreateContractForm = () => {
     const termsRef = useRef(null);
     const otherContentRef = useRef(null);
 
-
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery()
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateByContractTypeIdQuery({
         pollingInterval: 0,
@@ -1067,7 +1066,7 @@ const CreateContractForm = () => {
                                             rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}
                                         >
                                             <LazySelectPartner
-                                                loadDataCallback={loadPartnerData}
+                                                loadDataCallback={getPartnerData}
                                                 options={partnerData?.data.content}
                                                 showSearch
                                                 placeholder="Chọn thông tin khách hàng"

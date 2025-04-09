@@ -54,9 +54,9 @@ const ContractPartner = ({ partnerId }) => {
     const columns = [
         {
             title: 'Mã hợp đồng',
-            dataIndex: 'contractId',
-            key: 'contractId',
-            sorter: (a, b) => a.contractId.localeCompare(b.contractId),
+            dataIndex: 'contractNumber',
+            key: 'contractNumber',
+            sorter: (a, b) => a.contractNumber.localeCompare(b.contractNumber),
         },
         {
             title: 'Tên hợp đồng',
@@ -87,10 +87,11 @@ const ContractPartner = ({ partnerId }) => {
         },
         {
             title: 'Giá trị',
-            dataIndex: 'value',
-            key: 'value',
-            render: value => `${value} VND`,
-            sorter: (a, b) => a.value - b.value,
+            dataIndex: 'amount',
+            key: 'amount',
+            render: amount =>
+                new Intl.NumberFormat('vi-VN').format(amount) + ' VND',
+            sorter: (a, b) => a.amount - b.amount,
         },
         {
             title: 'Ngày hết hạn',

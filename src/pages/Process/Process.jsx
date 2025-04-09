@@ -21,6 +21,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
     const [managers, setManagers] = useState([]);
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
 
     // Lấy danh sách user từ API (dùng cho phần chọn manager)
     const { data: userData, refetch: refetchUser } = useGetUserStaffManagerQuery({
@@ -529,7 +530,12 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                                 <Card
                                     key={process.id}
                                     className={`mt-4 w-80 min-w-[355px] shadow-md cursor-pointer ${selection !== "recomment" ? "opacity-50 cursor-not-allowed" : ""
-                                        } ${selectedProcessId === process.id ? "bg-green-100" : ""}`}
+                                        } ${selectedProcessId === process.id
+                                            ? isDarkMode
+                                                ? 'bg-[#515151]' // màu nền chọn khi dark mode
+                                                : 'bg-green-100' // màu nền chọn khi light mode
+                                            : ''}
+                                        ${isDarkMode ? 'bg-[#222222] text-white' : ''}`}
                                     onClick={() => handleCardSelect(process.id)}
                                 >
                                     <Timeline
