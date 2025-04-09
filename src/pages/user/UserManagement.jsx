@@ -37,7 +37,7 @@ const UserManagement = () => {
     const [AddUser, { isLoading: loadingAdd }] = useAddUserMutation();
 
 
-    console.log("Data:", userData);
+    // console.log("Data:", userData);
 
     useEffect(() => {
         const ceoExists = userData?.content?.some((user) => user.isCeo === true);
@@ -50,7 +50,7 @@ const UserManagement = () => {
     };
 
     const filteredUsers = userData?.content ? filterUsers(userData?.content) : [];
-    console.log("Filtered users:", userData?.content);
+    // console.log("Filtered users:", userData?.content);
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -58,7 +58,7 @@ const UserManagement = () => {
     };
 
     const handleSubmitAddUser = async (values) => {
-        console.log('Form data:', values);
+        // console.log('Form data:', values);
         if (values.is_ceo === true && values.role_id === 3) {
             message.error("Không thể tạo CEO với vai trò Staff. Vui lòng chọn vai trò Manage cho CEO!");
             return;
@@ -76,7 +76,7 @@ const UserManagement = () => {
     };
 
     const showEditModal = (record) => {
-        console.log("Record:", record);
+        // console.log("Record:", record);
         setIsModalUpdate(true);
         form.resetFields();
         form.setFieldsValue({
@@ -94,7 +94,7 @@ const UserManagement = () => {
     }
 
     const handleSubmitEditUser = async (values) => {
-        console.log('Form data:', values);
+        // console.log('Form data:', values);
         try {
             const result = await UpdateUser({ id: values.id, full_name: values.full_name, phone_number: values.phone_number, email: values.email, address: values.address, role_id: values.role_id, is_ceo: values.is_ceo, departmentId: values.departmentId }).unwrap();
             message.success(result.message);
@@ -273,7 +273,8 @@ const UserManagement = () => {
                         record.is_active ? (
                             <Tooltip title="Cấm">
                                 <Button
-                                    icon={<StopOutlined style={{ color: "#2196f3" }} />}
+                                danger
+                                    icon={<StopOutlined  />}
                                     onClick={() => handleDelete(record.id)}
                                 />
                             </Tooltip>
