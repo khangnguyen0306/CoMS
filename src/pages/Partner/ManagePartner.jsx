@@ -145,11 +145,14 @@ const ManagePartner = () => {
             onOk: async () => {
                 try {
                     const result = await DeletePartner({ partnerId: partnerId });
+                    console.log(result);
                     if (result.error.originalStatus == 200) {
                         refetch();
                         message.success('Xóa thành công');
                     } else
-                        message.success('Xóa thất bại vui lòng thử lại');
+                        if (result.error.data == "Kh�ng th? x�a ??i t�c v� ?ang trong h?p ??ng ?ang ho?t ??ng. Vui l�ng t?o ph? l?c thay th?.") {
+                            message.error('Không thể xóa đối tác vì đang trong hợp đồng đang hoạt động. Vui lòng tạo phụ lục thay thế.');
+                        }
 
                 }
                 catch (error) {

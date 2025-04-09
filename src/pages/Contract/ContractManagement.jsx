@@ -397,9 +397,9 @@ const ManageContracts = () => {
                                 ...(record.status === "SIGNED", "ACTIVE"
                                     ? [
                                         {
-                                            key: "createAppendix",
+                                            key: "uploadImagSign",
                                             icon: <SignatureOutlined />,
-                                            label: "Xác nhận đã ký",
+                                            label: record.status === "ACTIVE" ? "Xem hợp đồng đã ký" : "Xác nhận đã ký",
                                             onClick: () => openUpdateSignModal(record.id),
                                         },
                                     ]
