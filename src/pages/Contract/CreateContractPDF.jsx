@@ -46,6 +46,7 @@ const DEFAULT_NOTIFICATIONS = {
 const CreateContractPDF = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
+    const [formPartner] = Form.useForm();
     const [formLegal] = Form.useForm();
     const inputRef = useRef(null);
     const navigate = useNavigate()
@@ -71,8 +72,10 @@ const CreateContractPDF = () => {
     const [contractTypeSelected, setContractTypeSelected] = useState(null);
     const [newCustomerData, setNewCustomerData] = useState(null);
     const [isModalPartner, setIsModalPartner] = useState(false);
+    const [partnerId, setPartnerId] = useState(null);
+    const [AIData, setAIData] = useState(null);
 
-    const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
+    const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: partnerId });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
 
     const [showScroll, setShowScroll] = useState(false)
@@ -729,7 +732,7 @@ const CreateContractPDF = () => {
                         position: { type: "string" },
                         taxCode: { type: "string" },
                         phone: { type: "string" },
-
+                        abbreviation: { type: "string" },
                     },
                     required: [
                         "partnerName",
@@ -739,6 +742,7 @@ const CreateContractPDF = () => {
                         "position",
                         "taxCode",
                         "phone",
+                        "abbreviation"
 
                     ]
                 },
@@ -824,8 +828,9 @@ partner: đối tượng chứa thông tin bên B, gồm:
 
     -taxCode: mã số thuế ghi đầy đủ ra không ghi tắt xxxxxx(string)
 
-    -phone: số điện thoại (string)
+    -phone: số điện thoại Số điện thoại phải bắt đầu bằng 0, 10 chữ số và không có chữ cái và không có khoản cách (string)
 
+    -abbreviation: tên viết tắt của partnerName lấy những chữ cái đầu tiền rồi viết in hoa lên (string)
    
 contractNumber: số hợp đồng (string)
 totalValue: giá trị hợp đồng (number)
@@ -863,7 +868,7 @@ Trả về dữ liệu đã trích xuất sử dụng cấu trúc JSON như sau 
         "position": "string",
         "taxCode": "string",
         "phone": "string",
-        
+        "abbreviation": "string"
     ],
     "contractNumber": "string",
     "totalValue": "number",
@@ -898,6 +903,15 @@ Trả về dữ liệu đã trích xuất sử dụng cấu trúc JSON như sau 
 Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị trong file PDF, bạn trả về null (đối với kiểu chuỗi hoặc số) và với các trường ngày nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].`;
 
 
+    const extractJsonFromMarkdown = (text) => {
+        // Tìm kiếm nội dung bên trong code block ```json ... ```
+        const match = text.match(/```json\s*([\s\S]*?)\s*```/);
+        if (match) {
+            return match[1];
+        }
+        return text; // nếu không có markdown, trả lại text gốc
+    };
+
     const callAIForExtraction = async (file) => {
         try {
             const fileUri = URL.createObjectURL(file);
@@ -908,29 +922,30 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             });
 
             const response = await chatSession.sendMessage(text, { file: fileUri });
-
             const aiResponseText =
                 response.response.candidates[0]?.content?.parts[0]?.text || "";
 
-            // Hàm tách JSON từ markdown nếu cần
-            const extractJsonFromMarkdown = (text) => {
-                const match = text.match(/```json\s*([\s\S]*?)\s*```/);
-                if (match) {
-                    return match[1];
+            let rawJson = extractJsonFromMarkdown(aiResponseText);
+            rawJson = rawJson.trim();
+
+            // Nếu chuỗi không bắt đầu bằng dấu "{" hoặc "[", tìm vị trí đầu tiên của "{" và cắt bỏ phần thừa
+            if (!rawJson.startsWith("{") && !rawJson.startsWith("[")) {
+                const firstCurly = rawJson.indexOf("{");
+                if (firstCurly !== -1) {
+                    rawJson = rawJson.slice(firstCurly);
                 }
-                return text; // nếu không có markdown, trả lại text gốc
-            };
+            }
 
-            const rawJson = extractJsonFromMarkdown(aiResponseText);
-            const aiResponse = JSON.parse(rawJson); // parse sau khi đã xử lý
-
+            // Bây giờ, rawJson nên bắt đầu bằng "{" hoặc "["
+            const aiResponse = JSON.parse(rawJson);
             return aiResponse;
-
         } catch (error) {
-            console.error("Lỗi gọi AI:", error);
+            console.error("Lỗi khi xử lý file:", error);
             throw error;
         }
     };
+
+
 
     const checkPartner = async (taxCode) => {
         console.log("Checking partner with tax code:", taxCode);
@@ -955,9 +970,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     }
 
     const handleOk = async () => {
+        console.log("handleOk", formPartner.getFieldsValue());
         try {
-            const values = await form.validateFields();
-
+            const values = await formPartner.validateFields();
+            console.log("Form values:", values);
             const newPartnerData = {
                 ...values,
                 partnerType: "PARTNER_B",
@@ -965,14 +981,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             };
             console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData).unwrap();
-            if (result.status === "CREATED") {
-                message.success('Thêm mới thành công!');
-                setIsModalPartner(false);
-                form.resetFields();
-                setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
-            } else {
-                message.error('Thêm mới thất bại vui lòng thử lại!');
-            }
+            setPartnerId(result.data.partyId);
+            console.log("Create partner result:", result);
+            message.success('Thêm mới thành công!');
+            setIsModalPartner(false);
+            formPartner.resetFields();
         } catch (error) {
             console.error("Error creating partner:", error);
         }
@@ -1164,6 +1177,66 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         }
     };
 
+    useEffect(() => {
+
+        const legal = form.getFieldValue('legal') || '';
+        const term = form.getFieldValue('term') || '';
+        const contractContent = form.getFieldValue('contractContent') || '';
+
+        const combinedContent = `
+            <p><strong>Căn cứ pháp lý:</strong></p>
+            <p>${legal.replace(/\n/g, '<br />')}</p>
+            <br />
+            <p><strong>Nội dung hợp đồng:</strong></p>
+            <p>${contractContent.replace(/\n/g, '<br />')}</p>
+            <br />
+            <p><strong>Điều khoản:</strong></p>
+            <p>${term.replace(/\n/g, '<br />')}</p>
+          `;
+
+        form.setFieldsValue({
+            combinedContent: combinedContent,
+        });
+
+    }, []);
+
+
+    const applyAIDataToForm = (data) => {
+        console.log("applyAIDataToForm", data.effectiveDate);
+        if (!data) {
+            message.warning("Chưa có dữ liệu AI để áp dụng!");
+            return;
+        }
+        form.setFieldsValue({
+            partner: {
+                partnerName: data?.partner?.partnerName,
+                spokesmanName: data?.partner?.spokesmanName,
+                address: data?.partner?.address,
+                email: data?.partner?.email,
+                position: data?.partner?.position,
+                taxCode: data?.partner?.taxCode,
+                phone: data?.partner?.phone,
+            },
+            contractNumberFormat: data?.contractNumber,
+            signingDate: data?.signingDate ? dayjs(new Date(...data.signingDate)) : null,
+            contractLocation: data?.signingPlance, // Nếu key của bạn là "signingPlance", nếu không là "signingPlace" thì chỉnh lại
+            contractContent: data?.content?.contentContract || '',
+            term: data?.content?.term || '',
+            legal: data?.content?.legal || '',
+            totalValue: data?.totalValue || 0,
+            contractItems: data?.items || [],
+            expiryDate: data?.expiryDate ? dayjs(new Date(...data.expiryDate)) : null,
+            effectiveDate: data?.effectiveDate ? dayjs(new Date(...data.effectiveDate)) : null,
+            payments: data?.paymentSchedules?.map(p => ({
+                ...p,
+                paymentDate: p.paymentDate ? dayjs(new Date(...p.paymentDate)) : null
+            })) || [],
+        });
+        console.log("test lại", form.getFieldsValue(effectiveDate));
+        message.success("Đã áp dụng dữ liệu AI lên form!");
+    };
+
+
     // Định nghĩa các cột của bảng
 
     const columns = [
@@ -1293,37 +1366,44 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         >
                                             <Upload
                                                 beforeUpload={async (file) => {
-                                                    console.log("hello");
                                                     setLoading(true);
                                                     try {
                                                         const extractedData = await callAIForExtraction(file);
                                                         console.log("Extracted data:", extractedData);
                                                         next();
-                                                        setTaxCode(extractedData.partner.taxCode);
-                                                        setContractTypeSelected(extractedData.title);
-                                                        setNewCustomerData(extractedData?.partner || {});
-                                                        checkPartner(extractedData.partner.taxCode);
-                                                        form.setFieldsValue({
-                                                            contractName: extractedData.title,
-                                                            partnerId: {
-                                                                partnerName: extractedData.partner.partnerName,
-                                                                spokesmanName: extractedData.partner.spokesmanName,
-                                                                address: extractedData.partner.address,
-                                                                email: extractedData.partner.email,
-                                                                position: extractedData.partner.position,
-                                                                taxCode: extractedData.partner.taxCode,
-                                                                phone: extractedData.partner.phone,
-                                                            },
-                                                            contractNumber: extractedData.contractNumber,
-                                                            totalValue: extractedData.totalValue,
-                                                            effectiveDate: extractedData.effectiveDate,
-                                                            expiryDate: extractedData.expiryDate,
-                                                            signingDate: extractedData.signingDate,
-                                                            signingPlance: extractedData.signingPlance,
-                                                            contentContract: extractedData.content.contentContract,
-                                                            term: extractedData.content.term,
-                                                            legal: extractedData.content.legal,
-                                                        });
+                                                        const data = extractedData.response ? extractedData.response : extractedData;
+                                                        setAIData(data);
+                                                        const taxCode = data.partner.taxCode?.toString();
+                                                        setTaxCode(data.partner.taxCode);
+                                                        setContractTypeSelected(data.title);
+                                                        setNewCustomerData(data.partner || {});
+                                                        checkPartner(taxCode);
+                                                        applyAIDataToForm(data);
+                                                        // form.setFieldsValue({
+                                                        //     partner: {
+                                                        //         partnerName: data?.partner?.partnerName,
+                                                        //         spokesmanName: data?.partner?.spokesmanName,
+                                                        //         address: data?.partner?.address,
+                                                        //         email: data?.partner?.email,
+                                                        //         position: data?.partner?.position,
+                                                        //         taxCode: data?.partner?.taxCode,
+                                                        //         phone: data?.partner?.phone,
+                                                        //     },
+                                                        //     contractNumberFormat: data?.contractNumber,
+                                                        //     signingDate: data?.signingDate ? dayjs(new Date(...AIData.signingDate)) : null,
+                                                        //     contractLocation: data?.signingPlance,
+                                                        //     contractContent: data?.content?.contentContract || '',
+                                                        //     term: data?.content?.term || '',
+                                                        //     legal: data?.content?.legal || '',
+                                                        //     totalValue: data?.totalValue || 0,
+                                                        //     contractItems: data?.items || [],
+                                                        //     expiryDate: data?.expiryDate ? dayjs(new Date(...AIData.expiryDate)) : null,
+                                                        //     effectiveDate: data?.effectiveDate ? dayjs(new Date(...AIData.effectiveDate)) : null,
+                                                        //     payments: data?.paymentSchedules?.map(p => ({
+                                                        //         ...p,
+                                                        //         paymentDate: p.paymentDate ? dayjs(new Date(...p.paymentDate)) : null
+                                                        //     })) || [],
+                                                        // });
                                                     } catch (error) {
                                                         console.error("Lỗi khi xử lý file:", error);
                                                     } finally {
@@ -1443,32 +1523,31 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
                                         <p>-------------------</p>
                                         {/* <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm .......</p> */}
-                                        <p className="text-2xl font-bold mt-10">{form.getFieldValue('contractName')?.toUpperCase()}</p>
+                                        {/* <Button type="primary" onClick={applyAIDataToForm}>
+                                            Áp dụng dữ liệu AI
+                                        </Button> */}
+
+                                        {console.log("form", form.getFieldsValue())}
+                                        <Form.Item
+                                            name="contractName"
+                                            label="Tên hợp đồng"
+                                            rules={[{ required: true, message: 'Vui lòng nhập tên hợp đồng!' }]}
+                                            className=" mt-10"
+                                        >
+                                            <Input
+                                                className="text-2xl font-bold uppercase text-center"
+                                                placeholder="Nhập tên hợp đồng"
+                                            />
+                                        </Form.Item>
                                         <Form.Item
                                             name="contractNumberFormat"
                                             label="Cách tạo số hợp đồng"
                                             rules={[{ required: true, message: "Vui lòng chọn cách tạo số hợp đồng" }]}
                                         >
-                                            <Select placeholder="Chọn cách tạo số hợp đồng">
-                                                <Select.Option value="1">
-                                                    [Tên viết tắt doanh nghiệp tạo] / [Tên viết tắt khách hàng] / [Loại hợp đồng] / [DDMMYY]-[Số thứ tự]
-                                                </Select.Option>
-                                                <Select.Option value="2">
-                                                    [Viết tắt hợp đồng] - [Loại hợp đồng] / [Ngày/Tháng/Năm]-[Số thứ tự]
-                                                </Select.Option>
-                                                <Select.Option value="3">
-                                                    [Viết tắt hợp đồng] / [Tên viết tắt khách hàng] / [Ngày/Tháng/Năm]-[Số thứ tự]
-                                                </Select.Option>
-                                                <Select.Option value="4">
-                                                    [Loại hợp đồng] / [Tên viết tắt doanh nghiệp tạo] / [Ngày/Tháng/Năm]-[Số thứ tự]
-                                                </Select.Option>
-                                                <Select.Option value="5">
-                                                    [Loại hợp đồng]-[Tên viết tắt doanh nghiệp tạo] / [Tên viết tắt khách hàng] / [DD/MM/YY]-[Số thứ tự]
-                                                </Select.Option>
-                                                <Select.Option value="6">
-                                                    [Viết tắt hợp đồng] / [Tên viết tắt khách hàng] / [Loại hợp đồng] / [DDMMYY]-[Số thứ tự]
-                                                </Select.Option>
-                                            </Select>
+                                            <Input
+                                                className="font-bold text-center"
+                                                placeholder="Nhập mã hợp đồng"
+                                            />
                                         </Form.Item>
 
                                     </div>
@@ -1565,7 +1644,13 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 </Form.Item> */}
 
                                 <div className={`px-4 pt-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
-                                    {renderLegalBasisTerms()}
+                                    <div>
+                                        <strong>Căn cứ pháp lý:</strong>
+                                        <div className="whitespace-pre-wrap">
+                                            {form.getFieldValue('legal')}
+                                        </div>
+                                    </div>
+
                                     <Form.Item shouldUpdate={(prevValues, currentValues) =>
                                         prevValues.contractLocation !== currentValues.contractLocation ||
                                         prevValues.signingDate !== currentValues.signingDate
@@ -1619,26 +1704,36 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             </div>
                             <div ref={mainContentRef}>
                                 <Form.Item
-                                    label=" Soạn thảo nội dung hợp đồng"
-                                    name="contractContent"
-                                    className="mt-5"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
+                                    shouldUpdate={(prev, curr) => prev.combinedContent !== curr.combinedContent}
+                                    noStyle
                                 >
-                                    <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
-                                        <RichTextEditor
-                                            output="html"
-                                            content={content}
-                                            onChangeContent={onValueChange}
-                                            extensions={extensions}
-                                            dark={isDarkMode}
-                                            hideBubble={true}
-                                            dense={false}
-                                            removeDefaultWrapper
-                                            placeholder="Nhập nội dung hợp đồng tại đây..."
-                                            contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
-                                        />
-                                    </Suspense>
+                                    {() => {
+                                        const value = form.getFieldValue('combinedContent');
+                                        // console.log("combinedContent", value);
+                                        return (
+                                            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
+                                                <RichTextEditor
+                                                    key={value}
+                                                    content={value}
+
+                                                    onChangeContent={(...args) => {
+                                                        console.log("onChangeContent args:", args);
+                                                    }}
+
+                                                    extensions={extensions}
+                                                    dark={isDarkMode}
+                                                    hideBubble={true}
+                                                    dense={false}
+                                                    removeDefaultWrapper
+                                                    placeholder="Nhập nội dung hợp đồng tại đây..."
+                                                    contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
+                                                />
+                                            </Suspense>
+                                        );
+                                    }}
                                 </Form.Item>
+
+
 
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
@@ -1773,7 +1868,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     )}
                                 </Form.List>
 
-                                <div className="flex items-center gap-5 mt-[50px]">
+                                {/* <div className="flex items-center gap-5 mt-[50px]">
                                     <Form.Item name="autoAddVAT" valuePropName="checked">
                                         <div className="flex items-center min-w-[350px]">
                                             <Switch
@@ -1847,7 +1942,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                             />
                                         </Form.Item>
                                     )}
-                                </div>
+                                </div> */}
 
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
                                 <Form.Item
@@ -1911,7 +2006,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 <Form.Item name="effectiveDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]} />
                                 <Form.Item name="expiryDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]} />
 
-                                <Form.Item
+                                {/* <Form.Item
                                     label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
                                     name="autoRenew"
                                     valuePropName="checked"
@@ -1928,10 +2023,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                             checked={form.getFieldValue('autoRenew') ?? isAutoRenew} />
                                         <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
                                     </div>
-                                </Form.Item>
+                                </Form.Item> */}
 
                             </div>
-                            <div ref={termsRef}>
+                            {/* <div ref={termsRef}>
                                 <Divider ref={termsRef} orientation="center" className="text-lg">Điều khoản & Cam kết</Divider>
                                 <div className=" ml-2 my-3 ">
                                     <p className="font-bold text-[16px] mb-1"> Điều khoản chung</p>
@@ -1941,14 +2036,14 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     label={
                                         <div className="flex justify-between items-center gap-4">
                                             <p>Điều khoản chung </p>
-                                            {/* <Popover
+                                            <Popover
                                                 content={() => getTermsContent('generalTerms')}
                                                 title="Danh sách Điều khoản chung đã chọn"
                                                 trigger="hover"
                                                 placement="right"
                                             >
                                                 <Button icon={<EyeFilled />} />
-                                            </Popover> */}
+                                            </Popover>
                                         </div>
                                     }
                                     name="generalTerms"
@@ -2051,9 +2146,9 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         placeholder="Nhập điều khoản bên B"
                                     />
                                 </Form.Item>
-                            </div>
+                            </div> */}
 
-                            <div ref={otherContentRef} className="py-[100px]">
+                            {/* <div ref={otherContentRef} className="py-[100px]">
                                 <Divider orientation="center">Các nội dung khác</Divider>
 
                                 <Form.Item name="appendixEnabled" valuePropName="checked">
@@ -2125,7 +2220,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         />
                                     </Form.Item>
                                 )}
-                            </div>
+                            </div> */}
                         </Col>
 
                     </Row>
@@ -2450,8 +2545,21 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                 okText="Tạo Mới"
                 onOk={handleOk}
                 loading={isCreating}
+                closable={false} // Ẩn nút "X" ở góc trên bên phải
+                cancelButtonProps={{ style: { display: "none" } }} // Ẩn nút Cancel ở footer
             >
-                <Form form={form} layout="vertical" className="w-full">
+                <Form
+                    initialValues={newCustomerData}
+                    form={formPartner}
+                    layout="vertical"
+                    className="w-full"
+                    onValuesChange={(changedValues, allValues) => {
+                        if (changedValues.partnerName) {
+                            console.log("hiiiiiiiiii", changedValues.partnerName);
+                            handleNameChange(changedValues.partnerName);
+                        }
+                    }}
+                >
                     {/* Các trường chung được chia thành 2 cột */}
                     <Row gutter={16} className="w-full">
                         <Col xs={24} md={12}>

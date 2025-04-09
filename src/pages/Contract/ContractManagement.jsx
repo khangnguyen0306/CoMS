@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined } from "@ant-design/icons";
-import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined, SignalFilled, SignatureOutlined } from "@ant-design/icons";
+import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useGetImgSignQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -12,7 +12,7 @@ import { selectCurrentUser } from "../../slices/authSlice";
 import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
 import ExpandRowContent from "./component/ExpandRowContent";
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
-import { useUploadBillingContractMutation } from "../../services/uploadAPI";
+import { useUploadBillingContractMutation, useUploadContractToSignMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
 import ExportContractPDF from "./component/ExportContractPDF";
 const { Search } = Input;
 
@@ -32,6 +32,7 @@ const ManageContracts = () => {
         total: 0,
     });
     const [isUpdateStatusModalVisible, setIsUpdateStatusModalVisible] = useState(false);
+    const [isModalSignedVisible, setIsModalSignedVisible] = useState(false);
     const [selectedContractId, setSelectedContractId] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [paymentId, setPaymentId] = useState(null);
@@ -46,15 +47,23 @@ const ManageContracts = () => {
         keyword: searchTextStaff,
         status: status
     });
-    const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(selectedContractId, {
         skip: !selectedContractId,
     });
+
+    const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
+
     const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
         skip: !paymentId,
     });
 
+
+    const [uploadSign, { isLoading: LoadingSign }] = useUploadImgSignMutation();
+
+    const { data: dataSign, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
+        skip: !selectedContractId,
+    });
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
@@ -98,8 +107,21 @@ const ManageContracts = () => {
     const handleCloseUpdateStatusModal = () => {
         setIsUpdateStatusModalVisible(false);
         setSelectedContractId(null);
+        setFileList([]);
     };
 
+    const openUpdateSignModal = (contractId) => {
+        setSelectedContractId(contractId);
+        setIsModalSignedVisible(true);
+        setFileList([]);
+    };
+
+    // Hàm đóng modal cập nhật trạng thái
+    const handleCloseUpdateSignModal = () => {
+        setIsModalSignedVisible(false);
+        setSelectedContractId(null);
+        setFileList([]);
+    };
 
     // console.log(selectedContract)
     const handleDuplicate = async (contractId) => {
@@ -169,7 +191,20 @@ const ManageContracts = () => {
             dataIndex: "contractNumber",
             key: "contractNumber",
             sorter: (a, b) => a.contractNumber.localeCompare(b.contractNumber),
+            render: (text) => (
+                <Tooltip title={text}>
+                    <div style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: 80
+                    }}>
+                        {text}
+                    </div>
+                </Tooltip>
+            ),
         },
+
         {
             title: "Ngày tạo",
             dataIndex: "createdAt",
@@ -250,6 +285,33 @@ const ManageContracts = () => {
             key: "amount",
             render: (value) => value.toLocaleString("vi-VN") + " VND",
             sorter: (a, b) => a.amount - b.amount,
+        },
+        {
+            title: "Tải file",
+            dataIndex: "signedFilePath",
+            key: "signedFilePath",
+            render: (text, record) => (
+                (record.status === "SIGNED" || record.status === "ACTIVE") && (
+                    <div className="flex flex-col items-center gap-3">
+                        <Button
+                            type="primary"
+                            className="px-2"
+                            icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                const link = document.createElement("a");
+                                link.href = record.signedFilePath;
+                                link.download = record.signedFilePath.split("/").pop();
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }}
+                        >
+                            Tải file
+                        </Button>
+                    </div>
+                )
+            )
         },
         {
             title: "Trạng thái",
@@ -333,6 +395,16 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
+                                ...(record.status === "SIGNED", "ACTIVE"
+                                    ? [
+                                        {
+                                            key: "createAppendix",
+                                            icon: <SignatureOutlined />,
+                                            label: "Xác nhận đã ký",
+                                            onClick: () => openUpdateSignModal(record.id),
+                                        },
+                                    ]
+                                    : []),
                                 {
                                     key: "updateNotification",
                                     icon: <IoNotifications />,
@@ -384,6 +456,29 @@ const ManageContracts = () => {
             setActivePanel([]);
             setIsUpdateStatusModalVisible(false);
             refetchBill();
+            refetch();
+        } catch (error) {
+            console.error("Lỗi khi tải lên file:", error);
+            message.error("Có lỗi xảy ra khi tải lên file!");
+        }
+    };
+
+    const handleUploadSign = async (selectedContractId) => {
+        console.log("selectedContractId", selectedContractId)
+        try {
+            // Tạo FormData và append tất cả file vào cùng một key (ví dụ: "files")
+            const formData = new FormData();
+            fileList.forEach((file) => {
+                formData.append("files", file);
+            });
+
+            // Gọi API upload file, truyền paymentScheduleId và formData
+            const res = await uploadSign({ contractId: selectedContractId, formData }).unwrap();
+
+            message.success(res.message);
+            setFileList([]);
+            setIsModalSignedVisible(false);
+            refetchImg();
             refetch();
         } catch (error) {
             console.error("Lỗi khi tải lên file:", error);
@@ -651,6 +746,123 @@ const ManageContracts = () => {
                     </div>
                 )}
             </Modal>
+
+            <Modal
+                title="Cập nhật trạng thái đã ký"
+                open={isModalSignedVisible}
+                onCancel={handleCloseUpdateSignModal}
+                footer={null}
+                width={700}
+            >
+                {isLoadingPayment ? (
+                    <Spin />
+                ) : isErrorPayment ? (
+                    <div className="text-center text-red-500">Có lỗi xảy ra khi tải dữ liệu</div>
+                ) : (
+                    <div className="p-4">
+                        {/* Đã có hóa đơn */}
+
+                        {dataPayment?.data?.status === "ACTIVE" ? (
+                            <>
+                                <h3 className="text-xl font-semibold text-center mb-4">Danh sách bằng chứng đã tải lên</h3>
+                                <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                    {dataSign.data.map((imgUrl, idx) => (
+                                        <Image
+                                            key={idx}
+                                            src={imgUrl}
+                                            alt={`Uploaded ${idx}`}
+                                            style={{
+                                                width: "100px",
+                                                height: "100px",
+                                                objectFit: "cover",
+                                                borderRadius: "8px"
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                {/* Nếu chưa có hóa đơn thì hiển thị Drag & Drop */}
+                                <Upload.Dragger
+                                    disabled={isManager}
+                                    name="invoice"
+                                    accept="image/png, image/jpeg"
+                                    beforeUpload={handleBeforeUpload}
+                                    showUploadList={false}
+                                >
+                                    <p className="ant-upload-drag-icon">
+                                        <InboxOutlined />
+                                    </p>
+                                    <div className="ant-upload-text">Click hoặc kéo file vào đây để tải lên</div>
+                                    <p className="ant-upload-hint">Hỗ trợ tải lên một hoặc nhiều file.</p>
+                                </Upload.Dragger>
+
+                                {/* Preview ảnh đã chọn */}
+                                {fileList.length > 0 && (
+                                    <div className="image-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                        {fileList.map((file, index) => (
+                                            <div
+                                                key={index}
+                                                className="image-item"
+                                                onMouseEnter={() => setHoveredIndex(index)}
+                                                onMouseLeave={() => setHoveredIndex(null)}
+                                                style={{ position: "relative" }}
+                                            >
+                                                <Image
+                                                    src={URL.createObjectURL(file)}
+                                                    alt="Preview"
+                                                    style={{
+                                                        width: "100px",
+                                                        height: "100px",
+                                                        objectFit: "cover",
+                                                        borderRadius: "8px"
+                                                    }}
+                                                />
+                                                {hoveredIndex === index && (
+                                                    <Button
+                                                        icon={<DeleteOutlined />}
+                                                        onClick={() => handleDeleteImg(index)}
+                                                        style={{
+                                                            position: "absolute",
+                                                            top: "5px",
+                                                            right: "5px",
+                                                            backgroundColor: "red",
+                                                            color: "white",
+                                                            borderRadius: "50%",
+                                                            padding: "5px",
+                                                            border: "none"
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Nút tải lên */}
+                                <Button
+                                    type="primary"
+                                    icon={LoadingSign ? <LoadingOutlined /> : <UploadOutlined />}
+                                    onClick={() => handleUploadSign(selectedContractId)}
+                                    disabled={fileList.length === 0 || LoadingSign}
+                                    style={{ marginTop: "10px" }}
+                                >
+                                    {LoadingSign ? "Đang tải lên..." : "Tải lên"}
+                                </Button>
+                            </>
+                        )}
+
+
+
+                        <div className="text-center mt-8">
+                            <Button onClick={handleCloseUpdateSignModal}>Đóng</Button>
+                        </div>
+                    </div>
+                )}
+
+            </Modal>
+
             {selectedContractIdExport && (
                 <ExportContractPDF
                     contractId={selectedContractIdExport}

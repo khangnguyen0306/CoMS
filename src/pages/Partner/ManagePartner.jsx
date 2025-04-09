@@ -13,7 +13,8 @@ import {
     Select,
     message,
     Row,
-    Col
+    Col,
+    Tooltip
 } from "antd";
 import { PlusOutlined, EditFilled, DeleteFilled, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -291,8 +292,21 @@ const ManagePartner = () => {
             title: 'Địa chỉ',
             dataIndex: 'address',
             sorter: (a, b) => (a.address || '').localeCompare(b.address || ''),
-            width: '200px',
+            width: 200,
+            render: (text) => (
+                <Tooltip title={text}>
+                    <div style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: 180
+                    }}>
+                        {text}
+                    </div>
+                </Tooltip>
+            ),
         },
+
         {
             title: 'Thao tác',
             width: '100px',
