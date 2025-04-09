@@ -251,6 +251,13 @@ export const ContractAPI = baseApi.injectEndpoints({
             }),
             providesTags: (result, error, paymentScheduleId) => [{ type: "Contract", id: paymentScheduleId }],
         }),
+        getImgSign: builder.query({
+            query: (contractId) => ({
+                url: `/contracts/signed-contract-urls/${contractId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
 
 
     }),
@@ -283,6 +290,7 @@ export const {
     useUploadBillingContractMutation,
     useGetImgBillQuery,
     useUploadContractAlreadySignedMutation,
-    useDuplicateContractWithNewPartnerMutation
+    useDuplicateContractWithNewPartnerMutation,
+    useGetImgSignQuery,
 
 } = ContractAPI;

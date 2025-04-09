@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider, Form } from "antd";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, ConfigProvider, Form, Tooltip } from "antd";
 import { useGetContractStatusQuery } from "../../services/ContractAPI";
 import { Link, useNavigate } from "react-router-dom";
 import Process from "../Process/Process";
@@ -81,9 +81,21 @@ const ContractProcess = () => {
 
     const columns = [
         {
-            title: "MHĐ",
+            title: "Mã hợp đồng",
             dataIndex: "contractNumber",
             key: "contractNumber",
+            render: (text) => (
+                <Tooltip title={text}>
+                    <div style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: 100
+                    }}>
+                        {text}
+                    </div>
+                </Tooltip>
+            ),
         },
         {
             title: "Ngày tạo",
@@ -152,8 +164,8 @@ const ContractProcess = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: ["partner", "partnerName"],
-            key: "partner.partnerName",
+            dataIndex: ["partnerB", "partnerName"],
+            key: "partnerB.partnerName",
             sorter: (a, b) => a.partner.localeCompare(b.partner),
         },
         {

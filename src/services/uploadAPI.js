@@ -67,7 +67,7 @@ export const uploadAPI = createApi({
       invalidatesTags: [{ type: "Contract", id: "LIST" }],
     }),
 
-   
+
     findLocation: builder.mutation({
       query: ({ file }) => {
         const formData = new FormData();
@@ -80,15 +80,27 @@ export const uploadAPI = createApi({
       },
       invalidatesTags: [{ type: "Clause", id: "LIST" }],
     }),
+    uploadImgSign: builder.mutation({
+      query: ({ contractId, formData }) => {
 
-  }),
+        return {
+          url: `/contracts/upload-signed-contracts-file/${contractId}`,
+          method: "PUT",
+          body: formData,
+        };
+      },
+      invalidatesTags: [{ type: "Clause", id: "LIST" }],
 
-});
+    })
+
+  })
+})
 
 export const {
   useUploadFilePDFMutation,
   useUploadBillingContractMutation,
   useUploadClauseBFileMutation,
   useFindLocationMutation,
-  useUploadContractToSignMutation
+  useUploadContractToSignMutation,
+  useUploadImgSignMutation,
 } = uploadAPI;

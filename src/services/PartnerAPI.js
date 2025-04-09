@@ -80,11 +80,24 @@ export const partnerAPI = baseApi.injectEndpoints({
           ? result.data.content.map(({ id }) => ({ type: "Partner", id }))
           : [{ type: "Partner", id: "LIST" }],
     }),
-    checkExistPartner: builder.mutation({
+    checkExistPartnerA: builder.mutation({
       query: (taxCode) => ({
         url: `parties/check-exists`,
         method: "GET",
-        params: { taxCode }
+        params: {
+          taxCode,
+          partnerType: "PARTNER_A"
+        }
+      })
+    }),
+    checkExistPartnerB: builder.mutation({
+      query: (taxCode) => ({
+        url: `parties/check-exists`,
+        method: "GET",
+        params: {
+          taxCode,
+          partnerType: "PARTNER_B"
+        }
       })
     })
 
@@ -103,5 +116,6 @@ export const {
   useLazyGetPartnerInfoDetailQuery,
   useGetPartnerListByPartnerTypeQuery,
   useLazyGetPartnerListByPartnerTypeQuery,
-  useCheckExistPartnerMutation
+  useCheckExistPartnerAMutation,
+  useCheckExistPartnerBMutation,
 } = partnerAPI;

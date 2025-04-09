@@ -13,7 +13,7 @@ export const useLazyLoadSelect = (loadDataCallback, pageSize = 10) => {
     const [isLoading, setLoading] = useState(false);
     const [keyword, setKeyword] = useState("");
     const [searchData, setSearchData] = useState([]);
-    
+
 
     const fetchData = useCallback(
         async (pageNumber, searchKeyword = keyword) => {
@@ -28,7 +28,7 @@ export const useLazyLoadSelect = (loadDataCallback, pageSize = 10) => {
                 const newData = response?.data?.content || [];
 
                 if (searchKeyword) {
-                    
+
                     if (pageNumber === 0) {
                         setSearchData(newData);
                     } else {
