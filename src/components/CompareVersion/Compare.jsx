@@ -1,10 +1,11 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useGetDataContractCompareVersionQuery } from '../../services/ContractAPI'
-import { Spin, Tag } from 'antd'
+import { Spin, Tag, Table } from 'antd'
 import { useSelector } from 'react-redux'
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI'
 import { diffWords } from 'diff';
+import dayjs from 'dayjs';
 
 const Compare = () => {
     const { contractId } = useParams()
@@ -15,7 +16,7 @@ const Compare = () => {
 
 
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
-    
+
     if (!process) {
         return <div>Loading or insufficient data...</div>;
     }
@@ -25,26 +26,26 @@ const Compare = () => {
 
 
 
-    const stripHtml = (html) => html.replace(/<\/?[^>]+(>|$)/g, ""); 
+    const stripHtml = (html) => html.replace(/<\/?[^>]+(>|$)/g, "");
 
     const highlightDifferences = (content1, content2) => {
         const text1 = stripHtml(content1);
         const text2 = stripHtml(content2);
         const differences = diffWords(text1, text2);
-    
+
         return differences
             .map(part => {
                 if (part.added) {
-                    return `<span style="background: #fde047; color: green;">${part.value}</span>`; 
+                    return `<span style="background: #fde047; color: green;">${part.value}</span>`;
                 }
                 if (part.removed) {
-                    return `<span style="background: #f87171; color: red; text-decoration: line-through;">${part.value}</span>`; 
+                    return `<span style="background: #f87171; color: red; text-decoration: line-through;">${part.value}</span>`;
                 }
-                return part.value; 
+                return part.value;
             })
             .join('');
     };
-    
+
 
 
     const formatDate = (dateArray) => {
@@ -162,6 +163,105 @@ const Compare = () => {
         "10": "8. ĐIỀU KHOẢN KHÁC"
     };
 
+    const paymentSchedulesColumns = [
+        {
+            title: 'Đợt',
+            dataIndex: 'paymentOrder',
+            key: 'paymentOrder',
+            align: 'center',
+        },
+        {
+            title: 'Số tiền (VND)',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (value, record) => {
+                const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
+                const isDifferent = v1Schedule && v1Schedule.amount !== value;
+                return (
+                    <span className={isDifferent ? 'bg-yellow-300 text-green-800 px-1' : ''}>
+                        {new Intl.NumberFormat('vi-VN').format(value)}
+                    </span>
+                );
+            },
+        },
+        {
+            title: 'Ngày thanh toán',
+            dataIndex: 'paymentDate',
+            key: 'paymentDate',
+            render: (paymentDate, record) => {
+                const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
+                const isDifferent = v1Schedule && !dayjs(v1Schedule.paymentDate).isSame(dayjs(paymentDate));
+                return (
+                    <span className={isDifferent ? 'bg-yellow-300 text-green-800 px-1' : ''}>
+                        {formatDate(paymentDate)}
+                    </span>
+                );
+            },
+        },
+        {
+            title: 'Phương thức thanh toán',
+            dataIndex: 'paymentMethod',
+            key: 'paymentMethod',
+            render: (method, record) => {
+                const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
+                const isDifferent = v1Schedule && v1Schedule.paymentMethod !== method;
+                const methodText = method === 'cash'
+                    ? 'Tiền mặt'
+                    : method === 'creditCard'
+                        ? 'Thẻ tín dụng'
+                        : 'Chuyển khoản';
+                return (
+                    <span className={isDifferent ? 'bg-yellow-300 text-green-800 px-1' : ''}>
+                        {methodText}
+                    </span>
+                );
+            },
+        },
+    ];
+
+    const paymentItemsColumns = [
+        {
+            title: 'STT',
+            dataIndex: 'itemOrder',
+            key: 'itemOrder',
+            align: 'center',
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'description',
+            key: 'description',
+            render: (value, record) => {
+                const v1Item = v1.contractItems?.find(item =>
+                    item.itemOrder === record.itemOrder &&
+                    item.description === record.description
+                );
+                const isDifferent = v1Item && v1Item.description !== value;
+                return (
+                    <span className={isDifferent ? 'bg-yellow-300 text-green-800 px-1' : ''}>
+                        {value}
+                    </span>
+                );
+            },
+        },
+        {
+            title: 'Số tiền (VND)',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (value, record) => {
+                const v1Item = v1.contractItems?.find(item =>
+                    item.itemOrder === record.itemOrder &&
+                    item.description === record.description
+                );
+                const isDifferent = v1Item && v1Item.amount !== value;
+                return (
+                    <span className={isDifferent ? 'bg-yellow-300 text-green-800 px-1' : ''}>
+                        {new Intl.NumberFormat('vi-VN').format(value)}
+                    </span>
+                );
+            },
+        },
+    ];
+
     if (isLoadingBsData) {
         return (
             <div className='flex justify-center items-center'>
@@ -199,38 +299,41 @@ const Compare = () => {
                     <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                            <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                            <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.representativeName}</p>
-                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                            <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.taxCode}</p>
-                            <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                            <p className="text-sm"><b>Tên công ty:</b> {v1?.partnerA.partnerName}</p>
+                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {v1?.partnerA.partnerAddress}</p>
+                            <p className="text-sm"><b>Người đại diện:</b> {v1?.partnerA.spokesmanName}</p>
+                            <p className="text-sm"><b>Chức vụ:</b> {v1?.partnerA.position}</p>
+                            <p className="text-sm"><b>Số điện thoại: </b> {v1?.partnerA.partnerPhone}</p>
+                            <p className="text-sm"><b>Mã số thuế:</b> {v1?.partnerA.partnerTaxCode}</p>
+                            <p className="text-sm"><b>Email:</b> {v1?.partnerA.partnerEmail}</p>
                         </div>
                         <div className="flex flex-col gap-2" md={10} sm={24}>
-                            <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
+                            <p className="font-bold text-lg"><u>BÊN SỬ DỤNG (BÊN B)</u></p>
                             <p className={`text-sm `}>
-                                <b>Tên công ty:</b> {v1?.partner.partnerName}
+                                <b>Tên công ty:</b> {v1?.partnerB.partnerName}
                             </p>
                             <p className={`text-sm `}>
-                                <b>Địa chỉ trụ sở chính:</b> {v1?.partner.address}
+                                <b>Địa chỉ trụ sở chính:</b> {v1?.partnerB.partnerAddress}
                             </p>
                             <p className={`text-sm `}>
-                                <b>Người đại diện:</b> {v1?.partner.spokesmanName}
+                                <b>Người đại diện:</b> {v1?.partnerB.spokesmanName}
                             </p>
                             <p className={`text-sm `}>
-                                <b>Chức vụ:</b> {v1?.partner?.position}
+                                <b>Chức vụ:</b> {v1?.partnerB?.position}
+                            </p>
+                            <p className="text-sm"><b>Số điện thoại: </b> {v1?.partnerB.partnerPhone}</p>
+
+                            <p className={`text-sm `}>
+                                <b>Mã số thuế:</b> {v1?.partnerB.partnerTaxCode}
                             </p>
                             <p className={`text-sm `}>
-                                <b>Mã số thuế:</b> {v1?.partner.taxCode}
-                            </p>
-                            <p className={`text-sm `}>
-                                <b>Email:</b> {v1?.partner.email}
+                                <b>Email:</b> {v1?.partnerB.partnerEmail}
                             </p>
                         </div>
                     </div>
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
-                        <h3 className="font-semibold text-lg mb-2">Căn cứ pháp lý</h3>
+                        <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3>
                         {v1.legalBasisTerms.map((term, index) => (
                             <div className='flex flex-col gap-1'>
                                 <p><i>- {term.value}</i></p>
@@ -244,7 +347,7 @@ const Compare = () => {
                     />
                     {/* PaymentSchedules */}
                     <div className="mt-4">
-                        <h3 className="font-semibold">GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>3. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h3>
                         {v1.autoAddVAT && (
                             <p className='py-1'>
                                 <b>- Thêm phí VAT: </b> {v1?.vatPercentage} %
@@ -261,45 +364,49 @@ const Compare = () => {
                             </p>
                         )}
                         <p><b className={`mb-3 `}>
-                            Số lần thanh toán:</b> {v1.paymentSchedules?.length}
+                            - Số lần thanh toán:</b> {v1.paymentSchedules?.length}
                         </p>
-                        {v1.paymentSchedules.map((schedule, index) => {
-                            return (
-                                <div key={index} className="p-4 mb-4 rounded">
-                                    <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
-                                    <div className='ml-3'>
-                                        <p>
-                                            <strong>Số tiền: </strong>
-                                            <span className={``}>
-                                                {schedule.amount} VNĐ
-                                            </span>
-                                        </p>
-                                        <p>
-                                            <strong>Ngày thông báo thanh toán:</strong>
-                                            <span className={``}>
-                                                {formatDate(schedule.notifyPaymentDate)}
-                                            </span>
-                                        </p>
-                                        <p>
-                                            <strong>Ngày thanh toán:</strong>
-                                            <span className={``}>
-                                                {formatDate(schedule.paymentDate)}
-                                            </span>
-                                        </p>
-                                        <p>
-                                            <strong>Phương thức thanh toán: </strong>
-                                            <span className={``}>
-                                                {schedule.paymentMethod}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            );
-                        })}
 
+                        <div className="mt-4">
+                            <p className="ml-3 font-bold">
+                                1. Hạng mục thanh toán
+                            </p>
+                            <Table
+                                dataSource={v1.contractItems}
+                                columns={paymentItemsColumns}
+                                rowKey={(record) => `${record.itemOrder}-${record.description}`}
+                                pagination={false}
+                                bordered
+                                className='mb-5'
+                            // rowClassName={(record) => {
+                            //     const v2Item = v2.contractItems?.find(item => 
+                            //         item.itemOrder === record.itemOrder && 
+                            //         item.description === record.description
+                            //     );
+                            //     if (!v2Item) {
+                            //         return 'bg-red-300';
+                            //     }
+                            //     return '';
+                            // }}
+                            />
+                        </div>
+                        <Table
+                            dataSource={v1.paymentSchedules}
+                            columns={paymentSchedulesColumns}
+                            rowKey="paymentOrder"
+                            pagination={false}
+                            bordered
+                        // rowClassName={(record) => {
+                        //     const v2Schedule = v2.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
+                        //     if (!v2Schedule) {
+                        //         return 'bg-red-100';
+                        //     }
+                        //     return '';
+                        // }}
+                        />
                     </div>
                     <div className="mt-4 flex flex-col">
-                        <h3 className="font-semibold ">ĐIỀU KHOẢN</h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>4. ĐIỀU KHOẢN</u></h3>
                         {Object.entries(v1.additionalConfig).map(([key, termData]) => {
                             const title = termTitles[key] || `Điều khoản ${key}`;
                             const commonTerms = termData.Common || [];
@@ -381,14 +488,15 @@ const Compare = () => {
                     <div className='w-full flex justify-center mt-10 items-center pb-24' >
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
-                            <p><b> {process[0]?.partner.partnerName?.toUpperCase()}</b></p>
+                            <p><b> {v1?.partnerA?.spokesmanName.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN B</b></p>
-                            <p><b> {bsInfor?.representativeName?.toUpperCase()}</b></p>
+                            <p><b> {v1?.partnerB?.spokesmanName.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
+
                     </div>
 
                 </div>
@@ -416,39 +524,57 @@ const Compare = () => {
                     <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                            <p className="text-sm"><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                            <p className="text-sm"><b>Người đại diện:</b> {bsInfor?.representativeName}</p>
-                            <p className="text-sm"><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                            <p className="text-sm"><b>Mã số thuế:</b> {bsInfor?.taxCode}</p>
-                            <p className="text-sm"><b>Email:</b> {bsInfor?.email}</p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerA.partnerName, v2?.partnerA.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Tên công ty:</b> {v2?.partnerA.partnerName}
+                            </p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerA.partnerAddress, v2?.partnerA.partnerAddress) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Địa chỉ trụ sở chính:</b>{v2?.partnerA.partnerAddress}
+                            </p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerA.spokesmanName, v2?.partnerA.spokesmanName) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Người đại diện:</b> {v2?.partnerA.spokesmanName}
+                            </p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerA.position, v2?.partnerA.position) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Chức vụ:</b> {v2?.partnerA.position}
+                            </p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerA.partnerPhone, v2?.partnerA.partnerPhone) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Số điện thoại: </b> {v2?.partnerA.partnerPhone}
+                            </p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerA.partnerTaxCode, v2?.partnerA.partnerTaxCode) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Mã số thuế:</b> {v2?.partnerA.partnerTaxCode}
+                            </p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerA.partnerEmail, v2?.partnerA.partnerEmail) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Email:</b> {v2?.partnerA.partnerEmail}
+                            </p>
                         </div>
                         <div className="flex flex-col gap-2" md={10} sm={24}>
-                            <p className="font-bold text-lg"><u>Bên thuê (Bên B)</u></p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b>Tên công ty:</b> {v1?.partner.partnerName}
+                            <p className="font-bold text-lg"><u>BÊN SỬ DỤNG (BÊN B)</u></p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerB.partnerName, v2?.partnerB.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Tên công ty:</b> {v2?.partnerB.partnerName}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.address, v2?.partner.address) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b>Địa chỉ trụ sở chính:</b> {v1?.partner.address}
+                            <p className={`text-sm ${isDifferent(v1?.partnerB.partnerAddress, v2?.partnerB.partnerAddress) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Địa chỉ trụ sở chính:</b> {v2?.partnerB.partnerAddress}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.spokesmanName, v2?.partner.spokesmanName) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b>Người đại diện:</b> {v1?.partner.spokesmanName}
+                            <p className={`text-sm ${isDifferent(v1?.partnerB.spokesmanName, v2?.partnerB.spokesmanName) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Người đại diện:</b> {v2?.partnerB.spokesmanName}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.position, v2?.partner.position) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b>Chức vụ:</b> {v1?.partner?.position}
+                            <p className={`text-sm ${isDifferent(v1?.partnerB.position, v2?.partnerB.position) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Chức vụ:</b> {v2?.partnerB?.position}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.taxCode, v2?.partner.taxCode) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b>Mã số thuế:</b> {v1?.partner.taxCode}
+                            <p className={`text-sm ${isDifferent(v1?.partnerB.partnerPhone, v2?.partnerB.partnerPhone) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Số điện thoại: </b> {v2?.partnerB.partnerPhone}
                             </p>
-                            <p className={`text-sm ${isDifferent(v1?.partner.email, v2?.partner.email) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b>Email:</b> {v1?.partner.email}
+                            <p className={`text-sm ${isDifferent(v1?.partnerB.partnerTaxCode, v2?.partnerB.partnerTaxCode) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Mã số thuế:</b> {v2?.partnerB.partnerTaxCode}
+                            </p>
+                            <p className={`text-sm ${isDifferent(v1?.partnerB.partnerEmail, v2?.partnerB.partnerEmail) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b>Email:</b> {v2?.partnerB.partnerEmail}
                             </p>
                         </div>
 
                     </div>
                     {/* LegalBasisTerms */}
                     <div className="mt-4">
-                        <h3 className="font-semibold"><u>1. Căn cứ pháp lý</u></h3>
+                        <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3>
                         {differencesLegalBasic.unchanged.map((term, index) => (
                             <div >
                                 <p>- <i>{term.value}</i></p>
@@ -473,7 +599,7 @@ const Compare = () => {
                     />
                     {/* PaymentSchedules */}
                     <div className="mt-4">
-                        <h3 className="font-semibold">3. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>3. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h3>
                         {v2.autoAddVAT && (
                             <p className={`py-1 ${(isDifferent(v1.autoAddVAT, v2.autoAddVAT) || (isDifferent(v1.vatPercentage, v2.vatPercentage))) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                 <b>- Thêm phí VAT: </b> {v2?.vatPercentage} %
@@ -492,45 +618,86 @@ const Compare = () => {
                         <p className={`mb-3 ${isDifferent(v1.paymentSchedules.length, v2.paymentSchedules.length) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}><b >
                             -  Số lần thanh toán:</b> {v2.paymentSchedules?.length}
                         </p>
-                        {v2.paymentSchedules.map((schedule, index) => {
-                            const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === schedule.paymentOrder) || {};
 
-                            return (
-                                <div key={index} className="p-4  rounded">
-                                    <p>{index + 1 > 1 && <b>lần {index + 1}: </b>}</p>
-                                    <div className='ml-3'>
-                                        <p className={`${isDifferent(schedule.amount, v1Schedule.amount) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
-                                            <strong>Số tiền: </strong>
-                                            <span >
-                                                {schedule.amount} VNĐ
-                                            </span>
-                                        </p>
-                                        <p className={`${isDifferent(schedule.notifyPaymentDate, v1Schedule.notifyPaymentDate) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
-                                            <strong>Ngày thông báo thanh toán:</strong>
-                                            <span >
-                                                {formatDate(schedule.notifyPaymentDate)}
-                                            </span>
-                                        </p>
-                                        <p className={`${isDifferent(schedule.paymentDate, v1Schedule.paymentDate) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
-                                            <strong>Ngày thanh toán:</strong>
-                                            <span >
-                                                {formatDate(schedule.paymentDate)}
-                                            </span>
-                                        </p>
-                                        <p className={`${isDifferent(schedule.paymentMethod, v1Schedule.paymentMethod) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
-                                            <strong>Phương thức thanh toán: </strong>
-                                            <span >
-                                                {schedule.paymentMethod}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        <p className="ml-3 font-bold">
+                            1. Hạng mục thanh toán
+                        </p>
+                        <Table
+                            dataSource={[
+                                ...v2.contractItems.map(item => ({
+                                    ...item,
+                                    status: 'current'
+                                })),
+                                ...v1.contractItems
+                                    .filter(i1 => !v2.contractItems.some(i2 =>
+                                        i2.itemOrder === i1.itemOrder &&
+                                        i2.description === i1.description
+                                    ))
+                                    .map(item => ({
+                                        ...item,
+                                        status: 'deleted'
+                                    }))
+                            ]}
+                            columns={paymentItemsColumns}
+                            rowKey={(record) => `${record.itemOrder}-${record.description}`}
+                            pagination={false}
+                            bordered
+                            className='mb-5'
+                            rowClassName={(record) => {
+                                if (record.status === 'deleted') {
+                                    return 'bg-red-300';
+                                }
+                                const v1Item = v1.contractItems?.find(item =>
+                                    item.itemOrder === record.itemOrder &&
+                                    item.description === record.description
+                                );
+                                if (!v1Item) {
+                                    return 'bg-green-300';
+                                }
+                                return '';
+                            }}
+                        />
+
+                        <Table
+                            dataSource={[
+                                ...v2.paymentSchedules.map(schedule => ({
+                                    ...schedule,
+                                    status: 'current'
+                                })),
+                                ...v1.paymentSchedules
+                                    .filter(s1 => !v2.paymentSchedules.some(s2 =>
+                                        s2.paymentOrder === s1.paymentOrder &&
+                                        s2.amount == s1.amount &&
+                                        s2.paymentMethod == s1.paymentMethod
+                                    ))
+                                    .map(schedule => ({
+                                        ...schedule,
+                                        status: 'deleted'
+                                    }))
+                            ]}
+                            columns={paymentSchedulesColumns}
+                            rowKey="paymentOrder"
+                            pagination={false}
+                            bordered
+                            className='mb-5'
+                            rowClassName={(record) => {
+                                if (record.status === 'deleted') {
+                                    return 'bg-red-300';
+                                }
+                                const v1Schedule = v1.paymentSchedules.find(s =>
+                                    s.paymentOrder === record.paymentOrder &&
+                                    s.amount == record.amount &&
+                                    s.paymentMethod == record.paymentMethod);
+                                if (!v1Schedule) {
+                                    return 'bg-green-300';
+                                }
+                                return '';
+                            }}
+                        />
                     </div>
                     {/* AdditionalConfig */}
                     <div>
-                        <h3 className="font-semibold ">4. ĐIỀU KHOẢN</h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>4. ĐIỀU KHOẢN</u></h3>
                         {Object.keys(compareTerm).map((key) => {
                             const { Common, A, B } = compareTerm[key];
                             return (
@@ -553,7 +720,7 @@ const Compare = () => {
                                     )}
 
                                     {/* Hiển thị A */}
-                                    {A && (
+                                    {(A && (A.unchanged.length > 0 || A.added.length > 0 || A.removed.length > 0)) && (
                                         <div className='flex flex-col gap 2 ml-3 my-3'>
                                             <p className='font-bold'>Riêng bên A</p>
                                             {A.unchanged.length > 0 && (
@@ -569,7 +736,7 @@ const Compare = () => {
                                     )}
 
                                     {/* Hiển thị B */}
-                                    {B && (
+                                    {(B && (B.unchanged.length > 0 || B.added.length > 0 || B.removed.length > 0)) && (
                                         <div className='flex flex-col gap 2 ml-3'>
                                             <p className='font-bold'>Riêng bên B</p>
                                             {B.unchanged.length > 0 && (
@@ -619,18 +786,20 @@ const Compare = () => {
                     <div className='w-full flex justify-center mt-10 items-center pb-24' >
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
-                            <p className={`${isDifferent(v1?.partner.partnerName, v2?.partner.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b> {process[0]?.partner.partnerName.toUpperCase()}</b></p>
+                            <p className={`${isDifferent(v1?.partnerA.partnerName, v2?.partnerA.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b> {v2.partnerA.partnerName.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
-                            <p className='text-lg'><b>ĐẠI DIỆN BÊN B</b></p>
-                            <p><b> {bsInfor?.representativeName?.toUpperCase()}</b></p>
+                            <p className={`${isDifferent(v1?.partnerB.partnerName, v2?.partnerB.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}><b>ĐẠI DIỆN BÊN B</b></p>
+                            <p><b>{v2.partnerB.partnerName.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                     </div>
                 </div>
             </div>
+
+
         </div>
     );
 }
