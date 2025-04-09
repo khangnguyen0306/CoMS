@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetContractDetailQuery, useUploadContractAlreadySignedMutation } from '../../../services/ContractAPI';
+import { useGetContractDetailQuery, useLazyGetContractDetailQuery, useUploadContractAlreadySignedMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
 import { Button, Col, Divider, Drawer, message, Row, Spin, Table, Tabs, Tag, Timeline, Checkbox } from 'antd';
 import { numberToVietnamese } from '../../../utils/ConvertMoney';
@@ -20,7 +20,7 @@ import { FaPenNib } from "react-icons/fa6";
 
 const SignContract = () => {
     const { contractId } = useParams();
-    const { data: contractData, isLoading: loadingDataContract, isSuccess } = useGetContractDetailQuery(contractId);
+    const [getContractData, { data: contractData, isLoading,isSuccess }] = useLazyGetContractDetailQuery();
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: contractId });
     const [fetchDdateAudittrail, { data: auditTrailDate, isLoading: loadingAuditTrailDate }] = useLazyGetDateChangeContractQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
@@ -72,6 +72,11 @@ const SignContract = () => {
     const [loadingCreateFile, setLoadingCreateFile] = useState(false);
     const [logs, setLogs] = useState([]);
     const [isConfirmed, setIsConfirmed] = useState(false);
+
+
+    useEffect(() => {
+        getContractData(contractId)
+    }, [])
 
     const parseDate = (dateArray) => {
         if (!Array.isArray(dateArray) || dateArray.length < 5) return null;
@@ -845,6 +850,7 @@ const SignContract = () => {
                     })
                     .catch((error) => {
                         console.error("Lỗi khi upload:", error);
+                        setLoadingCreateFile(false);
                     });
             });
 
@@ -1368,7 +1374,7 @@ const SignContract = () => {
                                     <Button
                                         icon={<FaPenNib />}
                                         onClick={handleSign}
-                                        disabled={ (loadingCreateFile == true) || isUploading}
+                                        disabled={(loadingCreateFile == true) || isUploading}
                                         style={{
                                             padding: '8px 16px',
                                             border: 'none',
