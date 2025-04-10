@@ -38,7 +38,7 @@ const DuplicateContractModal = ({ visible, onCancel, contractId, refetch, refetc
                     refetch();
                     refetchNoti();
                     onCancel();
-                    selectedPartner(null)       
+                    setSelectedPartner(null)       
                 }
             } catch (error) {
                 console.error("Error duplicating contract:", error);
@@ -52,7 +52,7 @@ const DuplicateContractModal = ({ visible, onCancel, contractId, refetch, refetc
                     refetch();
                     refetchNoti();
                     onCancel();
-                    selectedPartner(null)
+                    setSelectedPartner(null)
                 }
             } catch (error) {
                 console.error("Error duplicating contract:", error);

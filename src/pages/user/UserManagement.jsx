@@ -96,7 +96,12 @@ const UserManagement = () => {
     const handleSubmitEditUser = async (values) => {
         // console.log('Form data:', values);
         try {
-            const result = await UpdateUser({ id: values.id, full_name: values.full_name, phone_number: values.phone_number, email: values.email, address: values.address, role_id: values.role_id, is_ceo: values.is_ceo, departmentId: values.departmentId }).unwrap();
+            const { id, ...body } = values;
+            const result = await UpdateUser({
+                userId: id,
+                body,
+            }).unwrap();
+
             message.success(result.message);
             refetch();
             setIsModalUpdate(false);
@@ -273,8 +278,8 @@ const UserManagement = () => {
                         record.is_active ? (
                             <Tooltip title="Cấm">
                                 <Button
-                                danger
-                                    icon={<StopOutlined  />}
+                                    danger
+                                    icon={<StopOutlined />}
                                     onClick={() => handleDelete(record.id)}
                                 />
                             </Tooltip>
@@ -436,7 +441,10 @@ const UserManagement = () => {
                             <Form
                                 form={form}
                                 layout="vertical"
-                                onFinish={(values) => handleSubmitEditUser(values)}
+                                onFinish={(values) => {
+                                    console.log('Form data:', values);
+                                    handleSubmitEditUser(values)
+                                }}
                             >
                                 <Form.Item
                                     name="id"
