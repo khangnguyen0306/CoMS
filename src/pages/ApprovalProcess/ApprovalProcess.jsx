@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button, Form, Select, Steps, message, Empty, Skeleton } from "antd";
-import { MinusCircleFilled, MinusCircleOutlined } from "@ant-design/icons";
+import { EditFilled, MinusCircleFilled, MinusCircleOutlined } from "@ant-design/icons";
 import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
 import { useGetProcessTemplatesQuery, useUpdateProcessMutation } from "../../services/ProcessAPI";
 
@@ -203,7 +203,7 @@ const ApprovalProcess = () => {
                         Quản Lý Quy Trình Ký Duyệt
                     </div>
                     <div className="flex-1 text-right">
-                        <Button type="primary" onClick={() => setIsEditing(true)}>
+                        <Button icon={<EditFilled/>} type="primary" onClick={() => setIsEditing(true)}>
                             Chỉnh sửa quy trình
                         </Button>
                     </div>

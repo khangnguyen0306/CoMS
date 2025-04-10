@@ -75,7 +75,7 @@ const Login = () => {
         switch (data.data.roles[0]) {
             case "ROLE_ADMIN":
                 setTimeout(() => {
-                    navigate('/admin', { replace: true });
+                    navigate('/admin/user', { replace: true });
                 }, 50);
                 break;
             case "ROLE_MANAGER":
