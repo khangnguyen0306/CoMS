@@ -95,7 +95,7 @@ const generationConfig = {
 };
 
 function ChatWithAIUpload({ initialPrompt, handleGenerateAIPrompt, ...othersProps }) {
-    console.log(othersProps)
+    // console.log(othersProps)
 
     const darkMode = useSelector(isDarkMode);
 

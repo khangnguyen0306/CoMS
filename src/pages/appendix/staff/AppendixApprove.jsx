@@ -21,7 +21,7 @@ const AppendixApprove = () => {
 
     const navigate = useNavigate()
     const user = useSelector(selectCurrentUser)
-    console.log(user)
+    // console.log(user)
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
     const [pagination, setPagination] = useState({
@@ -102,7 +102,7 @@ const AppendixApprove = () => {
                 try {
                     await resubmitAppendix(record.addendumId).unwrap();
                 } catch (error) {
-                    console.log(error)
+                    // console.log(error)
                     if (error.originalStatus == 200) {
                         message.success(error.data);
                         refetch()
@@ -242,7 +242,7 @@ const AppendixApprove = () => {
                                             onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
                                         }]
                                         : []),
-                                    ...(record.status === "REJECTED" ? [
+                                    ...(["REJECTED", "UPDATED"].includes(record.status) ? [
                                         {
                                             key: "select-process",
                                             icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
@@ -316,7 +316,7 @@ const AppendixApprove = () => {
         <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                    QUẢN LÝ PHỤ LỤC HỢP ĐỒNG
+                    PHÊ DUYỆT PHỤ LỤC HỢP ĐỒNG
                 </p>
                 <Space className="mb-[16px] flex items-center justify-between" >
                     <Search

@@ -57,15 +57,18 @@ const RealTimeNotification = () => {
                 onClick: () => {
                     if (text && text.includes("phụ lục")) {
                         if (user.roles[0] === "ROLE_STAFF") {
-                            navigate("/appendix");
+                            navigate("/appendix", { replace: true });
                         } else if (user.roles[0] === "ROLE_MANAGER") {
-                            navigate("/manager/appendix");
+                            navigate("/manager/appendix", { replace: true });
                         }
-                    } else {
+                    } else if (text && text.includes("từ chối")) {
+                        navigate("/contractsApproval", { replace: true })
+                    }
+                    else {
                         if (user.roles[0] === "ROLE_STAFF") {
-                            navigate("/approvalContract");
+                            navigate("/approvalContract", { replace: true });
                         } else if (user.roles[0] === "ROLE_MANAGER") {
-                            navigate("/manager/approvalContract");
+                            navigate("/manager/approvalContract", { replace: true });
                         }
                     }
                 },

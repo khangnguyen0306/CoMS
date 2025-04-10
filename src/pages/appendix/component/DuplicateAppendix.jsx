@@ -14,7 +14,7 @@ const DuplicateModal = ({ visible, handleCancelDuplicate, record, refetch }) => 
         { status: "ACTIVE" },
         { skip: !!record }
     );
-    
+
     const [duplicateAppendix] = useDuplicateAppendixMutation();
 
     const handleOk = async () => {
@@ -38,7 +38,7 @@ const DuplicateModal = ({ visible, handleCancelDuplicate, record, refetch }) => 
             handleCancelDuplicate();
             refetch();
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             message.error(error.data.message);
         }
     };

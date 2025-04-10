@@ -93,7 +93,7 @@ const EditContract = () => {
         }
         return dayjs(date).format("DD-MM-YYYY hh:mm:ss");
     };
-    console.log(cmtData)
+    //console.log(cmtData)
 
     // Fetch contract data in edit mode
     useEffect(() => {
@@ -403,7 +403,7 @@ const EditContract = () => {
 
     const onFinish = async (values) => {
         const data = form.getFieldsValue(true);
-        console.log(data);
+        //console.log(data);
         const formatDateArray = (date) => {
             if (!date) return null;
             const d = new Date(date);
@@ -498,7 +498,7 @@ const EditContract = () => {
             additionalConfig,
         };
 
-        console.log("Formatted Data:", formattedData);
+        //console.log("Formatted Data:", formattedData);
 
         try {
             const response = await UpdateContract(formattedData).unwrap();
@@ -932,7 +932,7 @@ const EditContract = () => {
     };
 
 
-    console.log(form.getFieldsValue(true))
+    //console.log(form.getFieldsValue(true))
     const steps = [
         {
             title: "Thông tin cơ bản",
@@ -1194,7 +1194,7 @@ const EditContract = () => {
                                             <Button onClick={() => setIsEditA(false)}>Hoàn tất</Button>
                                         ) : (
                                             <Button type="primary" onClick={() => setIsEditA(true)}>
-                                                <EditFilled/>
+                                                <EditFilled />
                                             </Button>
                                         )}
                                     </div>
@@ -1277,7 +1277,7 @@ const EditContract = () => {
                                             <Button onClick={() => setIsEditB(false)}>Hoàn tất</Button>
                                         ) : (
                                             <Button type="primary" onClick={() => setIsEditB(true)}>
-                                                <EditFilled/>
+                                                <EditFilled />
                                             </Button>
                                         )}
                                     </div>
@@ -1798,7 +1798,7 @@ const EditContract = () => {
                             (sum, item) => sum + (item.amount || 0),
                             0
                         );
-                        // console.log(total)
+                        //console.log(total)
                         handleChange(total)
                         form.setFieldsValue({ totalValue: total });
                     }

@@ -132,7 +132,7 @@ const ContractAppendixPage = () => {
     const handleConfirmDelete = async () => {
         try {
             const result = await deleteAppendixType(currentAppendixType.addendumTypeId);
-            console.log(result);
+            // console.log(result);
             if (result.data?.status === "OK") {
                 message.success("Xóa loại phụ lục thành công!");
                 refecthAppendixType();

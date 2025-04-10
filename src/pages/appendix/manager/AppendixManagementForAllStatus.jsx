@@ -27,12 +27,12 @@ const AppendixManagementForAllStatus = () => {
     const [status, setStatus] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
-    
+
     const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixByManagerQuery({
         managerId: user.id,
-        params:{
-        page: pagination.current - 1,
-        size: pagination.pageSize,
+        params: {
+            page: pagination.current - 1,
+            size: pagination.pageSize,
         }
     });
     // console.log(appendixs)
@@ -83,7 +83,7 @@ const AppendixManagementForAllStatus = () => {
         'UPDATED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
         'REJECTED': <Tag color="red-inverse">Từ chối</Tag>,
     }
-    
+
 
     const columns = [
         {
@@ -113,7 +113,7 @@ const AppendixManagementForAllStatus = () => {
             dataIndex: "title",
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
-            render: (text,record) => (
+            render: (text, record) => (
                 <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`}`} className="font-bold text-[#228eff] cursor-pointer">
                     <p> {text} </p>
                 </Link>
@@ -152,7 +152,7 @@ const AppendixManagementForAllStatus = () => {
             dataIndex: "status",
             key: "status",
             filters: Object.keys(statusAppendix).map(status => ({
-                text: statusAppendix[status].props.children, 
+                text: statusAppendix[status].props.children,
                 value: status,
             })),
             onFilter: (value, record) => record.status === value,
@@ -228,7 +228,7 @@ const AppendixManagementForAllStatus = () => {
     };
 
     const showModal = (record) => {
-        console.log(record)
+        // console.log(record)
         setSelectedRecord(record);
         setIsModalVisible(true);
     };
@@ -249,7 +249,7 @@ const AppendixManagementForAllStatus = () => {
         <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                   QUẢN LÝ PHỤ LỤC 
+                    QUẢN LÝ PHỤ LỤC
                 </p>
                 <Space className="mb-[16px] flex items-center justify-between" >
                     <Search

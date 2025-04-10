@@ -26,7 +26,7 @@ const Approve = () => {
         const { comment } = values;
         try {
             // Gọi mutation reject process với dữ liệu nhận được (ví dụ có thêm id hoặc thông tin cần thiết)
-            console.log(comment);
+            // console.log(comment);
             await rejectProcess({ comment: comment, contractId: id, stageId: StageIdMatching }).unwrap();
             message.success("Đã từ chối phê duyệt và gửi nhận xét thành công!");
             form.resetFields();
@@ -37,7 +37,7 @@ const Approve = () => {
                 navigate(`/manager/approvalContract`);
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             message.error("Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
@@ -73,7 +73,7 @@ const Approve = () => {
                 navigate(`/manager/approvalContract`);
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             message.error("Có lỗi xảy ra, vui lòng thử lại!");
         }
     };

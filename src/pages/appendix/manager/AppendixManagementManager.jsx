@@ -34,7 +34,7 @@ const AppendixManagementManager = () => {
         page: pagination.current - 1,
         size: pagination.pageSize,
     });
-    console.log(appendixs)
+    // console.log(appendixs)
 
 
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
@@ -82,7 +82,7 @@ const AppendixManagementManager = () => {
         'UPDATED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
         'REJECTED': <Tag color="red-inverse">Từ chối</Tag>,
     }
-    
+
 
     const columns = [
         {
@@ -112,7 +112,7 @@ const AppendixManagementManager = () => {
             dataIndex: "title",
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
-            render: (text,record) => (
+            render: (text, record) => (
                 <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`}`} className="font-bold text-[#228eff] cursor-pointer">
                     <p> {text} </p>
                 </Link>
@@ -151,7 +151,7 @@ const AppendixManagementManager = () => {
             dataIndex: "status",
             key: "status",
             filters: Object.keys(statusAppendix).map(status => ({
-                text: statusAppendix[status].props.children, 
+                text: statusAppendix[status].props.children,
                 value: status,
             })),
             onFilter: (value, record) => record.status === value,
@@ -227,7 +227,7 @@ const AppendixManagementManager = () => {
     };
 
     const showModal = (record) => {
-        console.log(record)
+        // console.log(record)
         setSelectedRecord(record);
         setIsModalVisible(true);
     };

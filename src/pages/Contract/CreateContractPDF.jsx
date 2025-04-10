@@ -123,7 +123,7 @@ const CreateContractPDF = () => {
 
     const onChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
-        console.log("File list:", newFileList);
+        //console.log("File list:", newFileList);
     };
 
     const closeModel = () => {
@@ -271,7 +271,7 @@ const CreateContractPDF = () => {
     const loadTemplateData = async ({ page, size, keyword }) => {
         // Lấy giá trị loại hợp đồng đang được chọn
         const selectedContractType = form.getFieldValue('contractType');
-        console.log(selectedContractType)
+        //console.log(selectedContractType)
         if (!selectedContractType) {
             return { content: [] };
         }
@@ -315,7 +315,7 @@ const CreateContractPDF = () => {
             await form.validateFields();
             setCurrentStep(currentStep + 1);
         } catch (errorInfo) {
-            // console.log(errorInfo)
+            //console.log(errorInfo)
             message.error(errorInfo.errorFields.length > 1 ? errorInfo.errorFields[0].errors[0] + " và các trường bắt buộc khác" : errorInfo.errorFields[0].errors[0]);
         }
     };
@@ -422,7 +422,7 @@ const CreateContractPDF = () => {
         // Thêm TemplateData vào dữ liệu cuối cùng
         formattedData.TemplateData = templateData;
 
-        // console.log("Formatted Data:", formattedData);
+        //console.log("Formatted Data:", formattedData);
 
         try {
             const response = await createContract(formattedData).unwrap();
@@ -434,7 +434,7 @@ const CreateContractPDF = () => {
                 message.error(response.message);
             }
         } catch (error) {
-            console.log(error);
+            //console.log(error);
             message.error("Lỗi khi tạo hợp đồng!");
         }
     };
@@ -472,7 +472,7 @@ const CreateContractPDF = () => {
         let content = formLegal.getFieldValue('legalContent') || '';
         try {
             const result = await createClause({ label: name, value: content, typeTermId: 8 }).unwrap();
-            // console.log(result);
+            //console.log(result);
             if (result.status === "CREATED") {
                 message.success("Tạo điều khoản thành công");
             }
@@ -948,10 +948,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
 
     const checkPartner = async (taxCode) => {
-        console.log("Checking partner with tax code:", taxCode);
+        //console.log("Checking partner with tax code:", taxCode);
         try {
             const response = await checkExistPartner(taxCode).unwrap();
-            console.log("Check partner response:", response);
+            //console.log("Check partner response:", response);
             if (response?.data === false) {
                 Modal.confirm({
                     title: "Không tìm thấy đối tác trong hệ thống, hãy tạo mới thông tin đói tác",
@@ -970,19 +970,19 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     }
 
     const handleOk = async () => {
-        console.log("handleOk", formPartner.getFieldsValue());
+        //console.log("handleOk", formPartner.getFieldsValue());
         try {
             const values = await formPartner.validateFields();
-            console.log("Form values:", values);
+            //console.log("Form values:", values);
             const newPartnerData = {
                 ...values,
                 partnerType: "PARTNER_B",
 
             };
-            console.log(newPartnerData);
+            //console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData).unwrap();
             setPartnerId(result.data.partyId);
-            console.log("Create partner result:", result);
+            //console.log("Create partner result:", result);
             message.success('Thêm mới thành công!');
             setIsModalPartner(false);
             formPartner.resetFields();
@@ -992,9 +992,9 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     };
 
     const handleNameChange = (e) => {
-        console.log("handleNameChange e", e);
+        //console.log("handleNameChange e", e);
         const value = e?.target.value;
-        console.log("handleNameChange value", value);
+        //console.log("handleNameChange value", value);
         const abbreviation = value
             .split(' ')
             .filter((word) => word)
@@ -1202,7 +1202,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
 
     const applyAIDataToForm = (data) => {
-        console.log("applyAIDataToForm", data.effectiveDate);
+        //console.log("applyAIDataToForm", data.effectiveDate);
         if (!data) {
             message.warning("Chưa có dữ liệu AI để áp dụng!");
             return;
@@ -1232,7 +1232,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                 paymentDate: p.paymentDate ? dayjs(new Date(...p.paymentDate)) : null
             })) || [],
         });
-        console.log("test lại", form.getFieldsValue(effectiveDate));
+        //console.log("test lại", form.getFieldsValue(effectiveDate));
         message.success("Đã áp dụng dữ liệu AI lên form!");
     };
 
@@ -1369,7 +1369,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                     setLoading(true);
                                                     try {
                                                         const extractedData = await callAIForExtraction(file);
-                                                        console.log("Extracted data:", extractedData);
+                                                        //console.log("Extracted data:", extractedData);
                                                         next();
                                                         const data = extractedData.response ? extractedData.response : extractedData;
                                                         setAIData(data);
@@ -1527,7 +1527,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                             Áp dụng dữ liệu AI
                                         </Button> */}
 
-                                        {console.log("form", form.getFieldsValue())}
+                                        {/* {console.log("form", form.getFieldsValue())} */}
                                         <Form.Item
                                             name="contractName"
                                             label="Tên hợp đồng"
@@ -1709,7 +1709,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 >
                                     {() => {
                                         const value = form.getFieldValue('combinedContent');
-                                        // console.log("combinedContent", value);
+                                        //console.log("combinedContent", value);
                                         return (
                                             <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
                                                 <RichTextEditor
@@ -1717,7 +1717,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                     content={value}
 
                                                     onChangeContent={(...args) => {
-                                                        console.log("onChangeContent args:", args);
+                                                        //console.log("onChangeContent args:", args);
                                                     }}
 
                                                     extensions={extensions}
@@ -2469,7 +2469,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             (sum, item) => sum + (item.amount || 0),
                             0
                         );
-                        // console.log(total)
+                        //console.log(total)
                         handleChange(total)
                         form.setFieldsValue({ totalValue: total });
                     }
@@ -2555,7 +2555,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     className="w-full"
                     onValuesChange={(changedValues, allValues) => {
                         if (changedValues.partnerName) {
-                            console.log("hiiiiiiiiii", changedValues.partnerName);
+                            //console.log("hiiiiiiiiii", changedValues.partnerName);
                             handleNameChange(changedValues.partnerName);
                         }
                     }}

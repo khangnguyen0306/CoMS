@@ -48,7 +48,7 @@ const AppendixDetail = () => {
                 setIsApproved(true);
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             message.error(error?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
@@ -65,7 +65,7 @@ const AppendixDetail = () => {
                 navigate(`/manager/appendix`);
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             message.error(error?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
@@ -105,7 +105,7 @@ const AppendixDetail = () => {
             <Col span={17} className=" rounded-lg ">
                 <div>
                     <Breadcrumb
-                    className='p-5'
+                        className='p-5'
                         items={[
                             {
                                 title: <Link to={user.roles[0] == "ROLE_STAFF" ? "/appendixFull" : "/manager/appendixFull"} >Quản lý phụ lục</Link>,

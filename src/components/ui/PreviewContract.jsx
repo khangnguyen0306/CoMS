@@ -27,7 +27,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
     const formValues = data || (form ? form.getFieldsValue(true) : {});
 
 
-    console.log(formValues)
+    // console.log(formValues)
 
     // Load term details for legal basis
     useEffect(() => {
@@ -424,7 +424,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
                             <p className="text-sm "><b>Tên công ty:</b> {formValues?.partnerA.partnerName}</p>
                             <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {formValues?.partnerA.partnerAddress}</p>
                             <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {formValues?.partnerA.spokesmanName} </p></p>
-                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerA.position }</p>
+                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerA.position}</p>
                             <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {formValues?.partnerA.partnerTaxCode}</p></p>
                             <p className="text-sm"><b>Email:</b> {formValues?.partnerA.partnerEmail}</p>
                         </Col>
@@ -433,7 +433,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
                             <p className="text-sm "><b>Tên công ty:</b> {formValues?.partnerB.partnerName}</p>
                             <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {formValues?.partnerB.partnerAddress}</p>
                             <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {formValues?.partnerB.spokesmanName} </p></p>
-                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerB.position }</p>
+                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerB.position}</p>
                             <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {formValues?.partnerB.partnerTaxCode}</p></p>
                             <p className="text-sm"><b>Email:</b> {formValues?.partnerB.partnerEmail}</p>
                         </Col>

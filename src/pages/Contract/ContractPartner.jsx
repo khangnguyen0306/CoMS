@@ -211,7 +211,7 @@ const ContractPartner = () => {
 
     const onChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
-        console.log("File list:", newFileList);
+        //console.log("File list:", newFileList);
     };
 
     const onSearch = (value) => {
@@ -398,7 +398,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         : [0, 0, 0, 0, 0, 0]
                 }));
             }
-            console.log("Transformed form values:", values);
+            //console.log("Transformed form values:", values);
             await createContractPartner(values).unwrap();
             message.success("Hợp đồng đã được tạo thành công!");
 
@@ -453,10 +453,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
 
     const checkPartner = async (taxCode) => {
-        console.log("Checking partner with tax code:", taxCode);
+        //console.log("Checking partner with tax code:", taxCode);
         try {
             const response = await checkExistPartner(taxCode).unwrap();
-            console.log("Check partner response:", response);
+            //console.log("Check partner response:", response);
             if (response?.data === false) {
                 setIsModalPartner(true);
             } else {
@@ -476,7 +476,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     // Hàm điền dữ liệu trích xuất vào form
     const fillFormWithExtractedData = (extractedData) => {
-        console.log("Extracted data:", extractedData.partner.partnerName);
+        //console.log("Extracted data:", extractedData.partner.partnerName);
         const paymentSchedulesConverted = extractedData.paymentSchedules
             ? extractedData.paymentSchedules.map((schedule) => ({
                 ...schedule,
@@ -509,7 +509,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             items: extractedData.items || [],
             paymentSchedules: paymentSchedulesConverted
         });
-        console.log("Form data:", form.getFieldsValue());
+        //console.log("Form data:", form.getFieldsValue());
     };
 
     // Hàm xóa hợp đồng
@@ -519,7 +519,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             onOk: async () => {
                 try {
                     const result = await deleteContractPartner({ partnerContractId: userId });
-                    console.log(result);
+                    //console.log(result);
                     refetch();
                     message.success(result?.data?.message);
                 } catch (error) {
@@ -534,7 +534,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     // Hàm mở modal cập nhật, chuyển đổi các giá trị ngày sang dayjs
     const showEditModal = (record) => {
-        console.log("Record:", record);
+        //console.log("Record:", record);
         setIsModalUpdate(true);
         form.resetFields();
         form.setFieldsValue({
@@ -566,14 +566,14 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                 }))
                 : []
         });
-        console.log("Form set with record:", form.getFieldsValue());
+        //console.log("Form set with record:", form.getFieldsValue());
     };
 
     // Hàm submit cập nhật hợp đồng
     const handleSubmitEditContractPartner = async () => {
         try {
             let values = form.getFieldsValue();
-            console.log("Form values:", values);
+            //console.log("Form values:", values);
 
             // Tính toán total từ values.totalValue (đảm bảo tên trường chính xác)
             const total = Number(values.totalValue) || 0;
@@ -631,7 +631,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             };
 
             const { partnerContractId, ...body } = transformedValues;
-            console.log("Transformed values:", body);
+            //console.log("Transformed values:", body);
             await updateContractPartner({ partnerContractId, body }).unwrap();
             message.success("Cập nhật hợp đồng thành công!");
             setIsModalUpdate(false);
@@ -657,7 +657,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                 partnerType: "PARTNER_A",
                 banking: bankingInfo,
             };
-            console.log(newPartnerData);
+            //console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData).unwrap();
             if (result.status === "CREATED") {
                 message.success('Thêm mới thành công!');
@@ -699,9 +699,9 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     };
 
     const handleNameChange = (e) => {
-        console.log("handleNameChange e", e);
+        //console.log("handleNameChange e", e);
         const value = e?.target.value;
-        console.log("handleNameChange value", value);
+        //console.log("handleNameChange value", value);
         const abbreviation = value
             .split(' ')
             .filter((word) => word)
@@ -1098,7 +1098,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     setLoading(true);
                                     try {
                                         const extractedData = await callAIForExtraction(file);
-                                        console.log("Extracted data:", extractedData);
+                                        //console.log("Extracted data:", extractedData);
                                         setExtractedData(extractedData);
                                         setPartnerName(extractedData?.partner.partnerName);
                                         setTaxCode(extractedData?.partner?.taxCode || "");
@@ -1109,7 +1109,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         const url = await uploadFilePDF({ formData }).unwrap();
                                         setUrl(url);
 
-                                        console.log("Uploaded file URL:", url);
+                                        //console.log("Uploaded file URL:", url);
                                     } catch (error) {
                                         console.error("Lỗi khi xử lý file:", error);
                                     } finally {

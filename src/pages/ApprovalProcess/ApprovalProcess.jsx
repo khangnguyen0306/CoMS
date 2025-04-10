@@ -29,7 +29,7 @@ const ApprovalProcess = () => {
     useEffect(() => {
         if (processData && processData.data) {
             const process = processData.data;
-            console.log("Approval stages:", process);
+            // console.log("Approval stages:", process);
             // Giả sử process.stages có cấu trúc [{ stageOrder, approver }, ...]
             setApprovalStages(process.stages);
             // Khởi tạo giá trị mặc định cho form dựa trên process.stages
@@ -172,7 +172,7 @@ const ApprovalProcess = () => {
                 name: process.name,
                 stages: updatedStages,
             };
-            console.log("Payload:", payload);
+            // console.log("Payload:", payload);
             await updateProcess({ payload, id: process.id }).unwrap();
             message.success("Cập nhật quy trình thành công!");
             refetch();

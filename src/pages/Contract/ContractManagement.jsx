@@ -104,6 +104,7 @@ const ManageContracts = () => {
     const openUpdateStatusModal = (contractId) => {
         setSelectedContractId(contractId);
         setIsUpdateStatusModalVisible(true);
+        setFileList([]);
     };
 
     // Hàm đóng modal cập nhật trạng thái
@@ -111,6 +112,7 @@ const ManageContracts = () => {
         setIsUpdateStatusModalVisible(false);
         setSelectedContractId(null);
         setFileList([]);
+        setActivePanel([]);
     };
 
     const openUpdateSignModal = (contractId) => {
@@ -124,6 +126,7 @@ const ManageContracts = () => {
         setIsModalSignedVisible(false);
         setSelectedContractId(null);
         setFileList([]);
+
     };
 
     // console.log(selectedContract)
@@ -389,21 +392,26 @@ const ManageContracts = () => {
                                         {
                                             key: "updateStatus",
                                             icon: <BsClipboard2DataFill />,
-                                            label: "Cập nhật trạng thái thanh toán",
+                                            label: dataPayment?.data?.status === "UNPAID" ? "Cập nhật trạng thái thanh toán" : "Xem hóa đơn thanh toán",
                                             onClick: () => openUpdateStatusModal(record.id),
                                         },
                                     ]
                                     : []),
-                                ...(record.status === "SIGNED", "ACTIVE"
+                                ...(["SIGNED", "ACTIVE"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
                                             icon: <SignatureOutlined />,
-                                            label: record.status === "ACTIVE" ? "Xem hợp đồng đã ký" : "Xác nhận đã ký",
+                                            label:
+                                                record.status === "ACTIVE"
+                                                    ? "Xem hợp đồng đã ký"
+                                                    : "Xác nhận đã ký",
                                             onClick: () => openUpdateSignModal(record.id),
                                         },
                                     ]
                                     : []),
+
+
                                 {
                                     key: "updateNotification",
                                     icon: <IoNotifications />,
@@ -654,8 +662,8 @@ const ManageContracts = () => {
                                                 Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:
                                             </div>
                                             <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                                {dataBill?.data && dataBill.data.length > 0 ? (
-                                                    dataBill.data.map((imgUrl, idx) => (
+                                                {dataBill?.data && dataBill?.data.length > 0 ? (
+                                                    dataBill?.data.map((imgUrl, idx) => (
                                                         <Image
                                                             key={idx}
                                                             src={imgUrl}
@@ -765,7 +773,7 @@ const ManageContracts = () => {
                             <>
                                 <h3 className="text-xl font-semibold text-center mb-4">Danh sách bằng chứng đã tải lên</h3>
                                 <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                    {dataSign.data.map((imgUrl, idx) => (
+                                    {dataSign?.data.map((imgUrl, idx) => (
                                         <Image
                                             key={idx}
                                             src={imgUrl}

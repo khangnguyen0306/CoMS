@@ -59,7 +59,7 @@ const DeletedContract = () => {
     const handleTypeChange = (value) => {
         setQueryParams(prev => {
             const updatedParams = { ...prev, type: value || null, page: 0 };
-            console.log('Updated Query Params:', updatedParams);
+            // console.log('Updated Query Params:', updatedParams);
             return updatedParams;
         });
     };

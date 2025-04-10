@@ -246,7 +246,7 @@ const CreateContractForm = () => {
     const loadTemplateData = async ({ page, size, keyword }) => {
         // Lấy giá trị loại hợp đồng đang được chọn
         const selectedContractType = form.getFieldValue('contractType');
-        console.log(selectedContractType)
+        // console.log(selectedContractType)
         if (!selectedContractType) {
             return { content: [] };
         }
@@ -409,7 +409,7 @@ const CreateContractForm = () => {
                 message.error(response.message);
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             message.error("Lỗi khi tạo hợp đồng!");
         }
     };

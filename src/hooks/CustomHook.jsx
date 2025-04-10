@@ -105,7 +105,7 @@ export const useLazyLoadSelect = (loadDataCallback, pageSize = 10) => {
     );
     const onSearch = useCallback(
         (value) => {
-            console.log("onSearch triggered with:", value);
+            // console.log("onSearch triggered with:", value);
             setKeyword(value);
             setPage(0);
             fetchData(0, value);

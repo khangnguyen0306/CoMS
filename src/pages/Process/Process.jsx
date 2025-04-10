@@ -29,14 +29,16 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
         size: size,
     });
 
-
+    console.log("User data:", userData);
     const filterUser = () => {
         return user.id !== user.id;
     };
 
     useEffect(() => {
         if (userData?.data?.content) {
-            const activeUsers = userData?.data?.content.filter(user => user.is_active);
+            const activeUsers = userData?.data?.content
+                .filter(user => !user.isCeo === true)
+                .filter(user => user.is_active);
 
             // Nếu đang load trang đầu, reset lại danh sách
             if (page === 0) {

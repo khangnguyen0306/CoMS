@@ -100,7 +100,7 @@ const AppendixManagement = () => {
                 try {
                     await resubmitAppendix(record.addendumId).unwrap();
                 } catch (error) {
-                    console.log(error)
+                    // console.log(error)
                     if (error.originalStatus == 200) {
                         message.success(error.data);
                         refetch()
@@ -242,7 +242,7 @@ const AppendixManagement = () => {
                                             onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
                                         }]
                                         : []),
-                                    ...(record.status === "REJECTED" ? [
+                                    ...(["REJECTED", "UPDATED"].includes(record.status) ? [
                                         {
                                             key: "select-process",
                                             icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
