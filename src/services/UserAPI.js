@@ -1,4 +1,5 @@
 // userApi.js
+import Paragraph from "antd/es/skeleton/Paragraph";
 import { baseApi } from "./BaseAPI";
 
 export const userAPI = baseApi.injectEndpoints({
@@ -79,7 +80,20 @@ export const userAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
-        
+        getUserManager: builder.query({
+            query: () => ({
+                url: `/users/get-all-staff-and-manager`,
+                method: "GET",
+                params: {
+                    role: "MANAGER",
+                },
+            }),
+            providesTags: (result) =>
+                result?.users
+                    ? result.users.map(({ id }) => ({ type: "USER", id }))
+                    : [{ type: "USER", id: "LIST" }],
+        }),
+
     }),
     overrideExisting: false,
 });
@@ -95,5 +109,6 @@ export const {
     useGetUserByIdQuery,
     useLazyGetUserStaffManagerQuery,
     useChangePassWordMutation,
-    useUpdateAvatarMutation
+    useUpdateAvatarMutation,
+    useGetUserManagerQuery,
 } = userAPI;

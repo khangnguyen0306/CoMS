@@ -58,13 +58,9 @@ const UserManagement = () => {
     };
 
     const handleSubmitAddUser = async (values) => {
-        // console.log('Form data:', values);
-        if (values.is_ceo === true && values.role_id === 3) {
-            message.error("Không thể tạo CEO với vai trò Staff. Vui lòng chọn vai trò Manage cho CEO!");
-            return;
-        }
+
         try {
-            const result = await AddUser({ role_id: values.role_id, phone_number: values.phone_number, full_name: values.full_name, email: values.email, address: values.address, is_ceo: values.is_ceo, departmentId: values.departmentId }).unwrap();
+            const result = await AddUser({ role_id: values.role_id, phone_number: values.phone_number, full_name: values.full_name, email: values.email, address: values.address, departmentId: values.departmentId }).unwrap();
             message.success("Tạo nhân sự thành công");
             refetch();
             setIsModalVisible(false);
@@ -222,13 +218,30 @@ const UserManagement = () => {
                     return <Tag color="gold">Giám đốc</Tag>;
                 }
 
-                return (
-                    <Tag color={record.role?.id === 2 ? "red" : "blue"}>
-                        {record.role?.id === 2 ? "Quản lý" : "Nhân viên"}
-                    </Tag>
-                );
+                let color = "blue";
+                let label = "Nhân viên";
 
+                switch (record.role?.id) {
+                    case 2:
+                        color = "red";
+                        label = "Giám đốc";
+                        break;
+                    case 3:
+                        color = "gold";
+                        label = "Quản lý";
+                        break;
+                    case 4:
+                        color = "blue";
+                        label = "Nhân viên";
+                        break;
+                    default:
+                        color = "gray";
+                        label = "Không xác định";
+                }
+
+                return <Tag color={color}>{label}</Tag>;
             },
+
             sorter: (a, b) => a.role?.roleName?.localeCompare(b.role?.roleName),
         },
 
@@ -385,8 +398,9 @@ const UserManagement = () => {
                                             rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
                                         >
                                             <Select placeholder="Chọn vai trò" onChange={handleRoleChange}>
-                                                <Option value={2}>Quản Lý</Option>
-                                                <Option value={3}>Nhân Viên</Option>
+                                                <Option value={2}>Giám đốc</Option>
+                                                <Option value={3}>Quản Lý</Option>
+                                                <Option value={4}>Nhân Viên</Option>
                                             </Select>
                                         </Form.Item>
                                     </Col>
@@ -406,22 +420,7 @@ const UserManagement = () => {
                                         </Form.Item>
                                     </Col>
                                 </Row>
-                                {roleId === 2 && !isCeoExists && (
-                                    <Row gutter={16}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="is_ceo"
-                                                label="CEO"
-                                                rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
-                                            >
-                                                <Radio.Group>
-                                                    <Radio value={true}>Có</Radio>
-                                                    <Radio value={false}>Không</Radio>
-                                                </Radio.Group>
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                )}
+
                                 <Form.Item>
                                     <div className="flex justify-center">
                                         <Button type="primary" htmlType="submit" loading={loadingAdd}>
