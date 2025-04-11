@@ -17,6 +17,8 @@ import ExportContractPDF from "./component/ExportContractPDF";
 import DuplicateContractModal from './component/DuplicateContractModal';
 import TabPane from "antd/es/tabs/TabPane";
 
+import TabPane from "antd/es/tabs/TabPane";
+
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -28,6 +30,11 @@ const ManageContracts = () => {
     const [searchTextManager, setSearchTextManager] = useState("");
     const [selectedContract, setSelectedContract] = useState(null);
     const [paginationStaff, setPaginationStaff] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0,
+    });
+    const [paginationCEO, setPaginationCEO] = useState({
         current: 1,
         pageSize: 10,
         total: 0,
@@ -92,6 +99,14 @@ const ManageContracts = () => {
     });
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
+    const isManager = user?.roles?.includes("ROLE_MANAGER");
+    const isStaff = user?.roles?.includes("ROLE_STAFF");
+
+    const tableData = isManager
+        ? contractApprove?.data?.content
+        : contracts?.data?.content || [];
+
     const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
     const isManager = user?.roles?.includes("ROLE_MANAGER");
     const isStaff = user?.roles?.includes("ROLE_STAFF");
