@@ -29,7 +29,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
         size: size,
     });
 
-
+    console.log("UserData:", userData?.data?.content);
     const filterUser = () => {
         return user.id !== user.id;
     };

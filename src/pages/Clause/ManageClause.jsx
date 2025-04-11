@@ -197,7 +197,9 @@ const ManageClause = () => {
 
     const handleOkAdd = async () => {
         try {
+
             const values = await form.validateFields();
+            console.log("values", values);
             const processedValues = {
                 ...values,
                 name: values.name ? values.name.charAt(0).toUpperCase() + values.name.slice(1) : values.name,
@@ -205,7 +207,7 @@ const ManageClause = () => {
             await createContractType(processedValues).unwrap();
             message.success("Thêm loại hợp đồng thành công!");
             setIsModalOpenAddContractType(false);
-            refetch(); // Tải lại danh sách
+            refetch();
         } catch (error) {
             message.error("Thêm loại hợp đồng thất bại!");
         }
@@ -268,7 +270,9 @@ const ManageClause = () => {
             const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: typeTermId }).unwrap();
             message.success("Cập nhật điều khoản thành công!");
             refetchClause();
+            console.log("refetch clause");
             refetchLegal();
+            console.log("refetch legal");
             setIsModalOpenClause(false);
             setIsModalOpenLegal(false);
             form.resetFields();
@@ -981,7 +985,10 @@ const ManageClause = () => {
                         <Modal
                             title="Thêm Loại Hợp Đồng"
                             open={isModalOpenAddContractType}
-                            onCancel={() => setIsModalOpenAddContractType(false)}
+                            onCancel={() => {
+                                form.resetFields();
+                                setIsModalOpenAddContractType(false)
+                            }}
                             onOk={handleOkAdd}
                             confirmLoading={loadingCreate}
                             okText="Lưu"

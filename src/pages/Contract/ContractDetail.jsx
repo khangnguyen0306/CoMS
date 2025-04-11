@@ -418,7 +418,7 @@ const ContractDetail = () => {
 
     return (
         <div
-         id="contractContent"
+            id="contractContent"
             className={`${isDarkMode ? 'bg-[#222222] text-white' : 'bg-gray-100'} w-[80%] justify-self-center   shadow-md p-4 pb-16 rounded-md`}
         >
             <Button
@@ -666,24 +666,24 @@ const ContractDetail = () => {
                             <Collapse
                                 bordered
                                 activeKey={activePanel}
-                                className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
+                                className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
                             >
                                 {contractData?.data?.paymentSchedules?.map((schedule, index) => (
                                     <Panel
                                         key={schedule.id || index}
                                         header={
-                                            <div className="flex items-center justify-between w-full">
+                                            <div className={`${isDarkMode ? '' : '!text-black'} flex items-center justify-between w-full`}>
                                                 {/* Số tiền */}
                                                 <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
                                                     <span
-                                                        className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                        className="font-bold  whitespace-nowrap overflow-hidden "
                                                         style={{ maxWidth: "250px" }}
                                                     >
                                                         {schedule.amount.toLocaleString()} VND
                                                     </span>
                                                 </Tooltip>
                                                 {/* Ngày thanh toán */}
-                                                <span className="text-base text-gray-800">
+                                                <span className="">
                                                     {schedule.paymentDate
                                                         ? dayjs(
                                                             new Date(
@@ -746,9 +746,9 @@ const ContractDetail = () => {
                                             </div>
                                         ) : (
                                             // Nếu chưa thanh toán, hiển thị thông báo "Chưa thanh toán" với UI đẹp
-                                            <div className="p-8 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 shadow-lg text-center">
-                                                <p className="text-3xl font-extrabold text-red-600">Chưa thanh toán</p>
-                                                <p className="mt-4 text-lg text-gray-700">
+                                            <div className="p-8 rounded-lg bg-gradient-to-r  shadow-lg text-center">
+                                                <p className={`text-3xl font-extrabold ${isDarkMode ? '' : 'text-red-600'} `}>Chưa thanh toán</p>
+                                                <p className="mt-4 text-lg ">
                                                     Hóa đơn sẽ được cập nhật sau khi thanh toán được xác nhận.
                                                 </p>
                                             </div>
