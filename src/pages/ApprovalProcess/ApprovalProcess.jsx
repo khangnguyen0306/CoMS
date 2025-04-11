@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Form, Select, Steps, message, Empty, Skeleton } from "antd";
 import { EditFilled, MinusCircleFilled, MinusCircleOutlined } from "@ant-design/icons";
-import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
+import { useGetUserStaffManagerQuery, useGetUserManagerQuery } from "../../services/UserAPI";
 import { useGetProcessTemplatesQuery, useUpdateProcessMutation } from "../../services/ProcessAPI";
 
 const { Step } = Steps;
@@ -9,11 +9,19 @@ const { Option } = Select;
 
 const ApprovalProcess = () => {
     // Lấy danh sách user và dữ liệu quy trình từ API
-    const { data: userData, isLoading: isLoadingUser } = useGetUserStaffManagerQuery({
+    const { data: userData, isLoading: isLoadingUser } = useGetUserManagerQuery({
         keyword: "",
         page: 0,
         limit: 10,
-    });
+    },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    );
+    useEffect(() => {
+        userData
+    }, []);
     const { data: processData, isLoading, refetch } = useGetProcessTemplatesQuery({});
     // console.log("userData", processData);
     // Sử dụng mutation cập nhật quy trình từ BE
@@ -203,7 +211,7 @@ const ApprovalProcess = () => {
                         Quản Lý Quy Trình Ký Duyệt
                     </div>
                     <div className="flex-1 text-right">
-                        <Button icon={<EditFilled/>} type="primary" onClick={() => setIsEditing(true)}>
+                        <Button icon={<EditFilled />} type="primary" onClick={() => setIsEditing(true)}>
                             Chỉnh sửa quy trình
                         </Button>
                     </div>

@@ -99,7 +99,7 @@ const ContractReadyToSign = () => {
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
-                <Link to={`/manager/signContract/${record.id}`} className="font-bold text-[#228eff] cursor-pointer">
+                <Link to={`/director/signContract/${record.id}`} className="font-bold text-[#228eff] cursor-pointer">
                     {text}
                 </Link>
             ),

@@ -14,11 +14,13 @@ import { FaSave } from "react-icons/fa";
 import { useSelector } from 'react-redux';
 import { useEditPartnerMutation, useGetPartnerInfoDetailQuery } from '../../services/PartnerAPI';
 import { PlusOutlined } from '@ant-design/icons';
+
 const BussinessInfor = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([{ bankName: '', backAccountNumber: '' }]);
     const [form] = Form.useForm();
     const { data: Data, isLoading, refetch } = useGetPartnerInfoDetailQuery({ id: 1 });
+    console.log(Data)
     const initialValues = Data?.data || {};
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [updateInformation] = useEditPartnerMutation();
@@ -30,7 +32,7 @@ const BussinessInfor = () => {
                 taxCode: Data.data.taxCode || '',
                 address: Data.data.address || '',
                 representativeName: Data.data.spokesmanName || '',
-                representativeTitle: Data.data.position || '', // sử dụng 'position' thay vì representativeTitle
+                representativeTitle: Data.data.position || '', 
                 phone: Data.data.phone || '',
                 email: Data.data.email || '',
                 bankAccounts: Data.data.banking || [{ bankName: '', backAccountNumber: '' }],

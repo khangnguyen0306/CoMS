@@ -1,28 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined, SignalFilled, SignatureOutlined } from "@ant-design/icons";
+import React, { useEffect, useMemo, useState } from "react";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image, Radio, Tabs, Checkbox } from "antd";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined, SignalFilled, SignatureOutlined, FilePdfOutlined } from "@ant-design/icons";
 import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useGetImgSignQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
-import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
+import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
 import ExpandRowContent from "./component/ExpandRowContent";
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
-import { useUploadBillingContractMutation, useUploadContractToSignMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
+import { useUploadBillingContractMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
 import ExportContractPDF from "./component/ExportContractPDF";
 import DuplicateContractModal from './component/DuplicateContractModal';
+import TabPane from "antd/es/tabs/TabPane";
+
 const { Search } = Input;
 
 const ManageContracts = () => {
-    const { Panel } = Collapse
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const [searchParams] = useSearchParams();
+    const paramstatus = searchParams.get('paramstatus');
+    const { Panel } = Collapse;
     const [searchTextStaff, setSearchTextStaff] = useState("");
     const [searchTextManager, setSearchTextManager] = useState("");
-    const [selectedContract, setSelectedContract] = useState(null)
+    const [selectedContract, setSelectedContract] = useState(null);
     const [paginationStaff, setPaginationStaff] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0,
+    });
+    const [paginationCEO, setPaginationCEO] = useState({
         current: 1,
         pageSize: 10,
         total: 0,
@@ -39,17 +49,22 @@ const ManageContracts = () => {
     const [paymentId, setPaymentId] = useState(null);
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const [activePanel, setActivePanel] = useState([]);
-
-    const [status, setStatus] = useState(null);
+    const [uploadType, setUploadType] = useState("image");
+    const [status, setStatus] = useState(paramstatus || null);
     const [duplicateContract] = useDuplicateContractMutation();
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
         page: paginationStaff.current - 1,
         size: paginationStaff.pageSize,
         keyword: searchTextStaff,
         status: status
-    });
+    },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    );
 
-    const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(selectedContractId, {
+    const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment, refetch: refetchPaymnet } = useGetContractDetailQuery(selectedContractId, {
         skip: !selectedContractId,
     });
 
@@ -68,24 +83,23 @@ const ManageContracts = () => {
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
-
-    const { data: contractManager, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
+    // Manager đang lỗi vì API này
+    const { data: contractApprove, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
         approverId: user.id,
         page: paginationManager.current - 1,
         size: paginationManager.pageSize,
         keyword: searchTextManager,
     });
-
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
-    const isManager = user?.roles[0] === "ROLE_MANAGER";
-    const isCEO = user?.roles[1] === "ROLE_CEO";
-    const isStaff = user?.roles[0] === "ROLE_STAFF";
-    const tableData = isCEO || isStaff
-        ? contracts?.data?.content
-        : isManager
-            ? contractManager?.data?.content
-            : [];
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
+    const isManager = user?.roles?.includes("ROLE_MANAGER");
+    const isStaff = user?.roles?.includes("ROLE_STAFF");
+
+    const tableData = isManager
+        ? contractApprove?.data?.content
+        : contracts?.data?.content || [];
+
     const [selectedContractIdExport, setSelectedContractIdExport] = useState(null);
     const [isDuplicateModalVisible, setIsDuplicateModalVisible] = useState(false);
     const [selectedContractForDuplicate, setSelectedContractForDuplicate] = useState(null);
@@ -97,13 +111,14 @@ const ManageContracts = () => {
         } else {
             refetch();
         }
-    }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager]);
+    }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager,searchParams]);
 
     // Trong component cha, khai báo state cho modal cập nhật trạng thái
 
     const openUpdateStatusModal = (contractId) => {
         setSelectedContractId(contractId);
         setIsUpdateStatusModalVisible(true);
+        refetchPaymnet();
     };
 
     // Hàm đóng modal cập nhật trạng thái
@@ -149,7 +164,7 @@ const ManageContracts = () => {
                 try {
                     await softDelete(record.id).unwrap();
                     message.success("Xóa hợp đồng thành công!");
-                    refetch();
+                    // refetch();
                     refetchNoti();
                 } catch (error) {
                     const errorMessage = error?.data?.message?.split(": ")?.[1] || "Xóa hợp đồng thất bại, vui lòng thử lại!";
@@ -184,7 +199,8 @@ const ManageContracts = () => {
         setSelectedContractIdExport(id);
     };
 
-    const columns = [
+
+    const column1 = [
         {
             title: "Mã hợp đồng",
             dataIndex: "contractNumber",
@@ -235,7 +251,7 @@ const ManageContracts = () => {
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
-                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
+                <Link to={`${user.roles[0] === "ROLE_STAFF" || user.roles[0] === "ROLE_DIRECTOR" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
                     {text}
                 </Link>
             ),
@@ -300,7 +316,7 @@ const ManageContracts = () => {
                                 e.stopPropagation();
                                 const link = document.createElement("a");
                                 link.href = record.signedFilePath;
-                                link.download = record.signedFilePath.split("/").pop();
+                                link.download = record.signedFilePath?.split("/").pop();
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
@@ -312,7 +328,7 @@ const ManageContracts = () => {
                 )
             )
         },
-        {
+        ...(!paramstatus ? [{
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
@@ -334,7 +350,7 @@ const ManageContracts = () => {
             onFilter: (value, record) => record.status === value,
             render: (status) => statusContract[status] || <Tag>{status}</Tag>,
             sorter: (a, b) => a.status.localeCompare(b.status),
-        },
+        }] : []),
         {
             title: "Hành động",
             key: "action",
@@ -342,6 +358,7 @@ const ManageContracts = () => {
                 <Space>
                     <Dropdown
                         menu={{
+
                             items: [
                                 // Nếu record.status là "APPROVED" thì thêm mục "Gửi ký"
                                 ...(record.status === "APPROVED"
@@ -387,16 +404,6 @@ const ManageContracts = () => {
                                                     `/CreateAppendix/?contractId=${record.id}&contractNumber=${record.contractNumber}`
                                                 ),
                                         },
-                                    ]
-                                    : []),
-                                {
-                                    key: "duplicate",
-                                    icon: <BiDuplicate style={{ color: "#228eff" }} />,
-                                    label: "Nhân bản",
-                                    onClick: () => handleDuplicate(record.id),
-                                },
-                                ...(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(record.status)
-                                    ? [
                                         {
                                             key: "updateStatus",
                                             icon: <BsClipboard2DataFill />,
@@ -405,7 +412,23 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-                                ...(record.status === "SIGNED", "ACTIVE"
+                                {
+                                    key: "duplicate",
+                                    icon: <BiDuplicate style={{ color: "#228eff" }} />,
+                                    label: "Nhân bản",
+                                    onClick: () => handleDuplicate(record.id),
+                                },
+                                // ...(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(record.status)
+                                //     ? [
+                                //         {
+                                //             key: "updateStatus",
+                                //             icon: <BsClipboard2DataFill />,
+                                //             label: "Cập nhật trạng thái thanh toán",
+                                //             onClick: () => openUpdateStatusModal(record.id),
+                                //         },
+                                //     ]
+                                //     : []),
+                                ...(["SIGNED"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
@@ -415,12 +438,8 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-                                {
-                                    key: "updateNotification",
-                                    icon: <IoNotifications />,
-                                    label: "Cập nhật thông báo",
-                                    onClick: () => message.info("Cập nhật thông báo hợp đồng!"),
-                                },
+
+
                                 {
                                     key: "export",
                                     icon: <DownloadOutlined style={{ color: "#228eff" }} />,
@@ -447,6 +466,213 @@ const ManageContracts = () => {
 
             ),
         },
+
+    ];
+
+    const column2 = [
+        {
+            title: "Mã hợp đồng",
+            dataIndex: "contractNumber",
+            key: "contractNumber",
+            sorter: (a, b) => a.contractNumber.localeCompare(b.contractNumber),
+            render: (text) => (
+                <Tooltip title={text}>
+                    <div style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: 80
+                    }}>
+                        {text}
+                    </div>
+                </Tooltip>
+            ),
+        },
+
+        {
+            title: "Ngày tạo",
+            dataIndex: "createdAt",
+            key: "createdAt",
+            sorter: (a, b) => {
+                const dateA = new Date(a.createdAt[0], a.createdAt[1] - 1, a.createdAt[2]);
+                const dateB = new Date(b.createdAt[0], b.createdAt[1] - 1, b.createdAt[2]);
+                return dateB - dateA;
+            },
+            render: (dateArray) => {
+                const [year, month, day] = dateArray;
+                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+            },
+            defaultSortOrder: 'ascend',
+        },
+        {
+            title: "Người tạo",
+            dataIndex: "user",
+            key: "user",
+            filters: [...new Set(tableData?.map(contract => contract?.user?.full_name))].map(name => ({
+                text: name,
+                value: name,
+            })),
+            render: (user) => <Link className="font-bold text-[#228eff]">{user?.full_name}</Link>,
+        },
+        {
+            title: "Tên hợp đồng",
+            dataIndex: "title",
+            key: "title",
+            sorter: (a, b) => a.title.localeCompare(b.title),
+            render: (text, record) => (
+                <Link to={`${user.roles[0] === "ROLE_STAFF" || user.roles[0] === "ROLE_DIRECTOR" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
+                    {text}
+                </Link>
+            ),
+        },
+        {
+            title: "Loại hợp đồng",
+            dataIndex: "contractType",
+            key: "contractType",
+            render: (value) =>
+            (
+                <Tag color="blue">{value.name}</Tag>
+            ),
+            filters:
+                [...new Set(tableData?.map(contract => contract.contractType.name))].map(type => ({
+                    text: type,
+                    value: type,
+                })),
+            onFilter:
+
+                (value, record) => record.contractType.name === value,
+        },
+        {
+            title: "Đối tác",
+            dataIndex: "partner",
+            key: isStaff || isCEO ? "partnerB" : "partner",
+            render: (partner) => <p>{partner?.partnerName}</p>,
+            filters: [
+                ...new Set(
+                    tableData?.map(contract =>
+                        isStaff || isCEO ? contract.partnerB?.partnerName : contract.partner?.partnerName
+                    )
+                ),
+            ]
+                .filter(Boolean)
+                .map(name => ({
+                    text: name,
+                    value: name,
+                })),
+            onFilter: (value, record) =>
+                (isManager ? record.partnerB?.partnerName : record.partner?.partnerName) === value,
+        },
+
+        {
+            title: "Giá trị",
+            dataIndex: "amount",
+            key: "amount",
+            render: (value) => value.toLocaleString("vi-VN") + " VND",
+            sorter: (a, b) => a.amount - b.amount,
+        },
+        {
+            title: "Tải file",
+            dataIndex: "signedFilePath",
+            key: "signedFilePath",
+            render: (text, record) => (
+                (record.status === "SIGNED" || record.status === "ACTIVE") && (
+                    <div className="flex flex-col items-center gap-3">
+                        <Button
+                            type="primary"
+                            className="px-2"
+                            icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                const link = document.createElement("a");
+                                link.href = record.signedFilePath;
+                                link.download = record.signedFilePath?.split("/").pop();
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }}
+                        >
+                            Tải file
+                        </Button>
+                    </div>
+                )
+            )
+        },
+        ...(!paramstatus ? [{
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            filters: [
+                { text: 'Đang tạo', value: 'DRAFT' },
+                { text: 'Đã tạo', value: 'CREATED' },
+                { text: 'Chờ phê duyệt', value: 'APPROVAL_PENDING' },
+                { text: 'Đã phê duyệt', value: 'APPROVED' },
+                { text: 'Đã cập nhật', value: 'UPDATED' },
+                { text: 'Đang chờ', value: 'PENDING' },
+                { text: 'Từ chối', value: 'REJECTED' },
+                { text: 'Đã ký', value: 'SIGNED' },
+                { text: 'Đang hiệu lực', value: 'ACTIVE' },
+                { text: 'Hoàn thành', value: 'COMPLETED' },
+                { text: 'Hết hiệu lực', value: 'EXPIRED' },
+                { text: 'Đã hủy', value: 'CANCELLED' },
+                { text: 'Đã kết thúc', value: 'ENDED' }
+            ],
+            onFilter: (value, record) => record.status === value,
+            render: (status) => statusContract[status] || <Tag>{status}</Tag>,
+            sorter: (a, b) => a.status.localeCompare(b.status),
+        }] : []),
+        {
+            title: "Hành động",
+            key: "action",
+            render: (_, record) => (
+                <Space>
+                    <Dropdown
+                        menu={{
+
+                            items: [
+                                // sau active mới hiên
+                                ...(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "updateStatus",
+                                            icon: <BsClipboard2DataFill />,
+                                            label: "Cập nhật trạng thái thanh toán",
+                                            onClick: () => openUpdateStatusModal(record.id),
+                                        },
+                                    ]
+                                    : []),
+                                ...(["SIGNED", "ACTIVE"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "uploadImagSign",
+                                            icon: <SignatureOutlined />,
+                                            label: record.status === "ACTIVE" ? "Xem hợp đồng đã ký" : "Xác nhận đã ký",
+                                            onClick: () => openUpdateSignModal(record.id),
+                                        },
+                                    ]
+                                    : []),
+
+
+                                {
+                                    key: "export",
+                                    icon: <DownloadOutlined style={{ color: "#228eff" }} />,
+                                    label: "Export",
+                                    onClick: () => handleExport(record.id),
+                                },
+
+                            ],
+                        }}
+
+                        trigger={["hover"]}
+                    >
+                        <Button>
+                            <SettingOutlined />
+                        </Button>
+                    </Dropdown>
+                </Space>
+
+            ),
+        },
+
     ];
 
     const handleUploadAll = async (paymentScheduleId) => {
@@ -481,13 +707,14 @@ const ManageContracts = () => {
             fileList.forEach((file) => {
                 formData.append("files", file);
             });
-
+            console.log("formData", formData)
             // Gọi API upload file, truyền paymentScheduleId và formData
             const res = await uploadSign({ contractId: selectedContractId, formData }).unwrap();
 
             message.success(res.message);
             setFileList([]);
             setIsModalSignedVisible(false);
+
             refetchImg();
             refetch();
         } catch (error) {
@@ -537,6 +764,34 @@ const ManageContracts = () => {
         }
     };
 
+    const alwaysVisibleKeys = ['signedFilePath', 'action'];
+
+    // Mặc định check hết tất cả (bao gồm cả những cột bắt buộc)
+    const defaultCheckedList = column1.map((col) => col.key);
+
+    // State cho các cột có thể thay đổi
+    const [checkedList, setCheckedList] = useState(defaultCheckedList);
+
+    // Danh sách hiển thị checkbox cho người dùng chọn, loại bỏ những cột luôn hiển thị
+    const options = column1
+        .filter(({ key }) => !alwaysVisibleKeys.includes(key))
+        .map(({ key, title }) => ({
+            label: title,
+            value: key,
+        }));
+
+    const filteredColumns1 = useMemo(() => {
+        return column1.filter((col) =>
+            alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)
+        );
+    }, [checkedList]);
+    const filteredColumns2 = useMemo(() => {
+        return column2.filter((col) =>
+            alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)
+        );
+    }, [checkedList]);
+
+
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
@@ -553,42 +808,115 @@ const ManageContracts = () => {
                         enterButton="Tìm kiếm"
                         disabled={isLoading}
                     />
-                    <div>
-                        <Button
-                            type="primary"
-                            icon={<UploadOutlined />}
-                            className="mr-3"
-                        >
-                            <Link to={'/createContractPDF'}> Tải lên hợp đồng</Link>
-                        </Button>
+                    {isStaff && (
+                        <div>
 
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                        >
-                            <Link to={'/createContract'}> Tạo hợp đồng</Link>
-                        </Button>
-                    </div>
+                            <Button
+                                type="primary"
+                                icon={<UploadOutlined />}
+                                className="mr-3"
+                            >
+                                <Link to={'/createContractPDF'}> Tải lên hợp đồng</Link>
+                            </Button>
+
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                            >
+                                <Link to={'/createContract'}> Tạo hợp đồng</Link>
+                            </Button>
+
+
+                        </div>
+                    )
+                    }
                 </Space>
-                <Table
-                    columns={columns}
-                    dataSource={tableData}
-                    rowKey="id"
-                    loading={isLoading}
-                    pagination={{
-                        current: isManager ? paginationManager.current : paginationStaff.current,
-                        pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
-                        total: isManager ? contractManager?.data.totalElements : contracts?.data?.totalElements || 0,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total) => `Tổng ${total} hợp đồng`,
-                    }}
-                    onChange={handleTableChange}
-                    expandable={{
-                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
-                    }}
-                    onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                <Checkbox.Group
+                    value={checkedList}
+                    options={options}
+                    onChange={(value) => setCheckedList(value)}
+                    style={{ marginBottom: 16 }}
                 />
+                {isStaff ? (
+                    <Tabs
+                        type="card"
+
+                    >
+                        <TabPane tab="Hợp đồng của tôi" key="1"  >
+                            <Table
+                                columns={filteredColumns1}
+                                dataSource={tableData}
+                                rowKey="id"
+                                loading={isLoading}
+                                pagination={{
+                                    current: isManager ? paginationManager.current : paginationStaff.current,
+                                    pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
+                                    total: isManager
+                                        ? contractApprove?.data?.totalElements
+                                        : contracts?.data?.totalElements || 0,
+                                    showSizeChanger: true,
+                                    showQuickJumper: true,
+                                    showTotal: (total) => `Tổng ${total} hợp đồng`,
+                                }}
+
+                                onChange={handleTableChange}
+                                expandable={{
+                                    expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                                }}
+                                onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                            />
+                        </TabPane>
+                        <TabPane tab="Hợp đồng đã phê duyệt" key="2">
+                            <Table
+                                columns={filteredColumns2}
+                                dataSource={contractApprove?.data?.content}
+                                rowKey="id"
+                                loading={isLoading}
+                                pagination={{
+                                    current: isManager ? paginationManager.current : paginationStaff.current,
+                                    pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
+                                    total: isManager
+                                        ? contractApprove?.data?.totalElements
+                                        : contracts?.data?.totalElements || 0,
+                                    showSizeChanger: true,
+                                    showQuickJumper: true,
+                                    showTotal: (total) => `Tổng ${total} hợp đồng`,
+                                }}
+
+                                onChange={handleTableChange}
+                                expandable={{
+                                    expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                                }}
+                                onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                            />
+                        </TabPane>
+                    </Tabs>
+                ) : (
+                    <Table
+                        columns={filteredColumns2}
+                        dataSource={tableData}
+                        rowKey="id"
+                        loading={isLoading}
+                        pagination={{
+                            current: isManager ? paginationManager.current : paginationStaff.current,
+                            pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
+                            total: isManager
+                                ? contractApprove?.data?.totalElements
+                                : contracts?.data?.totalElements || 0,
+                            showSizeChanger: true,
+                            showQuickJumper: true,
+                            showTotal: (total) => `Tổng ${total} hợp đồng`,
+                        }}
+
+                        onChange={handleTableChange}
+                        expandable={{
+                            expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                        }}
+                        onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                    />
+                )}
+
+
             </div>
             <Modal
                 title="Cập nhật trạng thái thanh toán"
@@ -608,24 +936,24 @@ const ManageContracts = () => {
                             bordered
                             activeKey={activePanel}
                             onChange={(key) => setActivePanel(key)}
-                            className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
+                            className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
                         >
                             {dataPayment?.data?.paymentSchedules?.map((schedule, index) => (
                                 <Panel
                                     key={schedule.id || index}
                                     header={
-                                        <div className="flex items-center justify-between w-full">
+                                        <div className={`${isDarkMode ? '' : '!text-black'} flex items-center justify-between w-full`}>
                                             {/* Số tiền */}
                                             <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
                                                 <span
-                                                    className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                    className={`font-bold   whitespace-nowrap overflow-hidden `}
                                                     style={{ maxWidth: "250px" }}
                                                 >
                                                     {schedule.amount.toLocaleString()} VND
                                                 </span>
                                             </Tooltip>
                                             {/* Ngày thanh toán */}
-                                            <span className="text-base text-gray-800">
+                                            <span className=" ">
                                                 {schedule.paymentDate
                                                     ? dayjs(
                                                         new Date(
@@ -643,7 +971,7 @@ const ManageContracts = () => {
                                                 ) : schedule.status === "PAID" ? (
                                                     <Tag color="green">Đã thanh toán</Tag>
                                                 ) : schedule.status === "OVERDUE" ? (
-                                                    <Tag color="red">Quá hạn</Tag>
+                                                    <Tag color="yellow">Quá hạn</Tag>
                                                 ) : (
                                                     schedule.status
                                                 )}
@@ -665,8 +993,8 @@ const ManageContracts = () => {
                                                 Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:
                                             </div>
                                             <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                                {dataBill?.data && dataBill.data.length > 0 ? (
-                                                    dataBill.data.map((imgUrl, idx) => (
+                                                {dataBill?.data && dataBill?.data?.length > 0 ? (
+                                                    dataBill?.data?.map((imgUrl, idx) => (
                                                         <Image
                                                             key={idx}
                                                             src={imgUrl}
@@ -684,7 +1012,7 @@ const ManageContracts = () => {
 
                                         <>
                                             <Upload.Dragger
-                                                disabled={isManager}
+                                                disabled={isManager || isCEO}
                                                 name="invoice"
                                                 accept="image/png, image/jpeg"
                                                 beforeUpload={handleBeforeUpload}
@@ -775,82 +1103,146 @@ const ManageContracts = () => {
                         {dataPayment?.data?.status === "ACTIVE" ? (
                             <>
                                 <h3 className="text-xl font-semibold text-center mb-4">Danh sách bằng chứng đã tải lên</h3>
-                                <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                    {dataSign?.data.map((imgUrl, idx) => (
-                                        <Image
-                                            key={idx}
-                                            src={imgUrl}
-                                            alt={`Uploaded ${idx}`}
-                                            style={{
-                                                width: "100px",
-                                                height: "100px",
-                                                objectFit: "cover",
-                                                borderRadius: "8px"
-                                            }}
-                                        />
-                                    ))}
+                                <div
+                                    className="image-preview"
+                                    style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+                                >
+                                    {dataSign?.data?.map((fileUrl, idx) => {
+                                        // const isImage = fileUrl.match(/\.(jpeg|jpg|png)$/i);
+                                        // const isPDF = fileUrl.match(/\.pdf$/i);
+                                        const isPDF = fileUrl.includes("/raw");
+                                        const isImage = fileUrl.includes("/image");
+                                        return (
+                                            <div key={idx} style={{ position: "relative" }}>
+                                                {isImage ? (
+                                                    <Image
+                                                        src={fileUrl}
+                                                        alt={`Uploaded ${idx}`}
+                                                        style={{
+                                                            width: "100px",
+                                                            height: "100px",
+                                                            objectFit: "cover",
+                                                            borderRadius: "8px"
+                                                        }}
+                                                    />
+                                                ) : isPDF ? (
+                                                    <a
+                                                        href={fileUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{
+                                                            display: "flex",
+                                                            justifyContent: "center",
+                                                            alignItems: "center",
+                                                            width: "100px",
+                                                            height: "100px",
+                                                            border: "1px solid #ccc",
+                                                            borderRadius: "8px",
+                                                            backgroundColor: "#f0f0f0",
+                                                            flexDirection: "column",
+                                                            color: "#e74c3c",
+                                                            textDecoration: "none"
+                                                        }}
+                                                    >
+                                                        <FilePdfOutlined style={{ fontSize: "30px" }} />
+                                                        <span style={{ fontSize: "12px", textAlign: "center" }}>PDF File</span>
+                                                    </a>
+                                                ) : (
+                                                    <span>File không xác định</span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </>
                         ) : (
-                            <div className="flex flex-col justify-center">
-                                {/* Nếu chưa có hóa đơn thì hiển thị Drag & Drop */}
+                            <>
                                 <Upload.Dragger
-                                    disabled={isManager}
-                                    name="invoice"
-                                    accept="image/png, image/jpeg"
-                                    beforeUpload={handleBeforeUpload}
+                                    multiple
+                                    disabled={isManager || isCEO}
+                                    name="files"
+                                    accept="image/png,image/jpeg,application/pdf"
+                                    beforeUpload={(file) => {
+                                        const isImage = file.type === "image/png" || file.type === "image/jpeg";
+                                        const isPDF = file.type === "application/pdf";
+
+                                        if (!isImage && !isPDF) {
+                                            message.error(`${file.name} không phải là hình PNG/JPG hoặc file PDF!`);
+                                            return Upload.LIST_IGNORE;
+                                        }
+
+                                        setFileList((prev) => [...prev, file]);
+                                        return false; // Không upload tự động
+                                    }}
                                     showUploadList={false}
                                 >
                                     <p className="ant-upload-drag-icon">
                                         <InboxOutlined />
                                     </p>
                                     <div className="ant-upload-text">Click hoặc kéo file vào đây để tải lên</div>
-                                    <p className="ant-upload-hint">Hỗ trợ tải lên một hoặc nhiều file.</p>
+                                    <p className="ant-upload-hint">Hỗ trợ tải lên nhiều file hình hoặc PDF.</p>
                                 </Upload.Dragger>
 
-                                {/* Preview ảnh đã chọn */}
                                 {fileList.length > 0 && (
-                                    <div className="image-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                        {fileList.map((file, index) => (
-                                            <div
-                                                key={index}
-                                                className="image-item"
-                                                onMouseEnter={() => setHoveredIndex(index)}
-                                                onMouseLeave={() => setHoveredIndex(null)}
-                                                style={{ position: "relative" }}
-                                            >
-                                                <Image
-                                                    src={URL.createObjectURL(file)}
-                                                    alt="Preview"
-                                                    style={{
-                                                        width: "100px",
-                                                        height: "100px",
-                                                        objectFit: "cover",
-                                                        borderRadius: "8px"
-                                                    }}
-                                                />
-                                                {hoveredIndex === index && (
-                                                    <Button
-                                                        icon={<DeleteOutlined />}
-                                                        onClick={() => handleDeleteImg(index)}
-                                                        style={{
-                                                            position: "absolute",
-                                                            top: "5px",
-                                                            right: "5px",
-                                                            backgroundColor: "red",
-                                                            color: "white",
-                                                            borderRadius: "50%",
-                                                            padding: "5px",
-                                                            border: "none"
-                                                        }}
-                                                    />
-                                                )}
-                                            </div>
-                                        ))}
+                                    <div className="file-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                        {fileList.map((file, index) => {
+                                            const isImage = file.type.startsWith("image/");
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    onMouseEnter={() => setHoveredIndex(index)}
+                                                    onMouseLeave={() => setHoveredIndex(null)}
+                                                    style={{ position: "relative" }}
+                                                >
+                                                    {isImage ? (
+                                                        <Image
+                                                            src={URL.createObjectURL(file)}
+                                                            alt="Preview"
+                                                            style={{
+                                                                width: "100px",
+                                                                height: "100px",
+                                                                objectFit: "cover",
+                                                                borderRadius: "8px"
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div
+                                                            style={{
+                                                                width: "100px",
+                                                                height: "100px",
+                                                                display: "flex",
+                                                                justifyContent: "center",
+                                                                alignItems: "center",
+                                                                border: "1px solid #ddd",
+                                                                borderRadius: "8px",
+                                                                backgroundColor: "#f5f5f5"
+                                                            }}
+                                                        >
+                                                            <FilePdfOutlined style={{ fontSize: "30px", color: "#e74c3c" }} />
+                                                        </div>
+                                                    )}
+                                                    {hoveredIndex === index && (
+                                                        <Button
+                                                            icon={<DeleteOutlined />}
+                                                            onClick={() => handleDeleteImg(index)}
+                                                            style={{
+                                                                position: "absolute",
+                                                                top: "5px",
+                                                                right: "5px",
+                                                                backgroundColor: "red",
+                                                                color: "white",
+                                                                borderRadius: "50%",
+                                                                padding: "5px",
+                                                                border: "none"
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
 
-                                {/* Nút tải lên */}
                                 <Button
                                     type="primary"
                                     icon={LoadingSign ? <LoadingOutlined /> : <UploadOutlined />}
@@ -860,7 +1252,9 @@ const ManageContracts = () => {
                                 >
                                     {LoadingSign ? "Đang tải lên..." : "Tải lên"}
                                 </Button>
-                            </div>
+
+
+                            </>
                         )}
 
 

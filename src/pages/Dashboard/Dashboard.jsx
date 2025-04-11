@@ -426,7 +426,7 @@ const Home = () => {
                                         }}
 
                                     >
-                                        {pieChartData.map((entry, index) => (
+                                        {pieChartData?.map((entry, index) => (
                                             <Cell
                                                 key={`cell-${index}`}
                                                 fill={isDarkMode ?
