@@ -4,6 +4,7 @@ import MainLayout from "../components/layout/MainLayout";
 import AuthGuard from "./AuthGuard";
 import AdminGuard from "./AdminGuard";
 import ManagerGuard from "./ManagerGuard";
+import DirectorGuard from "./DiarectorGuard";
 const Dashboard = Loadable({ loader: () => import("../pages/Dashboard/Dashboard") });
 const Partner = Loadable({ loader: () => import("../pages/Partner/ManagePartner") });
 const DetailPartner = Loadable({ loader: () => import("../pages/Partner/DetailParrtner") });
@@ -249,6 +250,105 @@ export const router = createBrowserRouter([
                     {
                         path: "dashboard",
                         element: Dashboard,
+                    },
+                    {
+                        path: "profile/:id",
+                        element: Profile,
+                    },
+                    {
+                        path: "partner",
+                        element: Partner,
+                    },
+                    {
+                        path: "partyId/:id",
+                        element: DetailPartner,
+                    },
+                    {
+                        path: "task",
+                        element: Task,
+                    },
+                    {
+                        path: "task/:id",
+                        element: DetailTask,
+                    },
+                    {
+                        path: "createtemplate",
+                        element: CreateTemplate,
+                    },
+                    {
+                        path: "managetemplate",
+                        element: ManageTemplate,
+                    },
+                    {
+                        path: "deletedtemplate",
+                        element: DeletedTemplate,
+                    },
+                    {
+                        path: "clause",
+                        element: Clause,
+                    },
+                    {
+                        path: "contractpartner",
+                        element: ContractPartner,
+                    },
+                    {
+                        path: "approvalContract",
+                        element: ManagerContractApproval,
+                    },
+                    {
+                        path: "approvalContract/reviewContract/:id",
+                        element: PreviewContract,
+                    },
+                    {
+                        path: "approvalContract/reviewContract/:id/approve/:id",
+                        element: ContractDetail,
+                    },
+                    {
+                        path: "setting",
+                        element: Setting,
+                    },
+                    {
+                        path: "ContractDetail/:id",
+                        element: ContractDetail,
+                    },
+                    {
+                        path: "appendix",
+                        element: AppendixManagerManagement,
+                    },
+                    {
+                        path: "appendixFull",
+                        element: AppendixManagerManagementAll,
+                    },
+                    {
+                        path: "appendixDetail/:contractId/:appendixId",
+                        element: AppendixDetail,
+                    },
+                    {
+                        path: "contractReadyToSign",
+                        element: contractReadyToSign,
+                    },
+                    {
+                        path: "signContract/:contractId",
+                        element: signContract,
+                    }
+                ],
+            },
+            {
+                path: "/director",
+                element: <DirectorGuard />,
+                children: [
+                    {
+                        index: true,
+                        path: "dashboard",
+                        element: Dashboard,
+                    },
+                    {
+                        path: "contract",
+                        element: Contract,
+                    },
+                    {
+                        path: "bsinformation",
+                        element: BussinessInfor,
                     },
                     {
                         path: "profile/:id",

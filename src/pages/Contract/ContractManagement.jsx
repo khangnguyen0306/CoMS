@@ -62,7 +62,7 @@ const ManageContracts = () => {
 
     const [uploadSign, { isLoading: LoadingSign }] = useUploadImgSignMutation();
 
-    const { data: dataSign, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
+    const { data: dataSign, isLoading: LoadingImage, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
         skip: !selectedContractId,
     });
 
@@ -167,8 +167,8 @@ const ManageContracts = () => {
         'DRAFT': <Tag color="default">Đang tạo</Tag>,
         'CREATED': <Tag color="default">Đã tạo</Tag>,
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
-        'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
-        'UPDATED': <Tag color="success">Đã cập nhật</Tag>,
+        'APPROVED': <Tag color="green-inverse">Đã phê duyệt</Tag>,
+        'UPDATED': <Tag color="green-inverse">Đã cập nhật</Tag>,
         'PENDING': <Tag color="warning">Đang chờ</Tag>,
         'REJECTED': <Tag color="red">Từ chối</Tag>,
         'SIGNED': <Tag color="geekblue">Đã ký</Tag>,
@@ -776,7 +776,7 @@ const ManageContracts = () => {
                             <>
                                 <h3 className="text-xl font-semibold text-center mb-4">Danh sách bằng chứng đã tải lên</h3>
                                 <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                    {dataSign.data.map((imgUrl, idx) => (
+                                    {dataSign?.data.map((imgUrl, idx) => (
                                         <Image
                                             key={idx}
                                             src={imgUrl}
@@ -792,7 +792,7 @@ const ManageContracts = () => {
                                 </div>
                             </>
                         ) : (
-                            <>
+                            <div className="flex flex-col justify-center">
                                 {/* Nếu chưa có hóa đơn thì hiển thị Drag & Drop */}
                                 <Upload.Dragger
                                     disabled={isManager}
@@ -860,14 +860,10 @@ const ManageContracts = () => {
                                 >
                                     {LoadingSign ? "Đang tải lên..." : "Tải lên"}
                                 </Button>
-                            </>
+                            </div>
                         )}
 
 
-
-                        <div className="text-center mt-8">
-                            <Button onClick={handleCloseUpdateSignModal}>Đóng</Button>
-                        </div>
                     </div>
                 )}
 
