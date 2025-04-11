@@ -39,11 +39,6 @@ const ManageContracts = () => {
         pageSize: 10,
         total: 0,
     });
-    const [paginationCEO, setPaginationCEO] = useState({
-        current: 1,
-        pageSize: 10,
-        total: 0,
-    });
     const [paginationManager, setPaginationManager] = useState({
         current: 1,
         pageSize: 10,
@@ -107,14 +102,6 @@ const ManageContracts = () => {
         ? contractApprove?.data?.content
         : contracts?.data?.content || [];
 
-    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
-    const isManager = user?.roles?.includes("ROLE_MANAGER");
-    const isStaff = user?.roles?.includes("ROLE_STAFF");
-
-    const tableData = isManager
-        ? contractApprove?.data?.content
-        : contracts?.data?.content || [];
-
     const [selectedContractIdExport, setSelectedContractIdExport] = useState(null);
     const [isDuplicateModalVisible, setIsDuplicateModalVisible] = useState(false);
     const [selectedContractForDuplicate, setSelectedContractForDuplicate] = useState(null);
@@ -126,7 +113,7 @@ const ManageContracts = () => {
         } else {
             refetch();
         }
-    }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager,searchParams]);
+    }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager, searchParams]);
 
     // Trong component cha, khai báo state cho modal cập nhật trạng thái
 
