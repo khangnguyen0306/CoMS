@@ -437,6 +437,7 @@ const ContractDetail = () => {
             >
                 Export PDF
             </Button> */}
+            
             <div className="flex justify-between relative">
                 {contractData?.data?.status === "APPROVAL_PENDING" && (
                     !isApprover && user.roles[0] !== "ROLE_MANAGER" ? (

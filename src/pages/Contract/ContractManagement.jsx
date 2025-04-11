@@ -5,28 +5,36 @@ import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDet
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
-import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../services/ProcessAPI";
+import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
 import ExpandRowContent from "./component/ExpandRowContent";
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
-import { useUploadBillingContractMutation, useUploadContractToSignMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
+import { useUploadBillingContractMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
 import ExportContractPDF from "./component/ExportContractPDF";
 import DuplicateContractModal from './component/DuplicateContractModal';
+import TabPane from "antd/es/tabs/TabPane";
+
 import TabPane from "antd/es/tabs/TabPane";
 
 const { Search } = Input;
 
 const ManageContracts = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-
-    const { Panel } = Collapse
+    const [searchParams] = useSearchParams();
+    const paramstatus = searchParams.get('paramstatus');
+    const { Panel } = Collapse;
     const [searchTextStaff, setSearchTextStaff] = useState("");
     const [searchTextManager, setSearchTextManager] = useState("");
-    const [selectedContract, setSelectedContract] = useState(null)
+    const [selectedContract, setSelectedContract] = useState(null);
     const [paginationStaff, setPaginationStaff] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0,
+    });
+    const [paginationCEO, setPaginationCEO] = useState({
         current: 1,
         pageSize: 10,
         total: 0,
@@ -49,7 +57,7 @@ const ManageContracts = () => {
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const [activePanel, setActivePanel] = useState([]);
     const [uploadType, setUploadType] = useState("image");
-    const [status, setStatus] = useState(null);
+    const [status, setStatus] = useState(paramstatus || null);
     const [duplicateContract] = useDuplicateContractMutation();
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
         page: paginationStaff.current - 1,
@@ -76,12 +84,13 @@ const ManageContracts = () => {
 
     const [uploadSign, { isLoading: LoadingSign }] = useUploadImgSignMutation();
 
-    const { data: dataSign, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
+    const { data: dataSign, isLoading: LoadingImage, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
         skip: !selectedContractId,
     });
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
+    // Manager đang lỗi vì API này
     const { data: contractApprove, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
         approverId: user.id,
         page: paginationManager.current - 1,
@@ -90,6 +99,14 @@ const ManageContracts = () => {
     });
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
+    const isManager = user?.roles?.includes("ROLE_MANAGER");
+    const isStaff = user?.roles?.includes("ROLE_STAFF");
+
+    const tableData = isManager
+        ? contractApprove?.data?.content
+        : contracts?.data?.content || [];
+
     const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
     const isManager = user?.roles?.includes("ROLE_MANAGER");
     const isStaff = user?.roles?.includes("ROLE_STAFF");
@@ -109,7 +126,7 @@ const ManageContracts = () => {
         } else {
             refetch();
         }
-    }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager]);
+    }, [paginationManager, paginationStaff, searchTextStaff, searchTextManager, status, isManager,searchParams]);
 
     // Trong component cha, khai báo state cho modal cập nhật trạng thái
 
@@ -180,8 +197,8 @@ const ManageContracts = () => {
         'DRAFT': <Tag color="default">Đang tạo</Tag>,
         'CREATED': <Tag color="default">Đã tạo</Tag>,
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
-        'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
-        'UPDATED': <Tag color="success">Đã cập nhật</Tag>,
+        'APPROVED': <Tag color="green-inverse">Đã phê duyệt</Tag>,
+        'UPDATED': <Tag color="green-inverse">Đã cập nhật</Tag>,
         'PENDING': <Tag color="warning">Đang chờ</Tag>,
         'REJECTED': <Tag color="red">Từ chối</Tag>,
         'SIGNED': <Tag color="geekblue">Đã ký</Tag>,
@@ -249,7 +266,7 @@ const ManageContracts = () => {
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
-                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
+                <Link to={`${user.roles[0] === "ROLE_STAFF" || user.roles[0] === "ROLE_DIRECTOR" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
                     {text}
                 </Link>
             ),
@@ -326,7 +343,7 @@ const ManageContracts = () => {
                 )
             )
         },
-        {
+        ...(!paramstatus ? [{
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
@@ -348,7 +365,7 @@ const ManageContracts = () => {
             onFilter: (value, record) => record.status === value,
             render: (status) => statusContract[status] || <Tag>{status}</Tag>,
             sorter: (a, b) => a.status.localeCompare(b.status),
-        },
+        }] : []),
         {
             title: "Hành động",
             key: "action",
@@ -518,7 +535,7 @@ const ManageContracts = () => {
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
-                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
+                <Link to={`${user.roles[0] === "ROLE_STAFF" || user.roles[0] === "ROLE_DIRECTOR" ? `/ContractDetail/${record.id}` : `/manager/ContractDetail/${record.id}`}`} className="font-bold text-[#228eff] cursor-pointer">
                     {text}
                 </Link>
             ),
@@ -595,7 +612,7 @@ const ManageContracts = () => {
                 )
             )
         },
-        {
+        ...(!paramstatus ? [{
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
@@ -617,7 +634,7 @@ const ManageContracts = () => {
             onFilter: (value, record) => record.status === value,
             render: (status) => statusContract[status] || <Tag>{status}</Tag>,
             sorter: (a, b) => a.status.localeCompare(b.status),
-        },
+        }] : []),
         {
             title: "Hành động",
             key: "action",
@@ -1256,10 +1273,6 @@ const ManageContracts = () => {
                         )}
 
 
-
-                        <div className="text-center mt-8">
-                            <Button onClick={handleCloseUpdateSignModal}>Đóng</Button>
-                        </div>
                     </div>
                 )}
 

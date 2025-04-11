@@ -1,13 +1,13 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Image, Layout, Menu, notification, theme, Modal, Badge, Avatar, Skeleton } from "antd";
-import { AuditOutlined, LoginOutlined, MenuOutlined, TagsOutlined, UserOutlined } from "@ant-design/icons";
+import { AuditOutlined, CheckCircleFilled, LoginOutlined, MenuOutlined, TagsOutlined, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
 import { FaUserTie } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { FaFileContract } from "react-icons/fa";
-import { MdOutlineClass } from "react-icons/md";
+import { MdOutlineClass, MdClass } from "react-icons/md";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { BsTrash3Fill } from "react-icons/bs";
 import { MdLibraryBooks } from "react-icons/md";
@@ -23,11 +23,17 @@ import { LuWaypoints } from "react-icons/lu";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import RealTimeNotification from "../../pages/Noti/RealTimeNotiPay";
 import NotificationDropdown from "../../pages/Noti/NotificationDropdown";
-
 import { toggleTheme } from "../../slices/themeSlice";
 import { HiMiniClipboardDocumentCheck } from "react-icons/hi2";
 import "./button.css"
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
+import { FaUserClock } from "react-icons/fa";
+import { FaClock } from "react-icons/fa6";
+import { IoIosSend } from "react-icons/io";
+import { FcExpired } from "react-icons/fc";
+import { IoIosCloseCircle } from "react-icons/io";
+import { FaSwatchbook } from "react-icons/fa6";
+import { PiStampFill } from "react-icons/pi";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -36,12 +42,11 @@ const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser);
   const { data: numberNoti, isLoading: loadingNumber } = useGetNumberNotiForAllQuery()
-  // console.log(numberNoti)
 
   const router = {
     '1': '/',
-    'dash': '/dashboard',
-    'dashboard': "/manager/dashboard",
+    'managerDashboard': "/manager/dashboard",
+    'directorDashboard': "/director/dashboard",
     'task': '/task',
     'client': '/partner',
     'contract': '/contract',
@@ -56,7 +61,7 @@ const MainLayout = () => {
     'workflow': '/admin/process',
     'contractPartner': '/contractpartner',
     "createContract": "/createContract",
-    'setting': '/manager/setting',
+    'setting': '/director/setting',
     "process": "/process",
     "DeleteContract": '/DeleteContract',
     "contractsApproval": "/contractsApproval",
@@ -64,9 +69,18 @@ const MainLayout = () => {
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
     'managerAppendix': "/manager/appendix",
+    'directorAppendixSign': '/director/appendixSign',
+    'directorManageAppendix': "/director/appendix",
     'managerAppendixForallStatus': "/manager/appendixFull",
-    'contractsNeedSign':"/manager/contractReadyToSign",
+    'contractsNeedSign': "/director/contractReadyToSign",
+    'contractsSigned': "/contract?paramstatus=SIGNED",
+    'contractsExpired': "/contract?paramstatus=EXPIRED",
+    'contractsRejected': "/contract?paramstatus=REJECTED",
     '4': '/combo',
+    'diarecAllApendix': '/director/appendixFull',
+    'directorAppendixApprove': '/director/appendix',
+    'approveManager': '/contract?paramstatus=APPROVED',
+    'sendAppendix':'/appendixSend'
   }
 
   const handleLogout = useCallback(() => {
@@ -88,54 +102,27 @@ const MainLayout = () => {
   }, [dispatch, navigate]);
 
 
-
   const navManager = [
     { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
-    { icon: FaUserTie, label: 'Khách hàng', key: "client" },
-    { icon: GoLaw, label: 'Điều khoản và loại hợp đồng', key: "clause" },
     {
       icon: FaFileContract,
       label: 'Hợp đồng',
       badgeType: "contracts",
       children: [
-        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract", badgeCount: "contractsPendingApprovalForManager" },
-        { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract" },
-        { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
-        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
-        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
-        ...(user?.roles[1] === "ROLE_CEO" ? [
-          { icon: HiMiniClipboardDocumentCheck, label: 'Hợp đồng cần ký', key: "contractsNeedSign" }
-        ] : [])
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContract", color: "#1890ff", badgeCount: "contractsPendingApprovalForManager" },
+        { icon: MdClass, label: 'Tất cả hợp đồng', key: "contract", color: "#13c2c2" },
+        { icon: CheckCircleFilled, label: 'Hợp đồng đã duyệt', key: "approveManager", color: "#52c41a" },
+        { icon: IoIosCloseCircle, label: 'Hợp đồng đã từ chối ', key: "contractsRejected", color: "#f5222d" },
       ]
     },
     {
-      icon: TagsOutlined,
+      icon: FaSwatchbook,
       label: 'Phụ lục hợp đồng',
       badgeType: "addenda",
-      children: [
-        // { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
-        { icon: AuditOutlined, label: 'Phê duyệt phụ lục', key: "managerAppendix", default: true, badgeCount: "addendaPendingApprovalForManager" },
-        { icon: MenuOutlined, label: 'Quản lý phụ lục', key: "managerAppendixForallStatus" },
-        // { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
-        // { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
-        // { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
-        // { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval" },
 
-      ]
-    },
-    {
-      icon: MdLibraryBooks, label: 'Template Hợp đồng', children: [
-        { icon: MdOutlineClass, label: 'Template hợp đồng', key: "manageTemplate" },
-        { icon: BsClipboard2DataFill, label: 'Tạo Template', key: "templateCreate" },
-        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
-      ]
-    },
-    
-    {
-      icon: IoMdSettings, label: 'Cấu hình', key: "settingManagement", children: [
-        { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1" },
-        // { icon: SiAuth0, label: 'Phân quyền', key: "setting2" },
-        { icon: IoMdSettings, label: 'Cấu hình', key: "setting" },
+      children: [
+        { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "managerAppendix", default: true, badgeCount: "addendaPendingApprovalForManager", color: "#fa8c16" },
+        { icon: MenuOutlined, label: 'Quản lý phụ lục', key: "managerAppendixForallStatus" },
       ]
     },
     {
@@ -147,10 +134,10 @@ const MainLayout = () => {
       key: item.key,
       icon: hasBadgeDot ? (
         <Badge dot>
-          {React.createElement(item.icon)}
+          {React.createElement(item.icon, { style: { color: item.color } })}
         </Badge>
       ) : (
-        React.createElement(item.icon)
+        React.createElement(item.icon, { style: { color: item.color } })
       ),
       label: item.label,
       children: item.children?.map((childItem, childIndex) => {
@@ -158,10 +145,10 @@ const MainLayout = () => {
 
         const icon = childBadgeCount > 0 ? (
           <Badge size="small" count={childBadgeCount}>
-            {React.createElement(childItem.icon)}
+            {React.createElement(childItem.icon, { style: { color: childItem.color } })}
           </Badge>
         ) : (
-          React.createElement(childItem.icon)
+          React.createElement(childItem.icon, { style: { color: childItem.color } })
         );
 
         return {
@@ -172,10 +159,10 @@ const MainLayout = () => {
           children: childItem.children && childItem.children.length > 0 ? childItem.children.map((grandchildItem, grandchildIndex) => {
             const grandchildIcon = grandchildItem.badgeCount ? (
               <Badge size="small" count={numberNoti?.data[grandchildItem.badgeCount] || 0}>
-                {React.createElement(grandchildItem.icon)}
+                {React.createElement(grandchildItem.icon, { style: { color: grandchildItem.color } })}
               </Badge>
             ) : (
-              React.createElement(grandchildItem.icon)
+              React.createElement(grandchildItem.icon, { style: { color: grandchildItem.color } })
             );
             return {
               icon: grandchildIcon,
@@ -231,32 +218,24 @@ const MainLayout = () => {
       label: 'Hợp đồng',
       badgeType: "contracts",
       children: [
-        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff" },
-        { icon: MdOutlineClass, label: 'Quản lý hợp đồng', key: "contract", default: true, badgeCount: "contractsPendingApproval" },
-        { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract" },
-        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract" },
-        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
-        { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval", badgeCount: "contractsRejected" },
+        { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract", color: "#1890ff" },
+        { icon: MdOutlineClass, label: 'Tất cả hợp đồng', key: "contract", default: true, badgeCount: "contractsPendingApproval", color: "#13c2c2" },
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff", color: "#faad14" },
+        { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval", badgeCount: "contractsRejected", color: "#722ed1" },
+        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner", color: "#52c41a" },
+        { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract", color: "#f5222d" },
       ]
     },
     {
-      icon: TagsOutlined,
+      icon: FaSwatchbook,
       label: 'Phụ lục hợp đồng',
       badgeType: "addenda",
       children: [
-        { icon: AuditOutlined, label: 'Phê duyệt phụ lục', key: "appendix", badgeCount: "addendaRejected" },
-        { icon: MenuOutlined, label: 'Quản lý phụ lục', key: "appendixManageStaff", default: true, badgeCount: "addendaPendingApproval" },
+        { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "appendix", badgeCount: "addendaRejected", color: "#fa8c16" },
+        { icon: IoIosSend, label: 'Yêu cầu phê duyệt phụ lục', key: "sendAppendix", badgeCount: "addendaRejected", color: "#722ed1" },
+        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "appendixManageStaff", default: true, badgeCount: "addendaPendingApproval", color: "#13c2c2" },
       ]
     },
-    // {
-    //   icon: MdLibraryBooks,
-    //   label: 'Mẫu Hợp đồng',
-    //   children: [
-    //     { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "manageTemplate" },
-    //     { icon: BsClipboard2DataFill, label: 'Tạo mẫu hợp đồng', key: "templateCreate" },
-    //     { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "deletedtemplate" },
-    //   ]
-    // },
     {
       icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
     },
@@ -279,10 +258,10 @@ const MainLayout = () => {
 
         const icon = childBadgeCount > 0 ? (
           <Badge size="small" count={childBadgeCount}>
-            {React.createElement(childItem.icon)}
+            {React.createElement(childItem.icon, { style: { color: childItem.color } })}
           </Badge>
         ) : (
-          React.createElement(childItem.icon)
+          React.createElement(childItem.icon, { style: { color: childItem.color } })
         );
 
         return {
@@ -294,10 +273,10 @@ const MainLayout = () => {
             const grandchildBadgeCount = numberNoti?.data?.[grandchildItem.badgeCount] || 0;
             const grandchildIcon = grandchildBadgeCount > 0 ? (
               <Badge size="small" count={grandchildBadgeCount}>
-                {React.createElement(grandchildItem.icon)}
+                {React.createElement(grandchildItem.icon, { style: { color: grandchildItem.color } })}
               </Badge>
             ) : (
-              React.createElement(grandchildItem.icon)
+              React.createElement(grandchildItem.icon, { style: { color: grandchildItem.color } })
             );
 
             return {
@@ -307,6 +286,89 @@ const MainLayout = () => {
               path: grandchildItem.path,
             };
           }) || null,
+        };
+      }),
+    };
+  });
+
+
+  const navDiarector = [
+    { icon: MdDashboard, label: 'Dashboard', key: "directorDashboard", default: true },
+    { icon: FaUserTie, label: 'Khách hàng', key: "client" },
+    {
+      icon: FaFileContract,
+      label: 'Hợp đồng',
+      badgeType: "contracts",
+      children: [
+        { icon: MdClass, label: 'Tất cả hợp đồng', key: "contract", color: "#1890ff" },
+        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner"},
+        { icon: FaClock, label: 'Hợp đồng chờ ký', key: "contractsNeedSign", color: "#faad14" },
+        { icon: CheckCircleFilled, label: 'Hợp đồng đã ký', key: "contractsSigned", color: "#52c41a" },
+        { icon: FcExpired, label: 'Hợp đồng đã hết hạn', key: "contractsExpired", color: "#f5222d" },
+        { icon: IoIosCloseCircle, label: 'Hợp đồng đã từ chối ', key: "contractsRejected", color: "#f5222d" },
+      ]
+    },
+    {
+      icon: FaSwatchbook,
+      label: 'Phụ lục hợp đồng',
+      badgeType: "addenda",
+      children: [
+        { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "directorAppendixApprove", color: "#FF8247", badgeCount: "addendaRejected" },
+        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "diarecAllApendix", default: true, badgeCount: "addendaPendingApproval" },
+      ]
+    },
+    {
+      icon: IoMdSettings, label: 'Cấu hình', key: "settingManagement", color: "#", children: [
+        { icon: AiFillIdcard, label: 'Thông tin doanh nghiệp', key: "setting1", color: "#1890ff" },
+        { icon: IoMdSettings, label: 'Cài đặt khác', key: "setting", color: "#722ed1" },
+      ]
+    },
+    {
+      icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
+    },
+  ].map((item, index) => {
+    const hasBadgeDot = item.children?.some(child => numberNoti?.data?.[child.badgeCount] > 0);
+    return {
+      key: item.key,
+      icon: hasBadgeDot ? (
+        <Badge dot>
+          {React.createElement(item.icon, { style: { color: item.color } })}
+        </Badge>
+      ) : (
+        React.createElement(item.icon, { style: { color: item.color } })
+      ),
+      label: item.label,
+      children: item.children?.map((childItem, childIndex) => {
+        const childBadgeCount = numberNoti?.data?.[childItem.badgeCount] || 0;
+
+        const icon = childBadgeCount > 0 ? (
+          <Badge size="small" count={childBadgeCount}>
+            {React.createElement(childItem.icon, { style: { color: childItem.color } })}
+          </Badge>
+        ) : (
+          React.createElement(childItem.icon, { style: { color: childItem.color } })
+        );
+
+        return {
+          icon: icon,
+          key: childItem.key,
+          label: childItem.label,
+          path: childItem.path,
+          children: childItem.children && childItem.children.length > 0 ? childItem.children.map((grandchildItem, grandchildIndex) => {
+            const grandchildIcon = grandchildItem.badgeCount ? (
+              <Badge size="small" count={numberNoti?.data[grandchildItem.badgeCount] || 0}>
+                {React.createElement(grandchildItem.icon, { style: { color: grandchildItem.color } })}
+              </Badge>
+            ) : (
+              React.createElement(grandchildItem.icon, { style: { color: grandchildItem.color } })
+            );
+            return {
+              icon: grandchildIcon,
+              key: grandchildItem.key,
+              label: grandchildItem.label,
+              path: grandchildItem.path,
+            }
+          }) : null,
         };
       }),
     };
@@ -364,7 +426,15 @@ const MainLayout = () => {
             height: '100%',
             borderRight: 0,
           }}
-          items={user?.roles[0] == "ROLE_ADMIN" ? navAdmin : user?.roles[0] == "ROLE_MANAGER" ? navManager : navStaff}
+          items={
+            user?.roles?.includes("ROLE_ADMIN")
+              ? navAdmin
+              : user?.roles?.includes("ROLE_DIRECTOR")
+                ? navDiarector
+                : user?.roles?.includes("ROLE_MANAGER")
+                  ? navManager
+                  : navStaff
+          }
           onClick={handleMenuClick}
         />
 

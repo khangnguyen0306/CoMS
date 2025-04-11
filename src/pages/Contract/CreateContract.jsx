@@ -1498,6 +1498,22 @@ const CreateContractForm = () => {
                                                 if (!payments || payments.length < 1) {
                                                     return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
                                                 }
+                                                
+                                                // Get total contract value
+                                                const totalValue = form.getFieldValue('totalValue');
+                                                if (!totalValue) {
+                                                    return Promise.reject(new Error('Vui lòng nhập các hạng mục thanh toán trước trước!'));
+                                                }
+
+                                                // Calculate sum of payment amounts
+                                                const totalPayments = payments.reduce((sum, payment) => {
+                                                    return sum + (Number(payment.amount) || 0);
+                                                }, 0);
+
+                                                // Compare with total contract value
+                                                if (Math.abs(totalPayments - totalValue) > 0.01) { // Allow small floating point differences
+                                                    return Promise.reject(new Error(`Tổng số tiền các đợt thanh toán (${new Intl.NumberFormat('vi-VN').format(totalPayments)} VND) phải bằng tổng giá trị hợp đồng (${new Intl.NumberFormat('vi-VN').format(totalValue)} VND)!`));
+                                                }
                                             },
                                         },
                                     ]}

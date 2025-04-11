@@ -10,7 +10,7 @@ import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, Cl
 import AuditrailContract from '../component/AuditrailContract';
 import DisplayAppendix from '../../appendix/staff/DisplayAppendix';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
-import { selectCurrentUser } from '../../../slices/authSlice';
+import { selectCurrentToken, selectCurrentUser } from '../../../slices/authSlice';
 import { useLazyGetDataChangeByDateQuery, useLazyGetDateChangeContractQuery } from '../../../services/AuditTrailAPI';
 import { useGetAppendixByContractIdQuery } from '../../../services/AppendixAPI';
 import { convert } from 'html-to-text';
@@ -20,7 +20,8 @@ import { FaPenNib } from "react-icons/fa6";
 
 const SignContract = () => {
     const { contractId } = useParams();
-    const [getContractData, { data: contractData, isLoading,isSuccess }] = useLazyGetContractDetailQuery();
+    const token = useSelector(selectCurrentToken)
+    const [getContractData, { data: contractData, isLoading, isSuccess }] = useLazyGetContractDetailQuery();
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: contractId });
     const [fetchDdateAudittrail, { data: auditTrailDate, isLoading: loadingAuditTrailDate }] = useLazyGetDateChangeContractQuery();
     const [fetchTerms] = useLazyGetTermDetailQuery();
@@ -960,7 +961,7 @@ const SignContract = () => {
                 FileName: selectedFile.name,
             };
 
-            hubProxy.invoke('SignDocument', data.FileId, signInfo, dataToSign.page);
+            hubProxy.invoke('SignDocument', data.FileId, signInfo, dataToSign.page, token);
 
 
             setSelectedFile(null)
