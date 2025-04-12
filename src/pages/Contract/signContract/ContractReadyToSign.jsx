@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../slices/authSlice";
 import ExportContractPDF from "./../component/ExportContractPDF";
+import ExpandRowContent from "../component/ExpandRowContent";
 const { Search } = Input;
 
 const ContractReadyToSign = () => {
@@ -203,6 +204,9 @@ const ContractReadyToSign = () => {
                         showTotal: (total) => `Tổng ${total} hợp đồng`,
                     }}
                     onChange={handleTableChange}
+                    expandable={{
+                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                    }}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
             </div>

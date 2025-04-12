@@ -16,8 +16,7 @@ import { useUploadBillingContractMutation, useUploadImgSignMutation } from "../.
 import ExportContractPDF from "./component/ExportContractPDF";
 import DuplicateContractModal from './component/DuplicateContractModal';
 import TabPane from "antd/es/tabs/TabPane";
-
-import TabPane from "antd/es/tabs/TabPane";
+import { IoIosWarning } from "react-icons/io";
 
 const { Search } = Input;
 
@@ -195,6 +194,7 @@ const ManageContracts = () => {
         'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
         'ENDED': <Tag color="default">Đã kết thúc</Tag>,
         'DELETED': <Tag color="red">Đã xóa</Tag>,
+        'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning/><p>Sắp hết hạn</p></p></Tag>,
     }
 
     const handleExport = (id) => {
@@ -347,10 +347,37 @@ const ManageContracts = () => {
                 { text: 'Hoàn thành', value: 'COMPLETED' },
                 { text: 'Hết hiệu lực', value: 'EXPIRED' },
                 { text: 'Đã hủy', value: 'CANCELLED' },
-                { text: 'Đã kết thúc', value: 'ENDED' }
+                { text: 'Đã kết thúc', value: 'ENDED' },
+                { text: 'Sắp hết hạn', value: 'EXPIRING' }
             ],
-            onFilter: (value, record) => record.status === value,
-            render: (status) => statusContract[status] || <Tag>{status}</Tag>,
+            onFilter: (value, record) => {
+                if (value === 'EXPIRING') {
+                    if (record.status === 'ACTIVE' && record.expiryDate) {
+                        const expiryDate = new Date(record.expiryDate[0], record.expiryDate[1] - 1, record.expiryDate[2]);
+                        const today = new Date();
+                        const twoMonthsFromNow = new Date();
+                        twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+                        return expiryDate <= twoMonthsFromNow && expiryDate >= today;
+                    }
+                    return false;
+                }
+                return record.status === value;
+            },
+            render: (status, record) => {
+                // Kiểm tra nếu hợp đồng đang hiệu lực và có ngày hết hạn
+                if (status === 'ACTIVE' && record.expiryDate) {
+                    const expiryDate = new Date(record.expiryDate[0], record.expiryDate[1] - 1, record.expiryDate[2]);
+                    const today = new Date();
+                    const twoMonthsFromNow = new Date();
+                    twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+                    
+                    // Nếu ngày hết hạn trong vòng 2 tháng tới
+                    if (expiryDate <= twoMonthsFromNow && expiryDate >= today) {
+                        return statusContract['EXPIRING'];
+                    }
+                }
+                return statusContract[status] || <Tag>{status}</Tag>;
+            },
             sorter: (a, b) => a.status.localeCompare(b.status),
         }] : []),
         {
@@ -616,10 +643,37 @@ const ManageContracts = () => {
                 { text: 'Hoàn thành', value: 'COMPLETED' },
                 { text: 'Hết hiệu lực', value: 'EXPIRED' },
                 { text: 'Đã hủy', value: 'CANCELLED' },
-                { text: 'Đã kết thúc', value: 'ENDED' }
+                { text: 'Đã kết thúc', value: 'ENDED' },
+                { text: 'Sắp hết hạn', value: 'EXPIRING' }
             ],
-            onFilter: (value, record) => record.status === value,
-            render: (status) => statusContract[status] || <Tag>{status}</Tag>,
+            onFilter: (value, record) => {
+                if (value === 'EXPIRING') {
+                    if (record.status === 'ACTIVE' && record.expiryDate) {
+                        const expiryDate = new Date(record.expiryDate[0], record.expiryDate[1] - 1, record.expiryDate[2]);
+                        const today = new Date();
+                        const twoMonthsFromNow = new Date();
+                        twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+                        return expiryDate <= twoMonthsFromNow && expiryDate >= today;
+                    }
+                    return false;
+                }
+                return record.status === value;
+            },
+            render: (status, record) => {
+                // Kiểm tra nếu hợp đồng đang hiệu lực và có ngày hết hạn
+                if (status === 'ACTIVE' && record.expiryDate) {
+                    const expiryDate = new Date(record.expiryDate[0], record.expiryDate[1] - 1, record.expiryDate[2]);
+                    const today = new Date();
+                    const twoMonthsFromNow = new Date();
+                    twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+                    
+                    // Nếu ngày hết hạn trong vòng 2 tháng tới
+                    if (expiryDate <= twoMonthsFromNow && expiryDate >= today) {
+                        return statusContract['EXPIRING'];
+                    }
+                }
+                return statusContract[status] || <Tag>{status}</Tag>;
+            },
             sorter: (a, b) => a.status.localeCompare(b.status),
         }] : []),
         {
