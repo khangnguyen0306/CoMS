@@ -1,5 +1,5 @@
 import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Skeleton, Table } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Skeleton, Table, Tooltip } from "antd";
 import dayjs from "dayjs";
 import LazySelectContractTemplate from "../../hooks/LazySelectContractTemplate";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ import { useGetPartnerInfoDetailQuery, useLazyGetPartnerListByPartnerTypeQuery, 
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
 import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractTypeQuery } from "../../services/ContractAPI";
-import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EyeFilled, PlusOutlined } from "@ant-design/icons";
+import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EyeFilled, InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
 import LazyLegalSelect from "../../hooks/LazyLegalSelect";
@@ -195,6 +195,14 @@ const CreateContractForm = () => {
     };
 
     const handlePaymentDateChange = (date, name) => {
+        if (!effectiveDate) { // Assuming effectiveDate is the state holding the effective date
+            message.error("Vui lòng chọn ngày hiệu lực trước"); // Display error message
+            return; // Exit the function
+        }
+        if (date && (date.isBefore(effectiveDate) || date.isAfter(expiryDate))) { // Assuming expiryDate is defined
+            message.error("Ngày thanh toán phải nằm trong khoảng thời gian hiệu lực"); // Display error message
+            return; // Exit the function
+        }
         if (date) {
             const notifyDate = calculateNotificationDate(date);
             const payments = form.getFieldValue('payments') || [];
@@ -1306,25 +1314,26 @@ const CreateContractForm = () => {
                                                     if (!effectiveDate || !value) {
                                                         return Promise.resolve();
                                                     }
-                                                    if (value.isBefore(effectiveDate)) {
+                                                    if (value.isBefore(effectiveDate) || value.isSame(effectiveDate)) {
                                                         return Promise.resolve();
                                                     }
-                                                    return Promise.reject(new Error('Ngày ký kết phải trước ngày có hiệu lực!'));
+                                                    return Promise.reject(new Error('Ngày ký kết phải trước hoặc cùng ngày có hiệu lực!'));
                                                 },
                                             }),
                                         ]}
+
                                     >
                                         <DatePicker
                                             className="w-full"
                                             format="DD/MM/YYYY"
                                             disabledDate={(current) => {
-                                                const effectiveDate = form.getFieldValue('effectiveDate');
-                                                if (effectiveDate) {
-                                                    return current && current >= dayjs(effectiveDate).startOf('day');
-                                                }
-                                                return current && current < dayjs().startOf('day');
+                                                const isPast = current && current < dayjs().startOf('day');
+                                                // const effectiveDate = form.getFieldValue('effectiveDate');
+                                                // const isAfterEffective = effectiveDate && current && current > dayjs(effectiveDate).startOf('day');
+                                                return isPast
                                             }}
                                         />
+
                                     </Form.Item>
                                 </div>
 
@@ -1437,6 +1446,97 @@ const CreateContractForm = () => {
                                     </Suspense>
                                 </Form.Item>
 
+
+                                <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
+                                <Form.Item
+                                    label="Thời gian hiệu lực hợp đồng"
+                                    name="dateRange"
+                                    rules={[
+                                        { required: true, message: "Vui lòng chọn thời gian hiệu lực hợp đồng!" },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                if (!value || value.length !== 2) {
+                                                    return Promise.resolve();
+                                                }
+                                                const [effectiveDate, expiryDate] = value;
+                                                const signingDate = getFieldValue('signingDate');
+
+                                                // Kiểm tra effectiveDate phải sau signingDate
+                                                if (signingDate && effectiveDate.isBefore(signingDate)) {
+                                                    return Promise.reject(new Error('Ngày bắt đầu hiệu lực phải sau ngày ký kết!'));
+                                                }
+
+                                                // Kiểm tra expiryDate phải sau effectiveDate và không được trùng nhau
+                                                if (expiryDate.isSame(effectiveDate) || expiryDate.isBefore(effectiveDate)) {
+                                                    return Promise.reject(new Error('Ngày kết thúc hiệu lực phải sau ngày bắt đầu!'));
+                                                }
+
+                                                return Promise.resolve();
+                                            },
+                                        }),
+                                    ]}
+                                >
+                                    <DatePicker.RangePicker
+                                        className="w-full"
+                                        showTime={{ format: 'HH:mm' }}
+                                        format="DD/MM/YYYY HH:mm"
+                                        placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
+                                        disabledDate={(current) => {
+                                            const signingDate = form.getFieldValue('signingDate');
+                                            if (!current) return false;
+                                            // Không cho chọn ngày trước hôm nay hoặc trước signingDate
+                                            return current < dayjs().startOf('day') || (signingDate && current <= signingDate);
+                                        }}
+                                        onChange={(dates) => {
+                                            if (dates) {
+                                                form.setFieldsValue({
+                                                    effectiveDate: dates[0],
+                                                    expiryDate: dates[1],
+                                                });
+                                                handleEffectiveDateChange(dates[0]);
+                                                handleExpiryDateChange(dates[1]);
+                                            } else {
+                                                form.setFieldsValue({
+                                                    effectiveDate: null,
+                                                    expiryDate: null,
+                                                    notifyEffectiveDate: null,
+                                                    notifyExpiryDate: null,
+                                                });
+                                            }
+                                        }}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    name="effectiveDate"
+                                    hidden
+                                    rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]}
+                                />
+                                <Form.Item
+                                    name="expiryDate"
+                                    hidden
+                                    rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]}
+                                />
+
+                                <Form.Item
+                                    label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
+                                    name="autoRenew"
+                                    valuePropName="checked"
+                                    noStyle
+
+                                >
+                                    <div className="flex items-center">
+                                        <Switch
+                                            className="mr-4"
+                                            onChange={(checked) => {
+                                                form.setFieldsValue({ autoRenew: checked });
+                                                setIsAutoRenew(checked);
+                                            }}
+                                            checked={form.getFieldValue('autoRenew') ?? isAutoRenew} />
+                                        <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
+                                    </div>
+                                </Form.Item>
+
+
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
                                     name="contractItems"
@@ -1489,103 +1589,120 @@ const CreateContractForm = () => {
                                 </div>
 
                                 <Divider orientation="center">Thanh toán</Divider>
-                                <Form.List
-                                    name="payments"
-                                    className="w-full"
-                                    rules={[
-                                        {
-                                            validator: async (_, payments) => {
-                                                if (!payments || payments.length < 1) {
-                                                    return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
-                                                }
-                                                
-                                                // Get total contract value
-                                                const totalValue = form.getFieldValue('totalValue');
-                                                if (!totalValue) {
-                                                    return Promise.reject(new Error('Vui lòng nhập các hạng mục thanh toán trước trước!'));
-                                                }
 
-                                                // Calculate sum of payment amounts
-                                                const totalPayments = payments.reduce((sum, payment) => {
-                                                    return sum + (Number(payment.amount) || 0);
-                                                }, 0);
+                                {form.getFieldValue('totalValue') > 0 && (
+                                    <div>
+                                        <Tooltip title="chọn ngày có hiệu lực và hết hiệu lực trước khi chọn ngày thanh toán">
+                                            <Button type="link" size="large">Lưu ý<InfoCircleOutlined /></Button>
+                                        </Tooltip>
+                                        <Form.List
+                                            name="payments"
+                                            className="w-full"
+                                            rules={[
+                                                {
+                                                    validator: async (_, payments) => {
 
-                                                // Compare with total contract value
-                                                if (Math.abs(totalPayments - totalValue) > 0.01) { // Allow small floating point differences
-                                                    return Promise.reject(new Error(`Tổng số tiền các đợt thanh toán (${new Intl.NumberFormat('vi-VN').format(totalPayments)} VND) phải bằng tổng giá trị hợp đồng (${new Intl.NumberFormat('vi-VN').format(totalValue)} VND)!`));
-                                                }
-                                            },
-                                        },
-                                    ]}
-                                >
-                                    {(fields, { add, remove }) => (
-                                        <>
-                                            {fields.map(({ key, name, ...restField }) => (
-                                                <Space key={key} align="baseline" className="flex mb-4 items-center w-full">
-                                                    {/* <Form.Item
+                                                        // const effectiveDate = form.getFieldValue('effectiveDate');
+                                                        // if (!effectiveDate) {
+                                                        //     return Promise.reject(
+                                                        //         new Error('Vui lòng chọn ngày có hiệu lực hợp đồng trước khi tạo đợt thanh toán!')
+                                                        //     );
+                                                        // }
+
+                                                        if (!payments || payments.length < 1) {
+                                                            return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
+                                                        }
+
+                                                        const totalValue = form.getFieldValue('totalValue');
+                                                        if (!totalValue) {
+                                                            return Promise.reject(new Error('Vui lòng nhập các hạng mục thanh toán trước trước!'));
+                                                        }
+
+                                                        const totalPayments = payments.reduce((sum, payment) => {
+                                                            return sum + (Number(payment.amount) || 0);
+                                                        }, 0);
+
+                                                        if (Math.abs(totalPayments - totalValue) > 0.01) {
+                                                            return Promise.reject(new Error(`Tổng số tiền các đợt thanh toán (${new Intl.NumberFormat('vi-VN').format(totalPayments)} VND) phải bằng tổng giá trị hợp đồng (${new Intl.NumberFormat('vi-VN').format(totalValue)} VND)!`));
+                                                        }
+                                                    },
+                                                },
+                                            ]}
+                                        >
+                                            {(fields, { add, remove }) => (
+                                                <>
+                                                    {fields.map(({ key, name, ...restField }) => (
+                                                        <Space key={key} align="baseline" className="flex mb-4 items-center w-full">
+                                                            {/* <Form.Item
                                                         {...restField}
                                                         name={[name, "paymentContent"]}
                                                         rules={[{ required: true, message: "Nhập nội dung thanh toán" }]}
                                                     >
                                                         <Input.TextArea placeholder="Nhập nội dung" rows={2} />
                                                     </Form.Item> */}
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, "amount"]}
-                                                        rules={[{ required: true, message: "Nhập số tiền thanh toán" }]}
-                                                    >
-                                                        <InputNumber
-                                                            style={{ width: "100%" }}
-                                                            placeholder="Số tiền"
-                                                            min={0}
-                                                            max={1000000000000000}
-                                                            formatter={(value) =>
-                                                                value
-                                                                    ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
-                                                                    : ""
-                                                            }
-                                                            parser={(value) => value.replace(/\D/g, "")}
-                                                        />
-                                                    </Form.Item>
+                                                            <Form.Item
+                                                                {...restField}
+                                                                name={[name, "amount"]}
+                                                                rules={[{ required: true, message: "Nhập số tiền thanh toán" }]}
+                                                            >
+                                                                <InputNumber
+                                                                    style={{ width: "100%" }}
+                                                                    placeholder="Số tiền"
+                                                                    min={0}
+                                                                    max={1000000000000000}
+                                                                    formatter={(value) =>
+                                                                        value
+                                                                            ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫"
+                                                                            : ""
+                                                                    }
+                                                                    parser={(value) => value.replace(/\D/g, "")}
+                                                                />
+                                                            </Form.Item>
 
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, "paymentDate"]}
-                                                        rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
-                                                    >
-                                                        <DatePicker
-                                                            style={{ width: 150 }}
-                                                            placeholder="Ngày thanh toán"
-                                                            disabledDate={(current) => current && current < dayjs().startOf('day')}
-                                                            format="DD/MM/YYYY"
-                                                            onChange={(date) => handlePaymentDateChange(date, name)}
-                                                        />
-                                                    </Form.Item>
-                                                    <Form.Item
-                                                        {...restField}
-                                                        name={[name, "paymentMethod"]}
-                                                        rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}
-                                                    >
-                                                        <Select placeholder="Phương thức thanh toán" style={{ width: 200 }}>
-                                                            <Option value="transfer">Chuyển khoản</Option>
-                                                            <Option value="cash">Tiền mặt</Option>
-                                                            <Option value="creditCard">Thẻ tín dụng</Option>
-                                                        </Select>
-                                                    </Form.Item>
-                                                    <Form.Item>
-                                                        <Button type="primary" onClick={() => remove(name)} danger>
-                                                            <DeleteFilled />
-                                                        </Button>
-                                                    </Form.Item>
-                                                </Space>
-                                            ))}
-                                            <Button icon={<PlusOutlined />} type="primary" onClick={() => add()} block>
-                                                Thêm đợt thanh toán
-                                            </Button>
-                                        </>
-                                    )}
-                                </Form.List>
+                                                            <Form.Item
+                                                                {...restField}
+                                                                name={[name, "paymentDate"]}
+                                                                rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
+                                                            >
+                                                                <DatePicker
+                                                                    style={{ width: 150 }}
+                                                                    placeholder="Ngày thanh toán"
+                                                                    disabledDate={(current) => {
+                                                                        const effectiveDate = form.getFieldValue('effectiveDate');
+                                                                        const expiryDate = form.getFieldValue('expiryDate')
+                                                                        return !current || current.isBefore(effectiveDate) || current.isAfter(expiryDate);
+                                                                    }}
+                                                                    format="DD/MM/YYYY"
+                                                                    onChange={(date) => handlePaymentDateChange(date, name)}
+                                                                />
 
+                                                            </Form.Item>
+                                                            <Form.Item
+                                                                {...restField}
+                                                                name={[name, "paymentMethod"]}
+                                                                rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}
+                                                            >
+                                                                <Select placeholder="Phương thức thanh toán" style={{ width: 200 }}>
+                                                                    <Option value="transfer">Chuyển khoản</Option>
+                                                                    <Option value="cash">Tiền mặt</Option>
+                                                                    <Option value="creditCard">Thẻ tín dụng</Option>
+                                                                </Select>
+                                                            </Form.Item>
+                                                            <Form.Item>
+                                                                <Button type="primary" onClick={() => remove(name)} danger>
+                                                                    <DeleteFilled />
+                                                                </Button>
+                                                            </Form.Item>
+                                                        </Space>
+                                                    ))}
+                                                    <Button icon={<PlusOutlined />} type="primary" onClick={() => add()} block>
+                                                        Thêm đợt thanh toán
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </Form.List>
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-5 mt-[50px]">
                                     <Form.Item name="autoAddVAT" valuePropName="checked">
                                         <div className="flex items-center min-w-[350px]">
@@ -1661,87 +1778,6 @@ const CreateContractForm = () => {
                                         </Form.Item>
                                     )}
                                 </div>
-
-                                <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
-                                <Form.Item
-                                    label="Thời gian hiệu lực hợp đồng"
-                                    name="dateRange"
-                                    rules={[
-                                        { required: true, message: "Vui lòng chọn thời gian hiệu lực hợp đồng!" },
-                                        ({ getFieldValue }) => ({
-                                            validator(_, value) {
-                                                if (!value || value.length !== 2) {
-                                                    return Promise.resolve();
-                                                }
-                                                const [effectiveDate, expiryDate] = value;
-                                                const signingDate = getFieldValue('signingDate');
-
-                                                // Kiểm tra effectiveDate phải sau signingDate
-                                                if (signingDate && effectiveDate.isBefore(signingDate)) {
-                                                    return Promise.reject(new Error('Ngày bắt đầu hiệu lực phải sau ngày ký kết!'));
-                                                }
-
-                                                // Kiểm tra expiryDate phải sau effectiveDate
-                                                if (expiryDate.isBefore(effectiveDate)) {
-                                                    return Promise.reject(new Error('Ngày kết thúc hiệu lực phải sau ngày bắt đầu!'));
-                                                }
-
-                                                return Promise.resolve();
-                                            },
-                                        }),
-                                    ]}
-                                >
-                                    <DatePicker.RangePicker
-                                        className="w-full"
-                                        showTime={{ format: 'HH:mm' }}
-                                        format="DD/MM/YYYY HH:mm"
-                                        placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
-                                        disabledDate={(current) => {
-                                            const signingDate = form.getFieldValue('signingDate');
-                                            if (!current) return false;
-                                            // Không cho chọn ngày trước hôm nay hoặc trước signingDate
-                                            return current < dayjs().startOf('day') || (signingDate && current <= signingDate);
-                                        }}
-                                        onChange={(dates) => {
-                                            if (dates) {
-                                                form.setFieldsValue({
-                                                    effectiveDate: dates[0],
-                                                    expiryDate: dates[1],
-                                                });
-                                                handleEffectiveDateChange(dates[0]);
-                                                handleExpiryDateChange(dates[1]);
-                                            } else {
-                                                form.setFieldsValue({
-                                                    effectiveDate: null,
-                                                    expiryDate: null,
-                                                    notifyEffectiveDate: null,
-                                                    notifyExpiryDate: null,
-                                                });
-                                            }
-                                        }}
-                                    />
-                                </Form.Item>
-                                <Form.Item name="effectiveDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]} />
-                                <Form.Item name="expiryDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]} />
-
-                                <Form.Item
-                                    label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
-                                    name="autoRenew"
-                                    valuePropName="checked"
-                                    noStyle
-
-                                >
-                                    <div className="flex items-center">
-                                        <Switch
-                                            className="mr-4"
-                                            onChange={(checked) => {
-                                                form.setFieldsValue({ autoRenew: checked });
-                                                setIsAutoRenew(checked);
-                                            }}
-                                            checked={form.getFieldValue('autoRenew') ?? isAutoRenew} />
-                                        <p className="text-sm">Tự động gia hạn khi hết hạn mà không có khiếu nại</p>
-                                    </div>
-                                </Form.Item>
 
                             </div>
                             <div ref={termsRef}>
