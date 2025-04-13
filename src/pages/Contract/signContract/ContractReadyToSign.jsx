@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Tag, Collapse } from "antd";
+import { Table, Input, Space, Button, Tag, Collapse, Tooltip } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import { useGetAllContractQuery } from "../../../services/ContractAPI";
 import dayjs from "dayjs";
@@ -68,6 +68,18 @@ const ContractReadyToSign = () => {
             dataIndex: "contractNumber",
             key: "contractNumber",
             sorter: (a, b) => a.contractNumber.localeCompare(b.contractNumber),
+            render: (text) => (
+                <Tooltip title={text}>
+                    <div style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: 80
+                    }}>
+                        {text}
+                    </div>
+                </Tooltip>
+            ),
         },
         {
             title: "Ngày tạo",
@@ -196,7 +208,7 @@ const ContractReadyToSign = () => {
                     rowKey="id"
                     loading={isLoading}
                     pagination={{
-                        current:  paginationStaff.current,
+                        current: paginationStaff.current,
                         pageSize: paginationStaff.pageSize,
                         total: contracts?.data?.totalElements || 0,
                         showSizeChanger: true,
