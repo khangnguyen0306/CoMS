@@ -1662,7 +1662,34 @@ const CreateContractForm = () => {
                                                             <Form.Item
                                                                 {...restField}
                                                                 name={[name, "paymentDate"]}
-                                                                rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
+                                                                rules={[
+                                                                    { required: true, message: "Chọn ngày thanh toán" },
+                                                                    ({ getFieldValue }) => ({
+                                                                        validator(_, value) {
+                                                                            const effectiveDate = getFieldValue('effectiveDate');
+                                                                            const expiryDate = getFieldValue('expiryDate');
+                                                                    
+                                                                            // Nếu chưa chọn ngày hoặc chưa có ngày hiệu lực, không cần validate
+                                                                            if (!value || !effectiveDate || !expiryDate) {
+                                                                                return Promise.resolve();
+                                                                            }
+                                                                    
+                                                                            // Kiểm tra nếu ngày nằm trong khoảng [effectiveDate, expiryDate]
+                                                                            if (
+                                                                                value.isSame(effectiveDate, 'day') ||
+                                                                                value.isSame(expiryDate, 'day') ||
+                                                                                (value.isAfter(effectiveDate, 'day') && value.isBefore(expiryDate, 'day'))
+                                                                            ) {
+                                                                                return Promise.resolve();
+                                                                            }
+                                                                    
+                                                                            return Promise.reject(
+                                                                                new Error('Ngày thanh toán phải nằm trong khoảng thời gian hiệu lực hợp đồng!')
+                                                                            );
+                                                                        },
+                                                                    })
+                                                                    
+                                                                ]}
                                                             >
                                                                 <DatePicker
                                                                     style={{ width: 150 }}
