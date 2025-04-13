@@ -194,7 +194,7 @@ const ManageContracts = () => {
         'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
         'ENDED': <Tag color="default">Đã kết thúc</Tag>,
         'DELETED': <Tag color="red">Đã xóa</Tag>,
-        'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning/><p>Sắp hết hạn</p></p></Tag>,
+        'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning /><p>Sắp hết hạn</p></p></Tag>,
     }
 
     const handleExport = (id) => {
@@ -202,7 +202,7 @@ const ManageContracts = () => {
     };
 
 
-    const column1 = [
+    const columnStaff = [
         {
             title: "Mã hợp đồng",
             dataIndex: "contractNumber",
@@ -245,7 +245,7 @@ const ManageContracts = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <Link className="font-bold text-[#228eff]">{user?.full_name}</Link>,
+            render: (user) => <span className="font-bold text-[#228eff]">{user?.full_name}</span>,
         },
         {
             title: "Tên hợp đồng",
@@ -310,22 +310,24 @@ const ManageContracts = () => {
             render: (text, record) => (
                 (record.status === "SIGNED" || record.status === "ACTIVE") && (
                     <div className="flex flex-col items-center gap-3">
-                        <Button
-                            type="primary"
-                            className="px-2"
-                            icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                const link = document.createElement("a");
-                                link.href = record.signedFilePath;
-                                link.download = record.signedFilePath?.split("/").pop();
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                            }}
-                        >
-                            Tải file
-                        </Button>
+                        {record.signedFilePath && (
+                            <Button
+                                type="primary"
+                                className="px-2"
+                                icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const link = document.createElement("a");
+                                    link.href = record.signedFilePath;
+                                    link.download = record.signedFilePath?.split("/").pop();
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                }}
+                            >
+                                Tải file
+                            </Button>
+                        )}
                     </div>
                 )
             )
@@ -370,7 +372,7 @@ const ManageContracts = () => {
                     const today = new Date();
                     const twoMonthsFromNow = new Date();
                     twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
-                    
+
                     // Nếu ngày hết hạn trong vòng 2 tháng tới
                     if (expiryDate <= twoMonthsFromNow && expiryDate >= today) {
                         return statusContract['EXPIRING'];
@@ -389,20 +391,7 @@ const ManageContracts = () => {
                         menu={{
 
                             items: [
-                                // Nếu record.status là "APPROVED" thì thêm mục "Gửi ký"
-                                ...(record.status === "APPROVED"
-                                    ? [
-                                        {
-                                            key: "send-sign",
-                                            icon: <CheckCircleFilled style={{ color: "#228eff" }} />,
-                                            label: "Gửi ký",
-                                            onClick: () => {
-                                                // Logic gửi ký ở đây
-                                                message.success("Gửi ký thành công!");
-                                            },
-                                        },
-                                    ]
-                                    : []),
+
                                 // Nếu record.status không thuộc các trạng thái sau thì cho phép sửa
                                 ...(record.status !== "APPROVAL_PENDING" &&
                                     record.status !== "APPROVED" &&
@@ -457,7 +446,7 @@ const ManageContracts = () => {
                                 //         },
                                 //     ]
                                 //     : []),
-                                ...(["SIGNED"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
@@ -498,7 +487,7 @@ const ManageContracts = () => {
 
     ];
 
-    const column2 = [
+    const columnManager = [
         {
             title: "Mã hợp đồng",
             dataIndex: "contractNumber",
@@ -606,22 +595,24 @@ const ManageContracts = () => {
             render: (text, record) => (
                 (record.status === "SIGNED" || record.status === "ACTIVE") && (
                     <div className="flex flex-col items-center gap-3">
-                        <Button
-                            type="primary"
-                            className="px-2"
-                            icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                const link = document.createElement("a");
-                                link.href = record.signedFilePath;
-                                link.download = record.signedFilePath?.split("/").pop();
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                            }}
-                        >
-                            Tải file
-                        </Button>
+                        {record.signedFilePath && (
+                            <Button
+                                type="primary"
+                                className="px-2"
+                                icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const link = document.createElement("a");
+                                    link.href = record.signedFilePath;
+                                    link.download = record.signedFilePath?.split("/").pop();
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                }}
+                            >
+                                Tải file
+                            </Button>
+                        )}
                     </div>
                 )
             )
@@ -666,7 +657,7 @@ const ManageContracts = () => {
                     const today = new Date();
                     const twoMonthsFromNow = new Date();
                     twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
-                    
+
                     // Nếu ngày hết hạn trong vòng 2 tháng tới
                     if (expiryDate <= twoMonthsFromNow && expiryDate >= today) {
                         return statusContract['EXPIRING'];
@@ -823,13 +814,13 @@ const ManageContracts = () => {
     const alwaysVisibleKeys = ['signedFilePath', 'action'];
 
     // Mặc định check hết tất cả (bao gồm cả những cột bắt buộc)
-    const defaultCheckedList = column1.map((col) => col.key);
+    const defaultCheckedList = columnStaff.map((col) => col.key);
 
     // State cho các cột có thể thay đổi
     const [checkedList, setCheckedList] = useState(defaultCheckedList);
 
     // Danh sách hiển thị checkbox cho người dùng chọn, loại bỏ những cột luôn hiển thị
-    const options = column1
+    const options = columnStaff
         .filter(({ key }) => !alwaysVisibleKeys.includes(key))
         .map(({ key, title }) => ({
             label: title,
@@ -837,12 +828,12 @@ const ManageContracts = () => {
         }));
 
     const filteredColumns1 = useMemo(() => {
-        return column1.filter((col) =>
+        return columnStaff.filter((col) =>
             alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)
         );
     }, [checkedList]);
     const filteredColumns2 = useMemo(() => {
-        return column2.filter((col) =>
+        return columnManager.filter((col) =>
             alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)
         );
     }, [checkedList]);
@@ -1186,6 +1177,7 @@ const ManageContracts = () => {
                                                         href={fileUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
+                                                        download
                                                         style={{
                                                             display: "flex",
                                                             justifyContent: "center",
