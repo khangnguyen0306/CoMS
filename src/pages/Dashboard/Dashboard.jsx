@@ -421,22 +421,33 @@ const Home = () => {
                                         cx="50%"
                                         cy="50%"
                                         outerRadius={150}
-                                        label={{
-                                            fill: isDarkMode ? '#d1d5db' : '#666',
-                                        }}
-
+                                        label={({ value, x, y, index }) => (
+                                            <text
+                                                x={x}
+                                                y={y}
+                                                fill={isDarkMode ? '#d1d5db' : '#666'}
+                                                textAnchor="middle"
+                                                dominantBaseline="central"
+                                                fontSize={12}
+                                            >
+                                                {`${parseFloat(value).toFixed(2)}%`}
+                                            </text>
+                                        )}
                                     >
                                         {pieChartData?.map((entry, index) => (
                                             <Cell
                                                 key={`cell-${index}`}
-                                                fill={isDarkMode ?
-                                                    DARK_COLORS[index % DARK_COLORS.length] :
-                                                    COLORS[index % COLORS.length]
+                                                fill={
+                                                    isDarkMode
+                                                        ? DARK_COLORS[index % DARK_COLORS.length]
+                                                        : COLORS[index % COLORS.length]
                                                 }
                                             />
                                         ))}
                                     </Pie>
                                     <Tooltip
+                                        formatter={(value, name, props) => `${Number(value).toFixed(2)}%`}
+
                                         contentStyle={{
                                             backgroundColor: isDarkMode ? '#fff' : '#fff',
                                             border: isDarkMode ? '1px solid #404040' : '1px solid #e5e5e5',
@@ -449,10 +460,12 @@ const Home = () => {
                                         align="right"
                                         verticalAlign="top"
                                         wrapperStyle={{
-                                            color: isDarkMode ? '#d1d5db' : '#666'
+                                            color: isDarkMode ? '#d1d5db' : '#666',
+                                            right: -30,
                                         }}
                                     />
                                 </PieChart>
+
                             </div>
                         </Col>
                     } />
