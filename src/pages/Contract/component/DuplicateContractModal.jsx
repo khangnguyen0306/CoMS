@@ -22,7 +22,7 @@ const DuplicateContractModal = ({ visible, onCancel, contractId, refetch, refetc
         partnerType: "PARTNER_B"
     });
 
-    console.log(partners)
+    // console.log(partners)
 
     const handleOk = async () => {
         if (duplicateType === 'different' && !selectedPartner) {
