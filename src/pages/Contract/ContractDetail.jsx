@@ -263,7 +263,6 @@ const ContractDetail = () => {
         }
     };
     const statusContract = {
-        'DRAFT': <Tag color="default">Đang tạo</Tag>,
         'CREATED': <Tag color="default">Đã tạo</Tag>,
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
         'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,
@@ -437,7 +436,7 @@ const ContractDetail = () => {
             >
                 Export PDF
             </Button> */}
-            
+
             <div className="flex justify-between relative">
                 {contractData?.data?.status === "APPROVAL_PENDING" && (
                     !isApprover && user.roles[0] !== "ROLE_MANAGER" ? (
