@@ -180,7 +180,6 @@ const ManageContracts = () => {
     };
 
     const statusContract = {
-        'DRAFT': <Tag color="default">Đang tạo</Tag>,
         'CREATED': <Tag color="default">Đã tạo</Tag>,
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
         'APPROVED': <Tag color="green-inverse">Đã phê duyệt</Tag>,
@@ -277,13 +276,13 @@ const ManageContracts = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: isStaff || isCEO ? "partnerB" : "partner",
-            key: isStaff || isCEO ? "partnerB" : "partner",
+            dataIndex: "partnerB",
+            key: "partnerB",
             render: (partner) => <p>{partner?.partnerName}</p>,
             filters: [
                 ...new Set(
                     tableData?.map(contract =>
-                        isStaff || isCEO ? contract.partnerB?.partnerName : contract.partner?.partnerName
+                        contract.partnerB?.partnerName
                     )
                 ),
             ]
@@ -293,7 +292,7 @@ const ManageContracts = () => {
                     value: name,
                 })),
             onFilter: (value, record) =>
-                (isManager ? record.partnerB?.partnerName : record.partner?.partnerName) === value,
+                (record.partnerB?.partnerName) === value,
         },
 
         {
@@ -337,7 +336,6 @@ const ManageContracts = () => {
             dataIndex: "status",
             key: "status",
             filters: [
-                { text: 'Đang tạo', value: 'DRAFT' },
                 { text: 'Đã tạo', value: 'CREATED' },
                 { text: 'Chờ phê duyệt', value: 'APPROVAL_PENDING' },
                 { text: 'Đã phê duyệt', value: 'APPROVED' },
@@ -446,7 +444,7 @@ const ManageContracts = () => {
                                 //         },
                                 //     ]
                                 //     : []),
-                                ...(["SIGNED", "ACTIVE"].includes(record.status)
+                                ...(["APPROVED", "SIGNED", "ACTIVE"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
@@ -562,13 +560,13 @@ const ManageContracts = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: "partner",
-            key: isStaff || isCEO ? "partnerB" : "partner",
+            dataIndex: "partnerB",
+            key: "partnerB",
             render: (partner) => <p>{partner?.partnerName}</p>,
             filters: [
                 ...new Set(
                     tableData?.map(contract =>
-                        isStaff || isCEO ? contract.partnerB?.partnerName : contract.partner?.partnerName
+                        contract.partnerB?.partnerName
                     )
                 ),
             ]
@@ -578,7 +576,7 @@ const ManageContracts = () => {
                     value: name,
                 })),
             onFilter: (value, record) =>
-                (isManager ? record.partnerB?.partnerName : record.partner?.partnerName) === value,
+                (record.partnerB?.partnerName) === value,
         },
 
         {
@@ -622,7 +620,6 @@ const ManageContracts = () => {
             dataIndex: "status",
             key: "status",
             filters: [
-                { text: 'Đang tạo', value: 'DRAFT' },
                 { text: 'Đã tạo', value: 'CREATED' },
                 { text: 'Chờ phê duyệt', value: 'APPROVAL_PENDING' },
                 { text: 'Đã phê duyệt', value: 'APPROVED' },
@@ -884,28 +881,62 @@ const ManageContracts = () => {
                     onChange={(value) => setCheckedList(value)}
                     style={{ marginBottom: 16 }}
                 />
-                {isStaff ? (
-                    <Tabs
-                        type="card"
-
-                    >
-                        <TabPane tab="Hợp đồng của tôi" key="1"  >
+                {isCEO ? (
+                    <Table
+                        columns={filteredColumns2}
+                        dataSource={contracts?.data?.content}
+                        rowKey="id"
+                        loading={isLoading}
+                        pagination={{
+                            current: paginationStaff.current,
+                            pageSize: paginationStaff.pageSize,
+                            total: contracts?.data?.totalElements || 0,
+                            showSizeChanger: true,
+                            showQuickJumper: true,
+                            showTotal: (total) => `Tổng ${total} hợp đồng`,
+                        }}
+                        onChange={handleTableChange}
+                        expandable={{
+                            expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                        }}
+                        onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                    />
+                ) : isManager ? (
+                    <Table
+                        columns={filteredColumns2}
+                        dataSource={contractApprove?.data?.content}
+                        rowKey="id"
+                        loading={isLoading}
+                        pagination={{
+                            current: paginationManager.current,
+                            pageSize: paginationManager.pageSize,
+                            total: contractApprove?.data?.totalElements,
+                            showSizeChanger: true,
+                            showQuickJumper: true,
+                            showTotal: (total) => `Tổng ${total} hợp đồng`,
+                        }}
+                        onChange={handleTableChange}
+                        expandable={{
+                            expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                        }}
+                        onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                    />
+                ) : isStaff ? (
+                    <Tabs type="card">
+                        <TabPane tab="Hợp đồng của tôi" key="1">
                             <Table
                                 columns={filteredColumns1}
-                                dataSource={tableData}
+                                dataSource={contracts?.data?.content}
                                 rowKey="id"
                                 loading={isLoading}
                                 pagination={{
-                                    current: isManager ? paginationManager.current : paginationStaff.current,
-                                    pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
-                                    total: isManager
-                                        ? contractApprove?.data?.totalElements
-                                        : contracts?.data?.totalElements || 0,
+                                    current: paginationStaff.current,
+                                    pageSize: paginationStaff.pageSize,
+                                    total: contracts?.data?.totalElements || 0,
                                     showSizeChanger: true,
                                     showQuickJumper: true,
                                     showTotal: (total) => `Tổng ${total} hợp đồng`,
                                 }}
-
                                 onChange={handleTableChange}
                                 expandable={{
                                     expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
@@ -920,16 +951,13 @@ const ManageContracts = () => {
                                 rowKey="id"
                                 loading={isLoading}
                                 pagination={{
-                                    current: isManager ? paginationManager.current : paginationStaff.current,
-                                    pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
-                                    total: isManager
-                                        ? contractApprove?.data?.totalElements
-                                        : contracts?.data?.totalElements || 0,
+                                    current: paginationStaff.current,
+                                    pageSize: paginationStaff.pageSize,
+                                    total: contractApprove?.data?.totalElements,
                                     showSizeChanger: true,
                                     showQuickJumper: true,
                                     showTotal: (total) => `Tổng ${total} hợp đồng`,
                                 }}
-
                                 onChange={handleTableChange}
                                 expandable={{
                                     expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
@@ -938,30 +966,8 @@ const ManageContracts = () => {
                             />
                         </TabPane>
                     </Tabs>
-                ) : (
-                    <Table
-                        columns={filteredColumns2}
-                        dataSource={tableData}
-                        rowKey="id"
-                        loading={isLoading}
-                        pagination={{
-                            current: isManager ? paginationManager.current : paginationStaff.current,
-                            pageSize: isManager ? paginationManager.pageSize : paginationStaff.pageSize,
-                            total: isManager
-                                ? contractApprove?.data?.totalElements
-                                : contracts?.data?.totalElements || 0,
-                            showSizeChanger: true,
-                            showQuickJumper: true,
-                            showTotal: (total) => `Tổng ${total} hợp đồng`,
-                        }}
+                ) : null}
 
-                        onChange={handleTableChange}
-                        expandable={{
-                            expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
-                        }}
-                        onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
-                    />
-                )}
 
 
             </div>
@@ -1175,7 +1181,7 @@ const ManageContracts = () => {
                                                 ) : isPDF ? (
                                                     <a
                                                         href={fileUrl}
-                                                        target="_blank"
+
                                                         rel="noopener noreferrer"
                                                         download
                                                         style={{

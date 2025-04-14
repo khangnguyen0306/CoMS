@@ -290,7 +290,6 @@ const SignContract = () => {
     };
 
     const statusContract = {
-        'DRAFT': <Tag color="default">Đang tạo</Tag>,
         'CREATED': <Tag color="default">Đã tạo</Tag>,
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
         'APPROVED': <Tag color="success">Đã phê duyệt</Tag>,

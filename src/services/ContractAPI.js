@@ -134,7 +134,7 @@ export const ContractAPI = baseApi.injectEndpoints({
             query: (contractId) => ({
                 url: `/contracts/status/${contractId}`,
                 params: {
-                    status: "DRAFT",
+                    status: "CREATED",
                 },
                 method: "PUT",
             }),

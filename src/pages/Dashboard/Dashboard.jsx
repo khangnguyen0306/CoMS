@@ -301,7 +301,7 @@ const Home = () => {
         APPROVED: 'ĐÃ PHÊ DUYỆT',
     };
 
-    const hiddenStatuses = ['DRAFT', 'DELETED', 'PENDING', 'CREATED', 'FIXED', 'REJECTED', 'UPDATED'];
+    const hiddenStatuses = ['DELETED', 'PENDING', 'CREATED', 'FIXED', 'REJECTED', 'UPDATED'];
     const statusCountsArray = Object.entries(dashboardData?.data?.statusCounts || {})
         .filter(([status]) => !hiddenStatuses.includes(status))
         .map(([status, count]) => ({
