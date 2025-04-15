@@ -72,8 +72,13 @@ const ManageContractApproval = () => {
                     to={
                         user?.roles?.includes("ROLE_STAFF")
                             ? `/approvalContract/reviewContract/${record.id}`
-                            : `/manager/approvalContract/reviewContract/${record.id}`
+                            : user?.roles?.includes("ROLE_MANAGER")
+                                ? `/manager/approvalContract/reviewContract/${record.id}`
+                                : user?.roles?.includes("ROLE_DIRECTOR")
+                                    ? `/director/approvalContract/reviewContract/${record.id}`
+                                    : `/approvalContract/reviewContract/${record.id}`
                     }
+
                     title={text} // Hiển thị tooltip mặc định của trình duyệt
                 >
                     {text}

@@ -444,7 +444,7 @@ const ManageContracts = () => {
                                 //         },
                                 //     ]
                                 //     : []),
-                                ...(["APPROVED", "SIGNED", "ACTIVE"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
@@ -462,13 +462,25 @@ const ManageContracts = () => {
                                     label: "Export",
                                     onClick: () => handleExport(record.id),
                                 },
-                                {
-                                    key: "delete",
-                                    icon: <DeleteOutlined />,
-                                    label: "Xóa",
-                                    danger: true,
-                                    onClick: () => handleDelete(record),
-                                },
+
+                                ...(record.status !== "APPROVAL_PENDING" &&
+                                    record.status !== "APPROVED" &&
+                                    record.status !== "SIGNED" &&
+                                    record.status !== "ACTIVE" &&
+                                    record.status !== "COMPLETED" &&
+                                    record.status !== "EXPIRED" &&
+                                    record.status !== "CANCELLED" &&
+                                    record.status !== "ENDED"
+                                    ? [
+                                        {
+                                            key: "delete",
+                                            icon: <DeleteOutlined />,
+                                            label: "Xóa",
+                                            danger: true,
+                                            onClick: () => handleDelete(record),
+                                        },
+                                    ]
+                                    : []),
                             ],
                         }}
 
@@ -1155,7 +1167,7 @@ const ManageContracts = () => {
 
                         {dataPayment?.data?.status === "ACTIVE" ? (
                             <>
-                                <h3 className="text-xl font-semibold text-center mb-4">Danh sách bằng chứng đã tải lên</h3>
+                                <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
                                 <div
                                     className="image-preview"
                                     style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}

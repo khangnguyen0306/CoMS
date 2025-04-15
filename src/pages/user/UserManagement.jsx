@@ -7,6 +7,8 @@ import { validationPatterns } from "../../utils/ultil";
 import { useGetDepartmentsQuery } from "../../services/Department";
 import Department from "../Department/Department";
 import TabPane from "antd/es/tabs/TabPane";
+import { selectCurrentUser } from "../../slices/authSlice";
+import { useSelector } from "react-redux";
 
 const { Search } = Input;
 
@@ -19,8 +21,7 @@ const UserManagement = () => {
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(10);
     const [roleId, setRoleId] = useState(null);
-    const [isCeoExists, setIsCeoExists] = useState(false);
-    const [isCurrentUserCeo, setIsCurrentUserCeo] = useState(false);
+
 
     const [form] = Form.useForm();
 
@@ -39,10 +40,7 @@ const UserManagement = () => {
 
     // console.log("Data:", userData);
 
-    useEffect(() => {
-        const ceoExists = userData?.content?.some((user) => user.isCeo === true);
-        setIsCeoExists(ceoExists);
-    }, [userData?.content]);
+
 
 
     const filterUsers = (users) => {
@@ -82,15 +80,13 @@ const UserManagement = () => {
             email: record.email,
             address: record.address,
             role_id: record.role.id,
-            is_ceo: record.isCeo,
             departmentId: record.department?.id,
         });
         setRoleId(record.role.id);
-        setIsCurrentUserCeo(record.isCeo);
     }
 
     const handleSubmitEditUser = async (values) => {
-        // console.log('Form data:', values);
+        console.log('Form data:', values);
         try {
             const { id, ...body } = values;
             const result = await UpdateUser({
@@ -171,13 +167,13 @@ const UserManagement = () => {
                             <p>
                                 <strong>Vai trò:</strong>{" "}
                                 <Tag color={record.role?.id === 2 ? "red" : "blue"}>
-                                    {record.isCeo
+                                    {record.role?.roleName?.includes("DIRECTOR")
                                         ? "Giám đốc"
                                         : record.role?.id === 2
                                             ? "Quản lý"
                                             : "Nhân viên"}
                                 </Tag>
-                                {record.isCeo && <StarFilled style={{ color: "#fadb14", marginLeft: 4 }} />}
+                                {record.role?.roleName?.includes("DIRECTOR") && <StarFilled style={{ color: "#fadb14", marginLeft: 4 }} />}
                             </p>
 
                             <p><strong>Tên:</strong> {record.full_name}</p>
@@ -192,7 +188,7 @@ const UserManagement = () => {
                     {
                         record.role.id === 3 ? (
                             <p className="font-bold text-gray-500">{text}</p>
-                        ) : record.isCeo ? (
+                        ) : record.role?.roleName?.includes("DIRECTOR") ? (
                             <p className="flex font-bold text-[#ff0000] w-full">
                                 <p>{text} <StarFilled /></p>
                             </p>
@@ -214,7 +210,7 @@ const UserManagement = () => {
                 : [],
             onFilter: (value, record) => record.role?.roleName === value,
             render: (role, record) => {
-                if (record?.isCeo) {
+                if (record?.role?.roleName?.includes("DIRECTOR")) {
                     return <Tag color="gold">Giám đốc</Tag>;
                 }
 
@@ -287,7 +283,7 @@ const UserManagement = () => {
                             onClick={() => showEditModal(record)}
                         />
                     </Tooltip>
-                    {!record.isCeo && (
+                    {!record.role?.roleName?.includes("DIRECTOR") && (
                         record.is_active ? (
                             <Tooltip title="Cấm">
                                 <Button
@@ -511,22 +507,12 @@ const UserManagement = () => {
                                     rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
                                 >
                                     <Select placeholder="Chọn vai trò">
-                                        <Option value={2}>Quản Lý</Option>
-                                        <Option value={3}>Nhân Viên</Option>
+                                        <Option value={2}>Giám đốc</Option>
+                                        <Option value={3}>Quản Lý</Option>
+                                        <Option value={4}>Nhân Viên</Option>
                                     </Select>
                                 </Form.Item>
-                                {roleId === 2 && (!isCeoExists || isCurrentUserCeo) && (
-                                    <Form.Item
-                                        name="is_ceo"
-                                        label="CEO"
-                                        rules={[{ required: true, message: "Vui lòng chọn lựa!" }]}
-                                    >
-                                        <Radio.Group>
-                                            <Radio value={true}>Có</Radio>
-                                            <Radio value={false}>Không</Radio>
-                                        </Radio.Group>
-                                    </Form.Item>
-                                )}
+
                                 <Form.Item>
                                     <div className="flex justify-center">
                                         <Button type="primary" htmlType="submit">

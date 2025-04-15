@@ -176,6 +176,7 @@ const ContractPartner = () => {
     const [isModalUpdate, setIsModalUpdate] = useState(false);
     const [form] = Form.useForm();
     const [formUpload] = Form.useForm();
+    const [formPartner] = Form.useForm();
     const [fileList, setFileList] = useState([]);
     const [activePanel, setActivePanel] = useState([]);
 
@@ -417,7 +418,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     useEffect(() => {
         if (isModalPartner) {
-            form.setFieldsValue({
+            formPartner.setFieldsValue({
                 partnerName: newCustomerData.partnerName,
                 spokesmanName: newCustomerData.spokesmanName,
                 address: newCustomerData.address,
@@ -442,14 +443,14 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
                 // Kiểm tra nếu abbreviation chưa có giá trị trong form
                 if (!newCustomerData.abbreviation) {
-                    form.setFieldsValue({ abbreviation });
+                    formPartner.setFieldsValue({ abbreviation });
                 } else {
                     // Nếu đã có `abbreviation`, sử dụng giá trị có sẵn
-                    form.setFieldsValue({ abbreviation: newCustomerData.abbreviation });
+                    formPartner.setFieldsValue({ abbreviation: newCustomerData.abbreviation });
                 }
             }
         }
-    }, [isModalPartner, form, newCustomerData]);
+    }, [isModalPartner, formPartner, newCustomerData]);
 
 
     const checkPartner = async (taxCode) => {
@@ -647,7 +648,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     const handleOk = async () => {
         try {
-            const values = await form.validateFields();
+            const values = await formPartner.validateFields();
             const bankingInfo = bankAccounts.map(account => ({
                 bankName: account.bankName,
                 backAccountNumber: account.backAccountNumber,
@@ -662,7 +663,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             if (result.status === "CREATED") {
                 message.success('Thêm mới thành công!');
                 setIsModalPartner(false);
-                form.resetFields();
+                formPartner.resetFields();
                 setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
             } else {
                 message.error('Thêm mới thất bại vui lòng thử lại!');
@@ -674,7 +675,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     const handleCancel = () => {
         setIsModalPartner(false);
-        form.resetFields();
+        formPartner.resetFields();
     };
 
     const addBankAccount = () => {
@@ -684,7 +685,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         if (bankAccounts.length > 1) {
             const updatedBanks = bankAccounts.filter((_, i) => i !== index);
             setBankAccounts(updatedBanks);
-            form.setFieldsValue({ banking: updatedBanks });
+            formPartner.setFieldsValue({ banking: updatedBanks });
         }
     };
 
@@ -695,7 +696,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         );
 
         setBankAccounts(newBankAccounts);
-        form.setFieldsValue({ banking: newBankAccounts });
+        formPartner.setFieldsValue({ banking: newBankAccounts });
     };
 
     const handleNameChange = (e) => {
@@ -708,7 +709,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             .map((word) => word[0])
             .join('')
             .toUpperCase();
-        form.setFieldsValue({ abbreviation: abbreviation });
+        formPartner.setFieldsValue({ abbreviation: abbreviation });
     };
 
     // Định nghĩa các cột của Table
@@ -1556,7 +1557,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     cancelText="Hủy"
                     loading={isCreating}
                 >
-                    <Form form={form} layout="vertical" className="w-full">
+                    <Form form={formPartner} layout="vertical" className="w-full">
                         {/* Các trường chung được chia thành 2 cột */}
                         <Row gutter={16} className="w-full">
                             <Col xs={24} md={12}>
