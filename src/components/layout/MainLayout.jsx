@@ -80,7 +80,7 @@ const MainLayout = () => {
     'diarecAllApendix': '/director/appendixFull',
     'directorAppendixApprove': '/director/appendix',
     'approveManager': '/contract?paramstatus=APPROVED',
-    'sendAppendix':'/appendixSend'
+    'sendAppendix':'/appendix?paramstatus=CREATED'
   }
 
   const handleLogout = useCallback(() => {

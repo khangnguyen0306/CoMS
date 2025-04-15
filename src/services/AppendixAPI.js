@@ -5,15 +5,16 @@ export const appendixApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllAppendixBySelf: builder.query({
       query: (params) => ({
-        url: 'addendums/get-all?statuses=CREATED&statuses=APPROVED&statuses=REJECTED&statuses=APPROVAL_PENDING&statuses=UPDATED',
+        url: 'addendums/get-all',
         params: {
           page: params.page,
           size: params.size,
           order: 'esc',
+          statuses:params.statuses || ""
         },
         method: 'GET',
       }),
-      providesTags: (result, error, Partner) => [{ type: 'Partner', id: Partner }],
+      providesTags: (result, error, Appendix) => [{ type: 'Appendix', id: Appendix }],
     }),
 
     getAllAppendixByApprover: builder.query({

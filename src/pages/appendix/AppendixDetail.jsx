@@ -40,7 +40,7 @@ const AppendixDetail = () => {
             const result = await approveProcess({ appendixId: appendixId, stageId: StageIdMatching }).unwrap();
             if (result.status === "OK") {
                 message.success("Đã đồng ý phê duyệt thành công!");
-                if (user?.roles?.includes("ROLE_STAFF")) {
+                if (user?.roles?.includes("ROLE_STAFF" || "ROLE_DIRECTOR")) {
                     navigate(`/appendix`);
                 } else if (user?.roles?.includes("ROLE_MANAGER")) {
                     navigate(`/manager/appendix`);
@@ -71,6 +71,9 @@ const AppendixDetail = () => {
     };
 
     const arrayToDate = (arr) => {
+        if (!Array.isArray(arr) || arr.length < 3) {
+            return new Date();
+        }
         const year = arr[0];
         const month = arr[1] ? arr[1] - 1 : 0;
         const day = arr[2] || 0;
@@ -83,15 +86,18 @@ const AppendixDetail = () => {
     // Hàm định dạng ngày thành chuỗi DD/MM/YYYY HH:mm:ss
     const formatDate = (dateArray) => {
         const date = arrayToDate(dateArray);
-        return date?.toLocaleString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        });
+        return date instanceof Date && !isNaN(date)
+            ? date.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            })
+            : "Invalid date";
     };
+    
     if (isLoadingAppendix) {
         return (
             <div className='flex justify-center items-center w-full h-full'>
@@ -105,10 +111,10 @@ const AppendixDetail = () => {
             <Col span={17} className=" rounded-lg ">
                 <div>
                     <Breadcrumb
-                    className='p-5'
+                        className='p-5'
                         items={[
                             {
-                                title: <Link to={user.roles[0] == "ROLE_STAFF" ? "/appendixFull" : "/manager/appendixFull"} >Quản lý phụ lục</Link>,
+                                title: <Link to={user.roles[0] == "ROLE_STAFF" ? "/appendix" : "/manager/appendixFull"} >Quản lý phụ lục</Link>,
                             },
                             {
                                 title: <p className='font-bold'>{appendixData?.data.title}</p>,
@@ -158,157 +164,159 @@ const AppendixDetail = () => {
             </Col>
 
             {/* Cột bên phải - Fixed */}
-            <Col span={7}>
-                <div
-                    className=" p-4 rounded-lg shadow-md border"
-                    style={{
-                        position: 'fixed',
-                        right: '45px',
-                        top: '100px',
-                        minWidth: '400px',
-                        width: 'fit-content',
-                        maxHeight: 'calc(100vh - 32px)',
-                        overflowY: 'auto',
-                    }}
-                >
-                    {/* 1. Thông tin phê duyệt */}
-                    <div>
-                        <h3 className="text-lg font-semibold mt-2 ml-1">1. Thông tin phê duyệt</h3>
-                        <div
-                            style={{
-                                padding: "7px",
-                            }}
-                        >
-                            <Timeline mode="left" className=" mt-5">
-                                {stages?.map((stage) => (
-                                    <Timeline.Item
-                                        children={
-                                            <div className="min-h-[50px]">
-                                                {stage.approverName}
-                                            </div>
-                                        }
-                                        label={
-                                            <div className="w-full">
-                                                {
-                                                    stage.status === "APPROVING"
-                                                        ? <div className="flex flex-col justify-center items-center">
-                                                            <p className="text-[12px]">
-                                                            </p>
-                                                            <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
-                                                        </div>
-                                                        : stage.status === "APPROVED" && stage.approvedAt
-                                                            ?
-                                                            <div className="flex flex-col justify-center items-center">
+            {stages.length != 0 && (
+                <Col span={7}>
+                    <div
+                        className=" p-4 rounded-lg shadow-md border"
+                        style={{
+                            position: 'fixed',
+                            right: '45px',
+                            top: '100px',
+                            minWidth: '400px',
+                            width: 'fit-content',
+                            maxHeight: 'calc(100vh - 32px)',
+                            overflowY: 'auto',
+                        }}
+                    >
+                        {/* 1. Thông tin phê duyệt */}
+                        <div>
+                            <h3 className="text-lg font-semibold mt-2 ml-1">1. Thông tin phê duyệt</h3>
+                            <div
+                                style={{
+                                    padding: "7px",
+                                }}
+                            >
+                                <Timeline mode="left" className=" mt-5">
+                                    {stages?.map((stage) => (
+                                        <Timeline.Item
+                                            children={
+                                                <div className="min-h-[50px]">
+                                                    {stage.approverName}
+                                                </div>
+                                            }
+                                            label={
+                                                <div className="w-full">
+                                                    {
+                                                        stage.status === "APPROVING"
+                                                            ? <div className="flex flex-col justify-center items-center">
                                                                 <p className="text-[12px]">
-                                                                    {
-                                                                        new Date(
-                                                                            stage.approvedAt[0],
-                                                                            stage.approvedAt[1] - 1,
-                                                                            stage.approvedAt[2]
-                                                                        ).toLocaleDateString("vi-VN")
-                                                                    }
                                                                 </p>
-                                                                <Tag color="green-inverse" className="w-fit mr-0">Đã duyệt</Tag>
+                                                                <Tag color="gold-inverse" className="w-fit mr-0">Đang phê duyệt</Tag>
                                                             </div>
-                                                            :
-                                                            <div className="flex flex-col justify-center items-center">
-                                                                <Tag color="default" className="w-fit mr-0">Chưa bắt đầu</Tag>
-                                                            </div>
-                                                }
-                                            </div>
-                                        }
-                                        dot={
-                                            stage.status === "APPROVING" ? (
-                                                <LoadingOutlined spin className="timeline-clock-icon" />
-                                            ) : stage.status === "APPROVED" ? (
-                                                <CheckOutlined className="timeline-clock-icon" style={{ color: 'green' }} />
-                                            ) : stage.status === "REJECTED" ? (
-                                                <CloseOutlined className="timeline-clock-icon" style={{ color: 'red' }} />
-                                            ) : stage.status === "SKIPPED" ? (
-                                                <ForwardOutlined className="timeline-clock-icon" style={{ color: 'orange' }} />
-                                            ) : stage.status === "APPROVAL_PENDING" ? (
-                                                <InfoCircleOutlined style={{ color: 'gray' }} />
-                                            ) : (
-                                                <InfoCircleOutlined />
-                                            )
+                                                            : stage.status === "APPROVED" && stage.approvedAt
+                                                                ?
+                                                                <div className="flex flex-col justify-center items-center">
+                                                                    <p className="text-[12px]">
+                                                                        {
+                                                                            new Date(
+                                                                                stage.approvedAt[0],
+                                                                                stage.approvedAt[1] - 1,
+                                                                                stage.approvedAt[2]
+                                                                            ).toLocaleDateString("vi-VN")
+                                                                        }
+                                                                    </p>
+                                                                    <Tag color="green-inverse" className="w-fit mr-0">Đã duyệt</Tag>
+                                                                </div>
+                                                                :
+                                                                <div className="flex flex-col justify-center items-center">
+                                                                    <Tag color="default" className="w-fit mr-0">Chưa bắt đầu</Tag>
+                                                                </div>
+                                                    }
+                                                </div>
+                                            }
+                                            dot={
+                                                stage.status === "APPROVING" ? (
+                                                    <LoadingOutlined spin className="timeline-clock-icon" />
+                                                ) : stage.status === "APPROVED" ? (
+                                                    <CheckOutlined className="timeline-clock-icon" style={{ color: 'green' }} />
+                                                ) : stage.status === "REJECTED" ? (
+                                                    <CloseOutlined className="timeline-clock-icon" style={{ color: 'red' }} />
+                                                ) : stage.status === "SKIPPED" ? (
+                                                    <ForwardOutlined className="timeline-clock-icon" style={{ color: 'orange' }} />
+                                                ) : stage.status === "APPROVAL_PENDING" ? (
+                                                    <InfoCircleOutlined style={{ color: 'gray' }} />
+                                                ) : (
+                                                    <InfoCircleOutlined />
+                                                )
 
-                                        }
-                                    >
-                                    </Timeline.Item>
-                                ))}
-                            </Timeline>
+                                            }
+                                        >
+                                        </Timeline.Item>
+                                    ))}
+                                </Timeline>
+                            </div>
                         </div>
+
+                        {/* Collapse phê duyệt */}
+                        {!userApproval && (
+                            !userCreate && (
+                                <Collapse>
+                                    <Panel header="Phê duyệt" key="1">
+                                        <Radio.Group onChange={handleApprovalChange} value={approvalChoice}>
+                                            <Space direction="vertical">
+                                                <Radio value="approve">Đồng ý phê duyệt</Radio>
+                                                <Radio value="reject">Không đồng ý</Radio>
+                                            </Space>
+                                        </Radio.Group>
+
+                                        {/* Nếu chọn Đồng ý phê duyệt */}
+                                        {approvalChoice === 'approve' && (
+                                            <div className="mt-4 flex flex-col">
+                                                <Checkbox
+                                                    onChange={(e) => setIsApproved(e.target.checked)}
+                                                    disabled={isApproved}
+                                                >
+                                                    Tôi đã đọc kỹ phụ lục và phê duyệt
+                                                </Checkbox>
+                                                {isApproved && (
+                                                    <Button
+                                                        type="primary"
+                                                        onClick={handleConfirmApproval}
+                                                        className="mt-2"
+                                                        loading={approveLoading}
+                                                    >
+                                                        Phê duyệt
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Nếu chọn Không đồng ý */}
+                                        {approvalChoice === 'reject' && (
+                                            <Form className="mt-4 flex flex-col">
+                                                <Form.Item >
+                                                    <Input.TextArea
+                                                        rows={7}
+                                                        value={reason}
+                                                        onChange={(e) => setReason(e.target.value)}
+                                                        placeholder="Nhập lý do từ chối"
+                                                        style={{
+                                                            overflow: 'hidden',
+                                                            overflowY: 'auto',
+                                                            scrollbarWidth: 'none'
+                                                        }}
+                                                    />
+                                                </Form.Item>
+                                                <Form.Item >
+                                                    <Button
+                                                        type="primary"
+                                                        danger
+                                                        onClick={handleReject}
+                                                        disabled={!reason}
+                                                        loading={rejectLoading}
+                                                    >
+                                                        Từ chối phê duyệt
+                                                    </Button>
+                                                </Form.Item>
+                                            </Form>
+                                        )}
+                                    </Panel>
+                                </Collapse>
+                            )
+                        )}
                     </div>
-
-                    {/* Collapse phê duyệt */}
-                    {!userApproval && (
-                        !userCreate && (
-                            <Collapse>
-                                <Panel header="Phê duyệt" key="1">
-                                    <Radio.Group onChange={handleApprovalChange} value={approvalChoice}>
-                                        <Space direction="vertical">
-                                            <Radio value="approve">Đồng ý phê duyệt</Radio>
-                                            <Radio value="reject">Không đồng ý</Radio>
-                                        </Space>
-                                    </Radio.Group>
-
-                                    {/* Nếu chọn Đồng ý phê duyệt */}
-                                    {approvalChoice === 'approve' && (
-                                        <div className="mt-4 flex flex-col">
-                                            <Checkbox
-                                                onChange={(e) => setIsApproved(e.target.checked)}
-                                                disabled={isApproved}
-                                            >
-                                                Tôi đã đọc kỹ phụ lục và phê duyệt
-                                            </Checkbox>
-                                            {isApproved && (
-                                                <Button
-                                                    type="primary"
-                                                    onClick={handleConfirmApproval}
-                                                    className="mt-2"
-                                                    loading={approveLoading}
-                                                >
-                                                    Phê duyệt
-                                                </Button>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Nếu chọn Không đồng ý */}
-                                    {approvalChoice === 'reject' && (
-                                        <Form className="mt-4 flex flex-col">
-                                            <Form.Item >
-                                                <Input.TextArea
-                                                    rows={7}
-                                                    value={reason}
-                                                    onChange={(e) => setReason(e.target.value)}
-                                                    placeholder="Nhập lý do từ chối"
-                                                    style={{
-                                                        overflow: 'hidden',
-                                                        overflowY: 'auto',
-                                                        scrollbarWidth: 'none'
-                                                    }}
-                                                />
-                                            </Form.Item>
-                                            <Form.Item >
-                                                <Button
-                                                    type="primary"
-                                                    danger
-                                                    onClick={handleReject}
-                                                    disabled={!reason}
-                                                    loading={rejectLoading}
-                                                >
-                                                    Từ chối phê duyệt
-                                                </Button>
-                                            </Form.Item>
-                                        </Form>
-                                    )}
-                                </Panel>
-                            </Collapse>
-                        )
-                    )}
-                </div>
-            </Col>
+                </Col>
+            )}
         </Row>
 
     );

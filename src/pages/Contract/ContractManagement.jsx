@@ -1155,7 +1155,7 @@ const ManageContracts = () => {
 
                         {dataPayment?.data?.status === "ACTIVE" ? (
                             <>
-                                <h3 className="text-xl font-semibold text-center mb-4">Danh sách bằng chứng đã tải lên</h3>
+                                <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
                                 <div
                                     className="image-preview"
                                     style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}

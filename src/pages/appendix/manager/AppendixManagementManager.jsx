@@ -113,34 +113,37 @@ const AppendixManagementManager = () => {
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text,record) => (
-                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`}`} className="font-bold text-[#228eff] cursor-pointer">
-                    <p> {text} </p>
-                </Link>
+                <Link to={`${(user.roles[0] === "ROLE_STAFF") ? `/appendixDetail/${record.contractId}/${record.addendumId}` : (user.roles[0] === "ROLE_DIRECTOR" ? `/director/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`)}`} className="font-bold text-[#228eff] cursor-pointer">
+                <p> {text} </p>
+            </Link>
             ),
         },
-        {
-            title: "Loại phụ lục",
-            dataIndex: "addendumType",
-            key: "addendumType",
-            render: (value) => (
-                <Tag color="blue">{value.name}</Tag>
-            ),
-            filters: [...new Set(tableData?.map(appendix => appendix.addendumType.name))].map(name => ({
-                text: name,
-                value: name,
-            })),
-            onFilter: (value, record) => record.addendumType.name === value,
-        },
+        // {
+        //     title: "Loại phụ lục",
+        //     dataIndex: "addendumType",
+        //     key: "addendumType",
+        //     render: (value) => (
+        //         <Tag color="blue">{value.name}</Tag>
+        //     ),
+        //     filters: [...new Set(tableData?.map(appendix => appendix.addendumType.name))].map(name => ({
+        //         text: name,
+        //         value: name,
+        //     })),
+        //     onFilter: (value, record) => record.addendumType.name === value,
+        // },
 
         {
             title: "Ngày có hiệu lực",
             dataIndex: "effectiveDate",
             key: "effectiveDate",
             render: (dateArray) => {
+                if (!dateArray || dateArray.length < 3) return "N/A";
                 const [year, month, day] = dateArray;
                 return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
             },
             sorter: (a, b) => {
+                if (!a.effectiveDate || a.effectiveDate.length < 3) return 1;
+                if (!b.effectiveDate || b.effectiveDate.length < 3) return -1;
                 const dateA = new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]);
                 const dateB = new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]);
                 return dateB - dateA;

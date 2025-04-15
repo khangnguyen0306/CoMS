@@ -457,14 +457,15 @@ const CreateContractForm = () => {
             const result = await createClause({ label: name, value: content, typeTermId: 8 }).unwrap();
             // console.log(result);
             if (result.status === "CREATED") {
-                message.success("Tạo điều khoản thành công");
+                message.success("Tạo căn cứ pháp lý thành công");
+                loadLegalData();
+                setIsAddLegalModalOpen(false);
+                formLegal.resetFields();
             }
-            loadLegalData();
-            setIsAddLegalModalOpen(false);
-            formLegal.resetFields();
+
         } catch (error) {
-            // console.error("Lỗi tạo điều khoản:", error);
-            message.error("Có lỗi xảy ra khi tạo điều khoản");
+            // console.error("Lỗi tạo căn cứ pháp lý:", error);
+            message.error("Có lỗi xảy ra khi tạo căn cứ pháp lý");
         }
 
     };
@@ -1668,12 +1669,12 @@ const CreateContractForm = () => {
                                                                         validator(_, value) {
                                                                             const effectiveDate = getFieldValue('effectiveDate');
                                                                             const expiryDate = getFieldValue('expiryDate');
-                                                                    
+
                                                                             // Nếu chưa chọn ngày hoặc chưa có ngày hiệu lực, không cần validate
                                                                             if (!value || !effectiveDate || !expiryDate) {
                                                                                 return Promise.resolve();
                                                                             }
-                                                                    
+
                                                                             // Kiểm tra nếu ngày nằm trong khoảng [effectiveDate, expiryDate]
                                                                             if (
                                                                                 value.isSame(effectiveDate, 'day') ||
@@ -1682,13 +1683,13 @@ const CreateContractForm = () => {
                                                                             ) {
                                                                                 return Promise.resolve();
                                                                             }
-                                                                    
+
                                                                             return Promise.reject(
                                                                                 new Error('Ngày thanh toán phải nằm trong khoảng thời gian hiệu lực hợp đồng!')
                                                                             );
                                                                         },
                                                                     })
-                                                                    
+
                                                                 ]}
                                                             >
                                                                 <DatePicker
