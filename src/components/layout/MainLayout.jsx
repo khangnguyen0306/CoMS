@@ -66,6 +66,7 @@ const MainLayout = () => {
     "DeleteContract": '/DeleteContract',
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
+    'approvalContractCEO': '/director/approvalContract',
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
     'managerAppendix': "/manager/appendix",
@@ -80,7 +81,7 @@ const MainLayout = () => {
     'diarecAllApendix': '/director/appendixFull',
     'directorAppendixApprove': '/director/appendix',
     'approveManager': '/contract?paramstatus=APPROVED',
-    'sendAppendix':'/appendixSend'
+    'sendAppendix': '/appendixSend'
   }
 
   const handleLogout = useCallback(() => {
@@ -300,8 +301,9 @@ const MainLayout = () => {
       label: 'Hợp đồng',
       badgeType: "contracts",
       children: [
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractCEO", color: "#1890ff", badgeCount: "contractsPendingApprovalForManager" },
         { icon: MdClass, label: 'Tất cả hợp đồng', key: "contract", color: "#1890ff" },
-        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner"},
+        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
         { icon: FaClock, label: 'Hợp đồng chờ ký', key: "contractsNeedSign", color: "#faad14" },
         { icon: CheckCircleFilled, label: 'Hợp đồng đã ký', key: "contractsSigned", color: "#52c41a" },
         { icon: FcExpired, label: 'Hợp đồng đã hết hạn', key: "contractsExpired", color: "#f5222d" },

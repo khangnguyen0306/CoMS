@@ -264,6 +264,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                             stages: stagesArray,
                             contractTypeId: contractTypeId,
                         };
+                        // console.log("New process data:", newProcess);
                         const result = await create(newProcess).unwrap();
                         console.log("New process:", result);
 
