@@ -10,7 +10,7 @@ export const appendixApi = baseApi.injectEndpoints({
           page: params.page,
           size: params.size,
           order: 'esc',
-          statuses:params.statuses || ""
+          statuses: params.statuses || ""
         },
         method: 'GET',
       }),
@@ -21,11 +21,11 @@ export const appendixApi = baseApi.injectEndpoints({
       query: ({ approverId, params }) => ({
         url: `addendums/get-addendum-for-approver/${approverId}`,
         // Nếu cần có params thì bỏ comment
-        // params: {
-        //   page: params.page,
-        //   size: params.size,
-        //   order: 'esc'
-        // },
+        params: {
+          page: params.page,
+          size: params.size,
+          order: 'esc'
+        },
         method: 'GET',
       }),
       providesTags: (result, error, Appendix) => [{ type: 'Appendix', id: Appendix }],

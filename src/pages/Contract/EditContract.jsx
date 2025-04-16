@@ -1660,7 +1660,7 @@ const EditContract = () => {
                                         </Form.List>
                                     </div>
                                 )}
-                                
+
                                 <div className="flex items-center gap-5 mt-[50px]">
                                     <Form.Item name="autoAddVAT" valuePropName="checked">
                                         <div className="flex items-center min-w-[350px]">
@@ -1703,7 +1703,16 @@ const EditContract = () => {
                                     <p className="font-bold text-[16px] mb-1">Điều khoản chung</p>
                                     <p>Mô tả: (Điều khoản được áp dụng cho cả 2 bên)</p>
                                 </div>
-                                <Form.Item label={<div className="flex justify-between items-center gap-4"><p>Điều khoản chung</p><Popover content={() => getTermsContent('generalTerms')} title="Danh sách Điều khoản chung đã chọn" trigger="hover" placement="right"><Button icon={<EyeFilled />} /></Popover></div>} name="generalTerms" rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]} className="ml-2">
+                                <Form.Item label={
+                                    <div className="flex justify-between items-center gap-4">
+                                        <p>Điều khoản chung</p>
+                                        <Popover content={() => getTermsContent('generalTerms')}
+                                            title="Danh sách Điều khoản chung đã chọn"
+                                            trigger="hover" placement="right"><Button icon={<EyeFilled />} />
+                                        </Popover></div>} name="generalTerms"
+                                    rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
+                                    className="ml-2"
+                                >
                                     <LazySelect loadDataCallback={loadGenaralData} options={generalData?.data.content} showSearch mode="multiple" placeholder="Chọn điều khoản chung" onChange={handleSelectChange} dropdownRender={(menu) => (
                                         <>
                                             {menu}
@@ -1727,7 +1736,13 @@ const EditContract = () => {
                                 </Form.Item>
                                 <div className="flex flex-col">
                                     {selectedOthersTerms.map(termId => (
-                                        <TermSection key={termId} termId={termId} title={termConfigs[termId].title} form={form} loadDataCallback={termConfigs[termId].loadData} />
+                                        <TermSection
+                                            key={termId}
+                                            termId={termId}
+                                            title={termConfigs[termId].title}
+                                            form={form}
+                                            loadDataCallback={termConfigs[termId].loadData}
+                                        />
                                     ))}
                                 </div>
                                 <Divider orientation="center">Điều khoản đặc biệt</Divider>
@@ -1917,7 +1932,7 @@ const EditContract = () => {
                 onFinish={onFinish}
                 onValuesChange={(changedValues, allValues) => {
                     if (changedValues.contractItems) {
-          
+
                         const total = (allValues.contractItems || []).reduce(
                             (sum, item) => sum + (item.amount || 0),
                             0

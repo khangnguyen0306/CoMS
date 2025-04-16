@@ -45,6 +45,12 @@ const ReviewContract = () => {
                     StageIdMatching,
                 },
             });
+        } else if (currentUser?.roles?.includes("ROLE_DIRECTOR")) {
+            navigate(`/director/approvalContract/reviewContract/${id}/approve/${id}`, {
+                state: {
+                    StageIdMatching,
+                },
+            });
         }
     };
 

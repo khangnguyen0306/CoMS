@@ -21,13 +21,12 @@ const AppendixManagement = () => {
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
     const [searchParams] = useSearchParams();
-    const paramstatus = searchParams.get('paramstatus');
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
         total: 0
     });
-    const [status, setStatus] = useState(paramstatus || null);
+    const [status, setStatus] = useState(searchParams.get('paramstatus') || null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isVisibleDuplicate, setIsVisibleDuplicate] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
@@ -59,12 +58,15 @@ const AppendixManagement = () => {
         setIsVisibleDuplicate(false);
     };
 
-
+    useEffect(() => {
+        const newStatus = searchParams.get('paramstatus');
+        setStatus(newStatus || null);
+    }, [searchParams]);
 
 
     useEffect(() => {
         refetch();
-    }, [])
+    }, [searchParams, status])
 
 
 
@@ -185,23 +187,23 @@ const AppendixManagement = () => {
         //     //         : (value, record) => record.appendixType.name === value,
         // },
 
-        {
-            title: "Ngày có hiệu lực",
-            dataIndex: "effectiveDate",
-            key: "effectiveDate",
-            render: (dateArray) => {
-                if (!dateArray || dateArray.length < 3) {
-                    return 'N/A'; // or any default value you want to show
-                }
-                const [year, month, day] = dateArray;
-                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
-            },
-            sorter: (a, b) => {
-                const dateA = a?.effectiveDate ? new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]) : new Date(0); // Default to epoch if null
-                const dateB = b?.effectiveDate ? new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]) : new Date(0); // Default to epoch if null
-                return dateB - dateA;
-            }
-        },
+        // {
+        //     title: "Ngày có hiệu lực",
+        //     dataIndex: "effectiveDate",
+        //     key: "effectiveDate",
+        //     render: (dateArray) => {
+        //         if (!dateArray || dateArray.length < 3) {
+        //             return 'N/A'; // or any default value you want to show
+        //         }
+        //         const [year, month, day] = dateArray;
+        //         return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+        //     },
+        //     sorter: (a, b) => {
+        //         const dateA = a?.effectiveDate ? new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]) : new Date(0); // Default to epoch if null
+        //         const dateB = b?.effectiveDate ? new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]) : new Date(0); // Default to epoch if null
+        //         return dateB - dateA;
+        //     }
+        // },
         {
             title: "Trạng thái",
             dataIndex: "status",
@@ -214,78 +216,85 @@ const AppendixManagement = () => {
             render: (status) => statusAppendix[status] || <Tag>{status}</Tag>,
             sorter: (a, b) => a.status.localeCompare(b.status),
         },
-        {
+        ...(user.roles[0] !== "ROLE_MANAGER" && user.roles[0] !== "ROLE_DIRECTOR" ? [{
+
             title: "Hành động",
             key: "action",
-            render: (_, record) => (
-                <Space>
-                    {record?.status === "APPROVED" ? (
-                        <div className="flex gap-2">
-                            <Button type="default" onClick={() => handleOpenDuplicate(record)} icon={<IoDuplicate />}></Button>
-                            {/* <Button type="default" icon={<IoSend style={{ color: '#40a9ff', fontSize: 15 }} />}></Button> */}
-                        </div>
-                    ) : (
-                        <Dropdown
-                            menu={{
-                                items: [
-                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED"
-                                        ? [{
-                                            key: "edit",
-                                            icon: <EditFilled style={{ color: '#228eff' }} />,
-                                            label: "Sửa",
-                                            onClick: () => navigate(`/CreateAppendix/?appendixId=${record.addendumId}`),
-                                        }]
-                                        : []),
-                                    ...(record.status == "ACTIVE"
-                                        ? [{
-                                            key: "createAppendix",
-                                            icon: <PlusOutlined style={{ color: '#228eff' }} />,
-                                            label: "Tạo phụ lục",
-                                            onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
-                                        }]
-                                        : []),
-                                    ...(record.status === "REJECTED" ? [
-                                        {
-                                            key: "select-process",
-                                            icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
-                                            label: (
-                                                <span onClick={() => handleResubmit(record)}>
-                                                    Gửi lại yêu cầu phê duyệt
-                                                </span>
-                                            ),
-                                        }] :
-                                        (record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+            render: (_, record) => {
+                if (user.roles.includes("ROLE_MANAGER") || user.roles.includes("ROLE_DIRECTOR")) {
+                    return null; // Do not render the actions for these roles
+                }
+                return (
+                    <Space>
+                        {record?.status === "APPROVED" ? (
+                            <div className="flex gap-2">
+                                <Button type="default" onClick={() => handleOpenDuplicate(record)} icon={<IoDuplicate />}></Button>
+                                {/* <Button type="default" icon={<IoSend style={{ color: '#40a9ff', fontSize: 15 }} />}></Button> */}
+                            </div>
+                        ) : (
+                            <Dropdown
+                                menu={{
+                                    items: [
+                                        ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED"
+                                            ? [{
+                                                key: "edit",
+                                                icon: <EditFilled style={{ color: '#228eff' }} />,
+                                                label: "Sửa",
+                                                onClick: () => navigate(`/CreateAppendix/?appendixId=${record.addendumId}`),
+                                            }]
+                                            : []),
+                                        ...(record.status == "ACTIVE"
+                                            ? [{
+                                                key: "createAppendix",
+                                                icon: <PlusOutlined style={{ color: '#228eff' }} />,
+                                                label: "Tạo phụ lục",
+                                                onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
+                                            }]
+                                            : []),
+                                        ...(record.status === "REJECTED" ? [
                                             {
                                                 key: "select-process",
-                                                icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                                icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
                                                 label: (
-                                                    <span onClick={() => showModal(record)}>
-                                                        Yêu cầu phê duyệt
+                                                    <span onClick={() => handleResubmit(record)}>
+                                                        Gửi lại yêu cầu phê duyệt
                                                     </span>
                                                 ),
-                                            }] : []),
-                                    {
-                                        key: "duplicate",
-                                        icon: <IoDuplicate />,
-                                        label: "Nhân bản phụ lục",
-                                        onClick: () => handleOpenDuplicate(record),
-                                    },
-                                    {
-                                        key: "delete",
-                                        icon: <DeleteOutlined />,
-                                        label: "Xóa",
-                                        danger: true,
-                                        onClick: () => handleDelete(record),
-                                    },
-                                ],
-                            }}
-                        >
-                            <Button><SettingOutlined /></Button>
-                        </Dropdown>
-                    )}
-                </Space>
-            ),
-        }
+                                            }] :
+                                            (record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+                                                {
+                                                    key: "select-process",
+                                                    icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                                    label: (
+                                                        <span onClick={() => showModal(record)}>
+                                                            Yêu cầu phê duyệt
+                                                        </span>
+                                                    ),
+                                                }] : []),
+                                        {
+                                            key: "duplicate",
+                                            icon: <IoDuplicate />,
+                                            label: "Nhân bản phụ lục",
+                                            onClick: () => handleOpenDuplicate(record),
+                                        },
+                                        {
+                                            key: "delete",
+                                            icon: <DeleteOutlined />,
+                                            label: "Xóa",
+                                            danger: true,
+                                            onClick: () => handleDelete(record),
+                                        },
+                                    ],
+                                }}
+                            >
+                                <Button><SettingOutlined /></Button>
+                            </Dropdown>
+                        )}
+                    </Space>
+                );
+            },
+
+        }] : []),
     ];
 
     const handleTableChange = (pagination, filters, sorter) => {
@@ -332,14 +341,14 @@ const AppendixManagement = () => {
                         enterButton="Tìm kiếm"
                         disabled={isLoading}
                     />
-                    <div>
+                    {/* <div>
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
                         >
                             <Link to={'/CreateAppendix'}> Tạo phụ lục</Link>
                         </Button>
-                    </div>
+                    </div> */}
                 </Space>
                 <Table
                     columns={columns}

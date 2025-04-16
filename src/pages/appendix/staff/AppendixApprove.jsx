@@ -38,9 +38,11 @@ const AppendixApprove = () => {
 
     const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixByApproverQuery({
         approverId: user.id,
-        page: pagination.current - 1,
-        size: pagination.pageSize,
-        keyword: searchText,
+        params: {
+            page: pagination.current - 1,
+            size: pagination.pageSize,
+            keyword: searchText,
+        }
     });
 
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
@@ -186,23 +188,23 @@ const AppendixApprove = () => {
         //     //         : (value, record) => record.appendixType.name === value,
         // },
 
-        {
-            title: "Ngày có hiệu lực",
-            dataIndex: "effectiveDate",
-            key: "effectiveDate",
-            render: (dateArray) => {
-                if (!dateArray || dateArray.length < 3) return "N/A"; // Check for valid date array
-                const [year, month, day] = dateArray;
-                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
-            },
-            sorter: (a, b) => {
-                if (!a.effectiveDate || a.effectiveDate.length < 3) return 1; // Treat missing dates as greater
-                if (!b.effectiveDate || b.effectiveDate.length < 3) return -1; // Treat missing dates as lesser
-                const dateA = new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]);
-                const dateB = new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]);
-                return dateB - dateA;
-            }
-        },
+        // {
+        //     title: "Ngày có hiệu lực",
+        //     dataIndex: "effectiveDate",
+        //     key: "effectiveDate",
+        //     render: (dateArray) => {
+        //         if (!dateArray || dateArray.length < 3) return "N/A"; // Check for valid date array
+        //         const [year, month, day] = dateArray;
+        //         return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+        //     },
+        //     sorter: (a, b) => {
+        //         if (!a.effectiveDate || a.effectiveDate.length < 3) return 1; // Treat missing dates as greater
+        //         if (!b.effectiveDate || b.effectiveDate.length < 3) return -1; // Treat missing dates as lesser
+        //         const dateA = new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]);
+        //         const dateB = new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]);
+        //         return dateB - dateA;
+        //     }
+        // },
         {
             title: "Trạng thái",
             dataIndex: "status",

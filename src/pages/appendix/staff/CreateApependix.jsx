@@ -30,6 +30,7 @@ const ContractAppendixPage = () => {
     const [form] = Form.useForm();
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [content, setContent] = useState('');
+    const [contentSell, setContentSell] = useState('');
     const [loadingData, setLoadingData] = useState(true);
     const [selectedTypes, setSelectedTypes] = useState([]);
     const [editOptions, setEditOptions] = useState({ cost: false, terms: false });
@@ -45,7 +46,7 @@ const ContractAppendixPage = () => {
     const { data: contractDetailData, isLoading: isLoadingContractDetail, refetch: refecthContractDetail } = useGetContractDetailQuery(
         contractId, { skip: !contractId }
     );
-    console.log(contractDetailData)
+    // console.log(contractDetailData)
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
     const { data: appendixData, isLoading: isLoadingAppendix } = useGetAppendixDetailQuery({ id: appendixId }, { skip: !appendixId });
     const { data: contracts, isLoading: isLoadingContracts } = useGetAllContractQuery(
@@ -83,6 +84,10 @@ const ContractAppendixPage = () => {
     const onValueChange = useCallback(debounce((value) => {
         setContent(value);
         form.setFieldsValue({ contractContent: value });
+    }, 100), []);
+    const onValueChangeSell = useCallback(debounce((value) => {
+        setContentSell(value);
+        form.setFieldsValue({ content: value });
     }, 100), []);
 
 
@@ -173,14 +178,30 @@ const ContractAppendixPage = () => {
                 message.error(`Tổng số tiền các hạng mục (${new Intl.NumberFormat('vi-VN').format(totalContractItemsValue)} VND) phải bằng tổng số tiền các đợt thanh toán (${new Intl.NumberFormat('vi-VN').format(totalPaymentsValue)} VND)!`);
                 return;
             }
+            const data = form.getFieldsValue(true);
+
+            const additionalConfig = Object.keys(data)
+                .filter(key => !isNaN(key))
+                .reduce((acc, key) => {
+                    const { A, B, Common } = data[key];
+                    if (A.length > 0 || B.length > 0 || Common.length > 0) {
+                        acc[key] = {
+                            ...(A.length > 0 && { A: A.map(id => ({ id })) }),
+                            ...(B.length > 0 && { B: B.map(id => ({ id })) }),
+                            ...(Common.length > 0 && { Common: Common.map(id => ({ id })) }),
+                        };
+                    }
+                    return acc;
+                }, {});
+
 
             const appendixData = {
                 ...values,
                 ...(contractId ? { contractId } : {}),
                 selectedTypes,
+                additionalConfig
             };
-
-            console.log(appendixData);
+            // console.log(appendixData);
             try {
                 if (appendixId) {
                     const result = await updateAppendix({ appendixId: appendixId, ...appendixData });
@@ -354,6 +375,12 @@ const ContractAppendixPage = () => {
 
             // Chỉnh sửa chi phí thanh toán
             if (selectedTypes.includes('edit') && editOptions.cost) {
+                const [year, month, day, hour, minute] = contractDetailData.data.expiryDate;
+                const [yearE, monthE, dayE, hourE, minuteE] = contractDetailData.data.effectiveDate;
+                const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+                const dateStringE = `${yearE}-${monthE.toString().padStart(2, '0')}-${dayE.toString().padStart(2, '0')}T${hourE.toString().padStart(2, '0')}:${minuteE.toString().padStart(2, '0')}:00`;
+                const expiryDate = dayjs(dateString);
+                const effectiveDate = dayjs(dateStringE);
                 const totalValue = contractDetailData?.data.amount || contractDetailData?.data.contractItems.reduce((sum, item) => sum + item.amount, 0);
                 const payments = contractDetailData?.data.paymentSchedules.map(schedule => {
                     const [year, month, day, hour, minute] = schedule.paymentDate;
@@ -362,6 +389,7 @@ const ContractAppendixPage = () => {
                         amount: schedule.amount,
                         paymentDate: dayjs(dateString),
                         paymentMethod: schedule.paymentMethod,
+
                     };
                 });
                 form.setFieldsValue({
@@ -373,6 +401,12 @@ const ContractAppendixPage = () => {
                     })) || [],
                     totalValue,
                     payments,
+                    extendDateRange: [
+                        effectiveDate,
+                        expiryDate,
+                    ],
+                    extendContractDate: effectiveDate,
+                    contractExpirationDate: expiryDate,
                 });
             }
 
@@ -589,18 +623,18 @@ const ContractAppendixPage = () => {
 
                         {/* Hiển thị các tùy chọn con khi edit được chọn */}
                         {selectedTypes.includes('edit') && (
-                            <div className="ml-4 flex flex-col gap-1">
+                            <div className="ml-4 flex flex-col gap-2 mt-4">
                                 <Checkbox
                                     onChange={(e) => handleEditOptionChange('cost', e.target.checked)}
                                     checked={editOptions.cost}
                                 >
-                                    Thay đổi chi phí thanh toán
+                                    Thay đổi chi phí và thời gian hiệu lực
                                 </Checkbox>
                                 <Checkbox
                                     onChange={(e) => handleEditOptionChange('terms', e.target.checked)}
                                     checked={editOptions.terms}
                                 >
-                                    Thay đổi nội dung điều khoản
+                                    Thay đổi nội dung và điều khoản
                                 </Checkbox>
                             </div>
                         )}
@@ -780,7 +814,27 @@ const ContractAppendixPage = () => {
                                                 <Form.Item
                                                     {...restField}
                                                     name={[name, "paymentDate"]}
-                                                    rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
+                                                    rules={[
+                                                        { required: true, message: "Chọn ngày thanh toán" },
+                                                        {
+                                                            validator: (_, value) => {
+                                                                const extendStart = form.getFieldValue("extendContractDate");
+                                                                const extendEnd = form.getFieldValue("contractExpirationDate");
+
+                                                                // Nếu chưa chọn thời gian gia hạn hoặc ngày thanh toán, không kiểm tra
+                                                                if (!extendStart || !extendEnd || !value) {
+                                                                    return Promise.resolve();
+                                                                }
+
+                                                                // Kiểm tra xem ngày thanh toán có nằm trong khoảng thời gian gia hạn hay không
+                                                                if (value.isBefore(extendStart) || value.isAfter(extendEnd)) {
+                                                                    return Promise.reject(new Error("Ngày thanh toán phải nằm trong thời gian gia hạn"));
+                                                                }
+
+                                                                return Promise.resolve();
+                                                            },
+                                                        },
+                                                    ]}
                                                 >
                                                     <DatePicker
                                                         style={{ width: 150 }}
@@ -820,6 +874,50 @@ const ContractAppendixPage = () => {
 
                     {selectedTypes.includes('edit') && editOptions.cost && (
                         <>
+                            <Form.Item
+                                label="Thời gian hiệu lực hợp đồng"
+                                name="extendDateRange"
+                                rules={[
+                                    { required: true, message: 'Vui lòng chọn thời gian hiệu lực hợp đồng!' },
+                                    ({ getFieldValue }) => ({
+                                        validator(_, value) {
+                                            if (!value || value.length !== 2) {
+                                                return Promise.resolve();
+                                            }
+                                            const [startDate, endDate] = value;
+                                            if (endDate.isBefore(startDate)) {
+                                                return Promise.reject(new Error('Ngày kết thúc hiệu lực phải sau ngày bắt đầu!'));
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    }),
+                                ]}
+                            >
+                                <DatePicker.RangePicker
+                                    className="w-full"
+                                    showTime={{ format: 'HH:mm' }}
+                                    format="DD/MM/YYYY HH:mm"
+                                    placeholder={["Ngày bắt đầu hiệu lực", "Ngày kết thúc hiệu lực"]}
+                                    disabledDate={(current) => {
+                                        return current && current < form.getFieldValue('extendContractDate').startOf('day');
+                                    }}
+                                    onChange={(dates) => {
+                                        if (dates) {
+                                            form.setFieldsValue({
+                                                extendContractDate: dates[0],
+                                                contractExpirationDate: dates[1],
+                                            });
+                                        } else {
+                                            form.setFieldsValue({
+                                                extendContractDate: null,
+                                                contractExpirationDate: null,
+                                            });
+                                        }
+                                    }}
+                                />
+                            </Form.Item>
+                            <Form.Item name="extendContractDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu gia hạn!" }]} />
+                            <Form.Item name="contractExpirationDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc gia hạn!" }]} />
                             <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                             <Form.List
                                 name="contractItems"
@@ -922,7 +1020,27 @@ const ContractAppendixPage = () => {
                                                 <Form.Item
                                                     {...restField}
                                                     name={[name, "paymentDate"]}
-                                                    rules={[{ required: true, message: "Chọn ngày thanh toán" }]}
+                                                    rules={[
+                                                        { required: true, message: "Chọn ngày thanh toán" },
+                                                        {
+                                                            validator: (_, value) => {
+                                                                const extendStart = form.getFieldValue("extendContractDate");
+                                                                const extendEnd = form.getFieldValue("contractExpirationDate");
+
+                                                                // Nếu chưa chọn thời gian gia hạn hoặc ngày thanh toán, không kiểm tra
+                                                                if (!extendStart || !extendEnd || !value) {
+                                                                    return Promise.resolve();
+                                                                }
+
+                                                                // Kiểm tra xem ngày thanh toán có nằm trong khoảng thời gian gia hạn hay không
+                                                                if (value.isBefore(extendStart) || value.isAfter(extendEnd)) {
+                                                                    return Promise.reject(new Error("Ngày thanh toán phải nằm trong thời gian hiệu lực"));
+                                                                }
+
+                                                                return Promise.resolve();
+                                                            },
+                                                        },
+                                                    ]}
                                                 >
                                                     <DatePicker
                                                         style={{ width: 150 }}
@@ -1080,11 +1198,23 @@ const ContractAppendixPage = () => {
                     {selectedTypes.includes('liquidate') && (
                         <>
                             <Form.Item
-                                label="Lý do thanh lý"
-                                name="liquidateReason"
-                                rules={[{ required: true, message: 'Vui lòng nhập lý do thanh lý!' }]}
+                                label=" Soạn thảo nội dung thanh lý hợp đồng"
+                                name="content"
+                                className="mt-5"
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung thanh lý hợp đồng!" }]}
                             >
-                                <Input.TextArea placeholder="Nhập lý do thanh lý" />
+                                <RichTextEditor
+                                    output="html"
+                                    content={contentSell}
+                                    onChangeContent={onValueChangeSell}
+                                    extensions={extensions}
+                                    dark={isDarkMode}
+                                    hideBubble={true}
+                                    dense={false}
+                                    removeDefaultWrapper
+                                    placeholder="Nhập nội dung thanh lý hợp đồng tại đây..."
+                                    contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
+                                />
                             </Form.Item>
 
 

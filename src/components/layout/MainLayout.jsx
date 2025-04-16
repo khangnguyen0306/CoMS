@@ -34,6 +34,7 @@ import { FcExpired } from "react-icons/fc";
 import { IoIosCloseCircle } from "react-icons/io";
 import { FaSwatchbook } from "react-icons/fa6";
 import { PiStampFill } from "react-icons/pi";
+import { AiFillSignature } from "react-icons/ai";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -66,6 +67,7 @@ const MainLayout = () => {
     "DeleteContract": '/DeleteContract',
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
+    'approvalContractCEO': '/director/approvalContract',
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
     'managerAppendix': "/manager/appendix",
@@ -78,9 +80,10 @@ const MainLayout = () => {
     'contractsRejected': "/contract?paramstatus=REJECTED",
     '4': '/combo',
     'diarecAllApendix': '/director/appendixFull',
-    'directorAppendixApprove': '/director/appendix',
+    'directorAppendixApprove': '/director/appendix?paramstatus=CREATED',
+    'directorAppendixSign': '/appendix?paramstatus=APPROVED',
     'approveManager': '/contract?paramstatus=APPROVED',
-    'sendAppendix':'/appendix?paramstatus=CREATED'
+    'sendAppendix': '/appendix?paramstatus=CREATED'
   }
 
   const handleLogout = useCallback(() => {
@@ -122,7 +125,7 @@ const MainLayout = () => {
 
       children: [
         { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "managerAppendix", default: true, badgeCount: "addendaPendingApprovalForManager", color: "#fa8c16" },
-        { icon: MenuOutlined, label: 'Quản lý phụ lục', key: "managerAppendixForallStatus" },
+        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "managerAppendixForallStatus" },
       ]
     },
     {
@@ -219,8 +222,8 @@ const MainLayout = () => {
       badgeType: "contracts",
       children: [
         { icon: FaFileCirclePlus, label: 'Tạo hợp đồng', key: "createContract", color: "#1890ff" },
-        { icon: MdOutlineClass, label: 'Tất cả hợp đồng', key: "contract", default: true, badgeCount: "contractsPendingApproval", color: "#13c2c2" },
-        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff", color: "#faad14" },
+        { icon: MdOutlineClass, label: 'Tất cả hợp đồng', key: "contract", default: true, color: "#13c2c2" },
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractStaff", badgeCount: "contractsAssignedToApprove", color: "#faad14" },
         { icon: HiMiniClipboardDocumentCheck, label: 'Gửi yêu cầu phê duyệt', key: "contractsApproval", badgeCount: "contractsRejected", color: "#722ed1" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner", color: "#52c41a" },
         { icon: BsTrash3Fill, label: 'Kho lưu trữ', key: "DeleteContract", color: "#f5222d" },
@@ -231,7 +234,7 @@ const MainLayout = () => {
       label: 'Phụ lục hợp đồng',
       badgeType: "addenda",
       children: [
-        { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "appendix", badgeCount: "addendaRejected", color: "#fa8c16" },
+        { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "appendix", badgeCount: "addendaAssignedToApprove", color: "#fa8c16" },
         { icon: IoIosSend, label: 'Yêu cầu phê duyệt phụ lục', key: "sendAppendix", badgeCount: "addendaRejected", color: "#722ed1" },
         { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "appendixManageStaff", default: true, badgeCount: "addendaPendingApproval", color: "#13c2c2" },
       ]
@@ -300,8 +303,9 @@ const MainLayout = () => {
       label: 'Hợp đồng',
       badgeType: "contracts",
       children: [
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractCEO", color: "#1890ff", badgeCount: "contractsPendingApprovalForManager" },
         { icon: MdClass, label: 'Tất cả hợp đồng', key: "contract", color: "#1890ff" },
-        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner"},
+        { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
         { icon: FaClock, label: 'Hợp đồng chờ ký', key: "contractsNeedSign", color: "#faad14" },
         { icon: CheckCircleFilled, label: 'Hợp đồng đã ký', key: "contractsSigned", color: "#52c41a" },
         { icon: FcExpired, label: 'Hợp đồng đã hết hạn', key: "contractsExpired", color: "#f5222d" },
@@ -314,6 +318,7 @@ const MainLayout = () => {
       badgeType: "addenda",
       children: [
         { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "directorAppendixApprove", color: "#FF8247", badgeCount: "addendaRejected" },
+        { icon: AiFillSignature, label: 'Phụ lục chờ ký', key: "directorAppendixSign", color: "#41a9ff" },
         { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "diarecAllApendix", default: true, badgeCount: "addendaPendingApproval" },
       ]
     },
