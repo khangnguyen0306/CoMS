@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
 import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, UndoOutlined } from "@ant-design/icons";
-import { BsClipboard2DataFill } from "react-icons/bs"
-import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
-import { Link, useNavigate } from "react-router-dom";
-import { BiDuplicate } from "react-icons/bi";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../slices/authSlice";
-import { useGetContractPorcessPendingQuery, useGetProcessByContractIdQuery, useLazyGetProcessByContractIdQuery } from "../../../services/ProcessAPI";
+import { useGetContractPorcessPendingQuery } from "../../../services/ProcessAPI";
 import ExpandRowContent from "../../Contract/component/ExpandRowContent";
 import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery, useResubmitAppendixMutation } from "../../../services/AppendixAPI";
 import Process from "../../Process/Process";
@@ -23,12 +20,13 @@ const AppendixManagement = () => {
     const user = useSelector(selectCurrentUser)
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
+    const [searchParams] = useSearchParams();
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 10,
         total: 0
     });
-    const [status, setStatus] = useState(null);
+    const [status, setStatus] = useState(searchParams.get('paramstatus') || null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isVisibleDuplicate, setIsVisibleDuplicate] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
@@ -39,6 +37,7 @@ const AppendixManagement = () => {
         page: pagination.current - 1,
         size: pagination.pageSize,
         keyword: searchText,
+        statuses: status
     });
 
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
@@ -51,7 +50,6 @@ const AppendixManagement = () => {
 
 
     const handleOpenDuplicate = (record) => {
-        // console.log(record)
         setSelectedContractId(record)
         setIsVisibleDuplicate(true);
     };
@@ -60,12 +58,15 @@ const AppendixManagement = () => {
         setIsVisibleDuplicate(false);
     };
 
-
+    useEffect(() => {
+        const newStatus = searchParams.get('paramstatus');
+        setStatus(newStatus || null);
+    }, [searchParams]);
 
 
     useEffect(() => {
         refetch();
-    }, [])
+    }, [searchParams, status])
 
 
 
@@ -155,51 +156,54 @@ const AppendixManagement = () => {
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
-                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`}`} className="font-bold text-[#228eff] cursor-pointer">
+                <Link to={`${(user.roles[0] === "ROLE_STAFF") ? `/appendixDetail/${record.contractId}/${record.addendumId}` : (user.roles[0] === "ROLE_DIRECTOR" ? `/director/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`)}`} className="font-bold text-[#228eff] cursor-pointer">
                     <p> {text} </p>
                 </Link>
             ),
         },
-        {
-            title: "Loại phụ lục",
-            dataIndex: "addendumType",
-            key: "addendumType",
-            render: (value) =>
-            // user.roles[0] === "ROLE_MANAGER" ? (
-            //     <Tag color="blue">{value}</Tag>
-            (
-                <Tag color="blue">{value.name}</Tag>
-            ),
-            // filters:
-            //     user.roles[0] === "ROLE_MANAGER"
-            //         ? [...new Set(tableData?.data.map(appendix => appendix.addendumType))].map(type => ({
-            //             text: type,
-            //             value: type,
-            //         }))
-            //         : [...new Set(tableData?.data.map(appendix => appendix.appendixType.name))].map(type => ({
-            //             text: type,
-            //             value: type,
-            //         })),
-            // onFilter:
-            //     user.roles[0] === "ROLE_MANAGER"
-            //         ? (value, record) => record.addendumType === value
-            //         : (value, record) => record.appendixType.name === value,
-        },
+        // {
+        //     title: "Loại phụ lục",
+        //     dataIndex: "addendumType",
+        //     key: "addendumType",
+        //     render: (value) =>
+        //     // user.roles[0] === "ROLE_MANAGER" ? (
+        //     //     <Tag color="blue">{value}</Tag>
+        //     (
+        //         <Tag color="blue">{value.name}</Tag>
+        //     ),
+        //     // filters:
+        //     //     user.roles[0] === "ROLE_MANAGER"
+        //     //         ? [...new Set(tableData?.data.map(appendix => appendix.addendumType))].map(type => ({
+        //     //             text: type,
+        //     //             value: type,
+        //     //         }))
+        //     //         : [...new Set(tableData?.data.map(appendix => appendix.appendixType.name))].map(type => ({
+        //     //             text: type,
+        //     //             value: type,
+        //     //         })),
+        //     // onFilter:
+        //     //     user.roles[0] === "ROLE_MANAGER"
+        //     //         ? (value, record) => record.addendumType === value
+        //     //         : (value, record) => record.appendixType.name === value,
+        // },
 
-        {
-            title: "Ngày có hiệu lực",
-            dataIndex: "effectiveDate",
-            key: "effectiveDate",
-            render: (dateArray) => {
-                const [year, month, day] = dateArray;
-                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
-            },
-            sorter: (a, b) => {
-                const dateA = new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]);
-                const dateB = new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]);
-                return dateB - dateA;
-            }
-        },
+        // {
+        //     title: "Ngày có hiệu lực",
+        //     dataIndex: "effectiveDate",
+        //     key: "effectiveDate",
+        //     render: (dateArray) => {
+        //         if (!dateArray || dateArray.length < 3) {
+        //             return 'N/A'; // or any default value you want to show
+        //         }
+        //         const [year, month, day] = dateArray;
+        //         return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+        //     },
+        //     sorter: (a, b) => {
+        //         const dateA = a?.effectiveDate ? new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]) : new Date(0); // Default to epoch if null
+        //         const dateB = b?.effectiveDate ? new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]) : new Date(0); // Default to epoch if null
+        //         return dateB - dateA;
+        //     }
+        // },
         {
             title: "Trạng thái",
             dataIndex: "status",
@@ -212,78 +216,85 @@ const AppendixManagement = () => {
             render: (status) => statusAppendix[status] || <Tag>{status}</Tag>,
             sorter: (a, b) => a.status.localeCompare(b.status),
         },
-        {
+        ...(user.roles[0] !== "ROLE_MANAGER" && user.roles[0] !== "ROLE_DIRECTOR" ? [{
+
             title: "Hành động",
             key: "action",
-            render: (_, record) => (
-                <Space>
-                    {record?.status === "APPROVED" ? (
-                        <div className="flex gap-2">
-                            <Button type="default" onClick={() => handleOpenDuplicate(record)} icon={<IoDuplicate />}></Button>
-                            <Button type="default" icon={<IoSend style={{ color: '#40a9ff', fontSize: 15 }} />}></Button>
-                        </div>
-                    ) : (
-                        <Dropdown
-                            menu={{
-                                items: [
-                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED"
-                                        ? [{
-                                            key: "edit",
-                                            icon: <EditFilled style={{ color: '#228eff' }} />,
-                                            label: "Sửa",
-                                            onClick: () => navigate(`/CreateAppendix/?appendixId=${record.addendumId}`),
-                                        }]
-                                        : []),
-                                    ...(record.status == "ACTIVE"
-                                        ? [{
-                                            key: "createAppendix",
-                                            icon: <PlusOutlined style={{ color: '#228eff' }} />,
-                                            label: "Tạo phụ lục",
-                                            onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
-                                        }]
-                                        : []),
-                                    ...(record.status === "REJECTED" ? [
-                                        {
-                                            key: "select-process",
-                                            icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
-                                            label: (
-                                                <span onClick={() => handleResubmit(record)}>
-                                                    Gửi lại yêu cầu phê duyệt
-                                                </span>
-                                            ),
-                                        }] :
-                                        (record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+            render: (_, record) => {
+                if (user.roles.includes("ROLE_MANAGER") || user.roles.includes("ROLE_DIRECTOR")) {
+                    return null; // Do not render the actions for these roles
+                }
+                return (
+                    <Space>
+                        {record?.status === "APPROVED" ? (
+                            <div className="flex gap-2">
+                                <Button type="default" onClick={() => handleOpenDuplicate(record)} icon={<IoDuplicate />}></Button>
+                                {/* <Button type="default" icon={<IoSend style={{ color: '#40a9ff', fontSize: 15 }} />}></Button> */}
+                            </div>
+                        ) : (
+                            <Dropdown
+                                menu={{
+                                    items: [
+                                        ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED"
+                                            ? [{
+                                                key: "edit",
+                                                icon: <EditFilled style={{ color: '#228eff' }} />,
+                                                label: "Sửa",
+                                                onClick: () => navigate(`/CreateAppendix/?appendixId=${record.addendumId}`),
+                                            }]
+                                            : []),
+                                        ...(record.status == "ACTIVE"
+                                            ? [{
+                                                key: "createAppendix",
+                                                icon: <PlusOutlined style={{ color: '#228eff' }} />,
+                                                label: "Tạo phụ lục",
+                                                onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
+                                            }]
+                                            : []),
+                                        ...(record.status === "REJECTED" ? [
                                             {
                                                 key: "select-process",
-                                                icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                                icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
                                                 label: (
-                                                    <span onClick={() => showModal(record)}>
-                                                        Yêu cầu phê duyệt
+                                                    <span onClick={() => handleResubmit(record)}>
+                                                        Gửi lại yêu cầu phê duyệt
                                                     </span>
                                                 ),
-                                            }] : []),
-                                    {
-                                        key: "duplicate",
-                                        icon: <IoDuplicate />,
-                                        label: "Nhân bản phụ lục",
-                                        onClick: () => handleOpenDuplicate(record),
-                                    },
-                                    {
-                                        key: "delete",
-                                        icon: <DeleteOutlined />,
-                                        label: "Xóa",
-                                        danger: true,
-                                        onClick: () => handleDelete(record),
-                                    },
-                                ],
-                            }}
-                        >
-                            <Button><SettingOutlined /></Button>
-                        </Dropdown>
-                    )}
-                </Space>
-            ),
-        }
+                                            }] :
+                                            (record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+                                                {
+                                                    key: "select-process",
+                                                    icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
+                                                    label: (
+                                                        <span onClick={() => showModal(record)}>
+                                                            Yêu cầu phê duyệt
+                                                        </span>
+                                                    ),
+                                                }] : []),
+                                        {
+                                            key: "duplicate",
+                                            icon: <IoDuplicate />,
+                                            label: "Nhân bản phụ lục",
+                                            onClick: () => handleOpenDuplicate(record),
+                                        },
+                                        {
+                                            key: "delete",
+                                            icon: <DeleteOutlined />,
+                                            label: "Xóa",
+                                            danger: true,
+                                            onClick: () => handleDelete(record),
+                                        },
+                                    ],
+                                }}
+                            >
+                                <Button><SettingOutlined /></Button>
+                            </Dropdown>
+                        )}
+                    </Space>
+                );
+            },
+
+        }] : []),
     ];
 
     const handleTableChange = (pagination, filters, sorter) => {
@@ -312,6 +323,8 @@ const AppendixManagement = () => {
 
     };
 
+    console.log(selectedRecord)
+
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
@@ -328,14 +341,14 @@ const AppendixManagement = () => {
                         enterButton="Tìm kiếm"
                         disabled={isLoading}
                     />
-                    <div>
+                    {/* <div>
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
                         >
                             <Link to={'/CreateAppendix'}> Tạo phụ lục</Link>
                         </Button>
-                    </div>
+                    </div> */}
                 </Space>
                 <Table
                     columns={columns}
@@ -368,7 +381,7 @@ const AppendixManagement = () => {
                     <Process
                         appendix={true}
                         appendixId={selectedRecord?.addendumId}
-                        appendixTypeId={selectedRecord?.addendumType.addendumTypeId}
+                        // appendixTypeId={selectedRecord?.addendumType.addendumTypeId}
                         contractId={selectedRecord?.contractId}
                         contractTypeId={selectedRecord?.contractType?.id}
                         onProcessApplied={() => {

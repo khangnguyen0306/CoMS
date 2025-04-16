@@ -1342,7 +1342,7 @@ const SignContract = () => {
                 <div className="flex flex-col gap-2 px-[18%] text-center">
                     <p className="text-lg"><b>ĐẠI DIỆN BÊN B</b></p>
                     <p><b>{contractData?.data?.partnerB.partnerName?.toUpperCase()}</b></p>
-                    <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
+                    <i className="text-zinc-600">Ký và ghi rõ họ tên</ i >
                 </div>
             </div>
             <div
@@ -1389,7 +1389,6 @@ const SignContract = () => {
                             </div>
                         )
                     }
-
                 </div>
             </div>
         </div>

@@ -27,12 +27,12 @@ const AppendixManagementForAllStatus = () => {
     const [status, setStatus] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
-    
+
     const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixByManagerQuery({
         managerId: user.id,
-        params:{
-        page: pagination.current - 1,
-        size: pagination.pageSize,
+        params: {
+            page: pagination.current - 1,
+            size: pagination.pageSize,
         }
     });
     // console.log(appendixs)
@@ -83,7 +83,7 @@ const AppendixManagementForAllStatus = () => {
         'UPDATED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
         'REJECTED': <Tag color="red-inverse">Từ chối</Tag>,
     }
-    
+
 
     const columns = [
         {
@@ -113,60 +113,77 @@ const AppendixManagementForAllStatus = () => {
             dataIndex: "title",
             key: "title",
             sorter: (a, b) => a.title.localeCompare(b.title),
-            render: (text,record) => (
-                <Link to={`${user.roles[0] === "ROLE_STAFF" ? `/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`}`} className="font-bold text-[#228eff] cursor-pointer">
-                    <p> {text} </p>
-                </Link>
+            render: (text, record) => (
+                <Link to={`${(user.roles[0] === "ROLE_STAFF") ? `/appendixDetail/${record.contractId}/${record.addendumId}` : (user.roles[0] === "ROLE_DIRECTOR" ? `/director/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`)}`} className="font-bold text-[#228eff] cursor-pointer">
+                <p> {text} </p>
+            </Link>
             ),
         },
-        {
-            title: "Loại phụ lục",
-            dataIndex: "addendumType",
-            key: "addendumType",
-            render: (value) => (
-                <Tag color="blue">{value.name}</Tag>
-            ),
-            filters: [...new Set(tableData?.map(appendix => appendix.addendumType.name))].map(name => ({
-                text: name,
-                value: name,
-            })),
-            onFilter: (value, record) => record.addendumType.name === value,
-        },
+        // {
+        //     title: "Loại phụ lục",
+        //     dataIndex: "addendumType",
+        //     key: "addendumType",
+        //     render: (value) => (
+        //         <Tag color="blue">{value.name}</Tag>
+        //     ),
+        //     filters: [...new Set(tableData?.map(appendix => appendix.addendumType.name))].map(name => ({
+        //         text: name,
+        //         value: name,
+        //     })),
+        //     onFilter: (value, record) => record.addendumType.name === value,
+        // },
 
+        // {
+        //     title: "Ngày có hiệu lực",
+        //     dataIndex: "effectiveDate",
+        //     key: "effectiveDate",
+        //     render: (dateArray) => {
+        //         if (!dateArray || dateArray.length < 3) return "N/A";
+        //         const [year, month, day] = dateArray;
+        //         return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+        //     },
+        //     sorter: (a, b) => {
+        //         if (!a.effectiveDate || a.effectiveDate.length < 3) return 1;
+        //         if (!b.effectiveDate || b.effectiveDate.length < 3) return -1;
+        //         const dateA = new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]);
+        //         const dateB = new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]);
+        //         return dateB - dateA;
+        //     }
+        // },
         {
-            title: "Ngày có hiệu lực",
-            dataIndex: "effectiveDate",
-            key: "effectiveDate",
-            render: (dateArray) => {
-                const [year, month, day] = dateArray;
-                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
-            },
-            sorter: (a, b) => {
-                const dateA = new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]);
-                const dateB = new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]);
-                return dateB - dateA;
-            }
+            title: "Người tạo",
+            dataIndex: "createdBy",
+            key: "createdBy",
+            render: (createdBy) => createdBy?.userName || "N/A",
+            filters: [...new Set(tableData?.map(appendix => appendix.createdBy.userName))].map(userName => ({
+                text: userName,
+                value: userName,
+            })),
+            onFilter: (value, record) => record.createdBy.userName === value,
+            sorter: (a, b) => a.createdBy.userName.localeCompare(b.createdBy.userName),
         },
         {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
             filters: Object.keys(statusAppendix).map(status => ({
-                text: statusAppendix[status].props.children, 
+                text: statusAppendix[status].props.children,
                 value: status,
             })),
             onFilter: (value, record) => record.status === value,
             render: (status) => statusAppendix[status] || <Tag>{status}</Tag>,
             sorter: (a, b) => a.status.localeCompare(b.status),
         },
-        {
+
+        ...(user.roles[0] !== "ROLE_MANAGER" && user.roles[0] !== "ROLE_DIRECTOR" ? [{
+
             title: "Hành động",
             key: "action",
             render: (_, record) => (
                 <Space>
                     {record?.status === "APPROVED" ? (
                         <div>
-                            <Button type="primary">Gửi ký <SendOutlined /></Button>
+                            {/* <Button type="primary">Gửi ký <SendOutlined /></Button> */}
                         </div>
                     ) : (
                         <Dropdown
@@ -215,7 +232,8 @@ const AppendixManagementForAllStatus = () => {
                     )}
                 </Space>
             ),
-        }
+        }] : []),
+
     ];
 
     const handleTableChange = (pagination, filters, sorter) => {
@@ -249,7 +267,7 @@ const AppendixManagementForAllStatus = () => {
         <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                   QUẢN LÝ PHỤ LỤC 
+                    QUẢN LÝ PHỤ LỤC
                 </p>
                 <Space className="mb-[16px] flex items-center justify-between" >
                     <Search

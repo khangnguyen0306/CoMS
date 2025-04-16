@@ -93,7 +93,7 @@ const EditContract = () => {
         }
         return dayjs(date).format("DD-MM-YYYY hh:mm:ss");
     };
-    console.log(cmtData)
+    // console.log(cmtData)
 
     // Fetch contract data in edit mode
     useEffect(() => {
@@ -917,19 +917,7 @@ const EditContract = () => {
         },
     ];
 
-    const handleSaveA = () => {
-        form.validateFields(['partnerA']).then(() => {
-            // Dữ liệu đã được lưu vào form, chỉ cần chuyển chế độ edit off
-            setIsEditA(false);
-        });
-    };
 
-    // Lưu dữ liệu của bên B vào form và chuyển về chế độ xem
-    const handleSaveB = () => {
-        form.validateFields(['partnerB']).then(() => {
-            setIsEditB(false);
-        });
-    };
 
     const handleEffectivePeriodChange = (dates) => {
 
@@ -959,34 +947,34 @@ const EditContract = () => {
         });
         let updatedNotifyEffectiveDate = form.getFieldValue('notifyEffectiveDate');
         if (updatedNotifyEffectiveDate && effectiveDate) {
-          const notifyEffDate = dayjs(updatedNotifyEffectiveDate);
-          // Nếu ngày thông báo vượt quá effectiveDate hoặc trước ngày hôm nay
-          if (
-            notifyEffDate.isAfter(effectiveDate, 'second') ||
-            notifyEffDate.isBefore(dayjs().startOf('day'))
-          ) {
-            updatedNotifyEffectiveDate = effectiveDate;
-          }
+            const notifyEffDate = dayjs(updatedNotifyEffectiveDate);
+            // Nếu ngày thông báo vượt quá effectiveDate hoặc trước ngày hôm nay
+            if (
+                notifyEffDate.isAfter(effectiveDate, 'second') ||
+                notifyEffDate.isBefore(dayjs().startOf('day'))
+            ) {
+                updatedNotifyEffectiveDate = effectiveDate;
+            }
         }
-      
+
         // ====== 3. Cập nhật ngày thông báo cho expiryDate ======
         let updatedNotifyExpiryDate = form.getFieldValue('notifyExpiryDate');
         if (updatedNotifyExpiryDate && expiryDate) {
-          const notifyExpDate = dayjs(updatedNotifyExpiryDate);
-          // Nếu ngày thông báo vượt quá expiryDate hoặc trước ngày hôm nay
-          if (
-            notifyExpDate.isAfter(expiryDate, 'second') ||
-            notifyExpDate.isBefore(dayjs().startOf('day'))
-          ) {
-            updatedNotifyExpiryDate = expiryDate;
-          }
+            const notifyExpDate = dayjs(updatedNotifyExpiryDate);
+            // Nếu ngày thông báo vượt quá expiryDate hoặc trước ngày hôm nay
+            if (
+                notifyExpDate.isAfter(expiryDate, 'second') ||
+                notifyExpDate.isBefore(dayjs().startOf('day'))
+            ) {
+                updatedNotifyExpiryDate = expiryDate;
+            }
         }
-      
+
         // ====== 4. Cập nhật lại các trường trong form ======
         form.setFieldsValue({
-          payments: updatedPayments,
-          notifyEffectiveDate: updatedNotifyEffectiveDate,
-          notifyExpiryDate: updatedNotifyExpiryDate,
+            payments: updatedPayments,
+            notifyEffectiveDate: updatedNotifyEffectiveDate,
+            notifyExpiryDate: updatedNotifyExpiryDate,
         });
     };
 
@@ -1433,8 +1421,34 @@ const EditContract = () => {
                                 </div>
                             </div>
                             <div ref={mainContentRef}>
-                                <Form.Item label={<div className="flex justify-between items-center gap-4"><p>Soạn thảo nội dung hợp đồng</p><Popover content={<PreviewSection className='w-[80%]' content={content} isDarkMode={isDarkMode} />} trigger="hover" placement="right"><Button icon={<EyeFilled />} /></Popover></div>} name="contractContent" className="mt-5" rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}>
-                                    <RichTextEditor output="html" content={content} onChangeContent={onValueChange} extensions={extensions} dark={isDarkMode} hideBubble={true} dense={false} removeDefaultWrapper placeholder="Nhập nội dung hợp đồng tại đây..." contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200" />
+                                <Form.Item
+                                    label={
+                                        <div className="flex justify-between items-center gap-4">
+                                            <p>Soạn thảo nội dung hợp đồng</p>
+                                            <Popover
+                                                content={<PreviewSection className='w-[80%]'
+                                                    content={content} isDarkMode={isDarkMode} />}
+                                                trigger="hover" placement="right">
+                                                <Button icon={<EyeFilled />} />
+                                            </Popover>
+                                        </div>
+                                    }
+                                    name="contractContent"
+                                    className="mt-5"
+                                    rules={[{ required: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
+                                >
+                                    <RichTextEditor
+                                        output="html"
+                                        content={content}
+                                        onChangeContent={onValueChange}
+                                        extensions={extensions}
+                                        dark={isDarkMode}
+                                        hideBubble={true}
+                                        dense={false}
+                                        removeDefaultWrapper
+                                        placeholder="Nhập nội dung hợp đồng tại đây..."
+                                        contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
+                                    />
                                 </Form.Item>
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
                                 <Form.Item
@@ -1481,39 +1495,6 @@ const EditContract = () => {
                                 </Form.Item>
                                 <Form.Item name="effectiveDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]} />
                                 <Form.Item name="expiryDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]} />
-
-                                {/* <Form.Item label="Tổng giá trị hợp đồng" name="totalValue" rules={[{ required: true, message: "Vui lòng nhập tổng giá trị hợp đồng!" }]}>
-                                    <InputNumber style={{ width: "100%" }} placeholder="Nhập tổng giá trị hợp đồng" min={0} max={1000000000000000} formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫" : ""} parser={(value) => value.replace(/\D/g, "")} onChange={handleChange} />
-                                </Form.Item>
-                                {textValue && <div className="mt-1 ml-1"><Typography.Text type="secondary">(Bằng chữ: <span className="font-bold">{textValue}</span>)</Typography.Text></div>} */}
-                                {/* <Divider orientation="center">Thanh toán</Divider>
-                                <Form.List name="payments" rules={[{ validator: async (_, payments) => { if (!payments || payments.length < 1) return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!')); } }]}>
-                                    {(fields, { add, remove }) => (
-                                        <>
-                                            {fields.map(({ key, name, ...restField }) => (
-                                                <Space key={key} align="baseline" style={{ display: "flex", marginBottom: 8 }}>
-                                                    <Form.Item {...restField} name={[name, "amount"]} rules={[{ required: true, message: "Nhập số tiền thanh toán" }]}>
-                                                        <InputNumber style={{ width: "100%" }} placeholder="Số tiền" min={0} max={1000000000000000} formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ₫" : ""} parser={(value) => value.replace(/\D/g, "")} />
-                                                    </Form.Item>
-                                                    <Form.Item {...restField} name={[name, "paymentDate"]} rules={[{ required: true, message: "Chọn ngày thanh toán" }]}>
-                                                        <DatePicker style={{ width: 150 }}
-                                                            placeholder="Ngày thanh toán"
-                                                            disabledDate={(current) => current && current < dayjs().startOf('day')} format="DD/MM/YYYY HH:mm:ss" onChange={(date) => handlePaymentDateChange(date, name)} />
-                                                    </Form.Item>
-                                                    <Form.Item {...restField} name={[name, "paymentMethod"]} rules={[{ required: true, message: "Chọn phương thức thanh toán" }]}>
-                                                        <Select placeholder="Phương thức thanh toán" style={{ width: 200 }}>
-                                                            <Option value="transfer">Chuyển khoản</Option>
-                                                            <Option value="cash">Tiền mặt</Option>
-                                                            <Option value="creditCard">Thẻ tín dụng</Option>
-                                                        </Select>
-                                                    </Form.Item>
-                                                    <Button type="primary" onClick={() => remove(name)} danger><DeleteFilled /></Button>
-                                                </Space>
-                                            ))}
-                                            <Button icon={<PlusOutlined />} type="primary" onClick={() => add()} block>Thêm đợt thanh toán</Button>
-                                        </>
-                                    )}
-                                </Form.List> */}
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
                                     name="contractItems"
@@ -1578,8 +1559,29 @@ const EditContract = () => {
                                             rules={[
                                                 {
                                                     validator: async (_, payments) => {
+
+                                                        // const effectiveDate = form.getFieldValue('effectiveDate');
+                                                        // if (!effectiveDate) {
+                                                        //     return Promise.reject(
+                                                        //         new Error('Vui lòng chọn ngày có hiệu lực hợp đồng trước khi tạo đợt thanh toán!')
+                                                        //     );
+                                                        // }
+
                                                         if (!payments || payments.length < 1) {
                                                             return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
+                                                        }
+
+                                                        const totalValue = form.getFieldValue('totalValue');
+                                                        if (!totalValue) {
+                                                            return Promise.reject(new Error('Vui lòng nhập các hạng mục thanh toán trước trước!'));
+                                                        }
+
+                                                        const totalPayments = payments.reduce((sum, payment) => {
+                                                            return sum + (Number(payment.amount) || 0);
+                                                        }, 0);
+
+                                                        if (Math.abs(totalPayments - totalValue) > 0.01) {
+                                                            return Promise.reject(new Error(`Tổng số tiền các đợt thanh toán (${new Intl.NumberFormat('vi-VN').format(totalPayments)} VND) phải bằng tổng giá trị hợp đồng (${new Intl.NumberFormat('vi-VN').format(totalValue)} VND)!`));
                                                         }
                                                     },
                                                 },
@@ -1658,6 +1660,7 @@ const EditContract = () => {
                                         </Form.List>
                                     </div>
                                 )}
+
                                 <div className="flex items-center gap-5 mt-[50px]">
                                     <Form.Item name="autoAddVAT" valuePropName="checked">
                                         <div className="flex items-center min-w-[350px]">
@@ -1700,7 +1703,16 @@ const EditContract = () => {
                                     <p className="font-bold text-[16px] mb-1">Điều khoản chung</p>
                                     <p>Mô tả: (Điều khoản được áp dụng cho cả 2 bên)</p>
                                 </div>
-                                <Form.Item label={<div className="flex justify-between items-center gap-4"><p>Điều khoản chung</p><Popover content={() => getTermsContent('generalTerms')} title="Danh sách Điều khoản chung đã chọn" trigger="hover" placement="right"><Button icon={<EyeFilled />} /></Popover></div>} name="generalTerms" rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]} className="ml-2">
+                                <Form.Item label={
+                                    <div className="flex justify-between items-center gap-4">
+                                        <p>Điều khoản chung</p>
+                                        <Popover content={() => getTermsContent('generalTerms')}
+                                            title="Danh sách Điều khoản chung đã chọn"
+                                            trigger="hover" placement="right"><Button icon={<EyeFilled />} />
+                                        </Popover></div>} name="generalTerms"
+                                    rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
+                                    className="ml-2"
+                                >
                                     <LazySelect loadDataCallback={loadGenaralData} options={generalData?.data.content} showSearch mode="multiple" placeholder="Chọn điều khoản chung" onChange={handleSelectChange} dropdownRender={(menu) => (
                                         <>
                                             {menu}
@@ -1724,7 +1736,13 @@ const EditContract = () => {
                                 </Form.Item>
                                 <div className="flex flex-col">
                                     {selectedOthersTerms.map(termId => (
-                                        <TermSection key={termId} termId={termId} title={termConfigs[termId].title} form={form} loadDataCallback={termConfigs[termId].loadData} />
+                                        <TermSection
+                                            key={termId}
+                                            termId={termId}
+                                            title={termConfigs[termId].title}
+                                            form={form}
+                                            loadDataCallback={termConfigs[termId].loadData}
+                                        />
                                     ))}
                                 </div>
                                 <Divider orientation="center">Điều khoản đặc biệt</Divider>
@@ -1914,6 +1932,7 @@ const EditContract = () => {
                 onFinish={onFinish}
                 onValuesChange={(changedValues, allValues) => {
                     if (changedValues.contractItems) {
+
                         const total = (allValues.contractItems || []).reduce(
                             (sum, item) => sum + (item.amount || 0),
                             0
