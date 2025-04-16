@@ -68,6 +68,7 @@ const MainLayout = () => {
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
     'approvalContractCEO': '/director/approvalContract',
+    'approvalContractCEO': '/director/approvalContract',
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
     'managerAppendix': "/manager/appendix",
