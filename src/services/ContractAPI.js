@@ -41,8 +41,8 @@ export const ContractAPI = baseApi.injectEndpoints({
                 url: `contracts/${contractId}`,
                 method: "GET",
             }),
-            providesTags: (result, error, Partner) => [
-                { type: "Partner", id: Partner },
+            providesTags: (result, error, Contract) => [
+                { type: "Contract", id: Contract },
             ],
         }),
 
@@ -55,7 +55,7 @@ export const ContractAPI = baseApi.injectEndpoints({
                 };
             },
             providesTags: (result, error, arg) => [
-                { type: "Partner", id: arg.partnerId || 'LIST' },
+                { type: "Contract", id: arg.partnerId || 'LIST' },
             ],
         }),
 

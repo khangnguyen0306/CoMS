@@ -19,10 +19,16 @@ const ChangePassword = () => {
     const handleChangePassword = async () => {
         try {
             const values = await form.validateFields(true);
-            updatePassWord({ body: values, userId: user.id }).unwrap()
-            message.success("Đổi mật khẩu thành công vui lòng đăng nhập lại !");
-            form.resetFields();
-            handleLogout();
+            const result = await updatePassWord({ body: values, userId: user.id })
+            console.log(result)
+            if(!result.error){
+                message.success("Đổi mật khẩu thành công vui lòng đăng nhập lại !");
+                form.resetFields();
+                handleLogout();
+            }else{
+                message.error(result.error.data.message);
+            }
+           
         } catch (error) {
             message.error("Đổi mật khẩu thất bại, vui lòng thử lại.");
         }

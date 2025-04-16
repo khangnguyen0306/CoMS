@@ -358,6 +358,14 @@ const SignContract = () => {
     useEffect(() => {
         if (isSuccess && contractData) {
             setLoadingCreateFile(true);
+            pdfMake.fonts = {
+                Roboto: {
+                    normal: 'Roboto-Regular.ttf',
+                    bold: 'Roboto-Medium.ttf',
+                    italics: 'Roboto-Italic.ttf',
+                    bolditalics: 'Roboto-MediumItalic.ttf'
+                }
+            };
             const docDefinition = {
                 content: [
                     { text: "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", style: "header" },

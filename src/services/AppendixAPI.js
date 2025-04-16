@@ -49,7 +49,7 @@ export const appendixApi = baseApi.injectEndpoints({
         url: `addendums/get-by-id/${id}`,
         // Nếu cần truyền params bổ sung thì có thể bổ sung sau
       }),
-      providesTags: (result, error, Appendix) => [{ type: 'Appendix', id: Appendix }],
+      providesTags: (result, error, id) => [{ type: 'Appendix', id: id }],
     }),
 
     getAppendixByContractId: builder.query({
