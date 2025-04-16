@@ -78,8 +78,9 @@ export const uploadAPI = createApi({
           body: formData,
         };
       },
-      invalidatesTags: [{ type: "Clause", id: "LIST" }],
+      invalidatesTags: [{ type: ["Contract", "Appendix"], id: "LIST" }],
     }),
+
     uploadImgSign: builder.mutation({
       query: ({ contractId, formData }) => {
 

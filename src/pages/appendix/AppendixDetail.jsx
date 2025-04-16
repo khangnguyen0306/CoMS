@@ -7,6 +7,11 @@ import { useApproveAppendixMutation, useGetAppendixDetailQuery, useGetWorkFlowBy
 import { selectCurrentUser } from '../../slices/authSlice';
 import { useSelector } from 'react-redux';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
+import { convert } from 'html-to-text';
+import pdfMake from "pdfmake/build/pdfmake";
+import dayjs from 'dayjs';
+import { useFindLocationMutation } from '../../services/uploadAPI';
+
 const { Panel } = Collapse;
 
 const AppendixDetail = () => {
@@ -15,6 +20,17 @@ const AppendixDetail = () => {
     const [approvalChoice, setApprovalChoice] = useState(null);
     const [reason, setReason] = useState('');
     const [isApproved, setIsApproved] = useState(false);
+    const [loadingCreateFile, setLoadingCreateFile] = useState(false);
+     const [dataToSign, setDataToSign] = useState({
+        llx: null,
+        lly: null,
+        urx: null,
+        ury: null,
+        FileType: 'PDF',
+        FileName: '',
+        page: null,
+    });
+    const [selectedFile, setSelectedFile] = useState(null);
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const [groupedTerms, setGroupedTerms] = useState({
@@ -22,7 +38,18 @@ const AppendixDetail = () => {
         A: [],
         B: []
     });
-    const { data: appendixData, isLoading: isLoadingAppendix, isError: isErrorAppendix } = useGetAppendixDetailQuery({ id: appendixId })
+    const [groupedTermsExport, setGroupedTermsExport] = useState({
+        Common: [],
+        A: [],
+        B: []
+    });
+    const { data: appendixData, isLoading: isLoadingAppendix, isError: isErrorAppendix, refetch } = useGetAppendixDetailQuery(
+        { id: appendixId },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    )
     const { data: dataAppendixProcess, isLoading: isLoadingAppendixProcess, isError: isErrorAppendixProcess } = useGetWorkFlowByAppendixIdQuery(
         { appendixId },
         { skip: !appendixId }
@@ -36,8 +63,14 @@ const AppendixDetail = () => {
 
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectAppendixMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveAppendixMutation();
+    const [uploadFilePDF] = useFindLocationMutation();
     const [fetchTerms] = useLazyGetTermDetailQuery();
     // Xử lý khi thay đổi lựa chọn radio
+
+    useEffect(() => {
+        refetch()
+    }, [])
+
     const handleApprovalChange = (e) => {
         setApprovalChoice(e.target.value);
         setIsApproved(null)
@@ -113,6 +146,12 @@ const AppendixDetail = () => {
             <p className='ml-1'> Ngày {dateArray[2]} tháng {dateArray[1]} năm {dateArray[0]} </p>
         )
     };
+    const parseDate = (dateArray) => {
+        if (!Array.isArray(dateArray) || dateArray.length < 5) return null;
+        const [year, month, day, hour, minute] = dateArray;
+        return new Date(year, month - 1, day, hour, minute);
+    };
+
 
     const contractItemsColumns = [
         { title: 'Số thứ tự', dataIndex: 'itemOrder', key: 'itemOrder' },
@@ -225,6 +264,11 @@ const AppendixDetail = () => {
             allGrouped.B = [...new Set(allGrouped.B)];
             setGroupedTerms(allGrouped);
 
+            // groupedTermsExport.A = [...new Set(allGrouped.A)];
+            // groupedTermsExport.B = [...new Set(allGrouped.B)];
+            // groupedTermsExport.Common = [...new Set(allGrouped.Common)];
+
+
             // Tải chi tiết cho các điều khoản bổ sung (bao gồm cả additional_terms)
             const additionalTermsIds =
                 appendixData?.data?.additional_terms?.map((termObj) => termObj.original_term_id) || [];
@@ -239,6 +283,540 @@ const AppendixDetail = () => {
             });
         }
     }, [appendixData?.data]);
+
+    useEffect(() => {
+        if (appendixData?.data?.additionalConfig) {
+            const allGrouped = { Common: [], A: [], B: [] };
+
+            Object.values(appendixData.data.additionalConfig).forEach((config) => {
+                // Group Common terms
+                if (config.Common && config.Common.length > 0) {
+                    config.Common.forEach((termObj) => {
+                        allGrouped.Common.push(termObj.value);
+                    });
+                }
+
+                // Group A terms
+                if (config.A && config.A.length > 0) {
+                    config.A.forEach((termObj) => {
+                        allGrouped.A.push(termObj.value);
+                    });
+                }
+
+                // Group B terms
+                if (config.B && config.B.length > 0) {
+                    config.B.forEach((termObj) => {
+                        allGrouped.B.push(termObj.value);
+                    });
+                }
+            });
+
+            // Optionally remove duplicates
+            groupedTermsExport.A = [...new Set(allGrouped.A)];
+            groupedTermsExport.B = [...new Set(allGrouped.B)];
+            groupedTermsExport.Common = [...new Set(allGrouped.Common)];
+
+        }
+    }, [appendixData?.data]);
+
+    const parsedContent = convert(appendixData?.data.contractContent, {
+        wordwrap: 220,
+    });
+
+    useEffect(() => {
+
+        if (appendixData) {
+            setLoadingCreateFile(true);
+            pdfMake.fonts = {
+                Roboto: {
+                    normal: 'Roboto-Regular.ttf',
+                    bold: 'Roboto-Medium.ttf',
+                    italics: 'Roboto-Italic.ttf',
+                    bolditalics: 'Roboto-MediumItalic.ttf'
+                }
+            };
+            const docDefinition = {
+                content: [
+                    // Header Section
+                    { text: "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", style: "header" },
+                    { text: "Độc lập - Tự do - Hạnh phúc", style: "subheader" },
+                    { text: "---------oOo---------", style: "subheader" },
+
+                    // Contract Title and Number
+                    appendixData.data.title && { text: appendixData.data.title.toUpperCase(), style: "contractTitle" },
+                    appendixData.data.contractNumber && {
+                        text: [
+                            { text: 'Đính kèm Hợp đồng số: ', style: "subheader" }, { text: appendixData.data.contractNumber }
+                        ],
+                        margin: [0, 10, 0, 15],
+                        fontSize: 11
+                    },
+
+                    // Legal Basis Terms
+                    appendixData.data.legalBasisTerms?.length > 0 && [
+                        ...appendixData.data.legalBasisTerms.map((item) => ({
+                            text: `- ${item.value}`,
+                            italics: true,
+                            margin: [0, 2, 0, 2],
+                            fontSize: 11,
+                        }))
+                    ],
+
+                    // Signing Date and Location
+                    {
+                        text: `Phụ lục có sự tham gia bởi và giữa: `,
+                        margin: [0, 7, 0, 3],
+                        fontSize: 11
+                    },
+
+                    // Partner A Details
+                    appendixData.data.partnerA && { text: "BÊN CUNG CẤP (BÊN A)", style: "titleDescription", decoration: 'underline' },
+                    appendixData.data.partnerA?.partnerName && {
+                        text: [
+                            { text: 'Tên công ty: ', style: "boldtext" }, { text: appendixData.data.partnerA.partnerName }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerA?.partnerAddress && {
+                        text: [
+                            { text: 'Địa chỉ trụ sở chính: ', style: "boldtext" }, { text: appendixData.data.partnerA.partnerAddress }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerA?.spokesmanName && {
+                        text: [
+                            { text: 'Người đại diện: ', style: "boldtext" }, { text: appendixData.data.partnerA.spokesmanName }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerA?.position && {
+                        text: [
+                            { text: 'Chức vụ: ', style: "boldtext" }, { text: appendixData.data.partnerA.position }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerA?.partnerTaxCode && {
+                        text: [
+                            { text: 'Mã số thuế: ', style: "boldtext" }, { text: appendixData.data.partnerA.partnerTaxCode }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerA?.partnerEmail && {
+                        text: [
+                            { text: 'Email: ', style: "boldtext" }, { text: appendixData.data.partnerA.partnerEmail }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+
+                    // Partner B Details
+                    appendixData.data.partnerB && { text: "BÊN SỬ DỤNG (BÊN B)", style: "titleDescription", decoration: 'underline' },
+                    appendixData.data.partnerB?.partnerName && {
+                        text: [
+                            { text: 'Tên công ty: ', style: "boldtext" }, { text: appendixData.data.partnerB.partnerName }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerB?.partnerAddress && {
+                        text: [
+                            { text: 'Địa chỉ trụ sở chính: ', style: "boldtext" }, { text: appendixData.data.partnerB.partnerAddress }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerB?.spokesmanName && {
+                        text: [
+                            { text: 'Người đại diện: ', style: "boldtext" }, { text: appendixData.data.partnerB.spokesmanName }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerB?.position && {
+                        text: [
+                            { text: 'Chức vụ: ', style: "boldtext" }, { text: appendixData.data.partnerB.position }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerB?.partnerTaxCode && {
+                        text: [
+                            { text: 'Mã số thuế: ', style: "boldtext" }, { text: appendixData.data.partnerB.partnerTaxCode }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    appendixData.data.partnerB?.partnerEmail && {
+                        text: [
+                            { text: 'Email: ', style: "boldtext" }, { text: appendixData.data.partnerB.partnerEmail }
+                        ],
+                        margin: [0, 3, 0, 3],
+                        fontSize: 11
+                    },
+                    // Agreement Statement
+                    {
+                        text: `Điều khoản phụ lục:`,
+                        margin: [0, 9, 0, 4],
+                        fontSize: 11,
+                        bold: true,
+                    },
+                    {
+                        text: `- Phụ lục này là một phần không thể tách rời của hợp đồng số ${appendixData?.data.contractNumber}.`,
+                        margin: [0, 9, 0, 9],
+                        fontSize: 11
+                    },
+                    {
+                        text: `- Các điều khoản khác của Hợp đồng không bị điều chỉnh bởi Phụ lục này vẫn giữ nguyên hiệu lực.`,
+                        margin: [0, 9, 0, 9],
+                        fontSize: 11
+                    },
+
+                    // Contract Content
+                    parsedContent && { text: "NỘI DUNG HỢP ĐỒNG", style: "titleDescription", decoration: 'underline' },
+                    parsedContent && {
+                        text: parsedContent,
+                        margin: [0, 7, 0, 0],
+                        lineHeight: 0.7,
+                        fontSize: 11
+                    },
+
+                    // Payment Section
+                    appendixData.data.amount && { text: "GIÁ TRỊ VÀ THANH TOÁN", style: "titleDescription", decoration: 'underline', margin: [0, 10, 0, 0] },
+                    appendixData.data.amount && {
+                        text: [
+                            { text: `- Tổng giá trị hợp đồng: ${new Intl.NumberFormat('vi-VN').format(appendixData.data.amount)} VND  ` },
+                            { text: `( ${numberToVietnamese(appendixData.data.amount)} )` }
+                        ],
+                        margin: [5, 9, 0, 9],
+                        fontSize: 11
+                    },
+                    appendixData.data.contractItems?.length > 0 && {
+                        text: `1. Hạng mục thanh toán`,
+                        margin: [0, 9, 0, 9],
+                        fontSize: 11,
+                        bold: true,
+                    },
+                    appendixData.data.contractItems?.length > 0 && {
+                        style: "table",
+                        table: {
+                            widths: ["auto", "*", "auto"],
+                            body: [
+                                [
+                                    { text: "STT", style: "tableHeader" },
+                                    { text: "Nội dung", style: "tableHeader" },
+                                    { text: "Số tiền (VND)", style: "tableHeader" },
+                                ],
+                                ...appendixData.data.contractItems.map(item => [
+                                    { text: item.itemOrder, style: "tableCell" },
+                                    { text: item.description, style: "tableCell" },
+                                    { text: new Intl.NumberFormat('vi-VN').format(item.amount), style: "tableCell" },
+                                ]),
+                            ],
+                        },
+                        layout: {
+                            hLineWidth: function (i, node) { return 0.5; },
+                            vLineWidth: function (i, node) { return 0.5; },
+                            hLineColor: function (i, node) { return 'black'; },
+                            vLineColor: function (i, node) { return 'black'; },
+                            paddingLeft: function (i, node) { return 5; },
+                            paddingRight: function (i, node) { return 5; },
+                            paddingTop: function (i, node) { return 5; },
+                            paddingBottom: function (i, node) { return 5; },
+                        },
+                    },
+                    appendixData.data.paymentSchedules?.length > 0 && {
+                        text: `2. Tổng giá trị và số lần thanh toán`,
+                        margin: [0, 9, 0, 9],
+                        fontSize: 11,
+                        bold: true,
+                    },
+                    appendixData.data.paymentSchedules?.length > 0 && {
+                        style: "table",
+                        table: {
+                            widths: ["auto", "*", "*", "auto"],
+                            body: [
+                                [
+                                    { text: "Đợt", style: "tableHeader" },
+                                    { text: "Số tiền (VND)", style: "tableHeader" },
+                                    { text: "Ngày thanh toán", style: "tableHeader" },
+                                    { text: "Phương thức thanh toán", style: "tableHeader" },
+                                ],
+                                ...appendixData.data.paymentSchedules.map(item => [
+                                    { text: item.paymentOrder, style: "tableCell" },
+                                    { text: item.amount, style: "tableCell" },
+                                    { text: `Ngày ${dayjs(parseDate(item.paymentDate)).format("DD")} tháng ${dayjs(parseDate(item.paymentDate)).format("MM")} năm ${dayjs(parseDate(item.paymentDate)).format("YYYY")}`, style: "tableCell" },
+                                    {
+                                        text: item.paymentMethod === 'cash'
+                                            ? 'Tiền mặt'
+                                            : item.paymentMethod === 'creditCard'
+                                                ? 'Thẻ tín dụng'
+                                                : 'Chuyển khoản', style: "tableCell"
+                                    },
+                                ]),
+                            ],
+                        },
+                        layout: {
+                            hLineWidth: function (i, node) { return 0.5; },
+                            vLineWidth: function (i, node) { return 0.5; },
+                            hLineColor: function (i, node) { return 'black'; },
+                            vLineColor: function (i, node) { return 'black'; },
+                            paddingLeft: function (i, node) { return 5; },
+                            paddingRight: function (i, node) { return 5; },
+                            paddingTop: function (i, node) { return 5; },
+                            paddingBottom: function (i, node) { return 5; },
+                        },
+                    },
+                    (appendixData.data.isDateLateChecked || appendixData.data.autoAddVAT) && {
+                        text: [
+                            appendixData.data.isDateLateChecked && `- Trong quá trình thanh toán cho phép trễ hạn tối đa ${appendixData.data.maxDateLate} (ngày)`,
+                            appendixData.data.autoAddVAT && `- Thuế VAT được tính (${appendixData.data.vatPercentage}%)`
+                        ].filter(Boolean),
+                        margin: [0, 10, 0, 10],
+                        fontSize: 11,
+                    },
+
+                    // Effective Dates
+                    (appendixData.data.effectiveDate || appendixData.data.expiryDate) && {
+                        text: "THỜI GIAN HIỆU LỰC LIÊN QUAN",
+                        style: "titleDescription",
+                        decoration: 'underline',
+                        margin: [0, 10, 0, 10],
+                    },
+                    appendixData.data.effectiveDate && appendixData.data.expiryDate && {
+                        margin: [0, 5, 0, 5],
+                        text: [
+                            `- Ngày bắt đầu hiệu lực: ${dayjs(parseDate(appendixData.data.effectiveDate)).format('HH:mm')} ngày `,
+                            { text: dayjs(parseDate(appendixData.data.effectiveDate)).format('DD/MM/YYYY'), bold: true },
+                            `\n- Ngày chấm dứt hiệu lực: ${dayjs(parseDate(appendixData.data.expiryDate)).format('HH:mm')} ngày `,
+                            { text: dayjs(parseDate(appendixData.data.expiryDate)).format('DD/MM/YYYY'), bold: true },
+                        ],
+                    },
+                    (appendixData.data.autoRenew || appendixData.data.appendixEnabled) && [
+                        appendixData.data.autoRenew && {
+                            text: "- Tự động gia hạn khi hợp đồng hết hạn nếu không có phản hồi từ các phía",
+                            margin: [0, 5, 0, 5],
+                            fontSize: 11
+                        },
+                        appendixData.data.appendixEnabled && {
+                            text: "- Cho phép tạo phụ lục khi hợp đồng có hiệu lực",
+                            margin: [0, 5, 0, 5],
+                            fontSize: 11
+                        }
+                    ],
+
+                    // Terms Section
+                    (groupedTermsExport.Common.length > 0 || groupedTermsExport.A.length > 0 || groupedTermsExport.B.length > 0 || appendixData.data.specialTermsA || appendixData.data.specialTermsB) && {
+                        text: "CÁC LOẠI ĐIỀU KHOẢN",
+                        style: "titleDescription",
+                        decoration: 'underline',
+                        margin: [0, 10, 0, 10],
+                    },
+                    (groupedTermsExport.Common.length > 0 || groupedTermsExport.A.length > 0 || groupedTermsExport.B.length > 0 || appendixData.data.specialTermsA || appendixData.data.specialTermsB) && {
+                        margin: [0, 5, 0, 5],
+                        columns: [
+                            {
+                                width: '*',
+                                stack: [
+                                    groupedTermsExport.Common.length > 0 && {
+                                        text: "Điều khoản chung",
+                                        style: "titleDescription",
+                                        margin: [5, 8],
+                                    },
+                                    ...groupedTermsExport.Common.map((termId) => ({
+                                        text: `- ${termId}`,
+                                        margin: [5, 2],
+                                    })),
+                                    groupedTermsExport.A.length > 0 && {
+                                        text: "Điều khoản riêng bên A",
+                                        style: "titleDescription",
+                                        margin: [5, 5],
+                                    },
+                                    ...groupedTermsExport.A.map((termId) => ({
+                                        text: `- ${termId}`,
+                                        margin: [5, 2],
+                                    })),
+                                    appendixData.data.specialTermsA?.trim() && {
+                                        text: `- ${appendixData.data.specialTermsA}`,
+                                        margin: [5, 2],
+                                    },
+                                    groupedTermsExport.B.length > 0 && {
+                                        text: "Điều khoản riêng bên B",
+                                        style: "titleDescription",
+                                        margin: [5, 8],
+                                    },
+                                    ...groupedTermsExport.B.map((termId) => ({
+                                        text: `- ${termId}`,
+                                        margin: [5, 2],
+                                    })),
+                                    appendixData.data.specialTermsB?.trim() && {
+                                        text: `- ${appendixData.data.specialTermsB}`,
+                                        margin: [5, 2],
+                                    },
+                                ].filter(Boolean),
+                            },
+                        ],
+                    },
+
+                    // Other Information
+                    (appendixData.data.appendixEnabled || appendixData.data.transferEnabled || appendixData.data.violate || appendixData.data.suspend) && {
+                        text: "CÁC THÔNG TIN KHÁC",
+                        style: "titleDescription",
+                        decoration: 'underline',
+                        margin: [0, 10, 0, 10],
+                    },
+                    (appendixData.data.appendixEnabled || appendixData.data.transferEnabled || appendixData.data.violate || appendixData.data.suspend) && {
+                        stack: [
+                            appendixData.data.appendixEnabled && {
+                                text: "- Cho phép tạo phụ lục khi hợp đồng có hiệu lực",
+                                margin: [0, 3, 0, 3],
+                                fontSize: 11,
+                            },
+                            appendixData.data.transferEnabled && {
+                                text: "- Cho phép chuyển nhượng hợp đồng",
+                                margin: [0, 3, 0, 3],
+                                fontSize: 11,
+                            },
+                            appendixData.data.violate && {
+                                text: "- Cho phép đơn phương hủy hợp đồng nếu 1 trong 2 vi phạm các quy định trong điều khoản",
+                                margin: [0, 3, 0, 3],
+                                fontSize: 11,
+                            },
+                            appendixData.data.suspend && {
+                                text: `- Cho phép tạm ngưng hợp đồng trong trường hợp bất khả kháng: ${appendixData.data.suspendContent}`,
+                                margin: [0, 3, 0, 3],
+                                fontSize: 11,
+                            },
+                        ].filter(Boolean),
+                    },
+
+                    // Signatures
+                    (appendixData.data.partnerA || appendixData.data.partnerB) && {
+                        columns: [
+                            appendixData.data.partnerA && {
+                                width: '*',
+                                stack: [
+                                    { text: "ĐẠI DIỆN BÊN A", style: "signatureTitle" },
+                                    { text: appendixData.data.partnerA.partnerName.toUpperCase(), style: "signatureName", bold: true },
+                                    { text: "Ký và ghi rõ họ tên", style: "signatureNote" }
+                                ],
+                                alignment: 'center'
+                            },
+                            appendixData.data.partnerB && {
+                                width: '*',
+                                stack: [
+                                    { text: "ĐẠI DIỆN BÊN B", style: "signatureTitle" },
+                                    { text: appendixData.data.partnerB.partnerName.toUpperCase(), style: "signatureName", bold: true },
+                                    { text: "Ký và ghi rõ họ tên", style: "signatureNote" }
+                                ],
+                                alignment: 'center'
+                            }
+                        ],
+                        margin: [0, 30, 0, 0]
+                    },
+                ].filter(Boolean),
+
+                styles: {
+                    header: {
+                        fontSize: 15,
+                        bold: true,
+                        alignment: "center",
+                        margin: [0, 0, 0, 10],
+                    },
+                    subheader: {
+                        fontSize: 13,
+                        bold: true,
+                        alignment: "center",
+                        margin: [0, 0, 0, 10],
+                    },
+                    contractTitle: {
+                        fontSize: 14,
+                        bold: true,
+                        alignment: "center",
+                        margin: [0, 0, 0, 10],
+                    },
+                    tableHeader: {
+                        bold: true,
+                        fontSize: 12,
+                        color: 'black',
+                        fillColor: '#f0f0f0',
+                        margin: [5, 5, 5, 5],
+                    },
+                    tableCell: {
+                        fontSize: 11,
+                        margin: [7, 5, 5, 5],
+                    },
+                    boldtext: {
+                        bold: true,
+                        fontSize: 11,
+                    },
+                    titleDescription: {
+                        bold: true,
+                        fontSize: 14,
+                        margin: [0, 10, 0, 5],
+                    },
+                    signatureTitle: {
+                        fontSize: 16,
+                        bold: true,
+                        margin: [0, 0, 0, 5]
+                    },
+                    signatureName: {
+                        fontSize: 14,
+                        bold: true,
+                        margin: [0, 0, 0, 5]
+                    },
+                    signatureNote: {
+                        fontSize: 11,
+                        color: '#666666',
+                        fontStyle: 'italic'
+                    },
+                },
+
+                defaultStyle: {
+                    font: "Roboto",
+                },
+            };
+            console.log("đã chạy")
+            pdfMake.createPdf(docDefinition).getBlob((blob) => {
+                console.log(blob)
+                const file = new File([blob], `${appendixData.data.title || 'contract'}-${appendixData.data.partnerB?.partnerName || 'partner'}.pdf`, { type: "application/pdf" });
+                setSelectedFile(file);
+                console.log("đã tạo")
+                // const url = URL.createObjectURL(blob);
+                // const a = document.createElement('a');
+                // a.href = url;
+                // a.download = file.name;
+                // document.body.appendChild(a);
+                // a.click();
+                // document.body.removeChild(a);
+                // URL.revokeObjectURL(url);
+                // console.log(file)
+                uploadFilePDF({ file })
+                    .then((response) => {
+                        console.log("Upload thành công:", response);
+                        if (response.data.status === "OK" && response.data.data) {
+                            const { llx, lly, urx, ury, page } = response.data.data;
+                            dataToSign.llx = llx;
+                            dataToSign.lly = lly;
+                            dataToSign.urx = urx;
+                            dataToSign.ury = ury;
+                            dataToSign.page = page;
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Lỗi khi upload:", error);
+                        setLoadingCreateFile(false);
+                    });
+            });
+
+            setLoadingCreateFile(false);
+        }
+
+    }, [appendixData]);
 
     const paymentSchedulesDataSource = appendixData?.data.paymentSchedules.map(schedule => ({
         key: schedule.id,
