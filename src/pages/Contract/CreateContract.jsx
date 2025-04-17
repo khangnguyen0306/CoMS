@@ -457,14 +457,15 @@ const CreateContractForm = () => {
             const result = await createClause({ label: name, value: content, typeTermId: 8 }).unwrap();
             // console.log(result);
             if (result.status === "CREATED") {
-                message.success("Tạo điều khoản thành công");
+                message.success("Tạo căn cứ pháp lý thành công");
+                loadLegalData();
+                setIsAddLegalModalOpen(false);
+                formLegal.resetFields();
             }
-            loadLegalData();
-            setIsAddLegalModalOpen(false);
-            formLegal.resetFields();
+
         } catch (error) {
-            // console.error("Lỗi tạo điều khoản:", error);
-            message.error("Có lỗi xảy ra khi tạo điều khoản");
+            // console.error("Lỗi tạo căn cứ pháp lý:", error);
+            message.error("Có lỗi xảy ra khi tạo căn cứ pháp lý");
         }
 
     };

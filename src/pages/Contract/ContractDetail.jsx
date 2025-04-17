@@ -557,9 +557,9 @@ const ContractDetail = () => {
                                     </p>
                                     <Timeline mode="left" className="mt-4 -mb-14">
                                         {processData?.data?.stages?.length > 0 ? (
-                                            processData?.data?.stages.map((stage) => (
+                                            processData?.data?.stages.map((stage,index) => (
                                                 <Timeline.Item
-                                                    key={stage.id}
+                                                    key={index}
                                                     children={
                                                         <div className="min-h-[50px]">
                                                             {stage.approverName}

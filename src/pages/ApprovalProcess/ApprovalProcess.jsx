@@ -23,17 +23,13 @@ const ApprovalProcess = () => {
         userData
     }, []);
     const { data: processData, isLoading, refetch } = useGetProcessTemplatesQuery({});
-    // console.log("userData", processData);
-    // Sử dụng mutation cập nhật quy trình từ BE
     const [updateProcess] = useUpdateProcessMutation();
-
     const [form] = Form.useForm();
-    // State quản lý bước hiện tại của giao diện Steps
     const [current, setCurrent] = useState(0);
-    // State quản lý danh sách các đợt phê duyệt (lấy từ processData ban đầu và thay đổi cục bộ)
     const [approvalStages, setApprovalStages] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
-    // Khi processData có sẵn, khởi tạo danh sách đợt phê duyệt
+
+    
     useEffect(() => {
         if (processData && processData.data) {
             const process = processData.data;

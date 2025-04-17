@@ -114,6 +114,14 @@ export const processAPI = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "processAppendix", id: "LIST" }],
     }),
+
+    assignNewAppendixWorkFlow: builder.mutation({
+      query: ({ appendixId, workflowId }) => ({
+        url: `addendums/assign-new-workflow/${appendixId}/${workflowId}`,
+        method: "PUT",
+      }),
+      invalidatesTags: [{ type: "processAppendix", id: "LIST" }],
+    }),
   }),
   overrideExisting: false,
 });
@@ -133,4 +141,5 @@ export const {
   useResubmitProcessMutation,
   useGetContractPorcessPendingManagerQuery,
   useApproveOldWorkFlowMutation,
+  useAssignNewAppendixWorkFlowMutation
 } = processAPI;

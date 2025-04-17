@@ -8,8 +8,8 @@ import dayjs from 'dayjs';
 import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
 
 const ExpandRowContent = ({ id, appendixId }) => {
-    console.log("ID:", id);
-    console.log("Appendix ID:", appendixId);
+    // console.log("ID:", id);
+    // console.log("Appendix ID:", appendixId);
     const { data, isLoading, isError } = useGetProcessByContractIdQuery(
         { contractId: id },
         { skip: !id }

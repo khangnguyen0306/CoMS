@@ -4,8 +4,13 @@ import React, { useState } from 'react';
 
 import appendixIcon from "../../../assets/Image/appendix.svg"
 import { useGetAppendixDetailQuery } from '../../../services/AppendixAPI';
+import { useNavigate } from 'react-router-dom';
+
 
 const DisplayAppendix = ({ appendices }) => {
+    console.log(appendices)
+
+    const navigate = useNavigate()
     const [selectedId, setSelectedId] = useState(null);
     const [visible, setVisible] = useState(false);
 
@@ -19,9 +24,8 @@ const DisplayAppendix = ({ appendices }) => {
         return `hsl(${hue}, 65%, 75%)`;
     };
 
-    const handleCardClick = (id) => {
-        setSelectedId(id);
-        setVisible(true);
+    const handleCardClick = (item) => {
+        navigate(`/appendixDetail/${item.contractId}/${item.addendumId}`);
     };
 
     const handleModalClose = () => {
@@ -49,14 +53,14 @@ const DisplayAppendix = ({ appendices }) => {
                 renderItem={(item) => (
                     <List.Item>
                         <Card
-                            onClick={() => handleCardClick(item.addendumId)}
+                            onClick={() => handleCardClick(item)}
                             hoverable
                             className="shadow-md rounded-md cursor-pointer"
                         >
                             <div >
                                 <div className='flex items-center gap-3 mb-4'>
                                     <Image preview={false} src={appendixIcon} width={40} height={40} />
-                                    <Tag color={generateColor(item.addendumType.addendumTypeId)} className='w-fit h-fit'>{item.addendumType.name}</Tag>
+                                    {/* <Tag color={generateColor(item.addendumType.addendumTypeId)} className='w-fit h-fit'>{item.addendumType.name}</Tag> */}
                                 </div>
                                 <p className="text-lg ml-3 font-semibold break-words">{item.title}</p>
                             </div>
@@ -65,16 +69,16 @@ const DisplayAppendix = ({ appendices }) => {
                 )}
             />
 
-            <Modal
+            {/* <Modal
                 open={visible}
                 onCancel={handleModalClose}
                 footer={null}
                 width={'80vw'}
             >
                 <div className="p-2">
-                    {/* Tiêu đề của card */}
+
                     <div className="mb-4 pb-3 flex flex-col gap-2">
-                        <Tag color={generateColor(appendixDetail?.data.addendumType.addendumTypeId)} className='w-fit h-fit'>{appendixDetail?.data.addendumType.name}</Tag>
+                      
                         <h2 className="text-2xl font-bold ">{appendixDetail?.data.title || 'Chi tiết phụ lục'}</h2>
                         <p className="text-[13px]  ">Ngày Hiệu Lực:   
                             <span className="ml-1  font-semibold ">
@@ -82,12 +86,12 @@ const DisplayAppendix = ({ appendices }) => {
                         </span></p>
                     </div>
                     <div className="space-y-6">
-                        {/* Hiển thị ngày hiệu lực */}
+                      
                         <div className="flex items-center">
 
 
                         </div>
-                        {/* Hiển thị nội dung phụ lục */}
+   
                         <div>
                             <h3 className="text-lg font-semibold mb-5">Nội Dung phụ lục:</h3>
                             <div className="mt-2 prose prose-sm " dangerouslySetInnerHTML={{ __html: appendixDetail?.data.content }} />
@@ -95,7 +99,7 @@ const DisplayAppendix = ({ appendices }) => {
                     </div>
                 </div>
 
-            </Modal>
+            </Modal> */}
         </div>
     );
 };

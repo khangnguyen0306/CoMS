@@ -5,26 +5,27 @@ export const appendixApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllAppendixBySelf: builder.query({
       query: (params) => ({
-        url: 'addendums/get-all?statuses=CREATED&statuses=APPROVED&statuses=REJECTED&statuses=APPROVAL_PENDING&statuses=UPDATED',
+        url: 'addendums/get-all',
         params: {
           page: params.page,
           size: params.size,
           order: 'esc',
+          statuses: params.statuses || ""
         },
         method: 'GET',
       }),
-      providesTags: (result, error, Partner) => [{ type: 'Partner', id: Partner }],
+      providesTags: (result, error, Appendix) => [{ type: 'Appendix', id: Appendix }],
     }),
 
     getAllAppendixByApprover: builder.query({
       query: ({ approverId, params }) => ({
         url: `addendums/get-addendum-for-approver/${approverId}`,
         // Nếu cần có params thì bỏ comment
-        // params: {
-        //   page: params.page,
-        //   size: params.size,
-        //   order: 'esc'
-        // },
+        params: {
+          page: params.page,
+          size: params.size,
+          order: 'esc'
+        },
         method: 'GET',
       }),
       providesTags: (result, error, Appendix) => [{ type: 'Appendix', id: Appendix }],
@@ -48,7 +49,7 @@ export const appendixApi = baseApi.injectEndpoints({
         url: `addendums/get-by-id/${id}`,
         // Nếu cần truyền params bổ sung thì có thể bổ sung sau
       }),
-      providesTags: (result, error, Appendix) => [{ type: 'Appendix', id: Appendix }],
+      providesTags: (result, error, id) => [{ type: 'Appendix', id: id }],
     }),
 
     getAppendixByContractId: builder.query({
@@ -149,12 +150,12 @@ export const appendixApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'Appendix', id: 'LIST' }],
     }),
 
-    getProcessByAppendixTypeId: builder.query({
-      query: ({ appendixTypeId }) => ({
-        url: `addendums/get-workflow-by-addendum-type/${appendixTypeId}`,
+    getProcessForAppendix: builder.query({
+      query: () => ({
+        url: `addendums/get-workflow-by-addendum-type`,
         method: 'GET',
       }),
-      providesTags: (result, error, appendixTypeId) => [{ type: 'Appendix', id: appendixTypeId }],
+      providesTags: (result, error, id) => [{ type: 'Appendix', id: id }],
     }),
 
     getWorkFlowByAppendixId: builder.query({
@@ -196,7 +197,7 @@ export const {
   useUpdateAppendixMutation,
   useDeleteAppendixMutation,
   useCreateAppendixWorkFlowMutation,
-  useGetProcessByAppendixTypeIdQuery,
+  useGetProcessForAppendixQuery,
   useGetAllAppendixByManagerQuery,
   useGetAllAppendixByApproverQuery,
   useGetWorkFlowByAppendixIdQuery,

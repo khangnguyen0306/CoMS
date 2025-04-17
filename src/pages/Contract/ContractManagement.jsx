@@ -23,7 +23,7 @@ const { Search } = Input;
 const ManageContracts = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [searchParams] = useSearchParams();
-    const paramstatus = searchParams.get('paramstatus');
+    const [status, setStatus] = useState(searchParams.get('paramstatus') || null);
     const { Panel } = Collapse;
     const [searchTextStaff, setSearchTextStaff] = useState("");
     const [searchTextManager, setSearchTextManager] = useState("");
@@ -51,7 +51,6 @@ const ManageContracts = () => {
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const [activePanel, setActivePanel] = useState([]);
     const [uploadType, setUploadType] = useState("image");
-    const [status, setStatus] = useState(paramstatus || null);
     const [duplicateContract] = useDuplicateContractMutation();
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
         page: paginationStaff.current - 1,
@@ -90,6 +89,7 @@ const ManageContracts = () => {
         page: paginationManager.current - 1,
         size: paginationManager.pageSize,
         keyword: searchTextManager,
+        status: status
     });
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
@@ -105,6 +105,11 @@ const ManageContracts = () => {
     const [isDuplicateModalVisible, setIsDuplicateModalVisible] = useState(false);
     const [selectedContractForDuplicate, setSelectedContractForDuplicate] = useState(null);
 
+    // Update status when searchParams change
+    useEffect(() => {
+        const newStatus = searchParams.get('paramstatus');
+        setStatus(newStatus || null);
+    }, [searchParams]);
 
     useEffect(() => {
         if (isManager) {
@@ -331,7 +336,7 @@ const ManageContracts = () => {
                 )
             )
         },
-        ...(!paramstatus ? [{
+        ...(!status ? [{
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
@@ -627,7 +632,7 @@ const ManageContracts = () => {
                 )
             )
         },
-        ...(!paramstatus ? [{
+        ...(!status ? [{
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",

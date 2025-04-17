@@ -358,6 +358,14 @@ const SignContract = () => {
     useEffect(() => {
         if (isSuccess && contractData) {
             setLoadingCreateFile(true);
+            pdfMake.fonts = {
+                Roboto: {
+                    normal: 'Roboto-Regular.ttf',
+                    bold: 'Roboto-Medium.ttf',
+                    italics: 'Roboto-Italic.ttf',
+                    bolditalics: 'Roboto-MediumItalic.ttf'
+                }
+            };
             const docDefinition = {
                 content: [
                     { text: "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", style: "header" },
@@ -986,7 +994,7 @@ const SignContract = () => {
             ).unwrap()
 
             message.success("Ký hợp đồng thành công !")
-            navite('/manager/contractReadyToSign', { replace: true })
+            navite('/director/contractReadyToSign', { replace: true })
         } catch (err) {
             console.error('Error uploading file:', err);
             setError('Lỗi khi upload file đã ký');
@@ -1342,7 +1350,7 @@ const SignContract = () => {
                 <div className="flex flex-col gap-2 px-[18%] text-center">
                     <p className="text-lg"><b>ĐẠI DIỆN BÊN B</b></p>
                     <p><b>{contractData?.data?.partnerB.partnerName?.toUpperCase()}</b></p>
-                    <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
+                    <i className="text-zinc-600">Ký và ghi rõ họ tên</ i >
                 </div>
             </div>
             <div
@@ -1389,7 +1397,6 @@ const SignContract = () => {
                             </div>
                         )
                     }
-
                 </div>
             </div>
         </div>
