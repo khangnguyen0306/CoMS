@@ -475,7 +475,7 @@ const MainLayout = () => {
 
           <div className="flex justify-center items-center mr-36">
             {/* <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p> */}
-            {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")||user?.roles.includes("ROLE_DIRECTOR")) && <NotificationDropdown />}
+            {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER") || user?.roles.includes("ROLE_DIRECTOR")) && <NotificationDropdown />}
 
             <Avatar
               size="large"
@@ -532,7 +532,7 @@ const MainLayout = () => {
               boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
             }}
           >
-            {(user?.roles?.includes("ROLE_STAFF") || user?.roles?.includes("ROLE_MANAGER")) && (
+            {(user?.roles?.includes("ROLE_STAFF") || user?.roles?.includes("ROLE_MANAGER") || user?.roles.includes("ROLE_DIRECTOR")) && (
               <RealTimeNotification />
             )}
             <Outlet />

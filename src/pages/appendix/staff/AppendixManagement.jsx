@@ -125,6 +125,7 @@ const AppendixManagement = () => {
         'APPROVED': <Tag color="green-inverse">Đã phê duyệt</Tag>,
         'UPDATED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
         'REJECTED': <Tag color="red-inverse">Từ chối</Tag>,
+        'SIGNED': <Tag color="purple-inverse">Đã ký</Tag>,
     }
 
     const columns = [

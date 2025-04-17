@@ -182,6 +182,17 @@ export const appendixApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Appendix', id: 'LIST' }],
     }),
+
+    uploadAppendixAlreadySigned: builder.mutation({
+      query: (body) => {
+          return {
+              url: `addendums/sign`,
+              method: "POST",
+              body: body,
+          };
+      },
+      invalidatesTags: [{ type: "Contract", id: "LIST" }],
+  }),
   }),
 });
 
@@ -204,5 +215,6 @@ export const {
   useRejectAppendixMutation,
   useApproveAppendixMutation,
   useDuplicateAppendixMutation,
-  useResubmitAppendixMutation
+  useResubmitAppendixMutation,
+  useUploadAppendixAlreadySignedMutation
 } = appendixApi;
