@@ -40,6 +40,7 @@ const AppendixDetail = () => {
     const [connection, setConnection] = useState(null);
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [groupedTerms, setGroupedTerms] = useState({
         Common: [],
         A: [],
@@ -780,7 +781,7 @@ const AppendixDetail = () => {
                                         style: "titleDescription",
                                         margin: [5, 5],
                                     },
-                                    ...groupedTermsExport.A.map((termId) => ({
+                                    ...groupedTermsExport.A.map((termId, index) => ({
                                         text: `- ${termId}`,
                                         margin: [5, 2],
                                     })),
@@ -793,7 +794,7 @@ const AppendixDetail = () => {
                                         style: "titleDescription",
                                         margin: [5, 8],
                                     },
-                                    ...groupedTermsExport.B.map((termId) => ({
+                                    ...groupedTermsExport.B.map((termId, index) => ({
                                         text: `- ${termId}`,
                                         margin: [5, 2],
                                     })),
@@ -1077,6 +1078,12 @@ const AppendixDetail = () => {
                                 <div className="ml-2" dangerouslySetInnerHTML={{ __html: appendixData?.data.content || "Chưa nhập" }} />
                             </>
                         )}
+                        {appendixData?.data.contractContent && (
+                            <>
+                                <h4 className="font-bold text-lg mt-4"><u>NỘI DUNG HỢP ĐỒNG</u></h4>
+                                <div className="ml-2" dangerouslySetInnerHTML={{ __html: appendixData?.data.contractContent || "Chưa nhập" }} />
+                            </>
+                        )}
                         {appendixData?.data.extendContractDate && appendixData?.data.contractExpirationDate && (
                             <div className='flex flex-col w-full mb-5'>
                                 <p>Thời gian hiệu lực hợp đồng: </p>
@@ -1084,7 +1091,7 @@ const AppendixDetail = () => {
                             </div>
                         )}
                         {appendixData?.data.contractItems && appendixData?.data.contractItems.length > 0 && (
-                            <Card title="Hạng mục thanh toán" className="ml-[-10px] mb-4" style={{ backgroundColor: '#f4f4f4' }}>
+                            <Card title="Hạng mục thanh toán" className="ml-[-10px] mb-4" style={{ backgroundColor: isDarkMode ? '#333' : '#f4f4f4' }}>
                                 <Table
                                     dataSource={contractItemsDataSource}
                                     columns={contractItemsColumns}
@@ -1094,7 +1101,11 @@ const AppendixDetail = () => {
                         )}
 
                         {appendixData?.data.paymentSchedules && appendixData?.data.paymentSchedules.length > 0 && (
-                            <Card title="Đợt thanh toán" className="ml-[-10px] mb-4" style={{ backgroundColor: '#f4f4f4' }}>
+                            <Card
+                                title="Đợt thanh toán"
+                                className="ml-[-10px] mb-4"
+                                style={{ backgroundColor: isDarkMode ? '#333' : '#f4f4f4' }}
+                            >
                                 <Table
                                     dataSource={paymentSchedulesDataSource}
                                     columns={paymentSchedulesColumns}
@@ -1102,7 +1113,7 @@ const AppendixDetail = () => {
                                 />
                             </Card>
                         )}
-                        {appendixData?.data.additionalConfig && appendixData?.data.additionalConfig && (
+                        {appendixData?.data.additionalConfig && Object.keys(appendixData.data.additionalConfig).length > 0 && (
                             <div className="mt-2 relative">
                                 <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
                                 <div className="ml-5 mt-3 flex flex-col gap-3">
@@ -1386,7 +1397,7 @@ const AppendixDetail = () => {
                         {appendixData?.data.status == "SIGNED" && (
                             <Tag className='flex justify-center gap-2 py-2'>
                                 <p>Phụ lục này đã được ký</p>
-                                <CheckCircleFilled style={{color:'#49aa19'}}/>
+                                <CheckCircleFilled style={{ color: '#49aa19' }} />
                             </Tag>
                         )}
                     </div>
