@@ -35,6 +35,7 @@ const AppendixManagementForAllStatus = () => {
             size: pagination.pageSize,
         }
     });
+    
     // console.log(appendixs)
 
 

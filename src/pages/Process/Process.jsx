@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Radio, Steps, Form, Button, Select, message, Timeline, Card } from 'antd';
 import { MinusCircleOutlined } from '@ant-design/icons';
 import { useGetUserStaffManagerQuery } from "../../services/UserAPI";
-import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation, useGetProcessByContractTypeIdQuery, useLazyGetProcessByContractIdQuery, useApproveOldWorkFlowMutation } from "../../services/ProcessAPI";
+import { useCreateProcessMutation, useGetProcessTemplatesQuery, useAssignProcessMutation, useGetProcessByContractTypeIdQuery, useLazyGetProcessByContractIdQuery, useApproveOldWorkFlowMutation, useAssignNewAppendixWorkFlowMutation } from "../../services/ProcessAPI";
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../slices/authSlice';
-import { useCreateAppendixWorkFlowMutation, useGetProcessByAppendixTypeIdQuery } from '../../services/AppendixAPI';
+import { useCreateAppendixWorkFlowMutation, useGetProcessForAppendixQuery } from '../../services/AppendixAPI';
 import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
 const { Step } = Steps;
 const { Option } = Select;
@@ -15,9 +15,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const [selection, setSelection] = useState("auto");
     const [hideAddStage, setHideAddStage] = useState(false)
-    const [isCreate, setIsCreate] = useState(false)
     const [selectedProcessId, setSelectedProcessId] = useState(null);
-    const [appendixProcessId, setAppendixProcessId] = useState(null);
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
     const [managers, setManagers] = useState([]);
@@ -50,12 +48,13 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
     }, [userData]);
 
     const { data: approvalData } = useGetProcessByContractTypeIdQuery({ contractTypeId: contractTypeId });
-    const { data: appendixPropose } = useGetProcessByAppendixTypeIdQuery({ appendixTypeId: appendixTypeId });
+    const { data: appendixPropose, refetch: refetchAppendix } = useGetProcessForAppendixQuery();
     const { data: processTemplates, refetch } = useGetProcessTemplatesQuery();
     const [fetchProcessByContractId, { data: contractProcess, isLoading: loadingContractProcess }] = useLazyGetProcessByContractIdQuery();
     const [create] = useCreateProcessMutation();
     const [createAppendixWorkFlow] = useCreateAppendixWorkFlowMutation();
     const [assign, { isLoading }] = useAssignProcessMutation();
+    const [assignAppendixWorkFlow, { isLoading: LoadingAsignAppendix }] = useAssignNewAppendixWorkFlowMutation();
     const [approveOldProcess, { isLoadingAppendixApprove }] = useApproveOldWorkFlowMutation();
 
 
@@ -224,10 +223,8 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                     setCurrent(current + 1);
                     form.resetFields();
                 } else {
-                    // Ở bước "Đợt cuối": hoàn thành quy trình
                     const stageKey = "stageFinal";
                     setApprovals((prev) => ({ ...prev, [stageKey]: values[stageKey] }));
-                    // Tổng số bước thực tế = customStagesCount (số bước tùy chỉnh) + 1 (bước cuối)
                     const totalStages = customStagesCount + 1;
                     const stagesArray = [];
                     for (let i = 1; i <= totalStages; i++) {
@@ -242,20 +239,15 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                             approverId,
                         });
                     }
-                    if (appendix == true && appendixId && appendixTypeId) {
-                        // gọi API tạo phụ lục
+                    if (appendix == true && appendixId) {
                         const newAppendix = {
                             name: "Quy trình duyệt phụ lục",
                             stages: stagesArray,
-                            addendumTypeId: appendixTypeId,
                         };
                         const appendixResult = await createAppendixWorkFlow(newAppendix).unwrap();
-                        console.log(appendixResult);
+                        console.log(appendixResult?.data.id);
+                        // console.log(appendix)
                         setSelectedProcessId(appendixResult?.data?.id);
-                        setIsCreate(true)
-                        // setApprovals({});
-                        // setCustomStagesCount(1);
-                        // setCurrent(0);
                         form.resetFields();
                         setHideAddStage(true);
                     } else {
@@ -270,10 +262,6 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
 
                         // Nếu ở chế độ custom thì lưu id quy trình mới vào state
                         setSelectedProcessId(result?.data?.id);
-                        setIsCreate(true)
-                        // setApprovals({});
-                        // setCustomStagesCount(1);
-                        // setCurrent(0);
                         form.resetFields();
                         setHideAddStage(true);
                     }
@@ -334,14 +322,29 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
 
     // Hàm xử lý "Áp dụng quy trình" để console.log id của quy trình
     const handleApplyProcess = async () => {
+        //////////////////////////////////////////////////////////////////////////////////// HERE
         if (appendix && appendix == true && appendixId) {
-            const result = await approveOldProcess({ appendixId: appendixId }).unwrap();
-            if (result.status === "OK") {
-                message.success("Quy trình đã được áp dụng thành công cho phụ lục!");
-                refetchNoti();
+            if (selection === "old") {
+                try {
+                    const result = await approveOldProcess({ appendixId: appendixId }).unwrap();
+                    console.log(result)
+                    message.success("Quy trình đã được áp dụng thành công cho phụ lục!");
+                    refetchNoti();
+                } catch (error) {
+                    console.log(error)
+                    message.error("Lỗi khi áp dụng quy trình cho phụ lục!");
+                }
             } else {
-                message.error("Lỗi khi áp dụng quy trình cho phụ lục!");
+                try {
+                    const result = await assignAppendixWorkFlow({ appendixId: appendixId, workflowId: selectedProcessId })
+                    message.success("Quy trình đã được áp dụng thành công cho phụ lục!");
+                    refetchNoti();
+                } catch (error) {
+                    console.log(error)
+                    message.error("Lỗi khi áp dụng quy trình cho phụ lục!");
+                }
             }
+
             if (onProcessApplied) {
                 onProcessApplied();
             }
@@ -350,6 +353,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             setCurrent(0);
             setSelectedProcessId(null);
             setHideAddStage(false);
+            refetchAppendix()
         } else {
             const workflowId = selection === "auto" ? 1 : selectedProcessId;
             console.log("Selected workflow ID:", workflowId);
@@ -365,6 +369,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                 setCurrent(0);
                 setSelectedProcessId(null);
                 setHideAddStage(false);
+                refetchAppendix()
             } catch (error) {
                 message.error(error?.data?.message || "Lỗi khi áp dụng quy trình!");
                 console.error("Assign process failed:", error);
@@ -450,7 +455,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                 {(appendix && appendix == true) ? (
                     <div>
                         <div className="flex items-center cursor-pointer">
-                            <Radio checked={selection === "auto"} onChange={handleChange} value="old">
+                            <Radio checked={selection === "old"} onChange={handleChange} value="old">
                                 Duyệt lại theo quy trình duyệt của hợp đồng
                             </Radio>
                         </div>
@@ -473,7 +478,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                     </div>
                 )}
 
-                {appendix == true && appendixId && appendixTypeId ? (
+                {appendix == true && appendixId ? (
                     <div>
                         {/* Radio "Đề xuất" */}
                         {appendixProposeData.length > 0 && (
@@ -627,7 +632,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                 <Button
                     className="bg-gradient-to-r from-blue-400 to-blue-700 text-white border-0 hover:from-blue-500 hover:to-blue-800"
                     onClick={handleApplyProcess}
-                    loading={isLoading}
+                    loading={isLoading || LoadingAsignAppendix || isLoadingAppendixApprove}
                     disabled={selectedProcessId === null && selection === "recomment"}
                 >
                     Áp dụng quy trình
