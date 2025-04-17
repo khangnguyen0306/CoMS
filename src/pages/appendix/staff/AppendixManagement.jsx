@@ -323,7 +323,7 @@ const AppendixManagement = () => {
 
     };
 
-    console.log(selectedRecord)
+    // console.log(selectedRecord)
 
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">

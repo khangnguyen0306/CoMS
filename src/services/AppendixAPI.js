@@ -150,12 +150,12 @@ export const appendixApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'Appendix', id: 'LIST' }],
     }),
 
-    getProcessByAppendixTypeId: builder.query({
-      query: ({ appendixTypeId }) => ({
-        url: `addendums/get-workflow-by-addendum-type/${appendixTypeId}`,
+    getProcessForAppendix: builder.query({
+      query: () => ({
+        url: `addendums/get-workflow-by-addendum-type`,
         method: 'GET',
       }),
-      providesTags: (result, error, appendixTypeId) => [{ type: 'Appendix', id: appendixTypeId }],
+      providesTags: (result, error, id) => [{ type: 'Appendix', id: id }],
     }),
 
     getWorkFlowByAppendixId: builder.query({
@@ -197,7 +197,7 @@ export const {
   useUpdateAppendixMutation,
   useDeleteAppendixMutation,
   useCreateAppendixWorkFlowMutation,
-  useGetProcessByAppendixTypeIdQuery,
+  useGetProcessForAppendixQuery,
   useGetAllAppendixByManagerQuery,
   useGetAllAppendixByApproverQuery,
   useGetWorkFlowByAppendixIdQuery,
