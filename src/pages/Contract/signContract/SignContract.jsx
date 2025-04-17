@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetContractDetailQuery, useLazyGetContractDetailQuery, useUploadContractAlreadySignedMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
-import { Button, Col, Divider, Drawer, message, Row, Spin, Table, Tabs, Tag, Timeline, Checkbox } from 'antd';
+import { Button, Col, Divider, Drawer, message, Row, Spin, Table, Tabs, Tag, Timeline, Checkbox, Radio } from 'antd';
 import { numberToVietnamese } from '../../../utils/ConvertMoney';
 import { useLazyGetTermDetailQuery } from '../../../services/ClauseAPI';
 import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LoadingOutlined, SmallDashOutlined } from '@ant-design/icons';
@@ -17,6 +17,8 @@ import { convert } from 'html-to-text';
 import { useFindLocationMutation, useUploadContractToSignMutation } from '../../../services/uploadAPI';
 import pdfMake from "pdfmake/build/pdfmake";
 import { FaPenNib } from "react-icons/fa6";
+import { useAuthenSignContractOnlineMutation } from '../../../services/AuthAPI';
+import { AuthenSignContractOnline } from './AuthenSignOnlineContract';
 
 const SignContract = () => {
     const { contractId } = useParams();
@@ -67,13 +69,17 @@ const SignContract = () => {
     const [connection, setConnection] = useState(null);
     const [hubProxy, setHubProxy] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [fileBase64, setFileBase64] = useState('');
     const [signedFile, setSignedFile] = useState(null);
     const [error, setError] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const [loadingCreateFile, setLoadingCreateFile] = useState(false);
     const [logs, setLogs] = useState([]);
     const [isConfirmed, setIsConfirmed] = useState(false);
-
+    const [signMethod, setSignMethod] = useState('online');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authError, setAuthError] = useState(null);
+    const [authenticate, { isLoading: isAuthLoading }] = useAuthenSignContractOnlineMutation();
 
     useEffect(() => {
         getContractData(contractId)
@@ -839,9 +845,11 @@ const SignContract = () => {
                 },
             };
 
-            pdfMake.createPdf(docDefinition).getBlob((blob) => {
+            const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+            pdfDocGenerator.getBlob((blob) => {
                 console.log(blob)
                 const file = new File([blob], `${contractData.data.title}-${contractData.data.partnerB.partnerName}.pdf`, { type: "application/pdf" });
+                // console.log(file)
                 setSelectedFile(file);
 
                 uploadFilePDF({ file })
@@ -862,7 +870,9 @@ const SignContract = () => {
                     });
             });
 
-
+            pdfDocGenerator.getBase64((base64) => {
+                setFileBase64(base64)
+            });
 
             setLoadingCreateFile(false)
         }
@@ -1001,6 +1011,36 @@ const SignContract = () => {
             writeToLog('Lỗi khi upload file đã ký: ' + (err.response?.data || err.message));
         } finally {
             setIsUploading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (error) {
+            setSignMethod('online')
+        }
+    }, [error])
+
+    useEffect(() => {
+        if (isConfirmed && signMethod) {
+            setSignMethod('online')
+        }
+    }, [error])
+
+    const handleAuth = async (values) => {
+        try {
+            const response = await authenticate({
+                username: values.username,
+                password: values.password
+            }).unwrap();
+            console.log(response)
+            if (response.success) {
+                setIsAuthenticated(true);
+                setAuthError(null);
+            } else {
+                setAuthError('Tài khoản hoặc mật khẩu không đúng');
+            }
+        } catch (err) {
+            setAuthError('Lỗi xác thực: ' + (err.message || 'Vui lòng thử lại'));
         }
     };
 
@@ -1362,44 +1402,78 @@ const SignContract = () => {
                 }}
             >
                 <div>
-                    {loadingCreateFile == true ? (
+                    {loadingCreateFile ? (
                         <Tag color='gold-inverse' icon={<Spin color="red" />}>Đang tải dữ liệu</Tag>
-                    ) :
-                        (
-                            <div className='flex flex-col gap-2 items-center'>
-                                <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>sẵn sàng ký</Tag>
-                                {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
-                                <div className='flex items-center gap-2'>
-                                    <Checkbox
-                                        checked={isConfirmed}
-                                        onChange={(e) => setIsConfirmed(e.target.checked)}
-                                    >
-                                        Tôi xác nhận đã đọc và đồng ý với nội dung hợp đồng
-                                    </Checkbox>
-                                </div>
-
+                    ) : (
+                        <div className='flex flex-col gap-4 items-center'>
+                            <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>Sẵn sàng ký</Tag>
+                            {/* {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>} */}
+                            <div className='flex flex-col items-center gap-2'>
+                                <Checkbox
+                                    checked={isConfirmed}
+                                    onChange={(e) => setIsConfirmed(e.target.checked)}
+                                >
+                                    Tôi xác nhận đã đọc và đồng ý với nội dung hợp đồng
+                                </Checkbox>
                                 {isConfirmed && (
-                                    <Button
-                                        icon={<FaPenNib />}
-                                        onClick={handleSign}
-                                        disabled={(loadingCreateFile == true) || isUploading}
-                                        style={{
-                                            padding: '8px 16px',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            cursor: !selectedFile || isUploading ? 'not-allowed' : 'pointer',
-                                        }}
-                                    >
-                                        {isUploading ? 'Đang xử lý...' : 'Ký hợp đồng'}
-                                    </Button>
+                                    <>
+                                        <Radio.Group
+                                            onChange={(e) => setSignMethod(e.target.value)}
+                                            value={signMethod}
+                                            disabled={isUploading}
+                                        >
+                                            <Radio value="usbToken" disabled={!!error}>
+                                                Ký bằng USB Token
+                                            </Radio>
+                                            <Radio value="online">
+                                                Ký bằng tài khoản Online
+                                            </Radio>
+                                        </Radio.Group>
+                                        {signMethod === 'online' && !isAuthenticated && (
+                                            <AuthenSignContractOnline
+                                                onAuth={handleAuth}
+                                                isLoading={isAuthLoading}
+                                                error={authError}
+                                            />
+                                        )}
+                                        {(signMethod === 'usbToken') && (
+                                            <Button
+                                                icon={<FaPenNib />}
+                                                onClick={handleSign}
+                                                disabled={loadingCreateFile || isUploading || !isConfirmed}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: (loadingCreateFile || isUploading || !isConfirmed) ? 'not-allowed' : 'pointer',
+                                                }}
+                                            >
+                                                {isUploading ? 'Đang xử lý...' : 'Ký hợp đồng'}
+                                            </Button>
+                                        )}
+                                        {(signMethod === 'online' && isAuthenticated) && (
+                                            <Button
+                                                icon={<FaPenNib />}
+                                                onClick={handleSign}         //////////////////// sửa lại thành hàm ký onl
+                                                disabled={loadingCreateFile || isUploading || !isConfirmed}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: (loadingCreateFile || isUploading || !isConfirmed) ? 'not-allowed' : 'pointer',
+                                                }}
+                                            >
+                                                {isUploading ? 'Đang xử lý...' : 'Ký hợp đồng'}
+                                            </Button>
+                                        )}
+                                    </>
                                 )}
-
                             </div>
-                        )
-                    }
+                        </div>
+                    )}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 

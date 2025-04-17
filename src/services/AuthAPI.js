@@ -18,6 +18,14 @@ export const authApi = createApi({
       }),
     }),
 
+    authenSignContractOnline: builder.mutation({
+      query: ({ username, password }) => ({
+        url: `https://demohsm.wgroup.vn/hsm/auth`,
+        method: "POST",
+        body: { username, password },
+      }),
+    }),
+
     registerUser: builder.mutation({
       query: (body) => {
         return {
@@ -80,6 +88,7 @@ export const {
   useVerifyOtpMutation,
   useResetPasswordMutation,
   useChangePasswordByEmailMutation,
+  useAuthenSignContractOnlineMutation
   //   useVerifyMailMutation,
   //   useVerifyOtpMutation,
   //   useRefreshTokenMutation,
