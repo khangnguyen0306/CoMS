@@ -55,6 +55,8 @@ const NotificationDropdown = () => {
           navigate("/appendix", { replace: true });
         } else if (user.roles[0] === "ROLE_MANAGER") {
           navigate("/manager/appendix", { replace: true });
+        } else if (user.roles[0] === "ROLE_DIRECTOR") {
+          navigate("/appendix", { replace: true });
         }
       } else if (text && text.includes("từ chối")) {
         navigate("/contractsApproval", { replace: true })
@@ -64,6 +66,8 @@ const NotificationDropdown = () => {
           navigate("/approvalContract", { replace: true });
         } else if (user.roles[0] === "ROLE_MANAGER") {
           navigate("/manager/approvalContract", { replace: true });
+        } else if (user.roles[0] === "ROLE_DIRECTOR") {
+          navigate("/approvalContract", { replace: true });
         }
       }
 

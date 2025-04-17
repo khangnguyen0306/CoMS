@@ -994,7 +994,7 @@ const SignContract = () => {
             ).unwrap()
 
             message.success("Ký hợp đồng thành công !")
-            navite('/manager/contractReadyToSign', { replace: true })
+            navite('/director/contractReadyToSign', { replace: true })
         } catch (err) {
             console.error('Error uploading file:', err);
             setError('Lỗi khi upload file đã ký');
