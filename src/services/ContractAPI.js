@@ -234,7 +234,6 @@ export const ContractAPI = baseApi.injectEndpoints({
         uploadContractAlreadySigned: builder.mutation({
             query: (body) => {
                 return {
-                    // url: `http://localhost:8088/api/v1/contracts/sign`,
                     url: `contracts/sign`,
                     method: "POST",
                     body: body,
@@ -242,6 +241,7 @@ export const ContractAPI = baseApi.injectEndpoints({
             },
             invalidatesTags: [{ type: "Contract", id: "LIST" }],
         }),
+   
 
 
         getImgBill: builder.query({
