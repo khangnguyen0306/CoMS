@@ -51,6 +51,7 @@ const Profile = () => {
     const handleSaveClick = async () => {
         try {
             const values = await form.validateFields(true);
+            console.log("form", values);
             await updateUser({ body: values, userId: id }).unwrap();
             message.success("Cập nhật hồ sơ thành công!");
             setIsEditing(false);
@@ -273,16 +274,16 @@ const Profile = () => {
                                         <div className="flex items-center mb-2">
                                             <span className="inline-block w-[200px] font-bold">Số điện thoại:</span>
                                             {isEditing ? (
-                                                <Form.Item 
-                                                name="phone_number" 
-                                                rules={[
-                                                    {
-                                                        required: true,
-                                                        whitespace:true,
-                                                        pattern: validationPatterns.phoneNumber.pattern,
-                                                        message: validationPatterns.phoneNumber.message,
-                                                    },
-                                                ]}
+                                                <Form.Item
+                                                    name="phone_number"
+                                                    rules={[
+                                                        {
+                                                            required: true,
+                                                            whitespace: true,
+                                                            pattern: validationPatterns.phoneNumber.pattern,
+                                                            message: validationPatterns.phoneNumber.message,
+                                                        },
+                                                    ]}
                                                 >
                                                     <Input placeholder="Nhập số điện thoại" className="w-[200px]" />
                                                 </Form.Item>
@@ -296,16 +297,16 @@ const Profile = () => {
                                         <div className="flex items-center mb-2">
                                             <span className="inline-block w-[200px] font-bold">Email:</span>
                                             {isEditing ? (
-                                                <Form.Item 
-                                                name="email" 
-                                                rules={[
-                                                    {
-                                                        required: true,
-                                                        whitespace: true,
-                                                        pattern: validationPatterns.email.pattern,
-                                                        message: validationPatterns.email.message,
-                                                    },
-                                                ]}
+                                                <Form.Item
+                                                    name="email"
+                                                    rules={[
+                                                        {
+                                                            required: true,
+                                                            whitespace: true,
+                                                            pattern: validationPatterns.email.pattern,
+                                                            message: validationPatterns.email.message,
+                                                        },
+                                                    ]}
                                                 >
                                                     <Input placeholder="Nhập email" className="w-[200px]" />
                                                 </Form.Item>

@@ -289,6 +289,8 @@ const ContractDetail = () => {
                 navigate(`/approvalContract`);
             } else if (user?.roles?.includes("ROLE_MANAGER")) {
                 navigate(`/manager/approvalContract`);
+            } else if (user?.roles?.includes("ROLE_DIRECTOR")) {
+                navigate(`/director/approvalContract`);
             }
         } catch (error) {
             console.log(error);
@@ -308,6 +310,8 @@ const ContractDetail = () => {
                 navigate(`/approvalContract`);
             } else if (user?.roles[0]?.includes("ROLE_MANAGER")) {
                 navigate(`/manager/approvalContract`);
+            } else if (user?.roles[0]?.includes("ROLE_DIRECTOR")) {
+                navigate(`/director/approvalContract`);
             }
         } catch (error) {
             console.log(error);

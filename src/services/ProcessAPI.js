@@ -91,7 +91,6 @@ export const processAPI = baseApi.injectEndpoints({
         url: `/approval-workflows/resubmit/${contractId}`,
         method: "POST",
       }),
-      // Nếu muốn làm mới dữ liệu sau resubmit, có thể dùng invalidatesTags với contractId
       providesTags: (result, error, contractId) => [
         { type: "ProcessList", id: contractId },
       ],

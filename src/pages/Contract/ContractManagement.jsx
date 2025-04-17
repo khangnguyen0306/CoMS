@@ -686,7 +686,7 @@ const ManageContracts = () => {
 
                             items: [
                                 // sau active mới hiên
-                                ...(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(record.status)
+                                ...(["ACTIVE"].includes(record.status)
                                     ? [
                                         {
                                             key: "updateStatus",
