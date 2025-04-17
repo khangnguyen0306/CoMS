@@ -68,7 +68,6 @@ const MainLayout = () => {
     "contractsApproval": "/contractsApproval",
     'approvalContract': '/manager/approvalContract',
     'approvalContractCEO': '/director/approvalContract',
-    'approvalContractCEO': '/director/approvalContract',
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
     'managerAppendix': "/manager/appendix",
@@ -304,7 +303,7 @@ const MainLayout = () => {
       label: 'Hợp đồng',
       badgeType: "contracts",
       children: [
-        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractCEO", color: "#1890ff", badgeCount: "contractsPendingApprovalForManager" },
+        { icon: GoChecklist, label: 'Hợp đồng cần duyệt', key: "approvalContractCEO", color: "#1890ff", badgeCount: "contractsPendingApprovalForDirector" },
         { icon: MdClass, label: 'Tất cả hợp đồng', key: "contract", color: "#1890ff" },
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
         { icon: FaClock, label: 'Hợp đồng chờ ký', key: "contractsNeedSign", color: "#faad14" },
@@ -320,7 +319,7 @@ const MainLayout = () => {
       children: [
         { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "directorAppendixApprove", color: "#FF8247", badgeCount: "addendaRejected" },
         { icon: AiFillSignature, label: 'Phụ lục chờ ký', key: "directorAppendixSign", color: "#41a9ff" },
-        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "diarecAllApendix", default: true, badgeCount: "addendaPendingApproval" },
+        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "diarecAllApendix", default: true, badgeCount: "addendaPendingApprovalForDirector" },
       ]
     },
     {
@@ -476,7 +475,7 @@ const MainLayout = () => {
 
           <div className="flex justify-center items-center mr-36">
             {/* <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p> */}
-            {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")) && <NotificationDropdown />}
+            {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER")||user?.roles.includes("ROLE_DIRECTOR")) && <NotificationDropdown />}
 
             <Avatar
               size="large"

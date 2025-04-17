@@ -141,7 +141,10 @@ const ManagePartner = () => {
 
     const handleDelete = async (partnerId) => {
         Modal.confirm({
-            title: 'Bạn có chắc muốn xóa không?',
+            title: 'xóa đối tác sẽ không thể phục hồi bạn có chắc muốn xóa không?',
+            okText:"Xóa đối tác",
+            okButtonProps: { style: { backgroundColor: 'red', color: 'white' } },
+            cancelText:"Hủy",
             onOk: async () => {
                 try {
                     const result = await DeletePartner({ partnerId: partnerId });
