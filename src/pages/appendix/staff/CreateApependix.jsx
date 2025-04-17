@@ -85,6 +85,7 @@ const ContractAppendixPage = () => {
         setContent(value);
         form.setFieldsValue({ contractContent: value });
     }, 100), []);
+
     const onValueChangeSell = useCallback(debounce((value) => {
         setContentSell(value);
         form.setFieldsValue({ content: value });
@@ -104,19 +105,19 @@ const ContractAppendixPage = () => {
         if (!selectedTypes.length) return '';
 
         const typeNames = {
-            'extend': 'Gia hạn hợp đồng',
+            'extend': 'Phụ lục gia hạn hợp đồng',
             'edit': editOptions.cost && editOptions.terms
-                ? 'Chỉnh sửa hợp đồng (Chi phí và Điều khoản)'
+                ? 'Phụ lục chỉnh sửa hợp đồng (Chi phí và Điều khoản)'
                 : editOptions.cost
                     ? 'Chỉnh sửa hợp đồng (Chi phí)'
                     : editOptions.terms
                         ? 'Chỉnh sửa hợp đồng (Điều khoản)'
                         : 'Chỉnh sửa hợp đồng',
-            'liquidate': 'Thanh lý hợp đồng'
+            'liquidate': 'Phụ lục thanh lý hợp đồng'
         };
 
         const selectedTypeNames = selectedTypes.map(type => typeNames[type]).join(' và ');
-        return `${selectedTypeNames} - ${contractNumber || form.getFieldValue('contractNumber') || ''}`;
+        return `${selectedTypeNames}`;
     };
 
     useEffect(() => {
