@@ -241,7 +241,23 @@ export const ContractAPI = baseApi.injectEndpoints({
             },
             invalidatesTags: [{ type: "Contract", id: "LIST" }],
         }),
-   
+
+
+        uploadContractOnlineSigned: builder.mutation({
+            query: ({ params, body }) => {
+                return {
+                    url: `contracts/upload-file-base64`,
+                    params: {
+                        contractId: params.contractId,
+                        fileName: params.fileName,
+                    },
+                    method: "POST",
+                    body: { fileBase64: body }
+                };
+            },
+            invalidatesTags: [{ type: "Contract", id: "LIST" }],
+        }),
+
 
 
         getImgBill: builder.query({
@@ -292,5 +308,5 @@ export const {
     useUploadContractAlreadySignedMutation,
     useDuplicateContractWithNewPartnerMutation,
     useGetImgSignQuery,
-
+    useUploadContractOnlineSignedMutation
 } = ContractAPI;
