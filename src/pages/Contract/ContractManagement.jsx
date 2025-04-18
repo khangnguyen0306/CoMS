@@ -329,7 +329,7 @@ const ManageContracts = () => {
                                     document.body.removeChild(link);
                                 }}
                             >
-                                Tải file
+                                Tải file đã ký
                             </Button>
                         )}
                     </div>
@@ -401,7 +401,7 @@ const ManageContracts = () => {
                                     record.status !== "SIGNED" &&
                                     record.status !== "ACTIVE" &&
                                     record.status !== "COMPLETED" &&
-                                    record.status !== "EXPIRED" &&
+                                    // record.status !== "EXPIRED" &&
                                     record.status !== "CANCELLED" &&
                                     record.status !== "ENDED"
                                     ? [
@@ -625,7 +625,7 @@ const ManageContracts = () => {
                                     document.body.removeChild(link);
                                 }}
                             >
-                                Tải file
+                                Tải file  đã ký
                             </Button>
                         )}
                     </div>
@@ -846,6 +846,7 @@ const ManageContracts = () => {
             alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)
         );
     }, [checkedList]);
+
     const filteredColumns2 = useMemo(() => {
         return columnManager.filter((col) =>
             alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)

@@ -12,7 +12,7 @@ export default defineConfig({
     port: 9999,
     proxy: {
       "/api": {
-        target: process.env.VITE_BE_API, 
+        target:'https://demohsm.wgroup.vn', 
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""), 
       },
