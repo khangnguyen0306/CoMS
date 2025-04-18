@@ -33,7 +33,7 @@ const ContractReadyToSign = () => {
         keyword: searchTextStaff,
         status: "APPROVED"
     });
-    const user = useSelector(selectCurrentUser)
+    const userL = useSelector(selectCurrentUser)
     const tableData = contracts?.data?.content;
     const [selectedContractIdExport, setSelectedContractIdExport] = useState(null);
 
@@ -103,7 +103,7 @@ const ContractReadyToSign = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <Link className="font-bold text-[#228eff]">{user?.full_name}</Link>,
+            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile/${user.user_id}`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",

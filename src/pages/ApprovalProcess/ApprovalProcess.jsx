@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Button, Form, Select, Steps, message, Empty, Skeleton } from "antd";
-import { EditFilled, MinusCircleFilled, MinusCircleOutlined } from "@ant-design/icons";
-import { useGetUserStaffManagerQuery, useGetUserManagerQuery } from "../../services/UserAPI";
+import { Button, Form, Select, Steps, message, Skeleton } from "antd";
+import { EditFilled, MinusCircleFilled, PlusOutlined, SaveFilled } from "@ant-design/icons";
+import { useGetUserManagerQuery } from "../../services/UserAPI";
 import { useGetProcessTemplatesQuery, useUpdateProcessMutation } from "../../services/ProcessAPI";
 
 const { Step } = Steps;
@@ -19,9 +19,11 @@ const ApprovalProcess = () => {
             refetchOnReconnect: true,
         }
     );
+
     useEffect(() => {
         userData
     }, []);
+
     const { data: processData, isLoading, refetch } = useGetProcessTemplatesQuery({});
     const [updateProcess] = useUpdateProcessMutation();
     const [form] = Form.useForm();
@@ -29,7 +31,7 @@ const ApprovalProcess = () => {
     const [approvalStages, setApprovalStages] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
 
-    
+
     useEffect(() => {
         if (processData && processData.data) {
             const process = processData.data;
@@ -122,7 +124,7 @@ const ApprovalProcess = () => {
                 title: (
                     <div className="flex justify-between items-center">
                         <span>{isFinal ? "Đợt cuối" : `Ký duyệt đợt ${stage.stageOrder}`}</span>
-                        {approvalStages.length > 1 && (
+                        {(approvalStages.length > 1 && isEditing == true) && (
                             <MinusCircleFilled
                                 className="ml-4 text-red-500 cursor-pointer"
                                 onClick={(e) => {
@@ -176,13 +178,14 @@ const ApprovalProcess = () => {
                 name: process.name,
                 stages: updatedStages,
             };
-            console.log("Payload:", payload);
-            await updateProcess({ payload, id: process.id }).unwrap();
+            // console.log("Payload:", payload);
+            const result = await updateProcess({ payload, id: process.id }).unwrap();
+            // console.log(result)
+            setIsEditing(false)
             message.success("Cập nhật quy trình thành công!");
             refetch();
         } catch (error) {
-            console.error("Cập nhật quy trình thất bại:", error);
-            message.error("Cập nhật quy trình thất bại!");
+            message.error(error.data.message === "Trùng ID người duyệt: 6" ? "Người duyệt trùng nhau trong 2 đợt" : "Cập nhật quy trình thất bại!");
         }
     };
 
@@ -201,16 +204,17 @@ const ApprovalProcess = () => {
                 className="font-bold mb-4 text-[34px] pb-7 bg-custom-gradient bg-clip-text text-transparent"
                 style={{ textShadow: "8px 8px 8px rgba(0, 0, 0, 0.2)" }}
             >
-                <div className="flex items-center">
-                    <div className="flex-1"></div>
+                <div >
                     <div className="flex-1 text-center font-bold text-[34px] whitespace-nowrap">
-                        Quản Lý Quy Trình Ký Duyệt
+                        QUẢN LÝ QUY TRÌNH DUYỆT MẶC ĐỊNH
                     </div>
-                    <div className="flex-1 text-right">
-                        <Button icon={<EditFilled />} type="primary" onClick={() => setIsEditing(true)}>
-                            Chỉnh sửa quy trình
-                        </Button>
-                    </div>
+                    {isEditing == false && (
+                        <div className="flex-1 text-right mt-5">
+                            <Button icon={<EditFilled />} type="primary" onClick={() => setIsEditing(true)}>
+                                Chỉnh sửa quy trình
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
 
@@ -230,13 +234,14 @@ const ApprovalProcess = () => {
                 <div>
                     <Form form={form} layout="vertical">
                         {stepsData[current]?.content}
-                        <div style={{ marginTop: 24 }}>
-                            <Button type="primary" onClick={handleUpdateProcess}>
-                                Thay đổi quy trình
-                            </Button>
-                            <Button style={{ marginLeft: 8 }} onClick={handleAddStage}>
+                        <div className="mt-5 flex justify-between">
+                            <Button onClick={handleAddStage} icon={<PlusOutlined />}>
                                 Thêm đợt phê duyệt
                             </Button>
+                            <Button type="primary" onClick={handleUpdateProcess} icon={<SaveFilled />}>
+                                Lưu quy trình
+                            </Button>
+
                         </div>
                     </Form>
                 </div>

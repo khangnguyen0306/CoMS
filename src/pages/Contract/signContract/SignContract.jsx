@@ -851,7 +851,7 @@ const SignContract = () => {
             pdfDocGenerator.getBlob((blob) => {
                 // console.log(blob)
                 const file = new File([blob], `${contractData.data.title}-${contractData.data.partnerB.partnerName}.pdf`, { type: "application/pdf" });
-                // console.log(file)
+                console.log(file)
                 setSelectedFile(file);
 
                 uploadFilePDF({ file })
@@ -1508,7 +1508,7 @@ const SignContract = () => {
                             <p className='mb-4'>
                                 <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>Sẵn sàng ký</Tag>
                             </p>
-                            {/* {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>} */}
+                            {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
                             <div className='flex flex-col items-center gap-2'>
                                 <Checkbox
                                     disabled={isUploading}

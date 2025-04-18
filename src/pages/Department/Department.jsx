@@ -5,7 +5,7 @@ import {
     useGetDepartmentsQuery,
     useUpdateDepartmentMutation,
 } from '../../services/Department';
-import { EditFilled } from '@ant-design/icons';
+import { EditFilled, PlusOutlined } from '@ant-design/icons';
 
 const Department = () => {
     const { data, isLoading, refetch } = useGetDepartmentsQuery();
@@ -90,7 +90,7 @@ const Department = () => {
         <div className="min-h-[100vh] p-4 w-full">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Danh sách Phòng Ban</h2>
-                <Button type="primary" onClick={showAddModal}>
+                <Button type="primary" onClick={showAddModal} icon={<PlusOutlined/>}>
                     Thêm Phòng Ban
                 </Button>
             </div>
@@ -122,7 +122,7 @@ const Department = () => {
                                 className="shadow-md border rounded-lg p-4 m-3"
                             >
                                 <List.Item.Meta
-                                    title={<span className="ml-4 font-semibold text-lg">{item.departmentName}</span>}
+                                    title={<span className="ml-4 text-lg">{item.departmentName}</span>}
 
                                 />
                             </List.Item>
