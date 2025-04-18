@@ -96,7 +96,7 @@ const ManageContracts = () => {
     const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
     const isManager = user?.roles?.includes("ROLE_MANAGER");
     const isStaff = user?.roles?.includes("ROLE_STAFF");
-
+    const userL = useSelector(selectCurrentUser)
     const tableData = isManager
         ? contractApprove?.data?.content
         : contracts?.data?.content || [];
@@ -249,7 +249,7 @@ const ManageContracts = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <span className="font-bold text-[#228eff]">{user?.full_name}</span>,
+            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile/${user.user_id}`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",
@@ -545,7 +545,7 @@ const ManageContracts = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <Link className="font-bold text-[#228eff]">{user?.full_name}</Link>,
+            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile/${user.user_id}`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",
