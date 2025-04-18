@@ -3,7 +3,7 @@ import { Button, Collapse, Radio, Form, Input, Space, Row, Col, Checkbox, Image,
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import ApIcon from '../../assets/Image/appendix.svg'
-import { useApproveAppendixMutation, useGetAppendixDetailQuery, useGetWorkFlowByAppendixIdQuery, useRejectAppendixMutation, useUploadAppendixAlreadySignedMutation } from '../../services/AppendixAPI';
+import { useApproveAppendixMutation, useGetAppendixDetailQuery, useGetWorkFlowByAppendixIdQuery, useRejectAppendixMutation, useUploadAppendixAlreadySignedMutation, useUploadAppendixOnlineSignedMutation } from '../../services/AppendixAPI';
 import { selectCurrentToken, selectCurrentUser } from '../../slices/authSlice';
 import { useSelector } from 'react-redux';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
@@ -13,6 +13,8 @@ import dayjs from 'dayjs';
 import { useFindLocationMutation, useUploadAppenixToSignMutation } from '../../services/uploadAPI';
 import { FaPenNib } from 'react-icons/fa6';
 import { useUploadContractAlreadySignedMutation } from '../../services/ContractAPI';
+import { DataToSign } from '../../utils/DataToSign';
+import { AuthenSignContractOnline } from '../Contract/signContract/AuthenSignOnlineContract';
 
 const { Panel } = Collapse;
 
@@ -58,7 +60,7 @@ const AppendixDetail = () => {
             refetchOnReconnect: true,
         }
     )
-    const { data: dataAppendixProcess, isLoading: isLoadingAppendixProcess, isError: isErrorAppendixProcess } = useGetWorkFlowByAppendixIdQuery(
+    const { data: dataAppendixProcess, isLoading: isLoadingAppendixProcess, isError: isErrorAppendixProcess,refetch:refetchAppendix } = useGetWorkFlowByAppendixIdQuery(
         { appendixId },
         { skip: !appendixId }
     );
@@ -70,16 +72,25 @@ const AppendixDetail = () => {
     const userApproval = dataAppendixProcess?.data.stages.find(stage => stage.approver === user?.id && (stage.status === "APPROVED"));
     const userCreate = appendixData?.data.createdBy.userId == user?.id;
 
+    const [signMethod, setSignMethod] = useState('online');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authError, setAuthError] = useState(null);
+    const [authenSign, setAuthenSign] = useState('')
+    const [isAuthLoading, setIsAuthLoading] = useState(false)
+    const [fileBase64, setFileBase64] = useState('');
+
     const [rejectProcess, { isLoading: rejectLoading }] = useRejectAppendixMutation();
     const [approveProcess, { isLoading: approveLoading }] = useApproveAppendixMutation();
     const [uploadFileSignedAlready] = useUploadAppendixAlreadySignedMutation();
     const [uploadFilePDF] = useFindLocationMutation();
     const [fetchTerms] = useLazyGetTermDetailQuery();
     const [uploadFileToSign] = useUploadAppenixToSignMutation();
-    // Xử lý khi thay đổi lựa chọn radio
+    const [uploadOnlineSigned] = useUploadAppendixOnlineSignedMutation();
+
 
     useEffect(() => {
-        refetch()
+        refetch();
+        refetchAppendix();
     }, [])
 
     const handleApprovalChange = (e) => {
@@ -208,11 +219,6 @@ const AppendixDetail = () => {
         },
     ];
 
-    // const displayPaymentMethod = {
-    //     'creditCard':"Thẻ tín dụng",
-    //     'cash':"Tiền mặt",
-    //     ''
-    // }
     const loadTermDetail = async (termId) => {
         if (!termsData[termId]) {
             setLoadingTerms((prev) => ({ ...prev, [termId]: true }));
@@ -288,7 +294,11 @@ const AppendixDetail = () => {
 
                 // Define the error callback from the server.
                 proxy.on('ShowError', (err) => {
-                    setError(err);
+                    if (err.includes("The process cannot access the file")) {
+                        setError("File ký vừa được hủy bởi người ký, vui lòng đợi trong vài phút và reload lại trang.");
+                    } else {
+                        setError(err);
+                    }
                     setIsUploading(false);
                     writeToLog(`Lỗi: ${err}`);
                 });
@@ -383,6 +393,119 @@ const AppendixDetail = () => {
             setIsUploading(false);
         }
     };
+
+
+    // ok!
+    const handleOnlineSign = async () => {
+        if (!selectedFile) {
+            setError('File chưa được tạo, vui lòng thử lại!');
+            return;
+        }
+        setIsUploading(true);
+        setError(null);
+        try {
+            const signInfo = {
+                "options": {
+                    "PAGENO": dataToSign.page,
+                    "POSITIONIDENTIFIER": DataToSign.POSITIONIDENTIFIER,
+                    "RECTANGLESIZE": DataToSign.RECTANGLESIZE,
+                    "RECTANGLEOFFSET": DataToSign.RECTANGLEOFFSETFORAPPENDIX,
+                    "VISIBLESIGNATURE": DataToSign.VISIBLESIGNATURE,
+                    "VISUALSTATUS": DataToSign.VISUALSTATUS,
+                    "SHOWSIGNERINFO": DataToSign.SHOWSIGNERINFO,
+                    "SIGNERINFOPREFIX": DataToSign.SIGNERINFOPREFIX,
+                    "SHOWDATETIME": DataToSign.SHOWDATETIME,
+                    "DATETIMEPREFIX": DataToSign.DATETIMEPREFIX,
+                    "TEXTDIRECTION": DataToSign.TEXTDIRECTION,
+                    "TEXTCOLOR": DataToSign.TEXTCOLOR,
+                    "IMAGEANDTEXT": DataToSign.IMAGEANDTEXT,
+                    "BACKGROUNDIMAGE": DataToSign.BACKGROUNDIMAGE,
+                },
+                "file_data": fileBase64
+            };
+
+            const response = await fetch('/api/hsm/pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authenSign}`,
+                },
+                body: JSON.stringify(signInfo),
+            });
+
+            if (!response.ok) {
+                throw new Error('Lỗi khi gửi dữ liệu ký');
+            }
+
+            const data = await response.json();
+            if (data.result.status = "Success") {
+                console.log(appendixId)
+                const upload = await uploadOnlineSigned(
+                    {
+                        body: data.result.file_data,
+                        params: {
+                            fileName: appendixData?.data.title,
+                            addendumId: appendixId
+                        }
+                    })
+                // console.log(upload)
+                message.success("Ký phụ lục và" + upload.data.message)
+                navigate('/appendix?paramstatus=APPROVED', { replace: true })
+            } else {
+                message.error("Có lỗi xảy ra vui lòng thử lại !")
+            }
+            // console.log('Ký thành công:', data);
+
+            // Reset sau khi ký
+            setSelectedFile(null);
+            setSignedFile(null);
+            setIsUploading(false);
+        } catch (err) {
+            setError(err.message);
+            writeToLog(err.message);
+            setIsUploading(false);
+        }
+    };
+
+    // ok!
+    const handleAuth = async (values) => {
+        try {
+            setIsAuthLoading(true)
+            const response = await fetch('/api/hsm/auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: values.username,
+                    password: values.password,
+                }),
+            });
+
+            // Kiểm tra status code
+            if (!response.ok) {
+                throw new Error('Server trả về lỗi');
+            }
+
+            const data = await response.json();
+            console.log(data);
+
+            if (data.result.status === "Success") {
+                message.success('Xác thực thành công người ký!')
+                setAuthenSign(data.result.token)
+                setIsAuthenticated(true);
+                setAuthError(null);
+            } else {
+                setAuthError('Tài khoản hoặc mật khẩu không đúng');
+            }
+            setIsAuthLoading(false)
+        } catch (err) {
+            setAuthError('Lỗi xác thực: ' + (err.message || 'Vui lòng thử lại'));
+            setIsAuthLoading(false)
+        }
+    };
+
+
     useEffect(() => {
         if (appendixData?.data?.additionalConfig) {
             const allGrouped = { Common: [], A: [], B: [] };
@@ -467,6 +590,19 @@ const AppendixDetail = () => {
     const parsedContent = convert(appendixData?.data.contractContent, {
         wordwrap: 220,
     });
+
+    useEffect(() => {
+        if (error && error !== 'The action was cancelled by the user') {
+            setSignMethod('online');
+        }
+    }, [error])
+
+    useEffect(() => {
+        if (isConfirmed && signMethod) {
+            setSignMethod('online')
+        }
+    }, [error])
+
 
     useEffect(() => {
 
@@ -925,21 +1061,11 @@ const AppendixDetail = () => {
                     font: "Roboto",
                 },
             };
-            console.log("đã chạy")
-            pdfMake.createPdf(docDefinition).getBlob((blob) => {
-                console.log(blob)
+
+            const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+            pdfDocGenerator.getBlob((blob) => {
                 const file = new File([blob], `${appendixData.data.title || 'contract'}-${appendixData.data.partnerB?.partnerName || 'partner'}.pdf`, { type: "application/pdf" });
                 setSelectedFile(file);
-                console.log("đã tạo")
-                // const url = URL.createObjectURL(blob);
-                // const a = document.createElement('a');
-                // a.href = url;
-                // a.download = file.name;
-                // document.body.appendChild(a);
-                // a.click();
-                // document.body.removeChild(a);
-                // URL.revokeObjectURL(url);
-                // console.log(file)
                 uploadFilePDF({ file })
                     .then((response) => {
                         console.log("Upload thành công:", response);
@@ -956,6 +1082,10 @@ const AppendixDetail = () => {
                         console.error("Lỗi khi upload:", error);
                         setLoadingCreateFile(false);
                     });
+            });
+
+            pdfDocGenerator.getBase64((base64) => {
+                setFileBase64(base64)
             });
 
             setLoadingCreateFile(false);
@@ -1356,44 +1486,91 @@ const AppendixDetail = () => {
                                 }}
                             >
                                 <div>
-                                    {loadingCreateFile == true ? (
+                                    {loadingCreateFile ? (
                                         <Tag color='gold-inverse' icon={<Spin color="red" />}>Đang tải dữ liệu</Tag>
-                                    ) :
-                                        (
-                                            <div className='flex flex-col gap-2 items-center'>
-                                                <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>Đã sẵn sàng ký</Tag>
-                                                {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
-                                                <div className='flex items-center gap-2'>
-                                                    <Checkbox
-                                                        checked={isConfirmed}
-                                                        onChange={(e) => setIsConfirmed(e.target.checked)}
-                                                    >
-                                                        Tôi xác nhận đã đọc và đồng ý với nội dung phụ lục
-                                                    </Checkbox>
-                                                </div>
-
+                                    ) : (
+                                        <Card className='flex flex-col gap-4 items-center text-center pb-[90px]'>
+                                            <p className='mb-4'>
+                                                <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>Sẵn sàng ký</Tag>
+                                            </p>
+                                            {/* {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>} */}
+                                            <div className='flex flex-col items-center gap-2'>
+                                                <Checkbox
+                                                    disabled={isUploading}
+                                                    checked={isConfirmed}
+                                                    onChange={(e) => setIsConfirmed(e.target.checked)}
+                                                    className='text-left'
+                                                >
+                                                    <p className='ml-2'>  Tôi xác nhận đã đọc và đồng ý với nội dung phụ lục</p>
+                                                </Checkbox>
                                                 {isConfirmed && (
-                                                    <Button
-                                                        icon={<FaPenNib />}
-                                                        onClick={handleSign}
-                                                        disabled={(loadingCreateFile == true) || isUploading}
-                                                        style={{
-                                                            padding: '8px 16px',
-                                                            border: 'none',
-                                                            borderRadius: '4px',
-                                                            cursor: !selectedFile || isUploading ? 'not-allowed' : 'pointer',
-                                                        }}
-                                                    >
-                                                        {isUploading ? 'Đang xử lý...' : 'Ký phụ lục'}
-                                                    </Button>
+                                                    <>
+                                                        <Radio.Group
+                                                            onChange={(e) => setSignMethod(e.target.value)}
+                                                            value={signMethod}
+                                                            disabled={isUploading}
+                                                            style={{
+                                                                cursor: (isUploading) ? 'not-allowed' : 'pointer',
+                                                            }}
+                                                            className='flex flex-col justify-start gap-2'
+                                                        >
+                                                            <Radio value="usbToken" disabled={!!error || isUploading}>
+                                                                Ký bằng USB Token
+                                                            </Radio>
+                                                            <Radio value="online" disabled={isUploading}>
+                                                                Ký bằng tài khoản Online
+                                                            </Radio>
+                                                        </Radio.Group>
+                                                        {signMethod === 'online' && !isAuthenticated && (
+                                                            <AuthenSignContractOnline
+                                                                onAuth={handleAuth}
+                                                                isLoading={isAuthLoading}
+                                                                error={authError}
+                                                            />
+                                                        )}
+                                                        {(signMethod === 'usbToken') && (
+                                                            <Button
+                                                                icon={<FaPenNib />}
+                                                                onClick={handleSign}
+                                                                disabled={loadingCreateFile || isUploading || !isConfirmed}
+                                                                style={{
+                                                                    marginTop: '20px',
+                                                                    padding: '8px 16px',
+                                                                    border: 'none',
+                                                                    borderRadius: '4px',
+                                                                    cursor: (loadingCreateFile || isUploading || !isConfirmed) ? 'not-allowed' : 'pointer',
+                                                                }}
+                                                            >
+                                                                {isUploading ? 'Đang xử lý...' : 'Ký hợp đồng'}
+                                                            </Button>
+                                                        )}
+                                                        {(signMethod === 'online' && isAuthenticated) && (
+                                                            <div>
+                                                                <Button
+                                                                    icon={<FaPenNib />}
+                                                                    onClick={handleOnlineSign}
+                                                                    disabled={loadingCreateFile || isUploading || !isConfirmed}
+                                                                    style={{
+                                                                        padding: '8px 16px',
+                                                                        marginTop: '20px',
+                                                                        border: 'none',
+                                                                        borderRadius: '4px',
+                                                                        cursor: (loadingCreateFile || isUploading || !isConfirmed) ? 'not-allowed' : 'pointer',
+                                                                    }}
+                                                                >
+                                                                    {isUploading ? 'Đang xử lý...' : 'Ký hợp đồng'}
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </>
                                                 )}
-
                                             </div>
-                                        )
-                                    }
+                                        </Card>
+                                    )}
                                 </div>
                             </div>
                         )}
+
                         {appendixData?.data.status == "SIGNED" && (
                             <Tag className='flex justify-center gap-2 py-2'>
                                 <p>Phụ lục này đã được ký</p>

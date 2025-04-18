@@ -17,7 +17,6 @@ import { convert } from 'html-to-text';
 import { useFindLocationMutation, useUploadContractToSignMutation } from '../../../services/uploadAPI';
 import pdfMake from "pdfmake/build/pdfmake";
 import { FaPenNib } from "react-icons/fa6";
-import { useAuthenSignContractOnlineMutation } from '../../../services/AuthAPI';
 import { AuthenSignContractOnline } from './AuthenSignOnlineContract';
 import { DataToSign } from '../../../utils/DataToSign';
 
@@ -81,7 +80,6 @@ const SignContract = () => {
     const [signMethod, setSignMethod] = useState('online');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authError, setAuthError] = useState(null);
-    // const [authenticate, { isLoading: isAuthLoading }] = useAuthenSignContractOnlineMutation();
     const [authenSign, setAuthenSign] = useState('')
     const [isAuthLoading, setIsAuthLoading] = useState(false)
 
@@ -851,7 +849,7 @@ const SignContract = () => {
 
             const pdfDocGenerator = pdfMake.createPdf(docDefinition);
             pdfDocGenerator.getBlob((blob) => {
-                console.log(blob)
+                // console.log(blob)
                 const file = new File([blob], `${contractData.data.title}-${contractData.data.partnerB.partnerName}.pdf`, { type: "application/pdf" });
                 // console.log(file)
                 setSelectedFile(file);
@@ -1007,7 +1005,6 @@ const SignContract = () => {
         }
         setIsUploading(true);
         setError(null);
-
         try {
             const signInfo = {
                 "options": {
@@ -1053,7 +1050,7 @@ const SignContract = () => {
                         }
                     })
                 // console.log(upload)
-                message.success(upload.data.message)
+                message.success("Ký hợp đồng và" + upload.data.message)
                 navite('/director/contractReadyToSign', { replace: true })
             } else {
                 message.error("Có lỗi xảy ra vui lòng thử lại !")
@@ -1534,7 +1531,7 @@ const SignContract = () => {
                                             <Radio value="usbToken" disabled={!!error || isUploading}>
                                                 Ký bằng USB Token
                                             </Radio>
-                                            <Radio value="online" disabled={ isUploading}>
+                                            <Radio value="online" disabled={isUploading}>
                                                 Ký bằng tài khoản Online
                                             </Radio>
                                         </Radio.Group>
@@ -1551,6 +1548,7 @@ const SignContract = () => {
                                                 onClick={handleSign}
                                                 disabled={loadingCreateFile || isUploading || !isConfirmed}
                                                 style={{
+                                                    marginTop: '20px',
                                                     padding: '8px 16px',
                                                     border: 'none',
                                                     borderRadius: '4px',
@@ -1568,6 +1566,7 @@ const SignContract = () => {
                                                     disabled={loadingCreateFile || isUploading || !isConfirmed}
                                                     style={{
                                                         padding: '8px 16px',
+                                                        marginTop: '20px',
                                                         border: 'none',
                                                         borderRadius: '4px',
                                                         cursor: (loadingCreateFile || isUploading || !isConfirmed) ? 'not-allowed' : 'pointer',

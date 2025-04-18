@@ -1,6 +1,6 @@
 import { Button, Form, Input } from "antd";
 import { useSelector } from "react-redux";
-
+import { SiAuthentik } from "react-icons/si";
 export const AuthenSignContractOnline = ({ onAuth, isLoading, error }) => {
 
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -44,6 +44,7 @@ export const AuthenSignContractOnline = ({ onAuth, isLoading, error }) => {
                         type="primary"
                         htmlType="submit"
                         loading={isLoading}
+                        icon={<SiAuthentik/>}
                         className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-md"
                     >
                         {isLoading ? 'Đang xác thực...' : 'Xác thực'}
