@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, UndoOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, UndoOutlined, DownloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -162,31 +162,35 @@ const AppendixManagement = () => {
                 </Link>
             ),
         },
-        // {
-        //     title: "Loại phụ lục",
-        //     dataIndex: "addendumType",
-        //     key: "addendumType",
-        //     render: (value) =>
-        //     // user.roles[0] === "ROLE_MANAGER" ? (
-        //     //     <Tag color="blue">{value}</Tag>
-        //     (
-        //         <Tag color="blue">{value.name}</Tag>
-        //     ),
-        //     // filters:
-        //     //     user.roles[0] === "ROLE_MANAGER"
-        //     //         ? [...new Set(tableData?.data.map(appendix => appendix.addendumType))].map(type => ({
-        //     //             text: type,
-        //     //             value: type,
-        //     //         }))
-        //     //         : [...new Set(tableData?.data.map(appendix => appendix.appendixType.name))].map(type => ({
-        //     //             text: type,
-        //     //             value: type,
-        //     //         })),
-        //     // onFilter:
-        //     //     user.roles[0] === "ROLE_MANAGER"
-        //     //         ? (value, record) => record.addendumType === value
-        //     //         : (value, record) => record.appendixType.name === value,
-        // },
+        {
+            title: "Tải file",
+            dataIndex: "signedFilePath",
+            key: "signedFilePath",
+            render: (text, record) => (
+                (record.status === "SIGNED" || record.status === "ACTIVE") && (
+                    <div className="flex flex-col items-center gap-3">
+                        {record.signedFilePath && (
+                            <Button
+                                type="primary"
+                                className="px-2"
+                                icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const link = document.createElement("a");
+                                    link.href = record.signedFilePath;
+                                    link.download = record.signedFilePath?.split("/").pop();
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                }}
+                            >
+                                Tải file đã ký
+                            </Button>
+                        )}
+                    </div>
+                )
+            )
+        },
 
         // {
         //     title: "Ngày có hiệu lực",

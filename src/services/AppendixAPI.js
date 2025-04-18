@@ -185,14 +185,31 @@ export const appendixApi = baseApi.injectEndpoints({
 
     uploadAppendixAlreadySigned: builder.mutation({
       query: (body) => {
-          return {
-              url: `addendums/sign`,
-              method: "POST",
-              body: body,
-          };
+        return {
+          url: `addendums/sign`,
+          method: "POST",
+          body: body,
+        };
       },
-      invalidatesTags: [{ type: "Contract", id: "LIST" }],
-  }),
+      invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+    }),
+
+    uploadAppendixOnlineSigned: builder.mutation({
+      query: ({ params, body }) => {
+        return {
+          url: `addendums/upload-file-base64`,
+          params: {
+            addendumId: params.addendumId,
+            fileName: params.fileName,
+          },
+          method: "POST",
+          body: { fileBase64: body }
+        };
+      },
+      invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+    }),
+
+
   }),
 });
 
@@ -216,5 +233,6 @@ export const {
   useApproveAppendixMutation,
   useDuplicateAppendixMutation,
   useResubmitAppendixMutation,
-  useUploadAppendixAlreadySignedMutation
+  useUploadAppendixAlreadySignedMutation,
+  useUploadAppendixOnlineSignedMutation
 } = appendixApi;
