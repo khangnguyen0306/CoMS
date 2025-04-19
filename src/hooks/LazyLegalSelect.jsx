@@ -7,6 +7,7 @@ const LazyLegalSelect = ({
     globalSelected = [],
     options: initialOptions = [],
     defaultValue = [],
+    children,
     ...restProps
 }) => {
 

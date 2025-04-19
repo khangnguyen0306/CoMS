@@ -254,7 +254,7 @@ const Profile = () => {
 
                                         <div className="flex items-center mb-2">
                                             <span className={`inline-block w-[200px] font-bold`}>Phòng ban:</span>
-                                            {isEditing ? (
+                                            {/* {isEditing ? (
                                                 <Form.Item name="department_id" rules={[{ required: true, message: "Vui lòng chọn phòng ban" }]}>
                                                     <Select placeholder="Chọn phòng ban" className="w-[200px]">
                                                         {departmentData?.data?.map((dept) => (
@@ -264,9 +264,9 @@ const Profile = () => {
                                                         ))}
                                                     </Select>
                                                 </Form.Item>
-                                            ) : (
-                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.department?.departmentName || "Phòng ban"}</span>
-                                            )}
+                                            ) : ( */}
+                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.department?.departmentName || "Chưa cập nhật"}</span>
+                                            {/* )} */}
                                         </div>
                                     </div>
                                     <p className="py-6">
