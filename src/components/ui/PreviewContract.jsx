@@ -38,6 +38,22 @@ const PreviewContract = ({ form, partnerId, data }) => {
         }
     }, [formValues.legalBasisTerms]);
 
+    useEffect(() => {
+        if (formValues?.generalTerms) {
+            formValues.generalTerms.forEach(termId => {
+                loadTermDetail(termId);
+            });
+        }
+    }, [formValues.generalTerms]);
+
+    useEffect(() => {
+        if (formValues?.otherTerms) {
+            formValues.otherTerms.forEach(termId => {
+                loadTermDetail(termId);
+            });
+        }
+    }, [formValues.otherTerms]);
+
     // Render the legal basis terms
     const renderLegalBasisTerms = () => {
         if (!formValues?.legalBasisTerms || formValues.legalBasisTerms.length === 0) {
@@ -57,6 +73,51 @@ const PreviewContract = ({ form, partnerId, data }) => {
             return (
                 <p key={index}>
                     <i>- {term.value}</i>
+                </p>
+            );
+        });
+    };
+
+    const renderGenaralTerms = () => {
+        if (!formValues?.generalTerms || formValues.generalTerms.length === 0) {
+            return <p>Chưa có điều khoản chung nào được chọn.</p>;
+        }
+
+        return formValues.generalTerms.map((termId, index) => {
+            const term = termsData[termId];
+            if (!term) {
+                return (
+                    <div key={termId} className="term-item p-1">
+                        <Spin size="small" />
+                    </div>
+                );
+            }
+            return (
+                <p key={index}>
+                    <p>{index + 1}. {term.value}</p>
+                </p>
+            );
+        });
+    };
+
+    const renderOthersTerms = () => {
+        if (!formValues?.otherTerms || formValues.otherTerms.length === 0) {
+            return <p>Chưa có điều khoản khác nào được chọn.</p>;
+        }
+
+        return formValues.otherTerms.map((termId, index) => {
+            const term = termsData[termId];
+            if (!term) {
+                return (
+                    <div key={termId} className="term-item p-1">
+                        <Spin size="small" />
+                    </div>
+                );
+            }
+
+            return (
+                <p key={index}>
+                    <p>{index + 1}. {term.value}</p>
                 </p>
             );
         });
@@ -424,7 +485,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
                             <p className="text-sm "><b>Tên công ty:</b> {formValues?.partnerA.partnerName}</p>
                             <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {formValues?.partnerA.partnerAddress}</p>
                             <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {formValues?.partnerA.spokesmanName} </p></p>
-                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerA.position }</p>
+                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerA.position}</p>
                             <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {formValues?.partnerA.partnerTaxCode}</p></p>
                             <p className="text-sm"><b>Email:</b> {formValues?.partnerA.partnerEmail}</p>
                         </Col>
@@ -433,7 +494,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
                             <p className="text-sm "><b>Tên công ty:</b> {formValues?.partnerB.partnerName}</p>
                             <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {formValues?.partnerB.partnerAddress}</p>
                             <p className="flex text-sm justify-between"><p><b>Người đại diện:</b> {formValues?.partnerB.spokesmanName} </p></p>
-                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerB.position }</p>
+                            <p className="text-sm"><b>Chức vụ:</b> {formValues?.partnerB.position}</p>
                             <p className='flex text-sm  justify-between'><p><b>Mã số thuế:</b> {formValues?.partnerB.partnerTaxCode}</p></p>
                             <p className="text-sm"><b>Email:</b> {formValues?.partnerB.partnerEmail}</p>
                         </Col>
@@ -468,43 +529,46 @@ const PreviewContract = ({ form, partnerId, data }) => {
                     <div className="ml-1" dangerouslySetInnerHTML={{ __html: formValues.contractContent || "Chưa nhập" }} />
 
                     <div className="mt-4">
-                        <h4 className="font-bold text-lg placeholder:"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
-                        {partnerId && (
-                            <div>
-                                <p className='mt-4'>
-                                    - Tổng giá trị hợp đồng:
-                                    <b>  {new Intl.NumberFormat('vi-VN').format(formValues?.totalValue)} VND</b>
-                                    <span className='text-gray-600'>  ( {numberToVietnamese(formValues.totalValue)} )</span>
-                                </p>
 
-                                <p className=" ml-3 font-bold my-5">
-                                    1.  Hạng mục thanh toán
-                                </p>
-                                <Table
-                                    dataSource={formValues?.contractItems}
-                                    columns={paymentItemsColumns}
-                                    rowKey="id"
-                                    pagination={false}
-                                    bordered
-                                />
+                        {partnerId && (formValues?.contractItems?.length > 0 || (formValues?.payments && formValues.payments.length > 0)) && (
+                            <>
+                                <h4 className="font-bold text-lg placeholder:"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
+                                <div>
+                                    <p className='mt-4'>
+                                        - Tổng giá trị hợp đồng:
+                                        <b>  {new Intl.NumberFormat('vi-VN').format(formValues?.totalValue)} VND</b>
+                                        <span className='text-gray-600'>  ( {numberToVietnamese(formValues.totalValue)} )</span>
+                                    </p>
 
-                                <p className=" ml-3 font-bold my-5">
-                                    2. Tổng giá trị và số lần thanh toán
-                                </p>
+                                    <p className=" ml-3 font-bold my-5">
+                                        1.  Hạng mục thanh toán
+                                    </p>
+                                    <Table
+                                        dataSource={formValues?.contractItems}
+                                        columns={paymentItemsColumns}
+                                        rowKey="id"
+                                        pagination={false}
+                                        bordered
+                                    />
 
-                                {formValues?.payments &&
-                                    formValues.payments.length > 0 && (
-                                        <>
-                                            <Table
-                                                dataSource={formValues.payments}
-                                                columns={paymentSchedulesColumns}
-                                                rowKey="paymentOrder"
-                                                pagination={false}
-                                                bordered
-                                            />
-                                        </>
-                                    )}
-                            </div>
+                                    <p className=" ml-3 font-bold my-5">
+                                        2. Tổng giá trị và số lần thanh toán
+                                    </p>
+
+                                    {formValues?.payments &&
+                                        formValues.payments.length > 0 && (
+                                            <>
+                                                <Table
+                                                    dataSource={formValues.payments}
+                                                    columns={paymentSchedulesColumns}
+                                                    rowKey="paymentOrder"
+                                                    pagination={false}
+                                                    bordered
+                                                />
+                                            </>
+                                        )}
+                                </div>
+                            </>
                         )}
                         <div>
                             {formValues?.isDateLateChecked && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {formValues?.maxDateLate} (ngày) </p>}
@@ -525,9 +589,19 @@ const PreviewContract = ({ form, partnerId, data }) => {
 
                         </div>
                     </div>
+
                     <div className="mt-2">
                         <h4 className="font-bold text-lg placeholder: mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
                         <div className="ml-5 mt-3 flex flex-col gap-3">
+
+                            {formValues.generalTerms && formValues.generalTerms.length > 0 && (
+                                <div className="term-group mb-2">
+                                    <p className='font-bold  text-base mb-3'>ĐIỀU KHOẢN CHUNG</p>
+                                    {renderGenaralTerms()}
+                                </div>
+                            )}
+
+
                             {groupedTerms.Common.length > 0 && (
                                 <div className="term-group mb-2">
                                     {Object.keys(organizedCommonTerms).map(typeKey => (
@@ -559,6 +633,20 @@ const PreviewContract = ({ form, partnerId, data }) => {
                                     <p className='text-sm'>- {formValues?.specialTermsB && formValues?.specialTermsB}</p>
                                 </div>
                             )}
+
+                            {formValues.otherTerms && formValues.otherTerms.length > 0 && (
+                                <div className="term-group mb-2">
+                                    <p className='font-bold text-base mb-3'>ĐIỀU KHOẢN KHÁC</p>
+                                    {renderOthersTerms()}
+                                </div>
+                            )}
+
+                            {/* {formValues.otherTerms && formValues.otherTerms.length > 0 && (
+                                <div className="term-group mb-2">
+                                    <p className='font-bold'>ĐIỀU KHOẢN KHÁC</p>
+                                    {formValues.otherTerms.map((termId, index) => renderTerm(termId, index))}
+                                </div>
+                            )} */}
                         </div>
                         <div className="mt-4">
                             {(

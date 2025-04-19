@@ -554,10 +554,10 @@ const SignContract = () => {
                         },
                         layout: {
                             hLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             vLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             hLineColor: function (i, node) {
                                 return 'black';
@@ -609,10 +609,10 @@ const SignContract = () => {
                         },
                         layout: {
                             hLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             vLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             hLineColor: function (i, node) {
                                 return 'black';
