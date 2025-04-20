@@ -54,7 +54,7 @@ const ManageContractApproval = () => {
                 const dateB = new Date(b.createdAt[0], b.createdAt[1] - 1, b.createdAt[2], b.createdAt[3], b.createdAt[4], b.createdAt[5]);
                 return dateA - dateB;
             },
-            defaultSortOrder: "ascend",
+            defaultSortOrder: "descend",
         },
         {
             title: "Người tạo",

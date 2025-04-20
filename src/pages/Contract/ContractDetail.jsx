@@ -559,13 +559,15 @@ const ContractDetail = () => {
 
                         </Tabs.TabPane>
                         <Tabs.TabPane tab="Phê duyệt" key="2">
-                            <Card style={{ margin: '16px' }}>
+                            <Card style={{ margin: '16px',display:'flex',flexDirection:'column' }}>
                                 <Typography.Paragraph>
                                     Vui lòng đảm bảo rằng bạn đã đọc kỹ tất cả các thông tin liên quan đến phê duyệt.
                                 </Typography.Paragraph>
+                                <p>
                                 <Checkbox onChange={onCheckboxChange}>
                                     Tôi đã đọc kỹ và quyết định phê duyệt
                                 </Checkbox>
+                                </p>
                                 <Button
                                     disabled={!confirmed}
                                     loading={approveLoading}
@@ -574,7 +576,7 @@ const ContractDetail = () => {
                                     style={{ marginTop: '16px' }}
                                     icon={<CheckOutlined />}
                                 >
-                                    Đồng Ý Phê Duyệt
+                                    Phê Duyệt hợp đồng
                                 </Button>
                             </Card>
                         </Tabs.TabPane>
