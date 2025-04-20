@@ -755,13 +755,13 @@ const ManageContracts = () => {
             // Gọi API upload file, truyền paymentScheduleId và formData
             const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
             const parsedRes = JSON.parse(res);
-
-            message.success(parsedRes.message);
-            setFileList([]);
-            setActivePanel([]);
-            setIsUpdateStatusModalVisible(false);
             refetchBill();
             refetch();
+            message.success(parsedRes.message);
+            setFileList([]);
+            // setActivePanel([]);
+            // setIsUpdateStatusModalVisible(false);
+          
         } catch (error) {
             console.error("Lỗi khi tải lên file:", error);
             message.error("Có lỗi xảy ra khi tải lên file!");
@@ -782,7 +782,7 @@ const ManageContracts = () => {
 
             message.success(res.message);
             setFileList([]);
-            setIsModalSignedVisible(false);
+            // setIsModalSignedVisible(false);
 
             refetchImg();
             refetch();
