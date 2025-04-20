@@ -19,6 +19,7 @@ export const ContractAPI = baseApi.injectEndpoints({
                     size: params?.size || 10,
                     keyword: params?.keyword || "",
                     statuses: params?.status || "",
+                    order:"desc"
                 },
             }),
             providesTags: (result) =>
@@ -47,10 +48,10 @@ export const ContractAPI = baseApi.injectEndpoints({
         }),
 
         getContractStatus: builder.query({
-            query: ({ page, keyword, size, statuses, sortBy = 'id', order = 'asc' }) => {
+            query: ({ page, keyword, size, statuses, sortBy = 'id', order = 'desc' }) => {
                 const statusesQuery = statuses ? statuses.map(status => `statuses=${status}`).join('&') : ['CREATED', 'UPDATED', 'REJECTED', 'FIXED'];
                 return {
-                    url: `contracts?page=${page || 0}&size=${size || 0}&${statusesQuery}&sortBy=${sortBy}&order=${order}&keyword=${keyword}`,
+                    url: `contracts?page=${page || 0}&size=${size || 0}&${statusesQuery}&sortBy=${sortBy}&order="desc"&keyword=${keyword}`,
                     method: "GET",
                 };
             },
