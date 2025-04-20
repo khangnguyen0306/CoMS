@@ -1498,16 +1498,16 @@ const EditContract = () => {
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
                                     name="contractItems"
-                                    rules={[
-                                        {
+                                    // rules={[
+                                    //     {
 
-                                            validator: async (_, contractItems) => {
-                                                if (!contractItems || contractItems.length < 1) {
-                                                    return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
-                                                }
-                                            },
-                                        },
-                                    ]}
+                                    //         validator: async (_, contractItems) => {
+                                    //             if (!contractItems || contractItems.length < 1) {
+                                    //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
+                                    //             }
+                                    //         },
+                                    //     },
+                                    // ]}
                                 >
                                     {(fields, { add, remove }) => {
                                         // Gán remove vào biến toàn cục để sử dụng trong cột "Hành động"
@@ -1567,9 +1567,9 @@ const EditContract = () => {
                                                         //     );
                                                         // }
 
-                                                        if (!payments || payments.length < 1) {
-                                                            return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
-                                                        }
+                                                        // if (!payments || payments.length < 1) {
+                                                        //     return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
+                                                        // }
 
                                                         const totalValue = form.getFieldValue('totalValue');
                                                         if (!totalValue) {

@@ -306,11 +306,11 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             return;
         }
 
-        if (customStagesCount < 5) {
+        if (customStagesCount < 3) {
             setCustomStagesCount(customStagesCount + 1);
             setApprovals((prev) => ({ ...prev, [`stage${customStagesCount + 1}`]: null }));
         } else {
-            message.error("Chỉ được tạo tối đa 5 đợt ký duyệt");
+            message.error("Tối đa 4 đợt ký duyệt");
         }
     };
 
