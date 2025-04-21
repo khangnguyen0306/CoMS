@@ -269,7 +269,7 @@ const DeletedContract = () => {
                                         <DeleteFilled />
                                     </Button>
                                 </div>
-                                <p>Xóa {contract.daysDeleted} ngày trước</p>
+                                <p>Xóa {dayjs().diff(dayjs(contract.deletionDate), 'day') === 0 ? 'hôm nay' : `${dayjs().diff(dayjs(contract.deletionDate), 'day')} ngày trước`}</p>
                             </div>,
                         ]}
                     >

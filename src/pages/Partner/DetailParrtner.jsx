@@ -87,7 +87,7 @@ const PartnerDetail = () => {
         }
     };
     return (
-        <div className="site-card-wrapper min-h-[70vh]">
+        <div className="site-card-wrapper min-h-[100vh]">
             <Breadcrumb
                 items={[
                     {
