@@ -28,6 +28,7 @@ import { useSelector } from "react-redux";
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import topIcon from "../../assets/Image/top.svg"
 import { debounce, throttle } from "lodash";
+import ModalAdd from "./component/ModalAdd";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -50,6 +51,8 @@ const CreateContractForm = () => {
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [templateDataSelected, setTemplateDataSelected] = useState(null);
     const [isAddLegalModalOpen, setIsAddLegalModalOpen] = useState(false);
+    const [isAddClasueModalOpen, setIsAddClauseModalOpen] = useState(false);
+    const [adddClauseId, setIsAddClauseId] = useState(0);
     const [newLegalBasis, setNewLegalBasis] = useState({ name: '', content: '' });
     const [content, setContent] = useState('')
     const [textValue, setTextValue] = useState("");
@@ -281,6 +284,9 @@ const CreateContractForm = () => {
     const handleSelectChange = (newValues) => {
         form.setFieldsValue({ generalTerms: newValues });
     };
+    const handleSelectOthersTermsChange = (newValues) => {
+        form.setFieldsValue({ otherTerms: newValues });
+    };
 
 
     const handleChange = (value) => {
@@ -347,6 +353,7 @@ const CreateContractForm = () => {
             additionalConfig,
             originalTemplateId: null,
             duplicateVersion: null,
+            otherTerms: data.otherTerms || []
         };
 
         // Các trường cần loại bỏ khỏi data chính
@@ -934,6 +941,11 @@ const CreateContractForm = () => {
         }
     };
 
+    const handleOpenModalAddClause = (clauseId) => {
+        setIsAddClauseModalOpen(true)
+        setIsAddClauseId(clauseId)
+    }
+
     // Định nghĩa các cột của bảng
 
     const columns = [
@@ -1227,7 +1239,7 @@ const CreateContractForm = () => {
                                                         <div className="mt-1 cursor-pointer">
                                                             {(isAutoRenew || isTransferEnabled || isViolate) ? (<CheckCircleFilled style={{ marginRight: '5px', color: '#5edd60' }} />) :
                                                                 <span className="mr-[20px]"></span>}
-                                                            11. Trường hợp đặc biệt
+                                                            11. Các nội dung khác
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1541,15 +1553,15 @@ const CreateContractForm = () => {
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
                                     name="contractItems"
-                                    rules={[
-                                        {
-                                            validator: async (_, contractItems) => {
-                                                if (!contractItems || contractItems.length < 1) {
-                                                    return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
-                                                }
-                                            },
-                                        },
-                                    ]}
+                                // rules={[
+                                //     {
+                                //         validator: async (_, contractItems) => {
+                                //             if (!contractItems || contractItems.length < 1) {
+                                //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
+                                //             }
+                                //         },
+                                //     },
+                                // ]}
                                 >
                                     {(fields, { add, remove }) => {
                                         // Gán remove vào biến toàn cục để sử dụng trong cột "Hành động"
@@ -1610,9 +1622,9 @@ const CreateContractForm = () => {
                                                         //     );
                                                         // }
 
-                                                        if (!payments || payments.length < 1) {
-                                                            return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
-                                                        }
+                                                        // if (!payments || payments.length < 1) {
+                                                        //     return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
+                                                        // }
 
                                                         const totalValue = form.getFieldValue('totalValue');
                                                         if (!totalValue) {
@@ -1844,7 +1856,7 @@ const CreateContractForm = () => {
                                                 {menu}
                                                 <Divider style={{ margin: "8px 0" }} />
                                                 <Space style={{ padding: "0 8px 4px" }}>
-                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(9)}>
+                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() =>handleOpenModalAddClause(9)}>
                                                         Thêm điều khoản
                                                     </Button>
                                                 </Space>
@@ -1856,7 +1868,7 @@ const CreateContractForm = () => {
                                 <Form.Item
                                     label={
                                         <div className="ml-2 my-3 font-bold text-[16px] flex justify-between items-center gap-5">
-                                            <p> Các điều khoản khác</p>
+                                            <p> Các loại điều khoản </p>
 
                                             {selectedOthersTerms.length > 0 && (
                                                 <Popover
@@ -1901,8 +1913,47 @@ const CreateContractForm = () => {
                                 </div>
 
 
-                                <Divider orientation="center">Điều khoản đặc biệt</Divider>
+                                <Divider orientation="center">Điều khoản khác</Divider>
+
                                 <Form.Item
+                                    label={
+                                        <div className="flex justify-between items-center gap-4">
+                                            <p>Điều khoản khác </p>
+                                            {/* <Popover
+                                                content={() => getTermsContent('generalTerms')}
+                                                title="Danh sách Điều khoản chung đã chọn"
+                                                trigger="hover"
+                                                placement="right"
+                                            >
+                                                <Button icon={<EyeFilled />} />
+                                            </Popover> */}
+                                        </div>
+                                    }
+                                    name="otherTerms"
+                                    // rules={[{ required: true, message: "Vui lòng chọn điều khoản khác!" }]}
+                                    className="ml-2"
+                                >
+                                    <LazySelect
+                                        loadDataCallback={loadDKKata}
+                                        options={generalData?.data.content}
+                                        showSearch
+                                        mode="multiple"
+                                        placeholder="Chọn điều khoản khác"
+                                        onChange={handleSelectOthersTermsChange}
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                <Divider style={{ margin: "8px 0" }} />
+                                                <Space style={{ padding: "0 8px 4px" }}>
+                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModalAddClause(10)}>
+                                                        Thêm điều khoản
+                                                    </Button>
+                                                </Space>
+                                            </>
+                                        )}
+                                    />
+                                </Form.Item>
+                                {/* <Form.Item
                                     label={
                                         <div className="ml-2 my-3">
                                             <p className="font-bold text-[16px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p>
@@ -1927,7 +1978,7 @@ const CreateContractForm = () => {
                                     <TextArea rows={4}
                                         placeholder="Nhập điều khoản bên B"
                                     />
-                                </Form.Item>
+                                </Form.Item> */}
                             </div>
 
                             <div ref={otherContentRef} className="py-[100px]">
@@ -2251,7 +2302,6 @@ const CreateContractForm = () => {
                             (sum, item) => sum + (item.amount || 0),
                             0
                         );
-                        // console.log(total)
                         handleChange(total)
                         form.setFieldsValue({ totalValue: total });
                     }
@@ -2262,7 +2312,7 @@ const CreateContractForm = () => {
             >
                 <Steps current={currentStep} className="mb-8">
                     {steps.map((item, index) => (
-                        <Step key={index} title={<p className="cursor-pointer" onClick={() => setCurrentStep(index)}>{item.title}</p>} />
+                        <Step key={index} title={<p className="cursor-pointer">{item.title}</p>} />
                     ))}
                 </Steps>
                 <div className="mb-6">{steps[currentStep].content}</div>
@@ -2316,6 +2366,12 @@ const CreateContractForm = () => {
                 </Form>
             </Modal>
 
+            <ModalAdd
+                clauseId={adddClauseId}
+                isModalAddOpen={isAddClasueModalOpen}
+                closeModalAdd={() => setIsAddClauseModalOpen(false)}
+                callBackCallAPI={adddClauseId == 9 ? () => loadGenaralData({ page: 0, size: 10 }) : () => loadDKKata({ page: 0, size: 10 })}
+            />
         </div>
     );
 };

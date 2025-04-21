@@ -554,10 +554,10 @@ const SignContract = () => {
                         },
                         layout: {
                             hLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             vLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             hLineColor: function (i, node) {
                                 return 'black';
@@ -609,10 +609,10 @@ const SignContract = () => {
                         },
                         layout: {
                             hLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             vLineWidth: function (i, node) {
-                                return 1;
+                                return 0.5;
                             },
                             hLineColor: function (i, node) {
                                 return 'black';
@@ -1508,7 +1508,7 @@ const SignContract = () => {
                             <p className='mb-4'>
                                 <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>Sẵn sàng ký</Tag>
                             </p>
-                            {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
+                            {/* {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>} */}
                             <div className='flex flex-col items-center gap-2'>
                                 <Checkbox
                                     disabled={isUploading}

@@ -25,6 +25,8 @@ const ExportContractPDF = ({ contractId, onDone }) => {
     }
   }, [contractId]);
 
+  console.log(contract)
+
   const parseDate = (dateArray) => {
     if (!Array.isArray(dateArray) || dateArray.length < 5) return null;
     const [year, month, day, hour, minute] = dateArray;
@@ -51,14 +53,14 @@ const ExportContractPDF = ({ contractId, onDone }) => {
         // Group A terms
         if (config.A && config.A.length > 0) {
           config.A.forEach((termObj) => {
-            allGrouped.A.push(termObj.value); 
+            allGrouped.A.push(termObj.value);
           });
         }
 
         // Group B terms
         if (config.B && config.B.length > 0) {
           config.B.forEach((termObj) => {
-            allGrouped.B.push(termObj.value); 
+            allGrouped.B.push(termObj.value);
           });
         }
       });
@@ -73,20 +75,118 @@ const ExportContractPDF = ({ contractId, onDone }) => {
 
 
 
-  // console.log(contract)
-
-
-  // console.log(groupedTerms)
-
   useEffect(() => {
     if (isSuccess && contract) {
+      const hasContractItems = contract.data.contractItems.length > 0;
+      const hasPaymentSchedules = contract.data.paymentSchedules.length > 0;
+
+      const paymentSection = hasContractItems || hasPaymentSchedules ? [
+        { text: "GIÁ TRỊ VÀ THANH TOÁN", style: "titleDescription", decoration: 'underline', margin: [0, 10, 0, 0] },
+        hasContractItems && {
+          text: [
+            { text: `- Tổng giá trị hợp đồng: ${new Intl.NumberFormat('vi-VN').format(contract?.data.amount)} VND  ` },
+            { text: `( ${numberToVietnamese(contract?.data.amount)} )` }
+          ],
+          margin: [5, 9, 0, 9],
+          fontSize: 11
+        },
+        hasContractItems && {
+          text: [
+            { text: `1. Hạng mục thanh toán` }
+          ],
+          margin: [0, 9, 0, 9],
+          fontSize: 11,
+          bold: true,
+        },
+        hasContractItems && {
+          style: "table",
+          table: {
+            widths: ["auto", "*", "auto"],
+            body: [
+              [
+                { text: "STT", style: "tableHeader" },
+                { text: "Nội dung", style: "tableHeader" },
+                { text: "Số tiền (VND)", style: "tableHeader" },
+              ],
+              ...contract.data.contractItems.map(item => [
+                { text: item.itemOrder, style: "tableCell" },
+                { text: item.description, style: "tableCell" },
+                { text: new Intl.NumberFormat('vi-VN').format(item.amount), style: "tableCell" },
+              ]),
+            ],
+          },
+          layout: {
+            hLineWidth: function (i, node) { return 1; },
+            vLineWidth: function (i, node) { return 1; },
+            hLineColor: function (i, node) { return 'black'; },
+            vLineColor: function (i, node) { return 'black'; },
+            paddingLeft: function (i, node) { return 5; },
+            paddingRight: function (i, node) { return 5; },
+            paddingTop: function (i, node) { return 5; },
+            paddingBottom: function (i, node) { return 5; },
+          },
+        },
+        hasPaymentSchedules && {
+          text: [
+            { text: `2. Tổng giá trị và số lần thanh toán` }
+          ],
+          margin: [0, 9, 0, 9],
+          fontSize: 11,
+          bold: true,
+        },
+        hasPaymentSchedules && {
+          style: "table",
+          table: {
+            widths: ["auto", "*", "*", "auto"],
+            body: [
+              [
+                { text: "Đợt", style: "tableHeader" },
+                { text: "Số tiền (VND)", style: "tableHeader" },
+                { text: "Ngày thanh toán", style: "tableHeader" },
+                { text: "Phương thức thanh toán", style: "tableHeader" },
+              ],
+              ...contract.data.paymentSchedules.map(item => [
+                { text: item.paymentOrder, style: "tableCell" },
+                { text: item.amount, style: "tableCell" },
+                { text: `Ngày ${dayjs(parseDate(item.paymentDate)).format("DD")} tháng ${dayjs(parseDate(item.paymentDate)).format("MM")} năm ${dayjs(parseDate(item.paymentDate)).format("YYYY")}`, style: "tableCell" },
+                {
+                  text: item.paymentMethod === 'cash'
+                    ? 'Tiền mặt'
+                    : item.paymentMethod === 'creditCard'
+                      ? 'Thẻ tín dụng'
+                      : 'Chuyển khoản', style: "tableCell"
+                },
+              ]),
+            ],
+          },
+          layout: {
+            hLineWidth: function (i, node) { return 1; },
+            vLineWidth: function (i, node) { return 1; },
+            hLineColor: function (i, node) { return 'black'; },
+            vLineColor: function (i, node) { return 'black'; },
+            paddingLeft: function (i, node) { return 5; },
+            paddingRight: function (i, node) { return 5; },
+            paddingTop: function (i, node) { return 5; },
+            paddingBottom: function (i, node) { return 5; },
+          },
+        },
+        {
+          text: [
+            contract?.data?.isDateLateChecked &&
+            `- Trong quá trình thanh toán cho phép trễ hạn tối đa ${contract?.data?.maxDateLate} (ngày)\n`,
+            contract?.data?.autoAddVAT &&
+            `- Thuế VAT được tính (${contract?.data?.vatPercentage}%)\n`
+          ].filter(Boolean),
+          margin: [0, 10, 0, 10],
+          fontSize: 11,
+        },
+      ].filter(Boolean) : [];
+
       const docDefinition = {
         content: [
           { text: "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", style: "header" },
           { text: "Độc lập - Tự do - Hạnh phúc", style: "subheader" },
           { text: "---------oOo---------", style: "subheader" },
-
-
           { text: contract.data.title.toUpperCase(), style: "contractTitle" },
           {
             text: [
@@ -95,7 +195,6 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             margin: [0, 10, 0, 15],
             fontSize: 11
           },
-          //ccpl
           ...(contract.data.legalBasisTerms?.length > 0
             ? [
               ...contract.data.legalBasisTerms.map((item, index) => ({
@@ -107,7 +206,6 @@ const ExportContractPDF = ({ contractId, onDone }) => {
               }))
             ]
             : []),
-
           {
             text: [
               { text: `Hôm nay, Hợp đồng dịch vụ này được lập vào ngày ${dayjs(parseDate(contract.data.signingDate)).format("DD")} tháng ${dayjs(parseDate(contract.data.signingDate)).format("MM")} năm ${dayjs(parseDate(contract.data.signingDate)).format("YYYY")}, tại ${contract.data.contractLocation}, bởi và giữa: ` }
@@ -115,7 +213,6 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             margin: [0, 7, 0, 3],
             fontSize: 11
           },
-          // been A
           { text: "BÊN CUNG CẤP (BÊN A)", style: "titleDescription", decoration: 'underline' },
           {
             text: [
@@ -159,7 +256,6 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             margin: [0, 3, 0, 3],
             fontSize: 11
           },
-          //Bên B
           { text: "BÊN SỬ DỤNG (BÊN B)", style: "titleDescription", decoration: 'underline' },
           {
             text: [
@@ -210,140 +306,14 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             margin: [0, 9, 0, 9],
             fontSize: 11
           },
-
           { text: "NỘI DUNG HỢP ĐỒNG", style: "titleDescription", decoration: 'underline' },
-
-
           {
             text: parsedContent,
             margin: [0, 7, 0, 0],
             lineHeight: 0.7,
             fontSize: 11
           },
-
-          // Thanh toán
-
-          { text: "GIÁ TRỊ VÀ THANH TOÁN", style: "titleDescription", decoration: 'underline', margin: [0, 10, 0, 0] },
-
-          {
-            text: [
-              { text: `- Tổng giá trị hợp đồng: ${new Intl.NumberFormat('vi-VN').format(contract?.data.amount)} VND  ` }, { text: `( ${numberToVietnamese(contract?.data.amount)} )` }
-            ],
-            margin: [5, 9, 0, 9],
-            fontSize: 11
-          },
-          {
-            text: [
-              { text: `1. Hạng mục thanh toán` }
-            ],
-            margin: [0, 9, 0, 9],
-            fontSize: 11,
-            bold: true,
-          },
-
-          {
-            style: "table",
-            table: {
-              widths: ["auto", "*", "auto"],
-              body: [
-                [
-                  { text: "STT", style: "tableHeader" },
-                  { text: "Nội dung", style: "tableHeader" },
-                  { text: "Số tiền (VND)", style: "tableHeader" },
-                ],
-                ...contract.data.contractItems.map(item => [
-                  { text: item.itemOrder, style: "tableCell" },
-                  { text: item.description, style: "tableCell" },
-                  { text: new Intl.NumberFormat('vi-VN').format(item.amount), style: "tableCell" },
-                ]),
-              ],
-            },
-            layout: {
-              hLineWidth: function (i, node) {
-                return 1;
-              },
-              vLineWidth: function (i, node) {
-                return 1;
-              },
-              hLineColor: function (i, node) {
-                return 'black';
-              },
-              vLineColor: function (i, node) {
-                return 'black';
-              },
-              paddingLeft: function (i, node) { return 5; },
-              paddingRight: function (i, node) { return 5; },
-              paddingTop: function (i, node) { return 5; },
-              paddingBottom: function (i, node) { return 5; },
-            },
-          },
-
-
-          {
-            text: [
-              { text: `2. Tổng giá trị và số lần thanh toán` }
-            ],
-            margin: [0, 9, 0, 9],
-            fontSize: 11,
-            bold: true,
-          },
-
-          {
-            style: "table",
-            table: {
-              widths: ["auto", "*", "*", "auto"],
-              body: [
-                [
-                  { text: "Đợt", style: "tableHeader" },
-                  { text: "Số tiền (VND)", style: "tableHeader" },
-                  { text: "Ngày thanh toán", style: "tableHeader" },
-                  { text: "Phương thức thanh toán", style: "tableHeader" },
-                ],
-                ...contract.data.paymentSchedules.map(item => [
-                  { text: item.paymentOrder, style: "tableCell" },
-                  { text: item.amount, style: "tableCell" },
-                  { text: `Ngày ${dayjs(parseDate(item.paymentDate)).format("DD")} tháng ${dayjs(parseDate(item.paymentDate)).format("MM")} năm ${dayjs(parseDate(item.paymentDate)).format("YYYY")}`, style: "tableCell" },
-                  {
-                    text: item.paymentMethod === 'cash'
-                      ? 'Tiền mặt'
-                      : item.paymentMethod === 'creditCard'
-                        ? 'Thẻ tín dụng'
-                        : 'Chuyển khoản', style: "tableCell"
-                  },
-                ]),
-              ],
-            },
-            layout: {
-              hLineWidth: function (i, node) {
-                return 1;
-              },
-              vLineWidth: function (i, node) {
-                return 1;
-              },
-              hLineColor: function (i, node) {
-                return 'black';
-              },
-              vLineColor: function (i, node) {
-                return 'black';
-              },
-              paddingLeft: function (i, node) { return 5; },
-              paddingRight: function (i, node) { return 5; },
-              paddingTop: function (i, node) { return 5; },
-              paddingBottom: function (i, node) { return 5; },
-            },
-          },
-          {
-            text: [
-              contract?.data?.isDateLateChecked &&
-              `- Trong quá trình thanh toán cho phép trễ hạn tối đa ${contract?.data?.maxDateLate} (ngày)\n`,
-
-              contract?.data?.autoAddVAT &&
-              `- Thuế VAT được tính (${contract?.data?.vatPercentage}%)\n`
-            ].filter(Boolean),
-            margin: [0, 10, 0, 10],
-            fontSize: 11,
-          },
-
+          ...paymentSection,
           {
             text: "THỜI GIAN HIỆU LỰC LIÊN QUAN",
             style: "titleDescription",
@@ -352,6 +322,7 @@ const ExportContractPDF = ({ contractId, onDone }) => {
           },
           contract?.data?.effectiveDate && contract?.data?.expiryDate && {
             margin: [0, 5, 0, 5],
+            fontSize: 11,
             text: [
               `- Ngày bắt đầu hiệu lực: ${dayjs(parseDate(contract?.data?.effectiveDate)).format('HH:mm')} ngày `,
               { text: dayjs(parseDate(contract.data.effectiveDate)).format('DD/MM/YYYY'), bold: true },
@@ -371,8 +342,6 @@ const ExportContractPDF = ({ contractId, onDone }) => {
               fontSize: 11
             }
           ].filter(Boolean),
-          //Điều khoản 
-
           {
             text: "CÁC LOẠI ĐIỀU KHOẢN",
             style: "titleDescription",
@@ -390,38 +359,69 @@ const ExportContractPDF = ({ contractId, onDone }) => {
                     style: "titleDescription",
                     margin: [5, 8],
                   },
+                  ...(contract.data.generalTerms?.length > 0
+                    ? [
+                      ...contract.data.generalTerms.map((item, index) => ({
+                        text: [
+                          { text: `- ${item.value}` },
+                        ],
+                        margin: [5, 5],
+                        fontSize: 11,
+                      }))
+                    ]
+                    : []),
                   ...groupedTerms.Common.map((termId, index) => ({
                     text: `- ${termId}`,
                     margin: [5, 2],
+                    fontSize: 11,
                   })),
                   groupedTerms.A.length > 0 && {
                     text: "Điều khoản riêng bên A",
                     style: "titleDescription",
                     margin: [5, 5],
+                    // fontSize: 11,
                   },
                   ...groupedTerms.A.map((termId, index) => ({
                     text: `- ${termId}`,
                     margin: [5, 2],
+                    fontSize: 11,
                   })),
-
-
                   contract?.data?.specialTermsA && contract?.data?.specialTermsA.trim() !== "" && {
                     text: `- ${contract?.data?.specialTermsA}`,
                     margin: [5, 2],
+                    fontSize: 11,
                   },
                   groupedTerms.B.length > 0 && {
                     text: "Điều khoản riêng bên B",
                     style: "titleDescription",
                     margin: [5, 8],
+                    // fontSize: 11,
                   },
                   ...groupedTerms.B.map((termId, index) => ({
                     text: `- ${termId}`,
                     margin: [5, 2],
+                    fontSize: 11,
                   })),
                   contract?.data?.specialTermsB && contract?.data?.specialTermsB.trim() !== "" && {
                     text: `- ${contract?.data?.specialTermsB}`,
                     margin: [5, 2],
                   },
+                  contract.data.otherTerms?.length > 0 && {
+                    text: "Điều khoản khác",
+                    style: "titleDescription",
+                    margin: [5, 8],
+                  },
+                  ...(contract.data.otherTerms?.length > 0
+                    ? [
+                      ...contract.data.otherTerms.map((item, index) => ({
+                        text: [
+                          { text: `- ${item.value}` },
+                        ],
+                        margin: [5, 5],
+                        fontSize: 11,
+                      }))
+                    ]
+                    : []),
                 ].filter(Boolean),
               },
             ],
@@ -485,7 +485,6 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             margin: [0, 30, 0, 0]
           },
         ],
-
         styles: {
           header: {
             fontSize: 15,
@@ -505,18 +504,12 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             alignment: "center",
             margin: [0, 0, 0, 10],
           },
-
-          legal: {
-
-          },
           tableHeader: {
             bold: true,
             fontSize: 12,
             color: 'black',
             fillColor: '#f0f0f0',
-            // alignment: 'center',
             margin: [5, 5, 5, 5],
-
           },
           tableCell: {
             fontSize: 11,
@@ -530,31 +523,29 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             bold: true,
             fontSize: 14,
             margin: [0, 10, 0, 5],
+          },
+          signatureTitle: {
+            fontSize: 11,
+            bold: true,
+            margin: [0, 0, 0, 5]
+          },
+          signatureName: {
+            fontSize: 12,
+            bold: true,
+            margin: [0, 0, 0, 5]
+          },
+          signatureNote: {
+            fontSize: 11,
+            color: '#666666',
+            fontStyle: 'italic'
           }
         },
-        signatureTitle: {
-          fontSize: 16,
-          bold: true,
-          margin: [0, 0, 0, 5]
-        },
-        signatureName: {
-          fontSize: 14,
-          bold: true,
-          margin: [0, 0, 0, 5]
-        },
-        signatureNote: {
-          fontSize: 11,
-          color: '#666666',
-          fontStyle: 'italic'
-        },
-
         defaultStyle: {
           font: "Roboto",
         },
       };
 
       pdfMake.createPdf(docDefinition).download(`${contract?.data.title} (${contract?.data.contractNumber}).pdf`);
-
       onDone();
     }
   }, [isSuccess, contract]);

@@ -47,6 +47,7 @@ const contractReadyToSign = Loadable({ loader: () => import("../pages/Contract/s
 const signContract = Loadable({ loader: () => import("../pages/Contract/signContract/SignContract") });
 const ProfileDetaiUser = Loadable({ loader: () => import("../pages/Profile/ProfileDetail") });
 const ErrorPage = Loadable({ loader: () => import("../routers/ErrorPage") });
+const EditAppendix = Loadable({ loader: () => import("../pages/appendix/staff/EditAppendix") });
 
 
 
@@ -79,10 +80,6 @@ export const router = createBrowserRouter([
                         element: Contract,
                     },
                     {
-                        path: "bsinformation",
-                        element: BussinessInfor,
-                    },
-                    {
                         path: "profile/:id",
                         element: Profile,
                     },
@@ -97,14 +94,6 @@ export const router = createBrowserRouter([
                     {
                         path: "partner/:id",
                         element: DetailPartner,
-                    },
-                    {
-                        path: "task",
-                        element: Task,
-                    },
-                    {
-                        path: "task/:id",
-                        element: DetailTask,
                     },
                     {
                         path: "createtemplate",
@@ -179,6 +168,10 @@ export const router = createBrowserRouter([
                         element: CreateAppendix,
                     },
                     {
+                        path: "EditAppendix/:contractId/:appendixId",
+                        element: EditAppendix,
+                    },
+                    {
                         path: "appendix",
                         element: AppendixManagement,
                     },
@@ -248,14 +241,6 @@ export const router = createBrowserRouter([
                         element: Contract,
                     },
                     {
-                        path: "bsinformation",
-                        element: BussinessInfor,
-                    },
-                    {
-                        path: "dashboard",
-                        element: Dashboard,
-                    },
-                    {
                         path: "profile/:id",
                         element: Profile,
                     },
@@ -268,14 +253,6 @@ export const router = createBrowserRouter([
                         element: DetailPartner,
                     },
                     {
-                        path: "task",
-                        element: Task,
-                    },
-                    {
-                        path: "task/:id",
-                        element: DetailTask,
-                    },
-                    {
                         path: "createtemplate",
                         element: CreateTemplate,
                     },
@@ -286,10 +263,6 @@ export const router = createBrowserRouter([
                     {
                         path: "deletedtemplate",
                         element: DeletedTemplate,
-                    },
-                    {
-                        path: "clause",
-                        element: Clause,
                     },
                     {
                         path: "contractpartner",
@@ -327,14 +300,15 @@ export const router = createBrowserRouter([
                         path: "appendixDetail/:contractId/:appendixId",
                         element: AppendixDetail,
                     },
-                    {
-                        path: "contractReadyToSign",
-                        element: contractReadyToSign,
-                    },
-                    {
-                        path: "signContract/:contractId",
-                        element: signContract,
-                    }
+                
+                    // {
+                    //     path: "contractReadyToSign",
+                    //     element: contractReadyToSign,
+                    // },
+                    // {
+                    //     path: "signContract/:contractId",
+                    //     element: signContract,
+                    // }
                 ],
             },
             {
@@ -385,10 +359,6 @@ export const router = createBrowserRouter([
                     {
                         path: "deletedtemplate",
                         element: DeletedTemplate,
-                    },
-                    {
-                        path: "clause",
-                        element: Clause,
                     },
                     {
                         path: "contractpartner",

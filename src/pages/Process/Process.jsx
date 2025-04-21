@@ -306,11 +306,11 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             return;
         }
 
-        if (customStagesCount < 5) {
+        if (customStagesCount < 3) {
             setCustomStagesCount(customStagesCount + 1);
             setApprovals((prev) => ({ ...prev, [`stage${customStagesCount + 1}`]: null }));
         } else {
-            message.error("Chỉ được tạo tối đa 5 đợt ký duyệt");
+            message.error("Tối đa 4 đợt ký duyệt");
         }
     };
 
@@ -331,7 +331,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                     message.success("Quy trình đã được áp dụng thành công cho phụ lục!");
                     refetchNoti();
                 } catch (error) {
-                    console.log(error)
+                    // console.log(error)
                     message.error("Lỗi khi áp dụng quy trình cho phụ lục!");
                 }
             } else {
@@ -340,7 +340,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                     message.success("Quy trình đã được áp dụng thành công cho phụ lục!");
                     refetchNoti();
                 } catch (error) {
-                    console.log(error)
+                    // console.log(error)
                     message.error("Lỗi khi áp dụng quy trình cho phụ lục!");
                 }
             }
@@ -356,7 +356,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
             refetchAppendix()
         } else {
             const workflowId = selection === "auto" ? 1 : selectedProcessId;
-            console.log("Selected workflow ID:", workflowId);
+            // console.log("Selected workflow ID:", workflowId);
             try {
                 const result = await assign({ contractId, workflowId }).unwrap();
                 message.success("Quy trình đã được áp dụng thành công!");
@@ -372,7 +372,7 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                 refetchAppendix()
             } catch (error) {
                 message.error(error?.data?.message || "Lỗi khi áp dụng quy trình!");
-                console.error("Assign process failed:", error);
+                // console.error("Assign process failed:", error);
             }
         }
     };

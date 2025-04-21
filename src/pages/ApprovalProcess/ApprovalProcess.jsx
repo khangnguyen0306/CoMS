@@ -9,10 +9,10 @@ const { Option } = Select;
 
 const ApprovalProcess = () => {
     // Lấy danh sách user và dữ liệu quy trình từ API
-    const { data: userData, isLoading: isLoadingUser } = useGetUserManagerQuery({
+    const { data: userData, isLoading: isLoadingUser, refetch: refetchUser } = useGetUserManagerQuery({
         keyword: "",
         page: 0,
-        limit: 10,
+        size: 1000
     },
         {
             refetchOnMountOrArgChange: true,
@@ -21,7 +21,7 @@ const ApprovalProcess = () => {
     );
 
     useEffect(() => {
-        userData
+        refetchUser()
     }, []);
 
     const { data: processData, isLoading, refetch } = useGetProcessTemplatesQuery({});
@@ -30,15 +30,19 @@ const ApprovalProcess = () => {
     const [current, setCurrent] = useState(0);
     const [approvalStages, setApprovalStages] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
-
+    const [numberStage, setNumberStage] = useState(0)
 
     useEffect(() => {
         if (processData && processData.data) {
             const process = processData.data;
-            console.log("Approval stages:", process);
-            // Giả sử process.stages có cấu trúc [{ stageOrder, approver }, ...]
+            setNumberStage(process.stages.length);
             setApprovalStages(process.stages);
-            // Khởi tạo giá trị mặc định cho form dựa trên process.stages
+            // Remove the last stage if it exists
+            if (process.stages.length > 0) {
+                const updatedStages = process.stages.slice(0, -1); // Remove the last stage
+                setApprovalStages(updatedStages);
+                setNumberStage(updatedStages.length);
+            }
             const initialValues = {};
             process.stages.forEach((stage) => {
                 const key =
@@ -50,21 +54,18 @@ const ApprovalProcess = () => {
                     initialValues[key] = { value: foundUser.id, label: foundUser.full_name };
                 }
             });
-            form.setFieldsValue(initialValues);
+            form.setFieldsValue(initialValues); // mảng chứa dữ liệu người duyệt so sánh từ user Id APi call đang call 
         }
     }, [processData, userData, form]);
 
     // Hàm thêm đợt phê duyệt mới
     const handleAddStage = () => {
-        if (approvalStages.length >= 5) {
-            message.error("Chỉ được thêm tối đa 5 đợt phê duyệt");
-            return;
-        }
         const newStageOrder =
             approvalStages.length > 0
                 ? approvalStages[approvalStages.length - 1].stageOrder + 1
                 : 1;
         const newStage = { stageOrder: newStageOrder, approver: null };
+        setNumberStage(newStageOrder.length)
         setApprovalStages([...approvalStages, newStage]);
     };
 
@@ -81,6 +82,8 @@ const ApprovalProcess = () => {
                 ...stage,
                 stageOrder: index + 1,
             }));
+        setNumberStage(updatedStages.length)
+        // console.log(updatedStages)
         setApprovalStages(updatedStages);
     };
 
@@ -135,7 +138,7 @@ const ApprovalProcess = () => {
                         )}
                     </div>
                 ),
-                description: `Người duyệt: ${foundUser || ""}`,
+                description: `Người duyệt: ${foundUser || "Chưa có"}`,
                 content: (
                     <Form.Item
                         name={key}
@@ -180,12 +183,17 @@ const ApprovalProcess = () => {
             };
             // console.log("Payload:", payload);
             const result = await updateProcess({ payload, id: process.id }).unwrap();
-            // console.log(result)
+            console.log(result)
             setIsEditing(false)
             message.success("Cập nhật quy trình thành công!");
             refetch();
+
+
+
+
         } catch (error) {
-            message.error(error.data.message === "Trùng ID người duyệt: 6" ? "Người duyệt trùng nhau trong 2 đợt" : "Cập nhật quy trình thất bại!");
+            console.log(error)
+            message.error(error.data.message.includes("Trùng ID người duyệt") ? "Người duyệt trùng nhau trong 2 đợt" : error.data.message);
         }
     };
 
@@ -225,7 +233,12 @@ const ApprovalProcess = () => {
             <div className="mb-6">
                 <Steps current={current} onChange={handleStepChange}>
                     {stepsData.map((item, index) => (
-                        <Step key={item.key || index} title={item.title} description={item.description || ""} />
+                        <Step 
+                        key={item.key || index} 
+                        title={item.title} 
+                        description={item.description || ""}
+                        
+                         />
                     ))}
                 </Steps>
             </div>
@@ -235,13 +248,14 @@ const ApprovalProcess = () => {
                     <Form form={form} layout="vertical">
                         {stepsData[current]?.content}
                         <div className="mt-5 flex justify-between">
-                            <Button onClick={handleAddStage} icon={<PlusOutlined />}>
-                                Thêm đợt phê duyệt
-                            </Button>
+                            {numberStage <= 3 && (
+                                <Button onClick={handleAddStage} icon={<PlusOutlined />}>
+                                    Thêm đợt phê duyệt
+                                </Button>
+                            )}
                             <Button type="primary" onClick={handleUpdateProcess} icon={<SaveFilled />}>
                                 Lưu quy trình
                             </Button>
-
                         </div>
                     </Form>
                 </div>

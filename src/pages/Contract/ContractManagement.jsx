@@ -90,7 +90,12 @@ const ManageContracts = () => {
         size: paginationManager.pageSize,
         keyword: searchTextManager,
         status: status
-    });
+    },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    );
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
     const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
@@ -186,6 +191,7 @@ const ManageContracts = () => {
 
     const statusContract = {
         'CREATED': <Tag color="default">Đã tạo</Tag>,
+        'FIXED': <Tag color="default">Đã chỉnh sửa</Tag>,
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
         'APPROVED': <Tag color="green-inverse">Đã phê duyệt</Tag>,
         'UPDATED': <Tag color="green-inverse">Đã cập nhật</Tag>,
@@ -342,6 +348,7 @@ const ManageContracts = () => {
             key: "status",
             filters: [
                 { text: 'Đã tạo', value: 'CREATED' },
+                { text: 'Đã chỉnh sửa', value: 'FIXED' },
                 { text: 'Chờ phê duyệt', value: 'APPROVAL_PENDING' },
                 { text: 'Đã phê duyệt', value: 'APPROVED' },
                 { text: 'Đã cập nhật', value: 'UPDATED' },
@@ -638,6 +645,7 @@ const ManageContracts = () => {
             key: "status",
             filters: [
                 { text: 'Đã tạo', value: 'CREATED' },
+                { text: 'Đã chỉnh sửa', value: 'FIXED' },
                 { text: 'Chờ phê duyệt', value: 'APPROVAL_PENDING' },
                 { text: 'Đã phê duyệt', value: 'APPROVED' },
                 { text: 'Đã cập nhật', value: 'UPDATED' },
@@ -747,13 +755,13 @@ const ManageContracts = () => {
             // Gọi API upload file, truyền paymentScheduleId và formData
             const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
             const parsedRes = JSON.parse(res);
-
-            message.success(parsedRes.message);
-            setFileList([]);
-            setActivePanel([]);
-            setIsUpdateStatusModalVisible(false);
             refetchBill();
             refetch();
+            message.success(parsedRes.message);
+            setFileList([]);
+            // setActivePanel([]);
+            // setIsUpdateStatusModalVisible(false);
+          
         } catch (error) {
             console.error("Lỗi khi tải lên file:", error);
             message.error("Có lỗi xảy ra khi tải lên file!");
@@ -774,7 +782,7 @@ const ManageContracts = () => {
 
             message.success(res.message);
             setFileList([]);
-            setIsModalSignedVisible(false);
+            // setIsModalSignedVisible(false);
 
             refetchImg();
             refetch();

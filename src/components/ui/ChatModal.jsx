@@ -7,7 +7,7 @@ import { isDarkMode } from '../../slices/themeSlice';
 
 function ChatModalWrapper({ generatedPrompt, handleGenerateAIPrompt, ...otherProps }) {
 
-console.log(generatedPrompt)
+// console.log(generatedPrompt)
     const [isModalVisible, setIsModalVisible] = useState(false);
     const openModal = () => setIsModalVisible(true);
     const closeModal = () => setIsModalVisible(false);

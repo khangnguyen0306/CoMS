@@ -46,7 +46,14 @@ const Compare = () => {
             .join('');
     };
 
-
+    // const highlightDifferences = (content1, content2) => {
+    //     if (window.HtmlDiff) {
+    //         return window.HtmlDiff.execute(content1, content2);
+    //     } else {
+    //         console.error("HtmlDiff chưa được tải!");
+    //         return content1; // Hoặc xử lý lỗi theo cách bạn muốn
+    //     }
+    // };
 
     const formatDate = (dateArray) => {
         if (!dateArray) return 'N/A';
@@ -696,7 +703,7 @@ const Compare = () => {
                         />
                     </div>
                     {/* AdditionalConfig */}
-                    <div>
+                    <div className="mt-4 flex flex-col">
                         <h3 className="font-semibold mt-4 mb-3"><u>4. ĐIỀU KHOẢN</u></h3>
                         {Object.keys(compareTerm).map((key) => {
                             const { Common, A, B } = compareTerm[key];

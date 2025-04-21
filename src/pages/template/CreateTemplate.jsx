@@ -510,7 +510,7 @@ const CreateTemplate = () => {
             if (result.status === "CREATED") {
                 message.success("Tạo điều khoản thành công");
             }
-            loadLegalData();
+            loadLegalData({ page: 0, size: 10 });
             setIsAddModalOpen(false);
             formLegal.resetFields();
         } catch (error) {
@@ -714,13 +714,6 @@ const CreateTemplate = () => {
             content: (
                 <Form form={form} layout="vertical" onFinish={(values) => handleSubmit(values)}>
                     <Form.Item
-                        label="Tên template"
-                        name="templateName"
-                        rules={[{ required: true, message: "Vui lòng nhập tên template!" }]}
-                    >
-                        <Input placeholder="Nhập tên template" onChange={handleTemplateNameChange} />
-                    </Form.Item>
-                    <Form.Item
                         label="Loại hợp đồng"
                         name="contractTypeId"
                     >
@@ -796,6 +789,14 @@ const CreateTemplate = () => {
                             )}
                         />
                     </Form.Item>
+                    <Form.Item
+                        label="Tên template"
+                        name="templateName"
+                        rules={[{ required: true, message: "Vui lòng nhập tên template!" }]}
+                    >
+                        <Input placeholder="Nhập tên template" onChange={handleTemplateNameChange} />
+                    </Form.Item>
+
                 </Form>
             ),
         },
@@ -969,7 +970,7 @@ const CreateTemplate = () => {
                                         name="contractType"
 
                                     />
-                                    <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} flex items-center shadow-md p-6 rounded-md gap-7 mt-[-70px]`} justify={"center"}>
+                                    <div gutter={16} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} flex items-center shadow-md p-6 rounded-md gap-10 mt-[-70px]`} justify={"center"}>
                                         <div className="flex flex-col gap-2 pl-6" md={10} sm={24} >
                                             <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
                                             <p className="text-sm "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
@@ -1780,11 +1781,11 @@ const CreateTemplate = () => {
                         <p className="text-[28px] font-bold mt-3">{templateName.toUpperCase()}</p>
                         {/* <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p> */}
                     </div>
-                    <div className=" px-4 pt-[100px] flex flex-col gap-2">
+                    <div className=" px-1 pt-[100px] flex flex-col gap-2">
                         {form.getFieldValue("legalBasis") ? form.getFieldValue("legalBasis").map(term => <p><i>- {term.title}</i></p>) : "chưa chọn căn cứ pháp lý"}
                     </div>
                     <p>Hôm nay, Hợp đồng dịch vụ này được lập vào ngày....... tháng ....... năm ................ Tại ..............................</p>
-                    <div className={`  p-4 pl-1 rounded-md flex flex-col gap-2 `}>
+                    <div className={`  px-4 pl-1 rounded-md flex flex-col gap-2 `}>
                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
                         <p className=" "><b>Tên công ty:</b> {bsInfor?.data.partnerName || "chưa cập nhật"}</p>
                         <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
@@ -1810,13 +1811,22 @@ const CreateTemplate = () => {
                     <div className="ml-1" dangerouslySetInnerHTML={{ __html: form.getFieldValue("contractContent") || "Chưa nhập" }} />
 
                     <div className="mt-4">
-                        <h4 className="font-bold text-lg placeholder:"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
-                        <div>
-                            {form.getFieldValue("autoAddVAT") && <p className="mt-3">- Tự động thêm thuế VAT khi tạo hợp đồng ({form.getFieldValue("vatPercentage")}%)</p>}
-                            {form.getFieldValue("autoRenew") && <p className="mt-3">- Tự động gia hạn khi hợp đồng hết hạn nếu không có bất kỳ phản hồi nào từ các phía</p>}
-                            {form.getFieldValue("appendixEnabled") && <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực </p>}
-                            {form.getFieldValue("isDateLateChecked") && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {form.getFieldValue("maxDateLate")} (ngày) </p>}
-                        </div>
+                        {(
+                            form.getFieldValue("autoAddVAT") ||
+                            form.getFieldValue("autoRenew") ||
+                            form.getFieldValue("appendixEnabled") ||
+                            form.getFieldValue("isDateLateChecked")
+                        ) && (
+                                <>
+                                    <h4 className="font-bold text-lg placeholder:"><u>GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h4>
+                                    <div>
+                                        {form.getFieldValue("autoAddVAT") && <p className="mt-3">- Tự động thêm thuế VAT khi tạo hợp đồng ({form.getFieldValue("vatPercentage")}%)</p>}
+                                        {form.getFieldValue("autoRenew") && <p className="mt-3">- Tự động gia hạn khi hợp đồng hết hạn nếu không có bất kỳ phản hồi nào từ các phía</p>}
+                                        {form.getFieldValue("appendixEnabled") && <p className="mt-3">- Cho phép tạo phụ lục khi hợp đồng có hiệu lực </p>}
+                                        {form.getFieldValue("isDateLateChecked") && <p className="mt-3">- Trong quá trình thanh toán cho phép trễ hạn tối đa {form.getFieldValue("maxDateLate")} (ngày) </p>}
+                                    </div>
+                                </>
+                            )}
                     </div>
                     <div className="mt-4">
                         <h4 className="font-bold text-lg placeholder:"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>
@@ -1825,7 +1835,7 @@ const CreateTemplate = () => {
                                 <div>
                                     <h5 className="font-semibold text-lg">Điều khoản chung:</h5>
                                     <ul className="mt-2 flex flex-col gap-1">
-                                        {form.getFieldValue("generalTerms") ? form.getFieldValue("generalTerms").map(term => <p><i>- {term.title}</i></p>) : null}
+                                        {form.getFieldValue("generalTerms") ? form.getFieldValue("generalTerms").map(term => <p>- {term.title}</p>) : null}
                                     </ul>
                                 </div>
                             )}
@@ -1911,86 +1921,81 @@ const CreateTemplate = () => {
                                 </div>
                             )}
 
-                            <div className="mt-2">
-                                <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên A</h5>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("1") && form.getFieldValue("1").A?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("2") && form.getFieldValue("2").A?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("3") && form.getFieldValue("3").A?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("4") && form.getFieldValue("4").A?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("5") && form.getFieldValue("5").A?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("6") && form.getFieldValue("6").A?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("7") && form.getFieldValue("7").A?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                {form.getFieldValue("specialTermsA") && (<p className="ml-3">{form.getFieldValue("specialTermsA")}</p>)}
-                            </div>
+                            {(
+                                (form.getFieldValue("1")?.A?.length > 0 ||
+                                    form.getFieldValue("2")?.A?.length > 0 ||
+                                    form.getFieldValue("3")?.A?.length > 0 ||
+                                    form.getFieldValue("4")?.A?.length > 0 ||
+                                    form.getFieldValue("5")?.A?.length > 0 ||
+                                    form.getFieldValue("6")?.A?.length > 0 ||
+                                    form.getFieldValue("7")?.A?.length > 0)
+                            ) && (
+                                    <div className="mt-2">
+                                        <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên A</h5>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("1")?.A?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("2")?.A?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("3")?.A?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("4")?.A?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("5")?.A?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("6")?.A?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("7")?.A?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("specialTermsA") && (<p className="ml-3">{form.getFieldValue("specialTermsA")}</p>)}
+                                    </div>
+                                )}
 
-
-                            <div className="mt-2">
-                                <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên B</h5>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("1") && form.getFieldValue("1").B?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("2") && form.getFieldValue("2").B?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("3") && form.getFieldValue("3").B?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("4") && form.getFieldValue("4").B?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("5") && form.getFieldValue("5").B?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("6") && form.getFieldValue("6").B?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                <ul className="mt-2 flex flex-col gap-1">
-                                    {form.getFieldValue("7") && form.getFieldValue("7").B?.map((term, index) => (
-                                        <li className="ml-2" key={term.value}>- {term.title}</li>
-                                    ))}
-                                </ul>
-                                {form.getFieldValue("specialTermsB") && (<p className="ml-3">{form.getFieldValue("specialTermsB")}</p>)}
-                            </div>
+                            {(
+                                (form.getFieldValue("1")?.B?.length > 0 ||
+                                    form.getFieldValue("2")?.B?.length > 0 ||
+                                    form.getFieldValue("3")?.B?.length > 0 ||
+                                    form.getFieldValue("4")?.B?.length > 0 ||
+                                    form.getFieldValue("5")?.B?.length > 0 ||
+                                    form.getFieldValue("6")?.B?.length > 0 ||
+                                    form.getFieldValue("7")?.B?.length > 0)
+                            ) && (
+                                    <div className="mt-2">
+                                        <h5 className="font-semibold text-lg">Điều khoản áp dụng chỉ riêng bên B</h5>
+                                        <ul className="mt-2 flex flex-col gap-1">
+                                            {form.getFieldValue("1")?.B?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("2")?.B?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("3")?.B?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("4")?.B?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("5")?.B?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("6")?.B?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                            {form.getFieldValue("7")?.B?.map((term, index) => (
+                                                <li className="ml-2" key={term.value}>- {term.title}</li>
+                                            ))}
+                                        </ul>
+                                        {form.getFieldValue("specialTermsB") && (<p className="ml-3">{form.getFieldValue("specialTermsB")}</p>)}
+                                    </div>
+                                )}
 
                         </div>
 
@@ -2116,7 +2121,7 @@ const CreateTemplate = () => {
         <div className={`p-8 ${isDarkMode ? 'bg-[#141414] text-white' : 'bg-white'} shadow rounded-md min-h-[100vh]`}>
             <Steps current={currentStep} className="mb-8">
                 {steps.map((item, index) => (
-                    <Step key={index} className="cursor-pointer" title={<p onClick={() => setCurrentStep(index)}>{item.title}</p>} />
+                    <Step key={index} className="cursor-pointer" title={<p>{item.title}</p>} />
                 ))}
             </Steps>
             <div className="mb-6">{steps[currentStep].content}</div>

@@ -186,6 +186,7 @@ const MainLayout = () => {
     {
       icon: LuWaypoints, key: "workflow", label: 'Quy trình duyệt'
     },
+    { icon: GoLaw, label: 'Quản lý điều khoản', key: "clause" },
     {
       icon: MdLibraryBooks,
       label: 'Mẫu Hợp đồng',

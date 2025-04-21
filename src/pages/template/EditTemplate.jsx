@@ -1248,7 +1248,7 @@ const EditTemplate = () => {
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 <Steps current={currentStep} className="mb-8">
                     {steps.map((item, index) => (
-                        <Step key={index} title={item.title} />
+                        <Step key={index}  onClick={() => setCurrentStep(index)} title={item.title} />
                     ))}
                 </Steps>
                 <div className="mb-6">{steps[currentStep].content}</div>
