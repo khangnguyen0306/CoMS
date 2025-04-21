@@ -28,6 +28,7 @@ import { useSelector } from "react-redux";
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import topIcon from "../../assets/Image/top.svg"
 import { debounce, throttle } from "lodash";
+import ModalAdd from "./component/ModalAdd";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -50,6 +51,8 @@ const CreateContractForm = () => {
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [templateDataSelected, setTemplateDataSelected] = useState(null);
     const [isAddLegalModalOpen, setIsAddLegalModalOpen] = useState(false);
+    const [isAddClasueModalOpen, setIsAddClauseModalOpen] = useState(false);
+    const [adddClauseId, setIsAddClauseId] = useState(0);
     const [newLegalBasis, setNewLegalBasis] = useState({ name: '', content: '' });
     const [content, setContent] = useState('')
     const [textValue, setTextValue] = useState("");
@@ -350,7 +353,7 @@ const CreateContractForm = () => {
             additionalConfig,
             originalTemplateId: null,
             duplicateVersion: null,
-            otherTerms:data.otherTerms || []
+            otherTerms: data.otherTerms || []
         };
 
         // Các trường cần loại bỏ khỏi data chính
@@ -937,6 +940,11 @@ const CreateContractForm = () => {
             }
         }
     };
+
+    const handleOpenModalAddClause = (clauseId) => {
+        setIsAddClauseModalOpen(true)
+        setIsAddClauseId(clauseId)
+    }
 
     // Định nghĩa các cột của bảng
 
@@ -1545,15 +1553,15 @@ const CreateContractForm = () => {
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
                                     name="contractItems"
-                                    // rules={[
-                                    //     {
-                                    //         validator: async (_, contractItems) => {
-                                    //             if (!contractItems || contractItems.length < 1) {
-                                    //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
-                                    //             }
-                                    //         },
-                                    //     },
-                                    // ]}
+                                // rules={[
+                                //     {
+                                //         validator: async (_, contractItems) => {
+                                //             if (!contractItems || contractItems.length < 1) {
+                                //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
+                                //             }
+                                //         },
+                                //     },
+                                // ]}
                                 >
                                     {(fields, { add, remove }) => {
                                         // Gán remove vào biến toàn cục để sử dụng trong cột "Hành động"
@@ -1848,7 +1856,7 @@ const CreateContractForm = () => {
                                                 {menu}
                                                 <Divider style={{ margin: "8px 0" }} />
                                                 <Space style={{ padding: "0 8px 4px" }}>
-                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(9)}>
+                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() =>handleOpenModalAddClause(9)}>
                                                         Thêm điều khoản
                                                     </Button>
                                                 </Space>
@@ -1922,7 +1930,7 @@ const CreateContractForm = () => {
                                         </div>
                                     }
                                     name="otherTerms"
-                                    rules={[{ required: true, message: "Vui lòng chọn điều khoản khác!" }]}
+                                    // rules={[{ required: true, message: "Vui lòng chọn điều khoản khác!" }]}
                                     className="ml-2"
                                 >
                                     <LazySelect
@@ -1937,7 +1945,7 @@ const CreateContractForm = () => {
                                                 {menu}
                                                 <Divider style={{ margin: "8px 0" }} />
                                                 <Space style={{ padding: "0 8px 4px" }}>
-                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(10)}>
+                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModalAddClause(10)}>
                                                         Thêm điều khoản
                                                     </Button>
                                                 </Space>
@@ -2294,7 +2302,6 @@ const CreateContractForm = () => {
                             (sum, item) => sum + (item.amount || 0),
                             0
                         );
-                        // console.log(total)
                         handleChange(total)
                         form.setFieldsValue({ totalValue: total });
                     }
@@ -2359,6 +2366,12 @@ const CreateContractForm = () => {
                 </Form>
             </Modal>
 
+            <ModalAdd
+                clauseId={adddClauseId}
+                isModalAddOpen={isAddClasueModalOpen}
+                closeModalAdd={() => setIsAddClauseModalOpen(false)}
+                callBackCallAPI={adddClauseId == 9 ? () => loadGenaralData({ page: 0, size: 10 }) : () => loadDKKata({ page: 0, size: 10 })}
+            />
         </div>
     );
 };

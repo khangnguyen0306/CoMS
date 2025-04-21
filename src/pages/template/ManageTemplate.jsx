@@ -65,14 +65,14 @@ const ManageTemplate = () => {
     const showDeleteConfirm = async (id) => {
         confirm({
             title: 'Bạn có chắc chắn muốn xóa không?',
-            content: 'Hợp đồng sẽ được lưu trữ tại kho lưu trữ trong 30 ngày.',
+            content: 'Mẫu hợp đồng sẽ được lưu trữ tại kho lưu trữ trong 30 ngày.',
             okText: 'Có',
             okType: 'danger',
             cancelText: 'Không',
             onOk() {
                 deleteTemplate(id).unwrap();
                 refetch();
-                message.success("Xóa hợp đồng thành công!");
+                message.success("Xóa mẫu hợp đồng thành công!");
             },
             onCancel() {
                 // console.log('Đã hủy xóa');
@@ -95,7 +95,7 @@ const ManageTemplate = () => {
         } catch (error) {
             console.error("Error duplicating template:", error);
             message.error("Lỗi khi nhân bản mẫu hợp đồng!");
-        }
+        }  
     };
     // Cột Table
     const columns = [
@@ -253,7 +253,7 @@ const ManageTemplate = () => {
                                     <p className="font-bold text-[22px] leading-7">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                     <p className="font-bold text-[18px] mt-1"> Độc lập - Tự do - Hạnh phúc</p>
                                     <p>-------------------</p>
-                                    <p className="text-right mr-[10%] py-4"> ................, Ngày ..... Tháng ..... Năm .........</p>
+                                    {/* <p className="text-right mr-[10%] py-4"> ................, Ngày ..... Tháng ..... Năm .........</p> */}
                                     <p className="text-[28px] font-bold mt-3  leading-8">{templateDetail?.data.contractTitle?.toUpperCase() || "Tên hợp đồng không có"}</p>
                                     <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                                 </div>
@@ -262,18 +262,19 @@ const ManageTemplate = () => {
                                         templateDetail.data.legalBasisTerms?.map((term, index) => <p key={index}><i>- {term.value}</i></p>)
                                     ) : "Chưa có căn cứ pháp lý"}
                                 </div>
+                                <p className="mt-3 ml-4"> Hôm nay, Hợp đồng dịch vụ này được lập vào ngày...............tháng...............năm......................, tại.............................................. bởi và giữa: </p>
                                 <div className="p-4 rounded-md flex flex-col gap-4">
                                     <div className="flex flex-col gap-2 " md={10} sm={24} >
                                         <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                        <p className=" "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                                        <p className=""><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                                        <p className=""><b>Email:</b> {bsInfor?.email}</p>
+                                        <p className=" "><b>Tên công ty:</b>  {bsInfor?.data.partnerName}</p>
+                                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                                        <p className=""><b>Chức vụ:</b> {bsInfor?.data.position}</p>
+                                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                                        <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
                                     </div>
                                     <div className="flex flex-col gap-2" md={10} sm={24}>
-                                        <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
+                                        <p className="font-bold text-lg "><u>BÊN SỬ DỤNG (Bên B)</u></p>
                                         <p className=" "><b>Tên công ty: </b>....................................................................................................................................</p>
                                         <p className=""><b>Địa chỉ trụ sở chính:</b> .......................................................................................................................</p>
                                         <p className="flex   justify-between"><p><b>Người đại diện:</b> ...............................................................................................................................</p></p>
@@ -548,7 +549,7 @@ const ManageTemplate = () => {
                                 <p className="font-bold text-[22px] leading-7">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                 <p className="font-bold text-[18px] mt-1"> Độc lập - Tự do - Hạnh phúc</p>
                                 <p>-------------------</p>
-                                <p className="text-right mr-[1%] py-4">......................, Ngày ..... Tháng ..... Năm .........</p>
+                                {/* <p className="text-right mr-[1%] py-4">......................, Ngày ..... Tháng ..... Năm .........</p> */}
                                 <p className="text-[28px] font-bold mt-3  leading-8">{templateDetail?.data.contractTitle?.toUpperCase() || "Tên hợp đồng không có"}</p>
                                 <p className="mt-2">(<b> Số:</b> Tên HD viết tắt / ngày tháng năm )</p>
                             </div>
@@ -557,16 +558,17 @@ const ManageTemplate = () => {
                                     templateDetail.data.legalBasisTerms.map((term, index) => <p key={index}><i>- {term.value}</i></p>)
                                 ) : "Chưa chọn căn cứ pháp lý"}
                             </div>
+                            <p className="mt-3 ml-4"> Hôm nay, Hợp đồng dịch vụ này được lập vào ngày.......tháng..........năm............................., tại............................................. bởi và giữa: </p>
                             <div className="p-4 rounded-md flex flex-col gap-4">
-                                <div className="flex flex-col gap-2 " md={10} sm={24} >
-                                    <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                    <p className=" "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                                    <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                                    <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                                    <p className=""><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                                    <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                                    <p className=""><b>Email:</b> {bsInfor?.email}</p>
-                                </div>
+                            <div className="flex flex-col gap-2 " md={10} sm={24} >
+                                        <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                                        <p className=" "><b>Tên công ty:</b>  {bsInfor?.data.partnerName}</p>
+                                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                                        <p className=""><b>Chức vụ:</b> {bsInfor?.data.position}</p>
+                                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                                        <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
+                                    </div>
                                 <div className="flex flex-col gap-2" md={10} sm={24}>
                                     <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
                                     <p className=" "><b>Tên công ty: </b>....................................................................................................................................</p>

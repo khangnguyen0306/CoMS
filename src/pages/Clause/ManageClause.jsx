@@ -725,7 +725,7 @@ const ManageClause = () => {
                                 QUẢN LÝ CĂN CỨ PHÁP LÝ
                             </div>
                         </div>
-                        <div className='flex w-3/5 gap-4'>
+                        <div className='flex gap-4 items-center'>
                             <Search
                                 placeholder="Tìm kiếm tên căn cứ"
                                 onSearch={setSearchTermLegal}
@@ -741,8 +741,7 @@ const ManageClause = () => {
                                 {/* Sắp xếp theo Ngày tạo */}
                                 {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                             </Button>
-                        </div>
-                        <div className='flex justify-end w-full gap-4'>
+                            <div className='flex justify-end w-full gap-4'>
                             <Button
                                 type="primary"
                                 onClick={openAddLagelModal}
@@ -752,6 +751,8 @@ const ManageClause = () => {
                                 Thêm Căn cứ
                             </Button>
                         </div>
+                        </div>
+             
                         <Modal
                             title="Thêm Căn cứ Pháp Lý"
                             open={isModalOpenAddLegal}

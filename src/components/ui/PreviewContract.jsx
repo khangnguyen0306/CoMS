@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Descriptions, Divider, Typography, Table, Row, Col, Spin, Button } from 'antd';
+import { Table, Row, Col, Spin } from 'antd';
 import { useGetPartnerInfoDetailQuery } from '../../services/PartnerAPI';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
@@ -620,7 +620,9 @@ const PreviewContract = ({ form, partnerId, data }) => {
                                 <div className="term-group mb-2">
                                     <p className='font-bold' >ĐIỀU KHOẢN RIÊNG BÊN A</p>
                                     {groupedTerms.A.map((termId, index) => renderTerm(termId, index))}
-                                    <p className='text-sm'>- {formValues?.specialTermsA && formValues?.specialTermsA}</p>
+                                    {formValues?.specialTermsA && (
+                                        <p className='text-sm'>- {formValues?.specialTermsA && formValues?.specialTermsA}</p>
+                                    )}
                                 </div>
                             )}
 
@@ -630,7 +632,9 @@ const PreviewContract = ({ form, partnerId, data }) => {
                                 <div className="term-group mb-2">
                                     <p className='font-bold' >ĐIỀU KHOẢN RIÊNG BÊN B</p>
                                     {groupedTerms.B.map((termId, index) => renderTerm(termId, index))}
-                                    <p className='text-sm'>- {formValues?.specialTermsB && formValues?.specialTermsB}</p>
+                                    {formValues?.specialTermsB && (
+                                        <p className='text-sm'>- {formValues?.specialTermsB && formValues?.specialTermsB}</p>
+                                    )}
                                 </div>
                             )}
 
