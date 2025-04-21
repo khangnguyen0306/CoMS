@@ -200,6 +200,14 @@ const AppendixDetail = () => {
             }
         },
         {
+            title: 'Ngày thông báo thanh toán', dataIndex: 'notifyPaymentDate', key: 'notifyPaymentDate', render: (dateArray) => {
+                if (!dateArray || dateArray.length < 5) return 'Invalid date';
+                const [year, month, day, hour, minute] = dateArray;
+                const date = new Date(year, month - 1, day, hour, minute);
+                return date.toLocaleDateString('vi-VN');
+            }
+        },
+        {
             title: 'Trạng thái', dataIndex: 'status', key: 'status',
             render: (status) =>
                 status == "PAID" ?
@@ -1100,6 +1108,7 @@ const AppendixDetail = () => {
         paymentDate: schedule.paymentDate,
         status: schedule.status,
         paymentMethod: schedule.paymentMethod,
+        notifyPaymentDate:schedule.notifyPaymentDate
     }));
 
     if (isLoadingAppendix) {
@@ -1178,11 +1187,11 @@ const AppendixDetail = () => {
                             <Col className="flex flex-col gap-2" md={10} sm={24}>
                                 <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
                                 <p className="text-sm"><b>Tên công ty:</b> {appendixData?.data.partnerA.partnerName}</p>
-                                <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {appendixData?.data.partnerA.partnerAddress}</p>
+                                <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {appendixData?.data.partnerA.address}</p>
                                 <p className="text-sm"><b>Người đại diện:</b> {appendixData?.data.partnerA.spokesmanName}</p>
                                 <p className="text-sm"><b>Chức vụ:</b> {appendixData?.data.partnerA.position}</p>
-                                <p className="text-sm"><b>Mã số thuế:</b> {appendixData?.data.partnerA.partnerTaxCode}</p>
-                                <p className="text-sm"><b>Email:</b> {appendixData?.data.partnerA.partnerEmail}</p>
+                                <p className="text-sm"><b>Mã số thuế:</b> {appendixData?.data.partnerA.taxCode}</p>
+                                <p className="text-sm"><b>Email:</b> {appendixData?.data.partnerA.email}</p>
                             </Col>
                             <Col className="flex flex-col gap-2" md={10} sm={24}>
                                 <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>

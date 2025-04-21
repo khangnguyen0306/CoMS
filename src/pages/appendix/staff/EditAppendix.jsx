@@ -154,6 +154,14 @@ const EditAppendix = () => {
                         schedule.paymentDate[4]
                     ))
                         : null,
+                        notifyPaymentDate: schedule.notifyPaymentDate ? dayjs(new Date(
+                        schedule.notifyPaymentDate[0],
+                        schedule.notifyPaymentDate[1] - 1,
+                        schedule.notifyPaymentDate[2],
+                        schedule.notifyPaymentDate[3],
+                        schedule.notifyPaymentDate[4]
+                    ))
+                        : null,
                     paymentMethod: schedule.paymentMethod,
                 };
             });
@@ -676,6 +684,47 @@ const EditAppendix = () => {
                                                 <DatePicker
                                                     style={{ width: 150 }}
                                                     placeholder="Ngày thanh toán"
+                                                    disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                                    format="DD/MM/YYYY"
+                                                />
+                                            </Form.Item>
+                                            <Form.Item
+                                                {...restField}
+                                                name={[name, "notifyPaymentDate"]}
+                                                rules={[
+                                                    { required: true, message: "Chọn ngày thông báo thanh toán" },
+                                                    {
+                                                        validator: (_, value) => {
+                                                            const extendStart = form.getFieldValue("extendContractDate");
+                                                            const extendEnd = form.getFieldValue("contractExpirationDate");
+                                                            const paymentDate = form.getFieldValue(["payments", name, "paymentDate"]);
+
+                                                            // Skip validation if the date or extension period is not set
+                                                            if (!value || !extendStart || !extendEnd) {
+                                                                return Promise.resolve();
+                                                            }
+
+                                                            // Check if notifyPaymentDate is within the extension period
+                                                            if (value.isBefore(extendStart) || value.isAfter(extendEnd)) {
+                                                                return Promise.reject(new Error("Ngày thông báo thanh toán phải nằm trong thời gian gia hạn"));
+                                                            }
+
+                                                            // Check if notifyPaymentDate is before paymentDate (if set)
+                                                            if (paymentDate && !(value.isBefore(paymentDate) || value.isSame(paymentDate))) {
+                                                                return Promise.reject(new Error("Ngày thông báo thanh toán phải trước hoặc cùng ngày với ngày thanh toán"));
+                                                            }
+
+                                                            return Promise.resolve();
+                                                        },
+                                                        // Re-validate when these fields change
+                                                        dependencies: ["extendContractDate", "contractExpirationDate", ["payments", name, "paymentDate"]],
+                                                    },
+                                                ]}
+                                            >
+                                                <DatePicker
+                                                    style={{ width: 150 }}
+                                                    showTime
+                                                    placeholder="Ngày thông báo thanh toán"
                                                     disabledDate={(current) => current && current < dayjs().startOf('day')}
                                                     format="DD/MM/YYYY"
                                                 />

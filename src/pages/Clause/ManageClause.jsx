@@ -415,7 +415,7 @@ const ManageClause = () => {
                                     onSearch={setSearchTermClause}
                                     enterButton="tìm kiếm"
                                     allowClear
-                                    className="mb-4 max-w-[350px]"
+                                    className="mb-4 max-w-[700px]"
                                 />
                                 <Select
                                     placeholder="Chọn loại điều khoản"
@@ -731,7 +731,7 @@ const ManageClause = () => {
                                 onSearch={setSearchTermLegal}
                                 enterButton="Tìm kiếm"
                                 allowClear
-                                className="mb-4 max-w-[350px]"
+                                className="mb-4 max-w-[800px]"
                             />
 
                             <Button
