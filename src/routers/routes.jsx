@@ -45,6 +45,7 @@ const AppendixDetail = Loadable({ loader: () => import("../pages/appendix/Append
 const CreateContractPDF = Loadable({ loader: () => import("../pages/Contract/CreateContractPDF") });
 const contractReadyToSign = Loadable({ loader: () => import("../pages/Contract/signContract/ContractReadyToSign") });
 const signContract = Loadable({ loader: () => import("../pages/Contract/signContract/SignContract") });
+const ProfileDetaiUser = Loadable({ loader: () => import("../pages/Profile/ProfileDetail") });
 const ErrorPage = Loadable({ loader: () => import("../routers/ErrorPage") });
 
 
@@ -84,6 +85,10 @@ export const router = createBrowserRouter([
                     {
                         path: "profile/:id",
                         element: Profile,
+                    },
+                    {
+                        path: "profileUser/:id",
+                        element: ProfileDetaiUser,
                     },
                     {
                         path: "partner",
@@ -193,9 +198,6 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         index: true,
-                        element: Dashboard,
-                    },
-                    {
                         path: "user",
                         element: UserManagement,
                     },

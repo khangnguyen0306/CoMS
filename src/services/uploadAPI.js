@@ -67,6 +67,19 @@ export const uploadAPI = createApi({
       invalidatesTags: [{ type: "Contract", id: "LIST" }],
     }),
 
+    uploadAppenixToSign: builder.mutation({
+      query: ({ file }) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return {
+          url: `http://localhost:8888/api/upload`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+    }),
+
 
     findLocation: builder.mutation({
       query: ({ file }) => {
@@ -83,15 +96,13 @@ export const uploadAPI = createApi({
 
     uploadImgSign: builder.mutation({
       query: ({ contractId, formData }) => {
-
         return {
           url: `/contracts/upload-signed-contracts-file/${contractId}`,
           method: "PUT",
           body: formData,
         };
       },
-      invalidatesTags: [{ type: "Clause", id: "LIST" }],
-
+      invalidatesTags: [{ type: "Contract", id: "LIST" }],
     })
 
   })
@@ -104,4 +115,5 @@ export const {
   useFindLocationMutation,
   useUploadContractToSignMutation,
   useUploadImgSignMutation,
+  useUploadAppenixToSignMutation
 } = uploadAPI;

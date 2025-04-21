@@ -43,7 +43,7 @@ const Login = () => {
                 .then(result => {
                     dispatch(setNotiNumber(result.data.content.filter(notification => notification.isRead === false).length));
                     // console.log(result.data.content.filter(notification => notification.isRead === false).length);
-                    navigate("/");
+                    // navigate("/");
                 })
                 .catch(error => {
                     // console.error(error);
@@ -71,7 +71,7 @@ const Login = () => {
     }, [form]);
 
     const handleLoginSuccess = (data) => {
-        console.log(data)
+        // console.log(data)
         switch (data.data.roles[0]) {
             case "ROLE_ADMIN":
                 setTimeout(() => {
@@ -85,11 +85,16 @@ const Login = () => {
                 break;
             case "ROLE_STAFF":
                 setTimeout(() => {
-                    navigate('/');
+                    navigate('/', { replace: true });
+                }, 50);
+                break;
+            case "ROLE_DIRECTOR":
+                setTimeout(() => {
+                    navigate('/', { replace: true });
                 }, 50);
                 break;
             default:
-                break; // Xử lý trường hợp không có vai trò nào phù hợp
+                break; 
         }
 
         //   const avatar = data.data.avatar; // check for change

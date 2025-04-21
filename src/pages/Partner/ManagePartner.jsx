@@ -83,7 +83,7 @@ const ManagePartner = () => {
     }, [partnerData]);
 
     const addViewHistory = (record) => {
-        console.log('addViewHistory', record);
+        // console.log('addViewHistory', record);
         const minimalRecord = {
             partyId: record.partyId,
             partnerName: record.partnerName,

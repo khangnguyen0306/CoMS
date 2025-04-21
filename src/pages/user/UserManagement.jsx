@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Radio, Col, Row, Tabs } from "antd";
-import { EditFilled, PlusOutlined, DeleteFilled, StarFilled, StopOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
+import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Col, Row, Tabs } from "antd";
+import { EditFilled, PlusOutlined, StarFilled, StopFilled, StopOutlined } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
 import { validationPatterns } from "../../utils/ultil";
 import { useGetDepartmentsQuery } from "../../services/Department";
 import Department from "../Department/Department";
 import TabPane from "antd/es/tabs/TabPane";
-import { selectCurrentUser } from "../../slices/authSlice";
-import { useSelector } from "react-redux";
+
 
 const { Search } = Input;
 
@@ -288,7 +287,7 @@ const UserManagement = () => {
                             <Tooltip title="Cấm">
                                 <Button
                                     danger
-                                    icon={<StopOutlined />}
+                                    icon={<StopFilled />}
                                     onClick={() => handleDelete(record.id)}
                                 />
                             </Tooltip>

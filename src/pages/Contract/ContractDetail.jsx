@@ -557,7 +557,7 @@ const ContractDetail = () => {
                                     </p>
                                     <Timeline mode="left" className="mt-4 -mb-14">
                                         {processData?.data?.stages?.length > 0 ? (
-                                            processData?.data?.stages.map((stage,index) => (
+                                            processData?.data?.stages.map((stage, index) => (
                                                 <Timeline.Item
                                                     key={index}
                                                     children={
@@ -805,7 +805,7 @@ const ContractDetail = () => {
                         <p className="text-sm"><b>Email:</b> {contractData?.data.partnerA.partnerEmail}</p>
                     </Col>
                     <Col className="flex flex-col gap-2" md={10} sm={24}>
-                        <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                        <p className="font-bold text-lg"><u>BÊN SỬ DỤNG (BÊN B)</u></p>
                         <p className="text-sm"><b>Tên công ty:</b> {contractData?.data.partnerB.partnerName}</p>
                         <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {contractData?.data.partnerB.partnerAddress}</p>
                         <p className="text-sm"><b>Người đại diện:</b> {contractData?.data.partnerB.spokesmanName}</p>

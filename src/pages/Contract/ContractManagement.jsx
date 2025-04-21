@@ -96,7 +96,7 @@ const ManageContracts = () => {
     const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
     const isManager = user?.roles?.includes("ROLE_MANAGER");
     const isStaff = user?.roles?.includes("ROLE_STAFF");
-
+    const userL = useSelector(selectCurrentUser)
     const tableData = isManager
         ? contractApprove?.data?.content
         : contracts?.data?.content || [];
@@ -249,7 +249,7 @@ const ManageContracts = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <span className="font-bold text-[#228eff]">{user?.full_name}</span>,
+            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile/${user.user_id}`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",
@@ -329,7 +329,7 @@ const ManageContracts = () => {
                                     document.body.removeChild(link);
                                 }}
                             >
-                                Tải file
+                                Tải file đã ký
                             </Button>
                         )}
                     </div>
@@ -401,7 +401,7 @@ const ManageContracts = () => {
                                     record.status !== "SIGNED" &&
                                     record.status !== "ACTIVE" &&
                                     record.status !== "COMPLETED" &&
-                                    record.status !== "EXPIRED" &&
+                                    // record.status !== "EXPIRED" &&
                                     record.status !== "CANCELLED" &&
                                     record.status !== "ENDED"
                                     ? [
@@ -545,7 +545,7 @@ const ManageContracts = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <Link className="font-bold text-[#228eff]">{user?.full_name}</Link>,
+            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile/${user.user_id}`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",
@@ -625,7 +625,7 @@ const ManageContracts = () => {
                                     document.body.removeChild(link);
                                 }}
                             >
-                                Tải file
+                                Tải file  đã ký
                             </Button>
                         )}
                     </div>
@@ -846,6 +846,7 @@ const ManageContracts = () => {
             alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)
         );
     }, [checkedList]);
+
     const filteredColumns2 = useMemo(() => {
         return columnManager.filter((col) =>
             alwaysVisibleKeys.includes(col.key) || checkedList.includes(col.key)

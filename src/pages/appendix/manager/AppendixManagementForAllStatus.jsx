@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, DownloadOutlined } from "@ant-design/icons";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -83,6 +83,7 @@ const AppendixManagementForAllStatus = () => {
         'APPROVED': <Tag color="green-inverse">Đã phê duyệt</Tag>,
         'UPDATED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
         'REJECTED': <Tag color="red-inverse">Từ chối</Tag>,
+        'SIGNED': <Tag color="purple-inverse">Đã ký</Tag>,
     }
 
 
@@ -120,19 +121,35 @@ const AppendixManagementForAllStatus = () => {
             </Link>
             ),
         },
-        // {
-        //     title: "Loại phụ lục",
-        //     dataIndex: "addendumType",
-        //     key: "addendumType",
-        //     render: (value) => (
-        //         <Tag color="blue">{value.name}</Tag>
-        //     ),
-        //     filters: [...new Set(tableData?.map(appendix => appendix.addendumType.name))].map(name => ({
-        //         text: name,
-        //         value: name,
-        //     })),
-        //     onFilter: (value, record) => record.addendumType.name === value,
-        // },
+        {
+            title: "Tải file",
+            dataIndex: "signedFilePath",
+            key: "signedFilePath",
+            render: (text, record) => (
+                (record.status === "SIGNED" || record.status === "ACTIVE") && (
+                    <div className="flex flex-col items-center gap-3">
+                        {record.signedFilePath && (
+                            <Button
+                                type="primary"
+                                className="px-2"
+                                icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const link = document.createElement("a");
+                                    link.href = record.signedFilePath;
+                                    link.download = record.signedFilePath?.split("/").pop();
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                }}
+                            >
+                                Tải file đã ký
+                            </Button>
+                        )}
+                    </div>
+                )
+            )
+        },
 
         // {
         //     title: "Ngày có hiệu lực",

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, Button, message, Typography, Space, Skeleton, DatePicker, Select, Divider, Tabs, Upload, Spin } from "antd";
+import { Form, Input, Button, message, Space, Skeleton, DatePicker, Select, Divider, Tabs, Upload, Spin } from "antd";
 import { useParams } from "react-router-dom";
 import { useGetUserByIdQuery, useUpdateAvatarMutation, useUpdateUserMutation } from "../../services/UserAPI";
 import dayjs from "dayjs";
@@ -10,7 +10,7 @@ import { MdPlace } from "react-icons/md";
 import utc from "dayjs/plugin/utc";
 import ChangePassword from "./ChangePassWord";
 import { useDispatch, useSelector } from "react-redux";
-import { setAvatar } from "../../slices/authSlice";
+import { selectCurrentUser, setAvatar } from "../../slices/authSlice";
 import { validationPatterns } from "../../utils/ultil";
 dayjs.extend(utc);
 const { TabPane } = Tabs;
@@ -27,6 +27,8 @@ const Profile = () => {
     const [hover, setHover] = useState(false);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [loadingUpdate, setLoadingUpdate] = useState(false)
+    const user = useSelector(selectCurrentUser)
+    // console.log(user)
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -132,15 +134,17 @@ const Profile = () => {
                                 <Divider className="mt-[40px]">
                                     <p>Liên lạc</p>
                                 </Divider>
-                                <div className="mt-4 flex flex-col gap-2 w-full">
-                                    <Button
-                                        type="primary"
-                                        icon={<MailFilled />}
-                                        onClick={() => (window.location.href = `mailto:${data?.email}`)}
-                                    >
-                                        Gửi email
-                                    </Button>
-                                </div>
+                                {user.id == !id && (
+                                    <div className="mt-4 flex flex-col gap-2 w-full">
+                                        <Button
+                                            type="primary"
+                                            icon={<MailFilled />}
+                                            onClick={() => (window.location.href = `mailto:${data?.email}`)}
+                                        >
+                                            Gửi email
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
