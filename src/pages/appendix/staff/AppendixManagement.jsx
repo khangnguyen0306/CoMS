@@ -245,7 +245,7 @@ const AppendixManagement = () => {
                                                 key: "edit",
                                                 icon: <EditFilled style={{ color: '#228eff' }} />,
                                                 label: "Sửa",
-                                                onClick: () => navigate(`/CreateAppendix/?appendixId=${record.addendumId}`),
+                                                onClick: () => navigate(`/EditAppendix/${record.contractId}/${record.addendumId}`),
                                             }]
                                             : []),
                                         ...(record.status == "ACTIVE"
@@ -282,13 +282,16 @@ const AppendixManagement = () => {
                                             label: "Nhân bản phụ lục",
                                             onClick: () => handleOpenDuplicate(record),
                                         },
-                                        {
-                                            key: "delete",
-                                            icon: <DeleteOutlined />,
-                                            label: "Xóa",
-                                            danger: true,
-                                            onClick: () => handleDelete(record),
-                                        },
+                                        ...(record.status == "CREATED" || record.status == "UPDATED" || record.status == "REJECTED"
+                                            ? [{
+
+                                                key: "delete",
+                                                icon: <DeleteOutlined />,
+                                                label: "Xóa",
+                                                danger: true,
+                                                onClick: () => handleDelete(record),
+                                            }]
+                                            : []),
                                     ],
                                 }}
                             >

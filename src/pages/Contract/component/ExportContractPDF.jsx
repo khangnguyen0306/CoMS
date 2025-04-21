@@ -322,6 +322,7 @@ const ExportContractPDF = ({ contractId, onDone }) => {
           },
           contract?.data?.effectiveDate && contract?.data?.expiryDate && {
             margin: [0, 5, 0, 5],
+            fontSize: 11,
             text: [
               `- Ngày bắt đầu hiệu lực: ${dayjs(parseDate(contract?.data?.effectiveDate)).format('HH:mm')} ngày `,
               { text: dayjs(parseDate(contract.data.effectiveDate)).format('DD/MM/YYYY'), bold: true },
@@ -378,7 +379,7 @@ const ExportContractPDF = ({ contractId, onDone }) => {
                     text: "Điều khoản riêng bên A",
                     style: "titleDescription",
                     margin: [5, 5],
-                    fontSize: 11,
+                    // fontSize: 11,
                   },
                   ...groupedTerms.A.map((termId, index) => ({
                     text: `- ${termId}`,
@@ -394,7 +395,7 @@ const ExportContractPDF = ({ contractId, onDone }) => {
                     text: "Điều khoản riêng bên B",
                     style: "titleDescription",
                     margin: [5, 8],
-                    fontSize: 11,
+                    // fontSize: 11,
                   },
                   ...groupedTerms.B.map((termId, index) => ({
                     text: `- ${termId}`,
@@ -524,12 +525,12 @@ const ExportContractPDF = ({ contractId, onDone }) => {
             margin: [0, 10, 0, 5],
           },
           signatureTitle: {
-            fontSize: 16,
+            fontSize: 11,
             bold: true,
             margin: [0, 0, 0, 5]
           },
           signatureName: {
-            fontSize: 14,
+            fontSize: 12,
             bold: true,
             margin: [0, 0, 0, 5]
           },

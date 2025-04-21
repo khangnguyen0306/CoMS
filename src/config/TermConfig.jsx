@@ -328,7 +328,7 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
     return (
         <div className="mt-4 ">
 
-            <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} mb-5 rounded-lg max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200`}>
+            <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} mb-5 rounded-lg max-h-[550px] overflow-auto `}>
                 {termId === 1 && (
                     <div className="p-5 mb-4">
                         {Object.values(groupedCommon).map((group, index) => (

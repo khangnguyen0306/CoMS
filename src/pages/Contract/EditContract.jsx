@@ -256,6 +256,7 @@ const EditContract = () => {
                 suspend: contractData?.data.suspend,
                 suspendContent: contractData?.data.suspendContent,
                 generalTerms: contractData?.data.generalTerms?.map(term => term.original_term_id) || [],
+                otherTerms: contractData?.data.otherTerms?.map(term => term.original_term_id) || [],
                 additionalTerms: contractData?.data.additionalTerms?.map(term => term.original_term_id) || [],
                 specialTermsA: contractData?.data.specialTermsA,
                 specialTermsB: contractData?.data.specialTermsB,
@@ -367,6 +368,9 @@ const EditContract = () => {
     const loadTemplateData = async ({ page, size, keyword }) => {
         return getTemplateData({ page, size, keyword }).unwrap();
     };
+    const loadDKKata = async ({ page, size, keyword }) => {
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
+    };
 
     const loadPartnerData = async ({ page, size, keyword }) => {
         return getPartnerData({ page, size, keyword }).unwrap();
@@ -379,6 +383,11 @@ const EditContract = () => {
     const handleSelectChange = (newValues) => {
         form.setFieldsValue({ generalTerms: newValues });
     };
+
+    const handleSelectOthersTermsChange = (newValues) => {
+        form.setFieldsValue({ otherTerms: newValues });
+    };
+
 
     const handleChange = (value) => {
         if (value) {
@@ -1498,16 +1507,16 @@ const EditContract = () => {
                                 <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                                 <Form.List
                                     name="contractItems"
-                                    // rules={[
-                                    //     {
+                                // rules={[
+                                //     {
 
-                                    //         validator: async (_, contractItems) => {
-                                    //             if (!contractItems || contractItems.length < 1) {
-                                    //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
-                                    //             }
-                                    //         },
-                                    //     },
-                                    // ]}
+                                //         validator: async (_, contractItems) => {
+                                //             if (!contractItems || contractItems.length < 1) {
+                                //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
+                                //             }
+                                //         },
+                                //     },
+                                // ]}
                                 >
                                     {(fields, { add, remove }) => {
                                         // Gán remove vào biến toàn cục để sử dụng trong cột "Hành động"
@@ -1713,27 +1722,54 @@ const EditContract = () => {
                                     rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
                                     className="ml-2"
                                 >
-                                    <LazySelect loadDataCallback={loadGenaralData} options={generalData?.data.content} showSearch mode="multiple" placeholder="Chọn điều khoản chung" onChange={handleSelectChange} dropdownRender={(menu) => (
-                                        <>
-                                            {menu}
-                                            <Divider style={{ margin: "8px 0" }} />
-                                            <Space style={{ padding: "0 8px 4px" }}>
-                                                <Button type="primary" icon={<PlusOutlined />}>Thêm điều khoản</Button>
-                                            </Space>
-                                        </>
-                                    )} />
+                                    <LazySelect
+                                        loadDataCallback={loadGenaralData}
+                                        options={generalData?.data.content}
+                                        showSearch mode="multiple"
+                                        placeholder="Chọn điều khoản chung"
+                                        onChange={handleSelectChange}
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                <Divider style={{ margin: "8px 0" }} />
+                                                <Space style={{ padding: "0 8px 4px" }}>
+                                                    <Button type="primary" icon={<PlusOutlined />}>Thêm điều khoản</Button>
+                                                </Space>
+                                            </>
+                                        )} />
                                 </Form.Item>
-                                <Form.Item label={<div className="ml-2 my-3 font-bold text-[16px] flex justify-between items-center gap-5"><p>Các điều khoản khác</p>{selectedOthersTerms.length > 0 && <Popover content={getAllAdditionalTermsContent} title="Xem trước tất cả điều khoản đã chọn" trigger="click" placement="right" overlayStyle={{ maxWidth: '70vw' }}><Button icon={<EyeFilled />}>Xem trước tất cả</Button></Popover>}</div>} name="additionalTerms">
-                                    <Checkbox.Group className="flex flex-col ml-4 gap-4" options={[
-                                        { label: "ĐIỀU KHOẢN BỔ SUNG", value: 1 },
-                                        { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: 2 },
-                                        { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: 3 },
-                                        { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: 4 },
-                                        { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: 5 },
-                                        { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: 6 },
-                                        { label: "ĐIỀU KHOẢN BẢO MẬT", value: 7 }
-                                    ]} onChange={handleCheckboxChange} />
+                                <Form.Item
+
+                                    label={
+                                        <div className="ml-2 my-3 font-bold text-[16px] flex justify-between items-center gap-5">
+                                            <p>Các điều khoản khác</p>
+                                            {selectedOthersTerms.length > 0 &&
+                                                <Popover
+                                                    content={getAllAdditionalTermsContent}
+                                                    title="Xem trước tất cả điều khoản đã chọn"
+                                                    trigger="click"
+                                                    placement="right"
+                                                    overlayStyle={{ maxWidth: '70vw' }}>
+                                                    <Button icon={<EyeFilled />}>Xem trước tất cả</Button>
+                                                </Popover>
+                                            }
+                                        </div>} name="additionalTerms">
+
+                                    <Checkbox.Group
+                                        className="flex flex-col ml-4 gap-4"
+                                        options={[
+                                            { label: "ĐIỀU KHOẢN BỔ SUNG", value: 1 },
+                                            { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: 2 },
+                                            { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: 3 },
+                                            { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: 4 },
+                                            { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: 5 },
+                                            { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: 6 },
+                                            { label: "ĐIỀU KHOẢN BẢO MẬT", value: 7 }
+                                        ]}
+                                        onChange={handleCheckboxChange}
+                                    />
                                 </Form.Item>
+
                                 <div className="flex flex-col">
                                     {selectedOthersTerms.map(termId => (
                                         <TermSection
@@ -1745,14 +1781,52 @@ const EditContract = () => {
                                         />
                                     ))}
                                 </div>
-                                <Divider orientation="center">Điều khoản đặc biệt</Divider>
+                                <Divider orientation="center">Điều khoản khác</Divider>
                                 <Form.Item
+                                    label={
+                                        <div className="flex justify-between items-center gap-4">
+                                            <p>Điều khoản khác </p>
+                                            {/* <Popover
+                                                content={() => getTermsContent('generalTerms')}
+                                                title="Danh sách Điều khoản chung đã chọn"
+                                                trigger="hover"
+                                                placement="right"
+                                            >
+                                                <Button icon={<EyeFilled />} />
+                                            </Popover> */}
+                                        </div>
+                                    }
+                                    name="otherTerms"
+                                    // rules={[{ required: true, message: "Vui lòng chọn điều khoản khác!" }]}
+                                    className="ml-2"
+                                >
+                                    <LazySelect
+                                        loadDataCallback={loadDKKata}
+                                        options={generalData?.data.content}
+                                        showSearch
+                                        mode="multiple"
+                                        placeholder="Chọn điều khoản khác"
+                                        onChange={handleSelectOthersTermsChange}
+                                    // dropdownRender={(menu) => (
+                                    //     <>
+                                    //         {menu}
+                                    //         <Divider style={{ margin: "8px 0" }} />
+                                    //         <Space style={{ padding: "0 8px 4px" }}>
+                                    //             <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(10)}>
+                                    //                 Thêm điều khoản
+                                    //             </Button>
+                                    //         </Space>
+                                    //     </>
+                                    // )}
+                                    />
+                                </Form.Item>
+                                {/* <Form.Item
                                     label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên A)</p></div>} name="specialTermsA">
                                     <TextArea rows={4} placeholder="Nhập điều khoản bên A" />
                                 </Form.Item>
                                 <Form.Item label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN B</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên B)</p></div>} name="specialTermsB">
                                     <TextArea rows={4} placeholder="Nhập điều khoản bên B" />
-                                </Form.Item>
+                                </Form.Item> */}
                             </div>
                             <div ref={otherContentRef} className="pt-[50px] pb-[400px]">
                                 <Divider orientation="center">Các nội dung khác</Divider>
@@ -1957,7 +2031,7 @@ const EditContract = () => {
                 )}
 
                 <Steps current={currentStep} className="mb-8">
-                    {steps.map((item, index) => <Step key={index}   onClick={() => setCurrentStep(index)} title={item.title} />)}
+                    {steps.map((item, index) => <Step key={index} onClick={() => setCurrentStep(index)} title={item.title} />)}
                 </Steps>
                 <div className="mb-6">{steps[currentStep].content}</div>
                 <div className="flex justify-end space-x-2">
