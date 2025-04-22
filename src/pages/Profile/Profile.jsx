@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Form, Input, Button, message, Space, Skeleton, DatePicker, Select, Divider, Tabs, Upload, Spin } from "antd";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useGetUserByIdQuery, useUpdateAvatarMutation, useUpdateUserMutation } from "../../services/UserAPI";
 import dayjs from "dayjs";
 import { useGetDepartmentsQuery } from "../../services/Department";
@@ -16,8 +16,9 @@ dayjs.extend(utc);
 const { TabPane } = Tabs;
 
 const Profile = () => {
-    const { id } = useParams();
-    const { data, isLoading, refetch } = useGetUserByIdQuery({ id }, { skip: !id });
+    const location = useLocation();
+    const { id } = location.state || {};
+    const { data, isLoading, refetch } = useGetUserByIdQuery({ skip: !id });
     const { data: departmentData, isLoading: DepartmentLoading } = useGetDepartmentsQuery();
     const [updateAvatar, { isLoadingUpdateAvatar }] = useUpdateAvatarMutation();
     const dispatch = useDispatch()
@@ -53,6 +54,7 @@ const Profile = () => {
     const handleSaveClick = async () => {
         try {
             const values = await form.validateFields(true);
+            console.log("form", values);
             await updateUser({ body: values, userId: id }).unwrap();
             message.success("Cập nhật hồ sơ thành công!");
             setIsEditing(false);
@@ -265,7 +267,7 @@ const Profile = () => {
                                                     </Select>
                                                 </Form.Item>
                                             ) : ( */}
-                                                <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.department?.departmentName || "Chưa cập nhật"}</span>
+                                            <span className={isDarkMode ? "text-gray-300" : "text-gray-800"}>{data?.department?.departmentName || "Chưa cập nhật"}</span>
                                             {/* )} */}
                                         </div>
                                     </div>

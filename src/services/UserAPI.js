@@ -121,6 +121,7 @@ export const {
     useLazyGetAllUserQuery,
     useGetUserStaffManagerQuery,
     useGetUserByIdQuery,
+    useGetDetailUserByIdQuery,
     useLazyGetUserStaffManagerQuery,
     useChangePassWordMutation,
     useUpdateAvatarMutation,

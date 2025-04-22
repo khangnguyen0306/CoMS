@@ -4,6 +4,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useGetContractByPartnerIdQuery } from '../../services/ContractAPI';
 import { Link } from 'react-router-dom';
 import { debounce } from 'lodash';
+import dayjs from 'dayjs';
 
 const ContractPartner = ({ partnerId }) => {
     // Quản lý state
@@ -166,7 +167,7 @@ const ContractPartner = ({ partnerId }) => {
                     pagination={{
                         current: currentPage,
                         pageSize: pageSize,
-                        total: partnerContractData?.totalElements || 0,
+                        total: partnerContractData?.totalElements,
                         showSizeChanger: true,
                         pageSizeOptions: ['10', '20', '50', '100'],
                     }}
