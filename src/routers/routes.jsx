@@ -357,7 +357,7 @@ export const router = createBrowserRouter([
                         element: ManageTemplate,
                     },
                     {
-                        path: "deletedtemplate",
+                        path: "deletedtemplate",    
                         element: DeletedTemplate,
                     },
                     {

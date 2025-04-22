@@ -5,36 +5,47 @@ import { message } from 'antd';
 import { logOut, selectTokens } from '../slices/authSlice';
 
 export const baseQueryWithAuth = fetchBaseQuery({
-    baseUrl: BE_API_LOCAL,
-    prepareHeaders: (headers, { getState }) => {
-        const token = selectTokens(getState());
-        if (token) {
-            headers.set('Authorization', `Bearer ${token}`);
-        }
-        // headers.set('Content-Type', 'application/json');
-        return headers;
-    },
+  baseUrl: BE_API_LOCAL,
+  prepareHeaders: (headers, { getState }) => {
+    const token = selectTokens(getState());
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
+  },
 });
 
 export const baseApi = createApi({
-    reducerPath: 'baseApi',
-    baseQuery: async (args, api, extraOptions) => {
-        const result = await baseQueryWithAuth(args, api, extraOptions);
+  reducerPath: 'baseApi',
+  baseQuery: async (args, api, extraOptions) => {
+    const result = await baseQueryWithAuth(args, api, extraOptions);
 
-        if (result.error) {
-            if (result.error.status === 401) {
-                api.dispatch(logOut()); 
-                setTimeout(() => {
-                    message.error("Phiên đã hết hạn, vui lòng đăng nhập lại!");
-                    window.location.href = '/login';
-                }, 1000);
-            } else if (result.error.status >= 500) {
-                // message.error("Lỗi server, vui lòng thử lại sau!");
-            }
-        }
+    if (result.error) {
+      const status = result.error.status;
 
-        return result;
-    },
-    tagTypes: ['USER'],
-    endpoints: () => ({}),
+      if (status === 401) {
+        // Khi token hết hạn → logout & về login
+        api.dispatch(logOut());
+        setTimeout(() => {
+          message.error('Phiên đã hết hạn, vui lòng đăng nhập lại!');
+          window.location.href = '/login';
+        }, 500);
+      }
+      else if (status === 403) {
+        // Khi không tìm thấy → chuyển về trang 404
+        setTimeout(() => {
+          message.error('Không tìm thấy trang yêu cầu!');
+          window.location.href = '/404';
+        }, 300);
+      }
+      else if (status >= 500) {
+        // Lỗi server
+        // message.error('Lỗi server, vui lòng thử lại sau!');
+      }
+    }
+
+    return result;
+  },
+  tagTypes: ['USER'],
+  endpoints: () => ({}),
 });
