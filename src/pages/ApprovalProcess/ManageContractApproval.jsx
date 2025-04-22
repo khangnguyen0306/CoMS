@@ -100,9 +100,8 @@ const ManageContractApproval = () => {
         },
         {
             title: "Đối tác",
-            dataIndex: ["partner", "partnerName"],
-            key: "partner.partnerName",
-            sorter: (a, b) => a.partner.localeCompare(b.partner),
+            dataIndex: ["partnerB", "partnerName"],
+            key: "partnerB.partnerName",
         },
 
         {

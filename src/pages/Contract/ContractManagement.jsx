@@ -17,7 +17,6 @@ import ExportContractPDF from "./component/ExportContractPDF";
 import DuplicateContractModal from './component/DuplicateContractModal';
 import TabPane from "antd/es/tabs/TabPane";
 import { IoIosWarning } from "react-icons/io";
-
 const { Search } = Input;
 
 const ManageContracts = () => {
@@ -28,7 +27,14 @@ const ManageContracts = () => {
     const [searchTextStaff, setSearchTextStaff] = useState("");
     const [searchTextManager, setSearchTextManager] = useState("");
     const [selectedContract, setSelectedContract] = useState(null);
+    const [isApprover, setIsApprover] = useState(false);
+    const [activeKey, setActiveKey] = useState('1');
     const [paginationStaff, setPaginationStaff] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0,
+    });
+    const [paginationApprover, setPaginationApprover] = useState({
         current: 1,
         pageSize: 10,
         total: 0,
@@ -38,6 +44,7 @@ const ManageContracts = () => {
         pageSize: 10,
         total: 0,
     });
+
     const [paginationManager, setPaginationManager] = useState({
         current: 1,
         pageSize: 10,
@@ -52,17 +59,10 @@ const ManageContracts = () => {
     const [activePanel, setActivePanel] = useState([]);
     const [uploadType, setUploadType] = useState("image");
     const [duplicateContract] = useDuplicateContractMutation();
-    const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
-        page: paginationStaff.current - 1,
-        size: paginationStaff.pageSize,
-        keyword: searchTextStaff,
-        status: status
-    },
-        {
-            refetchOnMountOrArgChange: true,
-            refetchOnReconnect: true,
-        }
-    );
+
+
+    console.log("isApprover", isApprover)
+
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment, refetch: refetchPaymnet } = useGetContractDetailQuery(selectedContractId, {
         skip: !selectedContractId,
@@ -83,12 +83,26 @@ const ManageContracts = () => {
 
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
     const user = useSelector(selectCurrentUser)
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
+    const isManager = user?.roles?.includes("ROLE_MANAGER");
+    const isStaff = user?.roles?.includes("ROLE_STAFF");
     // Manager đang lỗi vì API này
     const { data: contractApprove, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
         approverId: user.id,
-        page: paginationManager.current - 1,
-        size: paginationManager.pageSize,
+        page: isManager ? paginationManager.current - 1 : 0,
+        size: isManager ? paginationManager.pageSize : 1000,
         keyword: searchTextManager,
+        status: status
+    },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    );
+    const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
+        page: isStaff ? paginationStaff.current - 1 : paginationCEO.current - 1,
+        size: isStaff ? paginationStaff.pageSize : paginationCEO.pageSize,
+        keyword: searchTextStaff,
         status: status
     },
         {
@@ -98,9 +112,7 @@ const ManageContracts = () => {
     );
     const navigate = useNavigate()
     const [softDelete] = useSoftDeleteContractMutation()
-    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
-    const isManager = user?.roles?.includes("ROLE_MANAGER");
-    const isStaff = user?.roles?.includes("ROLE_STAFF");
+
     const userL = useSelector(selectCurrentUser)
     const tableData = isManager
         ? contractApprove?.data?.content
@@ -254,7 +266,7 @@ const ManageContracts = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile/${user.user_id}`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
+            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",
@@ -550,7 +562,7 @@ const ManageContracts = () => {
                 text: name,
                 value: name,
             })),
-            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile/${user.user_id}`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
+            render: (user) => <Link to={user.user_id != userL.id ? `/profileUser/${user.user_id}` : `/profile`} className="font-bold text-[#228eff]">{user?.full_name}</Link>,
         },
         {
             title: "Tên hợp đồng",
@@ -697,7 +709,7 @@ const ManageContracts = () => {
 
                             items: [
                                 // sau active mới hiên
-                                ...(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(record.status)
+                                ...(["ACTIVE"].includes(record.status)
                                     ? [
                                         {
                                             key: "updateStatus",
@@ -742,6 +754,11 @@ const ManageContracts = () => {
 
     ];
 
+    const handleTabChange = (key) => {
+        setActiveKey(key);
+        setIsApprover(key === '2');
+    };
+
     const handleUploadAll = async (paymentScheduleId) => {
         try {
             // Tạo FormData và append tất cả file vào cùng một key (ví dụ: "files")
@@ -753,12 +770,13 @@ const ManageContracts = () => {
             // Gọi API upload file, truyền paymentScheduleId và formData
             const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
             const parsedRes = JSON.parse(res);
+            refetchPaymnet();
             refetchBill();
             refetch();
             message.success(parsedRes.message);
             setFileList([]);
-            // setActivePanel([]);
-            // setIsUpdateStatusModalVisible(false);
+            setActivePanel([]);
+            setIsUpdateStatusModalVisible(false);
 
         } catch (error) {
             console.error("Lỗi khi tải lên file:", error);
@@ -780,8 +798,9 @@ const ManageContracts = () => {
 
             message.success(res.message);
             setFileList([]);
-            // setIsModalSignedVisible(false);
 
+            setSelectedContractId(null);
+            setIsModalSignedVisible(false);
             refetchImg();
             refetch();
         } catch (error) {
@@ -813,8 +832,12 @@ const ManageContracts = () => {
     const handleTableChange = (pagination, filters, sorter) => {
         if (isManager) {
             setPaginationManager(pagination);
-        } else {
+        } else if (isStaff) {
             setPaginationStaff(pagination);
+        } else if (isCEO) {
+            setPaginationCEO(pagination);
+        } else if (isApprover) {
+            setPaginationApprover(pagination);
         }
         if (filters?.status && filters?.status.length > 0) {
             setStatus(filters?.status[0]);
@@ -907,8 +930,8 @@ const ManageContracts = () => {
                         rowKey="id"
                         loading={isLoading}
                         pagination={{
-                            current: paginationStaff.current,
-                            pageSize: paginationStaff.pageSize,
+                            current: paginationCEO.current,
+                            pageSize: paginationCEO.pageSize,
                             total: contracts?.data?.totalElements || 0,
                             showSizeChanger: true,
                             showQuickJumper: true,
@@ -959,7 +982,7 @@ const ManageContracts = () => {
                             token: { fontFamily: "Roboto, sans-serif" }
                         }}
                     >
-                        <Tabs type="card">
+                        <Tabs type="card" activeKey={activeKey} onChange={handleTabChange}>
                             <TabPane tab="Hợp đồng của tôi" key="1">
                                 <Checkbox.Group
                                     value={checkedList}
@@ -999,14 +1022,14 @@ const ManageContracts = () => {
                                     dataSource={contractApprove?.data?.content}
                                     rowKey="id"
                                     loading={isLoading}
-                                    pagination={{
-                                        current: paginationStaff.current,
-                                        pageSize: paginationStaff.pageSize,
-                                        total: contractApprove?.data?.totalElements,
-                                        showSizeChanger: true,
-                                        showQuickJumper: true,
-                                        showTotal: (total) => `Tổng ${total} hợp đồng`,
-                                    }}
+                                    // pagination={{
+                                    //     current: paginationApprover.current,
+                                    //     pageSize: paginationApprover.pageSize,
+                                    //     total: contractApprove?.data?.totalElements,
+                                    //     showSizeChanger: true,
+                                    //     showQuickJumper: true,
+                                    //     showTotal: (total) => `Tổng ${total} hợp đồng`,
+                                    // }}
                                     onChange={handleTableChange}
                                     expandable={{
                                         expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
@@ -1106,7 +1129,7 @@ const ManageContracts = () => {
                                                         />
                                                     ))
                                                 ) : (
-                                                    <div className="text-gray-500">Không có hóa đơn nào được tải lên.</div>
+                                                    <div className="text-gray-500">Không có đợt thanh toán nào cho hợp đồng này.</div>
                                                 )}
                                             </div>
                                         </div>
@@ -1115,7 +1138,7 @@ const ManageContracts = () => {
 
                                         <>
                                             <Upload.Dragger
-                                                disabled={isManager || isCEO}
+                                                disabled={isManager || isCEO || isApprover}
                                                 name="invoice"
                                                 accept="image/png, image/jpeg"
                                                 beforeUpload={handleBeforeUpload}
@@ -1203,7 +1226,7 @@ const ManageContracts = () => {
                     <div className="p-4">
                         {/* Đã có hóa đơn */}
 
-                        {dataPayment?.data?.status === "ACTIVE" ? (
+                        {dataSign?.data?.length > 0 ? (
                             <>
                                 <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
                                 <div
@@ -1263,7 +1286,7 @@ const ManageContracts = () => {
                             <>
                                 <Upload.Dragger
                                     multiple
-                                    disabled={isManager || isCEO}
+                                    disabled={isManager || isCEO || isApprover}
                                     name="files"
                                     accept="image/png,image/jpeg,application/pdf"
                                     beforeUpload={(file) => {

@@ -51,7 +51,7 @@ const MainLayout = () => {
     'task': '/task',
     'client': '/partner',
     'contract': '/contract',
-    'setting1': '/bsinformation',
+    'setting1': '/director/bsinformation',
     'templateCreate': '/admin/createtemplate',
     'appendix': 'approve/appendix',
     'appendixManageStaff': 'appendix',
@@ -483,7 +483,9 @@ const MainLayout = () => {
               src={avatar}
               // icon={!user.avatar && <UserOutlined />} 
               className="bg-slate-500 cursor-pointer ml-4 hover:border-2"
-              onClick={() => navigate(`/profile/${user.id}`)}
+              onClick={() => navigate('/profile', {
+                state: { id: user.id }
+              })}
             />
             <label className="switch ml-6" >
               <input

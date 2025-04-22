@@ -18,16 +18,17 @@ const RealTimeNotification = () => {
 
 
     const handleIncomingNotification = (data) => {
-
         const msg = data.message;
         const dateMatch = msg.match(/lúc\s+([\d\-T:]+)/);
         let formattedDate = "";
-        if (dateMatch && dateMatch[1]) {
+        if (dateMatch) {
             formattedDate = dayjs(dateMatch[1]).format("DD/MM/YYYY HH:mm");
         }
-        const displayMessage = msg.replace(/lúc\s+[\d\-T:]+/, `\nLúc ${formattedDate}`);
+        const displayMessage = msg.replace(
+            /lúc\s+[\d\-T:]+/,
+            `\nLúc ${formattedDate}`
+        );
 
-        // Tạo đối tượng thông báo mới, đảm bảo có id duy nhất
         const newNotification = {
             id: data.id || Date.now(),
             message: displayMessage,
@@ -36,42 +37,56 @@ const RealTimeNotification = () => {
         };
 
         setNotifications((prev) => {
-            if (prev.some(noti => noti.id === newNotification.id)) {
-                return prev;
-            }
+            if (prev.some(n => n.id === newNotification.id)) return prev;
             const updated = [...prev, newNotification];
-            // Tính lại số lượng thông báo chưa đọc
-            const newUnreadCount = updated.filter((noti) => !noti.isRead).length;
-            dispatch(setNotiNumber(newUnreadCount));
+            const newUnread = updated.filter(n => !n.isRead).length;
+            dispatch(setNotiNumber(newUnread));
             return updated;
         });
-        refetchNoti(),
-            notification.open({
-                message: "Thông báo",
-                description: displayMessage,
-                duration: 10,
-                placement: "topRight",
-                pauseOnHover: true,
-                showProgress: true,
-                type: "warning",
-                onClick: () => {
-                    if (text && text.includes("phụ lục")) {
-                        if (user.roles[0] === "ROLE_STAFF") {
-                            navigate("/appendix");
-                        } else if (user.roles[0] === "ROLE_MANAGER") {
-                            navigate("/manager/appendix");
-                        }
-                    } else {
-                        if (user.roles[0] === "ROLE_STAFF") {
-                            navigate("/approvalContract");
-                        } else if (user.roles[0] === "ROLE_MANAGER") {
-                            navigate("/manager/approvalContract");
-                        }
-                    }
-                },
 
-            });
+        refetchNoti();
+
+        const text = data.message.toLowerCase();
+
+        notification.open({
+            message: "Thông báo",
+            description: displayMessage,
+            duration: 10,
+            placement: "topRight",
+            pauseOnHover: true,
+            showProgress: true,
+            type: "warning",
+
+            // onClick sẽ được gọi khi user click notification
+            onClick: () => {
+                // Dùng `msg` hoặc `displayMessage` để check, chứ không phải `text`
+                const contentToCheck = msg.toLowerCase();
+                const isAppendix = contentToCheck.includes("phụ lục");
+
+                if (text && text.includes("phụ lục")) {
+                    if (user.roles[0] === "ROLE_STAFF") {
+                        navigate("/appendix", { replace: true });
+                    } else if (user.roles[0] === "ROLE_MANAGER") {
+                        navigate("/manager/appendix", { replace: true });
+                    } else if (user.roles[0] === "ROLE_DIRECTOR") {
+                        navigate("/appendix", { replace: true });
+                    }
+                } else if (text && text.includes("từ chối")) {
+                    navigate("/contractsApproval", { replace: true })
+                }
+                else {
+                    if (user.roles[0] === "ROLE_STAFF") {
+                        navigate("/approvalContract", { replace: true });
+                    } else if (user.roles[0] === "ROLE_MANAGER") {
+                        navigate("/manager/approvalContract", { replace: true });
+                    } else if (user.roles[0] === "ROLE_DIRECTOR") {
+                        navigate("/approvalContract", { replace: true });
+                    }
+                }
+            },
+        });
     };
+
 
 
     useEffect(() => {

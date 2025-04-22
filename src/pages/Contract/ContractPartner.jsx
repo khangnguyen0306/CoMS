@@ -42,6 +42,8 @@ import { validationPatterns } from "../../utils/ultil";
 import { useUploadFilePDFMutation, useUploadBillingContractMutation } from "../../services/uploadAPI";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useCheckExistPartnerAMutation, useCreatePartnerMutation, useGetPartnerListQuery } from "../../services/PartnerAPI";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../slices/authSlice";
 
 // Lấy API key từ biến môi trường
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
@@ -196,6 +198,9 @@ const ContractPartner = () => {
         size
     });
 
+    const user = useSelector(selectCurrentUser);
+
+    const isStaff = user?.roles?.includes("ROLE_STAFF");
 
     const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
         skip: !paymentId,
@@ -723,7 +728,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             title: "Ngày ký",
             dataIndex: "signingDate",
             key: "signingDate",
-            sorter: (a, b) => new Date(b.signingDate) - new Date(a.signingDate),
+            sorter: (a, b) => {
+                const dateA = new Date(a.signingDate[0], a.signingDate[1] - 1, a.signingDate[2]);
+                const dateB = new Date(b.signingDate[0], b.signingDate[1] - 1, b.signingDate[2]);
+                return dateB - dateA;
+            },
             render: (text) => {
                 if (Array.isArray(text) && text.length >= 3) {
                     return dayjs(new Date(text[0], text[1] - 1, text[2])).format("DD/MM/YYYY");
@@ -732,6 +741,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             },
             defaultSortOrder: "ascend"
         },
+
         {
             title: "Tải file",
             dataIndex: "fileUrl",
@@ -761,20 +771,22 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             title: "Tên hợp đồng",
             dataIndex: "title",
             key: "title",
-            sorter: (a, b) => a.title.localeCompare(b.title)
         },
         {
             title: "Đối tác",
             dataIndex: "partnerName",
             key: "partnerName",
-            sorter: (a, b) => a.partnerName.localeCompare(b.partnerName),
         },
 
         {
             title: "Ngày có hiệu lực",
             dataIndex: "effectiveDate",
             key: "effectiveDate",
-            sorter: (a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate),
+            sorter: (a, b) => {
+                const dateA = new Date(a.effectiveDate[0], a.effectiveDate[1] - 1, a.effectiveDate[2]);
+                const dateB = new Date(b.effectiveDate[0], b.effectiveDate[1] - 1, b.effectiveDate[2]);
+                return dateB - dateA;
+            },
             render: (text) => {
                 if (Array.isArray(text) && text.length >= 3) {
                     return dayjs(new Date(text[0], text[1] - 1, text[2])).format("DD/MM/YYYY");
@@ -787,7 +799,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             title: "Ngày hết hiệu lực",
             dataIndex: "expiryDate",
             key: "expiryDate",
-            sorter: (a, b) => new Date(b.expiryDate) - new Date(a.expiryDate),
+            sorter: (a, b) => {
+                const dateA = new Date(a.expiryDate[0], a.expiryDate[1] - 1, a.expiryDate[2]);
+                const dateB = new Date(b.expiryDate[0], b.expiryDate[1] - 1, b.expiryDate[2]);
+                return dateB - dateA;
+            },
             render: (text) => {
                 if (Array.isArray(text) && text.length >= 3) {
                     return dayjs(new Date(text[0], text[1] - 1, text[2])).format("DD/MM/YYYY");
@@ -890,7 +906,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         />
                     </Space>
                     <div className="flex-1 flex justify-end">
-                        <Button
+                        {isStaff && (<Button
                             type="primary"
                             icon={<EditFilled />}
                             style={{ marginBottom: 16 }}
@@ -898,14 +914,9 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         >
                             Tạo hợp đồng
                         </Button>
-                        {/* <Button
-                            type="primary"
-                            icon={<EditFilled />}
-                            style={{ marginBottom: 16 }}
-                            onClick={showModal}
-                        >
-                            Tạo partner
-                        </Button> */}
+                        )}
+
+
                     </div>
                 </div>
                 <Table
@@ -1003,7 +1014,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                                     />
                                                                 ))
                                                             ) : (
-                                                                <div className="text-gray-500">Không có hóa đơn nào được tải lên.</div>
+                                                                <div className="text-gray-500">Không có đợt thanh toán nào cho hợp đồng này.</div>
                                                             )}
                                                         </div>
                                                     </div>

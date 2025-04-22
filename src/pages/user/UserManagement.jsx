@@ -47,7 +47,7 @@ const UserManagement = () => {
     };
 
     const filteredUsers = userData?.content ? filterUsers(userData?.content) : [];
-    // console.log("Filtered users:", userData?.content);
+    console.log("Filtered users:", filteredUsers);
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -209,9 +209,9 @@ const UserManagement = () => {
                 : [],
             onFilter: (value, record) => record.role?.roleName === value,
             render: (role, record) => {
-                if (record?.role?.roleName?.includes("DIRECTOR")) {
-                    return <Tag color="gold">Giám đốc</Tag>;
-                }
+                // if (record?.role?.roleName?.includes("DIRECTOR")) {
+                //     return <Tag color="gold">Giám đốc</Tag>;
+                // }
 
                 let color = "blue";
                 let label = "Nhân viên";

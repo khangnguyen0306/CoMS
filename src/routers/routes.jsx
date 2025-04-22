@@ -80,7 +80,7 @@ export const router = createBrowserRouter([
                         element: Contract,
                     },
                     {
-                        path: "profile/:id",
+                        path: "profile",
                         element: Profile,
                     },
                     {
@@ -203,7 +203,7 @@ export const router = createBrowserRouter([
                         element: Department,
                     },
                     {
-                        path: "profile/:id",
+                        path: "profile",
                         element: Profile,
                     },
                     {
@@ -241,7 +241,7 @@ export const router = createBrowserRouter([
                         element: Contract,
                     },
                     {
-                        path: "profile/:id",
+                        path: "profile",
                         element: Profile,
                     },
                     {
@@ -300,7 +300,7 @@ export const router = createBrowserRouter([
                         path: "appendixDetail/:contractId/:appendixId",
                         element: AppendixDetail,
                     },
-                
+
                     // {
                     //     path: "contractReadyToSign",
                     //     element: contractReadyToSign,
@@ -329,7 +329,7 @@ export const router = createBrowserRouter([
                         element: BussinessInfor,
                     },
                     {
-                        path: "profile/:id",
+                        path: "profile",
                         element: Profile,
                     },
                     {
