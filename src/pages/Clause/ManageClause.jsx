@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Modal, List, Select, message, Skeleton, Card, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Divider, Upload } from 'antd';
 import 'tailwindcss/tailwind.css';
-import { DeleteFilled, DownloadOutlined, EditFilled, PlusCircleFilled, UploadOutlined } from '@ant-design/icons';
+import { DeleteFilled, DownloadOutlined, EditFilled, PlusCircleFilled, UploadOutlined, WarningOutlined } from '@ant-design/icons';
 import { useGetClauseManageQuery, useUpdateClauseMutation } from '../../services/ClauseAPI';
 import { useGetAllTypeClauseQuery, useCreateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
 import TabPane from 'antd/es/tabs/TabPane';
@@ -32,8 +32,7 @@ const ManageClause = () => {
     const [isModalOpenLegal, setIsModalOpenLegal] = useState(false);
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
     const [isModalOpenAddLegal, setIsModalOpenAddLegal] = useState(false);
-    const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
-    const [isModalOpenDeleteLegal, setIsModalOpenDeleteLegal] = useState(false);
+    const [idClauseToEdit, setIdClauseToEdit] = useState('')
 
     // const [searchTermContractType, setSearchTermContractType] = useState('');
     const [isModalOpenAddContractType, setIsModalOpenAddContractType] = useState(false);
@@ -61,6 +60,8 @@ const ManageClause = () => {
     const [deleteClause, { isLoading: loadingDelete }] = useDeleteClauseMutation();
     const [importClause, { isLoading: loadingUploadFile }] = useUploadClauseBFileMutation();
     const [form] = Form.useForm();
+    const [formCreate] = Form.useForm();
+    const [formCreateLegal] = Form.useForm();
     const [formImport] = Form.useForm();
 
 
@@ -152,10 +153,9 @@ const ManageClause = () => {
         const clauseToEdit = clauseData?.data?.content?.find(clause => clause.clauseCode === clauseCode);
         if (clauseToEdit) {
             setSortOrderClause('desc');
-            setPageClause(0);
             form.setFieldsValue(clauseToEdit);
-
-            setIsModalOpenClause(true); // Hiển thị modal
+            setIsModalOpenClause(true);
+            setPageClause(0);
         } else {
             message.error('Không tìm thấy điều khoản!');
         }
@@ -232,16 +232,21 @@ const ManageClause = () => {
 
 
     const handleSubmitAddClause = async (values) => {
+        console.log(values)
         try {
             const result = await createClause({ typeTermId: values.type, label: values.label, value: values.value }).unwrap();
-            message.success("Tạo điều khoản thành công");
-            refetchClause();
-            refetchLegal();
-            // setPageClause(0);
-            setIsModalOpenAdd(false);
-            setIsModalOpenAddLegal(false);
-            form.resetFields();
+            console.log(result)
+            if (result.status == "CREATED") {
+                message.success("Tạo điều khoản thành công");
+                refetchClause();
+                refetchLegal();
+                setIsModalOpenAdd(false);
+                setIsModalOpenAddLegal(false);
+                formCreate.resetFields();
+                formCreateLegal.resetFields()
+            }
         } catch (error) {
+            console.log(error)
             message.error(error.data.message || "Có lỗi xảy ra khi tạo điều khoản!");
         }
     };
@@ -266,20 +271,23 @@ const ManageClause = () => {
 
     const handleSubmitUpdateClause = async (values) => {
         try {
-            const typeTermId = getTypeTermId(values.type);
-            const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: typeTermId }).unwrap();
-            message.success("Cập nhật điều khoản thành công!");
-            refetchClause();
-            console.log("refetch clause");
-            refetchLegal();
-            console.log("refetch legal");
-            setIsModalOpenClause(false);
-            setIsModalOpenLegal(false);
-            form.resetFields();
+            const typeTermId = await getTypeTermId(values.type);
+            setIdClauseToEdit(typeTermId)
+            const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: idClauseToEdit }).unwrap();
+            // console.log(updatedData)
+            if (updatedData.status == "OK") {
+                setIsModalOpenClause(false);
+                setIsModalOpenLegal(false);
+                setIdClauseToEdit('')
+                message.success("Cập nhật điều khoản thành công!");
+                refetchClause();
+                refetchLegal();
+                form.resetFields();
+            }
+
         } catch (error) {
-            message.error("Có lỗi xảy ra khi cập nhật điều khoản!");
-            setIsModalOpenClause(false);
-            setIsModalOpenLegal(false);
+            message.error(error.data.message);
+
         }
     };
 
@@ -407,7 +415,7 @@ const ManageClause = () => {
                                 QUẢN LÝ ĐIỀU KHOẢN
                             </div>
                         </div>
-                        <div className='flex justify-between w-full gap-4'>
+                        <div className='flex justify-between w-full gap-4 mb-2'>
 
                             <div className='flex gap-2 w-[80%]'>
                                 <Search
@@ -445,6 +453,7 @@ const ManageClause = () => {
                                     </span>
                                 </button>
                             </div>
+
                             <Button
                                 type="primary"
                                 onClick={openAddClauseModal}
@@ -463,115 +472,7 @@ const ManageClause = () => {
                             </Button>
                         </div>
 
-                        <Modal
-                            title="Thêm điều khoản"
-                            open={isModalOpenAdd}
-                            onCancel={() => {
-                                form.resetFields();
-                                setIsModalOpenAdd(false);
-                            }}
-                            footer={null}
-                            afterOpenChange={(open) => {
-                                if (open) form.resetFields();
-                            }}
-                            width={600}
-                        >
-                            <Form
-                                form={form}
-                                layout="vertical"
-                                onFinish={(values) => {
-                                    form.resetFields();
-                                    handleSubmitAddClause(values)
-                                }}
-                            >
-                                <Form.Item
-                                    name="label"
-                                    label="Tên điều khoản"
-                                    rules={[
-                                        { required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }
-                                    ]}
-                                >
-                                    <Input placeholder="Nhập tên điều khoản" />
-                                </Form.Item>
 
-
-                                <Form.Item
-                                    name="type"
-                                    label="Loại điều khoản"
-                                    rules={[{ required: true, message: "Vui lòng chọn loại điều khoản!" }]}
-                                >
-                                    <Select placeholder="Chọn loại điều khoản">
-                                        {typeData?.data.map(item => (
-                                            <Option key={item.original_term_id} value={item.original_term_id}>
-                                                {item.name}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
-
-
-                                <Form.Item
-                                    name="value"
-                                    label="Nội dung"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
-                                >
-                                    <Input.TextArea rows={5} />
-                                </Form.Item>
-
-
-                                <Form.Item>
-                                    <Button type="primary" htmlType="submit">
-                                        Tạo Điều Khoản
-                                    </Button>
-                                </Form.Item>
-                            </Form>
-                        </Modal>
-
-                        <Modal
-                            title="Cập nhật điều khoản"
-                            open={isModalOpenClause}
-                            onCancel={() => {
-                                form.resetFields();
-                                setIsModalOpenClause(false)
-                            }}
-                            footer={null}
-                        >
-                            <Form
-                                form={form}
-                                layout="vertical"
-                                onFinish={(values) => {
-                                    form.resetFields();
-                                    handleSubmitUpdateClause(values)
-                                }}
-                            >
-                                <Form.Item
-                                    name="id"
-                                />
-
-                                <Form.Item
-                                    name="label"
-                                    label="Tên điều khoản"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }]}
-                                >
-                                    <Input placeholder="Nhập tên điều khoản" />
-                                </Form.Item>
-
-                                <Form.Item
-                                    name="value"
-                                    label="Nội dung"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
-                                >
-                                    <Input.TextArea rows={5} />
-                                </Form.Item>
-
-
-                                <Form.Item>
-                                    <Button loading={loadingUpdate} type="primary" htmlType="submit">
-                                        Cập Nhật Điều Khoản
-                                    </Button>
-                                </Form.Item>
-                            </Form>
-                        </Modal>
                         <List
                             itemLayout="horizontal"
                             pagination={{
@@ -696,6 +597,107 @@ const ManageClause = () => {
                         />
 
                     </div>
+                    <Modal
+                        title="Thêm điều khoản"
+                        open={isModalOpenAdd}
+                        onCancel={() => {
+                            formCreate.resetFields();
+                            setIsModalOpenAdd(false);
+                        }}
+                        footer={null}
+                        width={600}
+                    >
+                        <Form
+                            form={formCreate}
+                            layout="vertical"
+                            onFinish={(values) => {
+                                handleSubmitAddClause(values)
+                            }}
+                        >
+                            <Form.Item
+                                name="label"
+                                label="Tên điều khoản"
+                                rules={[
+                                    { required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }
+                                ]}
+                            >
+                                <Input placeholder="Nhập tên điều khoản" />
+                            </Form.Item>
+
+
+                            <Form.Item
+                                name="type"
+                                label="Loại điều khoản"
+                                rules={[{ required: true, message: "Vui lòng chọn loại điều khoản!" }]}
+                            >
+                                <Select placeholder="Chọn loại điều khoản">
+                                    {typeData?.data.map(item => (
+                                        <Option key={item.original_term_id} value={item.original_term_id}>
+                                            {item.name}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+
+
+                            <Form.Item
+                                name="value"
+                                label="Nội dung"
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
+                            >
+                                <Input.TextArea rows={5} />
+                            </Form.Item>
+
+
+                            <Form.Item>
+                                <Button type="primary" htmlType="submit">
+                                    Tạo Điều Khoản
+                                </Button>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+
+                    <Modal
+                        title="Cập nhật điều khoản"
+                        open={isModalOpenClause}
+                        onCancel={() => {
+                            setIsModalOpenClause(false)
+                        }}
+                        footer={null}
+                    >
+                        <Form
+                            form={form}
+                            layout="vertical"
+                            onFinish={(values) => handleSubmitUpdateClause(values)}
+                        >
+                            <Form.Item
+                                name="id"
+                            />
+
+                            <Form.Item
+                                name="label"
+                                label="Tên điều khoản"
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }]}
+                            >
+                                <Input placeholder="Nhập tên điều khoản" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="value"
+                                label="Nội dung"
+                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
+                            >
+                                <Input.TextArea rows={5} />
+                            </Form.Item>
+
+
+                            <Form.Item>
+                                <Button loading={loadingUpdate} type="primary" htmlType="submit">
+                                    Cập Nhật Điều Khoản
+                                </Button>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
                 </TabPane>
 
                 {/* Tab Căn cứ Pháp Lý */}
@@ -739,16 +741,15 @@ const ManageClause = () => {
                             title="Thêm Căn cứ Pháp Lý"
                             open={isModalOpenAddLegal}
                             onCancel={() => {
-                                form.resetFields();
+                                formCreateLegal.resetFields();
                                 setIsModalOpenAddLegal(false)
                             }}
                             footer={null}
                         >
                             <Form
-                                form={form}
+                                form={formCreateLegal}
                                 layout="vertical"
                                 onFinish={(values) => {
-                                    form.resetFields();
                                     handleSubmitAddClause(values)
                                 }}
                                 initialValues={{
@@ -796,7 +797,6 @@ const ManageClause = () => {
                                 layout="vertical"
                                 onFinish={(values) => {
                                     handleSubmitUpdateClause(values)
-                                    form.resetFields();
                                 }}
                                 initialValues={{
                                     type: 8,
@@ -809,7 +809,6 @@ const ManageClause = () => {
                                 <Form.Item
                                     name="id"
                                 />
-
                                 <Form.Item
                                     name="label"
                                     label="Tên căn cứ"
@@ -852,7 +851,7 @@ const ManageClause = () => {
                                             className="shadow-lg rounded-lg"
                                             style={{ width: 550, borderColor: "#d1d5db" }}
                                         >
-                                         <p className="text-blue-600 text-base font-bold">{clause.label.toUpperCase()}</p>
+                                            <p className="text-blue-600 text-base font-bold">{clause.label.toUpperCase()}</p>
                                             <div className="mt-2 space-y-1 flex flex-col gap-2">
                                                 <p>
                                                     <Text strong>Mã: </Text> {clause.clauseCode}
@@ -974,11 +973,12 @@ const ManageClause = () => {
                             okText="Lưu"
                             cancelText="Hủy"
                         >
+
                             <Form form={form} layout="vertical">
                                 <Form.Item
                                     label="Tên Loại Hợp Đồng"
                                     name="name"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên loại hợp đồng!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên loại hợp đồng!" }]}
                                 >
                                     <Input placeholder="Ví dụ: Hợp đồng thuê phần mềm" />
                                 </Form.Item>
@@ -999,7 +999,7 @@ const ManageClause = () => {
                                 <Form.Item
                                     label="Tên Loại Hợp Đồng"
                                     name="name"
-                                    rules={[{ required: true, message: "Vui lòng nhập tên loại hợp đồng!" }]}
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên loại hợp đồng!" }]}
                                 >
                                     <Input />
                                 </Form.Item>
