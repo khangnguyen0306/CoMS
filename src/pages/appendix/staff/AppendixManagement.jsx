@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, UndoOutlined, DownloadOutlined } from "@ant-design/icons";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Image, Upload } from "antd";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, UndoOutlined, DownloadOutlined, SignatureOutlined, InboxOutlined, UploadOutlined, LoadingOutlined, FilePdfOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../slices/authSlice";
 import { useGetContractPorcessPendingQuery } from "../../../services/ProcessAPI";
 import ExpandRowContent from "../../Contract/component/ExpandRowContent";
-import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery, useResubmitAppendixMutation } from "../../../services/AppendixAPI";
+import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery, useGetImgSignAppendixQuery, useResubmitAppendixMutation } from "../../../services/AppendixAPI";
 import Process from "../../Process/Process";
 import { IoDuplicate } from "react-icons/io5";
 import { IoSend } from "react-icons/io5";
 import DuplicateModal from "../component/DuplicateAppendix";
+import { useUploadSignFileMutation } from "../../../services/uploadAPI";
 const { Search } = Input;
 
 const AppendixManagement = () => {
@@ -28,10 +29,13 @@ const AppendixManagement = () => {
     });
     const [status, setStatus] = useState(searchParams.get('paramstatus') || null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isOpenSignModal, setIsOpenSignModal] = useState(false);
     const [isVisibleDuplicate, setIsVisibleDuplicate] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [selectedContractId, setSelectedContractId] = useState(null);
-
+    const [selectedAppendixtId, setSelectedAppendixtId] = useState(null);
+    const [fileList, setFileList] = useState([]);
+    const [hoveredIndex, setHoveredIndex] = useState(null);
 
     const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixBySelfQuery({
         page: pagination.current - 1,
@@ -40,6 +44,15 @@ const AppendixManagement = () => {
         statuses: status
     });
 
+    const [uploadSign, { isLoading: LoadingUploadSign }] = useUploadSignFileMutation();
+
+
+    const { data: dataSign, isLoading: LoadingImage, isError: ErrorImage, refetch: refetchImg } = useGetImgSignAppendixQuery({ id: selectedAppendixtId }, {
+        skip: !selectedAppendixtId,
+    });
+    console.log("hi", dataSign)
+
+
     const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const [deleteappendix] = useDeleteAppendixMutation()
     const [resubmitAppendix] = useResubmitAppendixMutation()
@@ -47,7 +60,20 @@ const AppendixManagement = () => {
 
     const tableData = appendixs?.data?.content;
 
+    const handleDeleteImg = (index) => {
+        setFileList((prev) => prev.filter((_, i) => i !== index));
+    };
 
+    const handleOpenSignModal = (addendumId) => {
+        setSelectedAppendixtId(addendumId);
+        setIsOpenSignModal(true);
+    }
+
+    const handleCloseUpdateSignModal = () => {
+        setIsOpenSignModal(false);
+        setSelectedAppendixtId(null);
+        refetch()
+    }
 
     const handleOpenDuplicate = (record) => {
         setSelectedContractId(record)
@@ -282,6 +308,13 @@ const AppendixManagement = () => {
                                             label: "Nhân bản phụ lục",
                                             onClick: () => handleOpenDuplicate(record),
                                         },
+                                        {
+                                            key: "uploadImgSign",
+                                            icon: <SignatureOutlined />,
+                                            label: "Xác nhận đã ký phụ lục",
+                                            onClick: () => handleOpenSignModal(record.addendumId),
+                                        },
+
                                         ...(record.status == "CREATED" || record.status == "UPDATED" || record.status == "REJECTED"
                                             ? [{
 
@@ -329,6 +362,31 @@ const AppendixManagement = () => {
         setSelectedRecord(null);
         refetch();
 
+    };
+
+    const handleUploadSign = async (selectedAppendixtId) => {
+        console.log("selectedContractId", selectedAppendixtId)
+        try {
+            // Tạo FormData và append tất cả file vào cùng một key (ví dụ: "files")
+            const formData = new FormData();
+            fileList.forEach((file) => {
+                formData.append("files", file);
+            });
+            console.log("formData", formData)
+            // Gọi API upload file, truyền paymentScheduleId và formData
+            const res = await uploadSign({ addendumId: selectedAppendixtId, formData }).unwrap();
+
+            message.success(res.message);
+            setFileList([]);
+
+            setSelectedAppendixtId(null);
+            setIsOpenSignModal(false);
+            refetchImg();
+            // refetch();
+        } catch (error) {
+            console.error("Lỗi khi tải lên file:", error);
+            message.error("Có lỗi xảy ra khi tải lên file!");
+        }
     };
 
     // console.log(selectedRecord)
@@ -397,6 +455,182 @@ const AppendixManagement = () => {
                             refetch();
                         }}
                     />
+                </Modal>
+
+                <Modal
+                    title="Cập nhật trạng thái đã ký"
+                    open={isOpenSignModal}
+                    onCancel={handleCloseUpdateSignModal}
+                    footer={null}
+                    width={700}
+                >
+                    {LoadingImage ? (
+                        <Spin />
+                    ) : (
+                        <div className="p-4">
+                            {/* Đã có hóa đơn */}
+
+                            {dataSign?.data?.length > 0 ? (
+                                <>
+                                    <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
+                                    <div
+                                        className="image-preview"
+                                        style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+                                    >
+                                        {dataSign?.data?.map((fileUrl, idx) => {
+                                            // const isImage = fileUrl.match(/\.(jpeg|jpg|png)$/i);
+                                            // const isPDF = fileUrl.match(/\.pdf$/i);
+                                            const isPDF = fileUrl.includes("/raw");
+                                            const isImage = fileUrl.includes("/image");
+                                            return (
+                                                <div key={idx} style={{ position: "relative" }}>
+                                                    {isImage ? (
+                                                        <Image
+                                                            src={fileUrl}
+                                                            alt={`Uploaded ${idx}`}
+                                                            style={{
+                                                                width: "100px",
+                                                                height: "100px",
+                                                                objectFit: "cover",
+                                                                borderRadius: "8px"
+                                                            }}
+                                                        />
+                                                    ) : isPDF ? (
+                                                        <a
+                                                            href={fileUrl}
+
+                                                            rel="noopener noreferrer"
+                                                            download
+                                                            style={{
+                                                                display: "flex",
+                                                                justifyContent: "center",
+                                                                alignItems: "center",
+                                                                width: "100px",
+                                                                height: "100px",
+                                                                border: "1px solid #ccc",
+                                                                borderRadius: "8px",
+                                                                backgroundColor: "#f0f0f0",
+                                                                flexDirection: "column",
+                                                                color: "#e74c3c",
+                                                                textDecoration: "none"
+                                                            }}
+                                                        >
+                                                            <FilePdfOutlined style={{ fontSize: "30px" }} />
+                                                            <span style={{ fontSize: "12px", textAlign: "center" }}>PDF File</span>
+                                                        </a>
+                                                    ) : (
+                                                        <span>File không xác định</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Upload.Dragger
+                                        multiple
+                                        name="files"
+                                        accept="image/png,image/jpeg,application/pdf"
+                                        beforeUpload={(file) => {
+                                            const isImage = file.type === "image/png" || file.type === "image/jpeg";
+                                            const isPDF = file.type === "application/pdf";
+
+                                            if (!isImage && !isPDF) {
+                                                message.error(`${file.name} không phải là hình PNG/JPG hoặc file PDF!`);
+                                                return Upload.LIST_IGNORE;
+                                            }
+
+                                            setFileList((prev) => [...prev, file]);
+                                            return false; // Không upload tự động
+                                        }}
+                                        showUploadList={false}
+                                    >
+                                        <p className="ant-upload-drag-icon">
+                                            <InboxOutlined />
+                                        </p>
+                                        <div className="ant-upload-text">Click hoặc kéo file vào đây để tải lên</div>
+                                        <p className="ant-upload-hint">Hỗ trợ tải lên nhiều file hình hoặc PDF.</p>
+                                    </Upload.Dragger>
+
+                                    {fileList.length > 0 && (
+                                        <div className="file-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                            {fileList.map((file, index) => {
+                                                const isImage = file.type.startsWith("image/");
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        onMouseEnter={() => setHoveredIndex(index)}
+                                                        onMouseLeave={() => setHoveredIndex(null)}
+                                                        style={{ position: "relative" }}
+                                                    >
+                                                        {isImage ? (
+                                                            <Image
+                                                                src={URL.createObjectURL(file)}
+                                                                alt="Preview"
+                                                                style={{
+                                                                    width: "100px",
+                                                                    height: "100px",
+                                                                    objectFit: "cover",
+                                                                    borderRadius: "8px"
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                style={{
+                                                                    width: "100px",
+                                                                    height: "100px",
+                                                                    display: "flex",
+                                                                    justifyContent: "center",
+                                                                    alignItems: "center",
+                                                                    border: "1px solid #ddd",
+                                                                    borderRadius: "8px",
+                                                                    backgroundColor: "#f5f5f5"
+                                                                }}
+                                                            >
+                                                                <FilePdfOutlined style={{ fontSize: "30px", color: "#e74c3c" }} />
+                                                            </div>
+                                                        )}
+                                                        {hoveredIndex === index && (
+                                                            <Button
+                                                                icon={<DeleteOutlined />}
+                                                                onClick={() => handleDeleteImg(index)}
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: "5px",
+                                                                    right: "5px",
+                                                                    backgroundColor: "red",
+                                                                    color: "white",
+                                                                    borderRadius: "50%",
+                                                                    padding: "5px",
+                                                                    border: "none"
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        type="primary"
+                                        icon={LoadingUploadSign ? <LoadingOutlined /> : <UploadOutlined />}
+                                        onClick={() => handleUploadSign(selectedAppendixtId)}
+                                        disabled={fileList.length === 0 || LoadingUploadSign}
+                                        style={{ marginTop: "10px" }}
+                                    >
+                                        {LoadingUploadSign ? "Đang tải lên..." : "Tải lên"}
+                                    </Button>
+
+
+                                </>
+                            )}
+
+
+                        </div>
+                    )}
+
                 </Modal>
 
                 <DuplicateModal

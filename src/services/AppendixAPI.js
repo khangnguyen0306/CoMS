@@ -208,7 +208,13 @@ export const appendixApi = baseApi.injectEndpoints({
       },
       invalidatesTags: [{ type: "Appendix", id: "LIST" }],
     }),
-
+    getImgSignAppendix: builder.query({
+      query: ({ id }) => ({
+        url: `addendums/signed-addenda-urls/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, id) => [{ type: 'Appendix', id: id }],
+    }),
 
   }),
 });
@@ -234,5 +240,6 @@ export const {
   useDuplicateAppendixMutation,
   useResubmitAppendixMutation,
   useUploadAppendixAlreadySignedMutation,
-  useUploadAppendixOnlineSignedMutation
+  useUploadAppendixOnlineSignedMutation,
+  useGetImgSignAppendixQuery,
 } = appendixApi;
