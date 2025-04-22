@@ -17,13 +17,23 @@ export const userAPI = baseApi.injectEndpoints({
                     ]
                     : [{ type: "USER", id: "LIST" }],
         }),
+
         getUserById: builder.query({
-            query: ({ id }) => ({
-                url: `/users/get-user/${id}`,
+            query: () => ({
+                url: `/users/get-user`,
                 method: "GET",
             }),
             providesTags: (result, error, userId) => [{ type: "USER", id: userId }],
         }),
+
+        getDetailUserById: builder.query({
+            query: ({ id }) => ({
+                url: `/users/get-user-by-id/${id}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, userId) => [{ type: "USER", id: userId }],
+        }),
+
         banUser: builder.mutation({
             query: ({ userId }) => ({
                 url: `/users/block-or-enable/${userId}/0`,
@@ -31,6 +41,7 @@ export const userAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
+
         activeUser: builder.mutation({
             query: ({ userId }) => ({
                 url: `/users/block-or-enable/${userId}/1`,
@@ -38,6 +49,7 @@ export const userAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, { userId }) => [{ type: "USER", id: userId }],
         }),
+
         updateUser: builder.mutation({
             query: ({ body, userId }) => ({
                 url: `/users/update-user/${userId}`,
@@ -46,6 +58,7 @@ export const userAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, { id }) => [{ type: "USER", id }],
         }),
+
         addUser: builder.mutation({
             query: ({ email, full_name, phone_number, address, role_id, is_ceo, departmentId, date_of_birth }) => ({
                 url: `/users/register`,
@@ -54,6 +67,7 @@ export const userAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: [{ type: "USER", id: "LIST" }],
         }),
+
         getUserStaffManager: builder.query({
             query: () => ({
                 url: `/users/get-all-staff-and-manager`,
@@ -111,4 +125,5 @@ export const {
     useChangePassWordMutation,
     useUpdateAvatarMutation,
     useGetUserManagerQuery,
+    useGetDetailUserByIdQuery
 } = userAPI;
