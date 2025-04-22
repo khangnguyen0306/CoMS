@@ -29,6 +29,10 @@ const ContractPartner = ({ partnerId }) => {
         setCurrentPage(1);
     }, [searchText]);
 
+    useEffect(() => {
+        refetchContractData()
+    }, [partnerId])
+
     // Create a debounced function for setting search text
     const debouncedSetSearchText = useCallback(debounce((value) => {
         setSearchText(value);
@@ -40,7 +44,7 @@ const ContractPartner = ({ partnerId }) => {
         setPageSize(pagination.pageSize);
     };
 
-    
+
     // Định nghĩa bộ lọc trạng thái
     const statusFilters = [
         { text: 'SIGNED', value: 'Đã ký' },
@@ -135,7 +139,7 @@ const ContractPartner = ({ partnerId }) => {
         <div>
             <Space style={{ marginBottom: 16 }} className='w-full'>
                 <Input
-                    placeholder="Tìm kiếm theo tên, ngày ký, mã hợp đồng, ngày hết hạn, trạng thái"
+                    placeholder="Tìm kiếm theo tên hợp đồng, mã hợp đồng"
                     onChange={e => debouncedSetSearchText(e.target.value)}
                     prefix={<SearchOutlined />}
                     className='w-full min-w-[500px]'

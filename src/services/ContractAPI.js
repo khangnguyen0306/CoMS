@@ -186,7 +186,8 @@ export const ContractAPI = baseApi.injectEndpoints({
                 params: {
                     page: params?.page,
                     size: params?.size,
-                    keyword: params?.keyword
+                    keyword: params?.keyword,
+                    order: "desc"
                 },
                 method: "GET",
             }),

@@ -27,7 +27,7 @@ const ContractDetail = () => {
     const { Panel } = Collapse;
     const { id } = useParams();
     const navigate = useNavigate();
-    const { data: contractData, isLoading: loadingDataContract } = useGetContractDetailQuery(id);
+    const { data: contractData, isLoading: loadingDataContract, isError: contractError } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
@@ -559,14 +559,14 @@ const ContractDetail = () => {
 
                         </Tabs.TabPane>
                         <Tabs.TabPane tab="Phê duyệt" key="2">
-                            <Card style={{ margin: '16px',display:'flex',flexDirection:'column' }}>
+                            <Card style={{ margin: '16px', display: 'flex', flexDirection: 'column' }}>
                                 <Typography.Paragraph>
                                     Vui lòng đảm bảo rằng bạn đã đọc kỹ tất cả các thông tin liên quan đến phê duyệt.
                                 </Typography.Paragraph>
                                 <p>
-                                <Checkbox onChange={onCheckboxChange}>
-                                    Tôi đã đọc kỹ và quyết định phê duyệt
-                                </Checkbox>
+                                    <Checkbox onChange={onCheckboxChange}>
+                                        Tôi đã đọc kỹ và quyết định phê duyệt
+                                    </Checkbox>
                                 </p>
                                 <Button
                                     disabled={!confirmed}

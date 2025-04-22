@@ -60,7 +60,7 @@ const AppendixDetail = () => {
             refetchOnReconnect: true,
         }
     )
-    const { data: dataAppendixProcess, isLoading: isLoadingAppendixProcess, isError: isErrorAppendixProcess,refetch:refetchAppendix } = useGetWorkFlowByAppendixIdQuery(
+    const { data: dataAppendixProcess, isLoading: isLoadingAppendixProcess, isError: isErrorAppendixProcess, refetch: refetchAppendix } = useGetWorkFlowByAppendixIdQuery(
         { appendixId },
         { skip: !appendixId }
     );
@@ -119,7 +119,6 @@ const AppendixDetail = () => {
         }
     };
 
-
     const handleReject = async () => {
         try {
             await rejectProcess({ comment: reason, appendixId: appendixId, stageId: StageIdMatching }).unwrap();
@@ -173,7 +172,6 @@ const AppendixDetail = () => {
         const [year, month, day, hour, minute] = dateArray;
         return new Date(year, month - 1, day, hour, minute);
     };
-
 
     const contractItemsColumns = [
         { title: 'Số thứ tự', dataIndex: 'itemOrder', key: 'itemOrder' },
@@ -1108,7 +1106,7 @@ const AppendixDetail = () => {
         paymentDate: schedule.paymentDate,
         status: schedule.status,
         paymentMethod: schedule.paymentMethod,
-        notifyPaymentDate:schedule.notifyPaymentDate
+        notifyPaymentDate: schedule.notifyPaymentDate
     }));
 
     if (isLoadingAppendix) {
@@ -1140,7 +1138,7 @@ const AppendixDetail = () => {
                         className="font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500 mt-10"
                         style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.2)' }}
                     >
-                        {appendixData?.data.title}
+                        {appendixData?.data.title.toUpperCase()}
                     </p>
 
                 </div>

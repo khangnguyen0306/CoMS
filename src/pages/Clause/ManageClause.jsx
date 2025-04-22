@@ -444,23 +444,6 @@ const ManageClause = () => {
                                         {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                                     </span>
                                 </button>
-                                {/* <button
-                                    onClick={handleSortByContractCount}
-                                    className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortByClause === 'contractCount'
-                                        ? sortOrderClause === 'asc'
-                                            ? 'bg-red-500 hover:bg-red-600'
-                                            : 'bg-blue-500 hover:bg-blue-600'
-                                        : 'bg-gray-300 hover:bg-gray-400'
-                                        }`}
-                                >
-                                    <span className="text-white">
-                                        {sortByClause === 'contractCount'
-                                            ? sortOrderClause === 'asc'
-                                                ? 'Ít hợp đồng nhất'
-                                                : 'Nhiều hợp đồng nhất'
-                                            : 'Sắp xếp theo số hợp đồng'}
-                                    </span>
-                                </button> */}
                             </div>
                             <Button
                                 type="primary"
@@ -605,11 +588,10 @@ const ManageClause = () => {
                                     content={
                                         <Card
                                             bordered
-                                            className="shadow-lg rounded-lg"
-                                            style={{ width: 550, borderColor: "#d1d5db" }}
+                                            className="shadow-lg rounded-lg min-w-[650px] max-w-[50vw]"
                                         >
-                                            <Title level={4} className="text-blue-600">Chi tiết điều khoản</Title>
-                                            <div className="mt-2 space-y-1">
+                                            <p className="text-blue-600 text-base font-bold">{clause.label.toUpperCase()}</p>
+                                            <div className="mt-2 space-y-1 flex flex-col gap-2">
                                                 <p>
                                                     <Text strong>Mã: </Text> {clause.clauseCode}
                                                 </p>
@@ -618,9 +600,9 @@ const ManageClause = () => {
                                                         {clause.type}
                                                     </Tag>
                                                 </p>
-                                                <p>
-                                                    <Text strong>Tên: </Text> {clause.label}
-                                                </p>
+                                                {/* <p>
+                                                    <Text strong>Tên: </Text> 
+                                                </p> */}
                                                 <p>
                                                     <Text strong>Nội dung: </Text> {clause.value}
                                                 </p>
@@ -693,7 +675,7 @@ const ManageClause = () => {
                                                             {clause.type}
                                                         </Tag>
                                                         <p className="text-[#3378cc] font-bold text-base">{clause.label}</p>
-                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.value}</p>
+                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.value.length > 200 ? `${clause.value.substring(0, 200)}...` : clause.value}</p>
                                                         <p className="text-gray-400 text-sm">
                                                             Ngày tạo: {dayjs(new Date(
                                                                 clause.createdAt[0],
@@ -742,17 +724,17 @@ const ManageClause = () => {
                                 {sortOrderClause === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
                             </Button>
                             <div className='flex justify-end w-full gap-4'>
-                            <Button
-                                type="primary"
-                                onClick={openAddLagelModal}
-                                className="mb-4"
-                                icon={<PlusCircleFilled />}
-                            >
-                                Thêm Căn cứ
-                            </Button>
+                                <Button
+                                    type="primary"
+                                    onClick={openAddLagelModal}
+                                    className="mb-4"
+                                    icon={<PlusCircleFilled />}
+                                >
+                                    Thêm Căn cứ
+                                </Button>
+                            </div>
                         </div>
-                        </div>
-             
+
                         <Modal
                             title="Thêm Căn cứ Pháp Lý"
                             open={isModalOpenAddLegal}
@@ -870,8 +852,8 @@ const ManageClause = () => {
                                             className="shadow-lg rounded-lg"
                                             style={{ width: 550, borderColor: "#d1d5db" }}
                                         >
-                                            <Title level={4} className="text-blue-600">Chi tiết căn cứ</Title>
-                                            <div className="mt-2 space-y-1">
+                                         <p className="text-blue-600 text-base font-bold">{clause.label.toUpperCase()}</p>
+                                            <div className="mt-2 space-y-1 flex flex-col gap-2">
                                                 <p>
                                                     <Text strong>Mã: </Text> {clause.clauseCode}
                                                 </p>
@@ -879,9 +861,6 @@ const ManageClause = () => {
                                                     <Text strong>Loại: </Text> <Tag color={colorMap[clause.type] || "default"} className="w-fit">
                                                         {clause.type}
                                                     </Tag>
-                                                </p>
-                                                <p>
-                                                    <Text strong>Tên: </Text> {clause.label}
                                                 </p>
                                                 <p>
                                                     <Text strong>Nội dung: </Text> {clause.value}
@@ -953,7 +932,7 @@ const ManageClause = () => {
                                                             {clause.type}
                                                         </Tag>
                                                         <p className="text-[#3378cc] font-bold text-base">{clause.label}</p>
-                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.value}</p>
+                                                        <p className="text-gray-400 text-sm">Nội dung: {clause.value.length > 200 ? `${clause.value.substring(0, 200)}...` : clause.value}</p>
                                                         <p className="text-gray-400 text-sm">Ngày tạo: {dayjs(new Date(
                                                             clause.createdAt[0],
                                                             clause.createdAt[1] - 1,
@@ -1063,7 +1042,7 @@ const ManageClause = () => {
 
             </Tabs>
             <Modal
-                title="Import File Điều Khoản"
+                title="Tải lên File Điều Khoản"
                 open={isModalOpenImport}
                 onCancel={() => setIsModalOpenImport(false)}
                 footer={null}
@@ -1077,7 +1056,7 @@ const ManageClause = () => {
                         className='my-3'
                         icon={<DownloadOutlined />}
                         type="link"
-                        href="https://drive.google.com/uc?export=download&id=1PXVJcwYMcbBBhpqv56FBomGIeLO5pZxn"
+                        href="https://res.cloudinary.com/dret7pl7j/raw/upload/v1744610186/term_test_cwltv4.xlsx"
                         download
                     >
                         Tải xuống file mẫu

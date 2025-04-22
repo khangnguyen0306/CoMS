@@ -98,6 +98,7 @@ import { PreviewSection } from "../../components/ui/PreviewSection";
 import { useSelector } from "react-redux";
 import topIcon from "../../assets/Image/top.svg"
 import ChatModalWrapper from "../../components/ui/ChatModal";
+import { useWarnOnLeave } from "../../hooks/UseWarnOnLeave";
 
 const { Step } = Steps;
 
@@ -147,6 +148,7 @@ const CreateTemplate = () => {
     const otherContentRef = useRef(null);
     const containerRef = useRef(null);
     const [isOverflowing, setIsOverflowing] = useState(false);
+    const [shouldBlockNavigation, setShouldBlockNavigation] = useState(true);
 
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
     const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation()
@@ -2019,7 +2021,7 @@ const CreateTemplate = () => {
 
     const handleSubmit = async () => {
         try {
-            // Lấy từng giá trị cụ thể từ form và gán giá trị mặc định nếu không tồn tại
+            setShouldBlockNavigation(false)
             const contractTitle = form.getFieldValue('contractTitle') || '';
             const partyInfo = form.getFieldValue('partyInfo') || '';
             const legalBasis = form.getFieldValue('legalBasis') || [];
@@ -2102,20 +2104,19 @@ const CreateTemplate = () => {
                 navigate('/managetemplate')
             } else {
                 message.error(response.message);
+                setShouldBlockNavigation(true)
             }
-
-
         } catch (error) {
-            // console.error("Error:", error);
+            setShouldBlockNavigation(true)
             message.error(error.data.message);
         }
     };
 
-
+    useWarnOnLeave(shouldBlockNavigation);
 
     if (isLoading || isLoadingType) return <Skeleton active />;
-    if (isError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
-    if (!bsInfor) return <Card><Empty description="Không có dữ liệu để hiển thị" /></Card>;
+    if (isError) return <Card className="min-h-[100vh]"><Empty description="Không thể tải dữ liệu" /></Card>;
+    if (!bsInfor) return <Card className="min-h-[100vh]"><Empty description="Không có dữ liệu để hiển thị" /></Card>;
 
     return (
         <div className={`p-8 ${isDarkMode ? 'bg-[#141414] text-white' : 'bg-white'} shadow rounded-md min-h-[100vh]`}>
