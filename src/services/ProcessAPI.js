@@ -58,6 +58,7 @@ export const processAPI = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "ProcessList", id: "LIST" }],
     }),
+
     getContractPorcessPending: builder.query({
       query: ({ approverId, keyword, size, page, status }) => {
         const params = { page, size, keyword };
@@ -74,6 +75,7 @@ export const processAPI = baseApi.injectEndpoints({
         { type: "ProcessList", id: approverId },
       ],
     }),
+    
     getProcessByContractTypeId: builder.query({
       query: ({ contractTypeId }) => ({
         url: `/approval-workflows/get-by-contract-type-id/${contractTypeId}`,
@@ -102,10 +104,10 @@ export const processAPI = baseApi.injectEndpoints({
       ],
     }),
     getContractPorcessPendingManager: builder.query({
-      query: ({ approverId, page, size, keyword = "" }) => ({
+      query: ({ approverId, page, size, keyword = "", status }) => ({
         url: `approval-workflows/get-contract-for-manager/${approverId}`,
         method: "GET",
-        params: { page, size, keyword },
+        params: { page, size, keyword, status },
       }),
       providesTags: (result, error, { approverId }) => [
         { type: "Partner", id: approverId },

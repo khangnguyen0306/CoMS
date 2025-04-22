@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Button, Skeleton, Divider } from "antd";
 import { useParams } from "react-router-dom";
-import { useGetDetailUserByIdQuery } from "../../services/UserAPI";
+
 import dayjs from "dayjs";
 import partnerIMG from "../../assets/Image/partner.jpg";
 import { MailFilled } from "@ant-design/icons";
@@ -9,6 +9,7 @@ import { MdPlace } from "react-icons/md";
 import utc from "dayjs/plugin/utc";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
+import { useGetDetailUserByIdQuery } from "../../services/UserAPI";
 dayjs.extend(utc);
 
 
@@ -16,12 +17,15 @@ const ProfileDetail = () => {
     const { id } = useParams();
     const user = useSelector(selectCurrentUser)
     const { data, isLoading, refetch } = useGetDetailUserByIdQuery({ id }, { skip: !id });
+    const { data, isLoading, refetch } = useGetDetailUserByIdQuery({ id }, { skip: !id });
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
 
+    // console.log(user)
     // console.log(user)
 
     useEffect(() => {
         refetch()
+    }, [id])
     }, [id])
 
     const dislayGender = {
