@@ -129,7 +129,11 @@ const CreateContractForm = () => {
             try {
                 const response = await getDateNotification().unwrap();
                 if (response) {
-                    setNotificationDays(response[0].value || 0);
+                    // Find the response with key PAYMENT_DEADLINE
+                    const paymentDeadline = response.find(item => item.key === "PAYMENT_DEADLINE");
+                    if (paymentDeadline) {
+                        setNotificationDays(paymentDeadline.value || 0);
+                    }
                 }
             } catch (error) {
                 // console.error('Error fetching notification days:', error);
@@ -316,9 +320,9 @@ const CreateContractForm = () => {
 
 
     const onFinish = async () => {
-
+        setShouldBlockNavigation(false); 
         const data = form.getFieldsValue(true);
-        setShouldBlockNavigation(false); // bật điều hư
+    
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
         const additionalConfig = Object.keys(data)
             .filter(key => !isNaN(key)) // Chỉ lấy các key là số (1,2,3,...)

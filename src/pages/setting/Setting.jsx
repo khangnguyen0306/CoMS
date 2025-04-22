@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Form, InputNumber, Button, Card, Space, Typography, message, Descriptions, Spin } from 'antd';
+import { Tabs, Form, InputNumber, Button, Card, Space, Typography, message, Descriptions, Spin, Checkbox } from 'antd';
 import { EditOutlined, SaveOutlined, PlusOutlined } from '@ant-design/icons';
 import { useCreateDateNofiticationMutation, useGetDateNofitifationQuery } from '../../services/ConfigAPI';
 
@@ -76,40 +76,72 @@ const Setting = () => {
                 <Form
                     form={form}
                     layout="vertical"
-                    initialValues={settings || { notificationDays: 0, approvalDays: 0 }}
-                    onFinish={handleSave}
+                    initialValues={{ ...settings, editNotificationDays: false, editApprovalDays: false }}
+                    onFinish={(values) => {
+                        const updatedSettings = {};
+                        if ('notificationDays' in values) {
+                            updatedSettings.notificationDays = values.notificationDays;
+                        }
+                        if ('approvalDays' in values) {
+                            updatedSettings.approvalDays = values.approvalDays;
+                        }
+                        handleSave(updatedSettings);
+                    }}
                 >
+                    <Form.Item name="editNotificationDays" valuePropName="checked">
+                        <Checkbox>Chỉnh sửa số ngày thông báo mặc định trước đợt thanh toán</Checkbox>
+                    </Form.Item>
+
                     <Form.Item
-                        name="notificationDays"
-                        label="Số ngày thông báo mặc định trước đợt thanh toán"
-                        rules={[
-                            { required: true, message: 'Vui lòng nhập số ngày thông báo mặc định!' },
-                            { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
-                            { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' }
-                        ]}
-                    >
-                        <InputNumber
-                            min={1}
-                            max={90}
-                            addonAfter="ngày"
-                            style={{ width: '200px' }}
-                        />
+                        className='mt-[-20px]'
+                        shouldUpdate={(prevValues, currentValues) => prevValues.editNotificationDays !== currentValues.editNotificationDays}>
+                        {({ getFieldValue }) =>
+                            getFieldValue('editNotificationDays') ? (
+                                <Form.Item
+                                    name="notificationDays"
+                                    label="Số ngày thông báo mặc định trước đợt thanh toán"
+                                    rules={[
+                                        { required: true, message: 'Vui lòng nhập số ngày thông báo mặc định!' },
+                                        { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
+                                        { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' }
+                                    ]}
+                                >
+                                    <InputNumber
+                                        min={1}
+                                        max={90}
+                                        addonAfter="ngày"
+                                        style={{ width: '200px' }}
+                                    />
+                                </Form.Item>
+                            ) : null
+                        }
+                    </Form.Item>
+                    <Form.Item  name="editApprovalDays" valuePropName="checked">
+                        <Checkbox>Chỉnh sửa số ngày cho phép phê duyệt mặc định</Checkbox>
                     </Form.Item>
                     <Form.Item
-                        name="approvalDays"
-                        label="Số ngày cho phép phê duyệt mặc định"
-                        rules={[
-                            { required: true, message: 'Vui lòng nhập số ngày cho phép phê duyệt mặc định!' },
-                            { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
-                            { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' }
-                        ]}
-                    >
-                        <InputNumber
-                            min={1}
-                            max={90}
-                            addonAfter="ngày"
-                            style={{ width: '200px' }}
-                        />
+                        className='mt-[-20px]'
+                        shouldUpdate={(prevValues, currentValues) => prevValues.editApprovalDays !== currentValues.editApprovalDays}>
+                        {({ getFieldValue }) =>
+                            getFieldValue('editApprovalDays') ? (
+                                <Form.Item
+                                    name="approvalDays"
+                                    label="Số ngày cho phép phê duyệt mặc định"
+                                    rules={[
+                                        { required: true, message: 'Vui lòng nhập số ngày cho phép phê duyệt mặc định!' },
+                                        { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
+                                        { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' }
+                                    ]}
+                                >
+                                    <InputNumber
+                                        min={1}
+                                        max={90}
+                                        addonAfter="ngày"
+                                        style={{ width: '200px' }}
+                                    />
+                                </Form.Item>
+                            ) : null
+                        }
                     </Form.Item>
                     <Form.Item>
                         <Space>
@@ -185,23 +217,23 @@ const Setting = () => {
                 </Card>
             ),
         },
-        {
-            key: '2',
-            label: 'Cài đặt khác',
-            children: (
-                <Card
-                    style={{
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                        borderRadius: '8px'
-                    }}
-                >
-                    <Space direction="vertical" align="center" style={{ width: '100%', padding: '20px' }}>
-                        <Title level={5}>Cài đặt khác</Title>
-                        <Text type="secondary">Hiện tại chưa có dữ liệu cài đặt khác.</Text>
-                    </Space>
-                </Card>
-            ),
-        },
+        // {
+        //     key: '2',
+        //     label: 'Cài đặt khác',
+        //     children: (
+        //         <Card
+        //             style={{
+        //                 boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        //                 borderRadius: '8px'
+        //             }}
+        //         >
+        //             <Space direction="vertical" align="center" style={{ width: '100%', padding: '20px' }}>
+        //                 <Title level={5}>Cài đặt khác</Title>
+        //                 <Text type="secondary">Hiện tại chưa có dữ liệu cài đặt khác.</Text>
+        //             </Space>
+        //         </Card>
+        //     ),
+        // },
     ];
 
     return (

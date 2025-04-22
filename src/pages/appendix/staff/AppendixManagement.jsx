@@ -240,7 +240,7 @@ const AppendixManagement = () => {
                             <Dropdown
                                 menu={{
                                     items: [
-                                        ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED"
+                                        ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED" && record.status !== "SIGNED" && record.status !== "ACTIVE "
                                             ? [{
                                                 key: "edit",
                                                 icon: <EditFilled style={{ color: '#228eff' }} />,
