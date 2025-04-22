@@ -255,9 +255,13 @@ const CreateContractForm = () => {
     const loadBMData = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 7 }).unwrap();
     };
+
     const loadDKKata = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
     };
+    // const loadPartnerData = async ({ page, size, keyword }) => {
+    //     return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
+    // };
 
     const loadTemplateData = async ({ page, size, keyword }) => {
         // Lấy giá trị loại hợp đồng đang được chọn
@@ -1096,7 +1100,7 @@ const CreateContractForm = () => {
                                             rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}
                                         >
                                             <LazySelectPartner
-                                                loadDataCallback={getPartnerData}
+                                                loadDataCallback={loadPartnerData}
                                                 options={partnerData?.data.content}
                                                 showSearch
                                                 placeholder="Chọn thông tin khách hàng"
@@ -1993,7 +1997,7 @@ const CreateContractForm = () => {
                             <div ref={otherContentRef} className="py-[100px]">
                                 <Divider orientation="center">Các nội dung khác</Divider>
 
-                                <Form.Item name="appendixEnabled" valuePropName="checked">
+                                {/* <Form.Item name="appendixEnabled" valuePropName="checked">
                                     <div className="flex items-center">
                                         <Switch
                                             className="mr-4"
@@ -2005,7 +2009,7 @@ const CreateContractForm = () => {
                                         />
                                         <p className="text-sm">Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
                                     </div>
-                                </Form.Item>
+                                </Form.Item> */}
 
                                 <Form.Item name="transferEnabled" valuePropName="checked">
                                     <div className="flex items-center">

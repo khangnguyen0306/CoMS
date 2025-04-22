@@ -61,9 +61,9 @@ const ManagePartner = () => {
     };
 
 
-    const handleDeleteItem = (key) => {
+    const handleDeleteItem = (partyId) => {
         const currentHistory = getViewHistory();
-        const updatedHistory = currentHistory.filter(item => item.key !== key);
+        const updatedHistory = currentHistory.filter(item => item.partyId !== partyId);
         localStorage.setItem('viewHistory', JSON.stringify(updatedHistory));
         setViewHistory(updatedHistory);
     };
@@ -73,7 +73,7 @@ const ManagePartner = () => {
             const initialHistory = getViewHistory();
             if (partnerData) {
                 const validHistory = initialHistory.filter((item) =>
-                    partnerData?.data?.content.some((partner) => partner.key === item.key)
+                    partnerData?.data?.content.some((partner) => partner.partyId === item.partyId)
                 );
                 if (validHistory.length !== initialHistory.length) {
                     localStorage.setItem('viewHistory', JSON.stringify(validHistory));
@@ -85,7 +85,7 @@ const ManagePartner = () => {
     }, [partnerData]);
 
     const addViewHistory = (record) => {
-        // console.log('addViewHistory', record);
+        console.log('addViewHistory', record);
         const minimalRecord = {
             partyId: record.partyId,
             partnerName: record.partnerName,
@@ -155,9 +155,7 @@ const ManagePartner = () => {
                         refetch();
                         message.success('Xóa thành công');
                     } else
-                        if (result.error.data == "Kh�ng th? x�a ??i t�c v� ?ang trong h?p ??ng ?ang ho?t ??ng. Vui l�ng t?o ph? l?c thay th?.") {
-                            message.error('Không thể xóa đối tác vì đang trong hợp đồng đang hoạt động. Vui lòng tạo phụ lục thay thế.');
-                        }
+                        message.error('Không thể xóa đối tác vì đang trong hợp đồng đang hoạt động. Vui lòng tạo phụ lục thay thế.');
 
                 }
                 catch (error) {
@@ -266,20 +264,26 @@ const ManagePartner = () => {
             width: '200px',
         },
         {
-            title: 'Loại Partner',
-            dataIndex: 'partnerType',
-            width: '150px',
-            filters: [
-                { text: 'Nhà cung cấp', value: 'PARTNER_A' },
-                { text: 'Khách hàng', value: 'PARTNER_B' },
-            ],
-            onFilter: (value, record) => record.partnerType === value,
-            render: (type) => (
-                <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
-                    {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
-                </Tag>
-            ),
+            title: 'Mã số thuế',
+            dataIndex: 'taxCode',
+            sorter: (a, b) => a.taxCode.localeCompare(b.taxCode),
+            width: '200px',
         },
+        // {
+        //     title: 'Loại Partner',
+        //     dataIndex: 'partnerType',
+        //     width: '150px',
+        //     filters: [
+        //         { text: 'Nhà cung cấp', value: 'PARTNER_A' },
+        //         { text: 'Khách hàng', value: 'PARTNER_B' },
+        //     ],
+        //     onFilter: (value, record) => record.partnerType === value,
+        //     render: (type) => (
+        //         <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
+        //             {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
+        //         </Tag>
+        //     ),
+        // },
         {
             title: 'Người đại diện',
             dataIndex: 'spokesmanName',
@@ -363,43 +367,31 @@ const ManagePartner = () => {
                     trigger={["click"]}
                     overlay={
                         <List
+                            className="rounded-md "
                             dataSource={viewHistory}
                             renderItem={(item) => (
                                 <List.Item
-                                    style={{
-                                        cursor: 'pointer',
-                                        border: '1.5px solid #89c4d9',
-                                        borderRadius: '5px',
-                                        marginBottom: '8px'
-                                    }}
+                                    className="rounded-md cursor-pointer hover:bg-slate-200 p-0 border border-gray-500"
                                     onClick={() => {
                                         setSearchText(item.partnerName);
                                         setSearchQuery(item.partnerName);
                                         setCurrentPage(1);
                                     }}
                                 >
-                                    <Space style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
-                                        {/* <img
-                                            src={item.img || partnerIMG}
-                                            alt={item.partnerName}
-                                            style={{ width: 30, height: 30, borderRadius: '50%' }}
-                                        /> */}
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontWeight: 'bold' }}>{item.partnerName}</span>
-                                            <span style={{ fontSize: '12px', color: 'gray' }}>{item.email}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                            <span
-                                                style={{ color: 'red', cursor: 'pointer', fontSize: '16px' }}
-                                                onClick={(e) => {
-                                                    handleDeleteItem(item.key);
-                                                    e.stopPropagation();
-                                                }}
-                                            >
-                                                ✕
-                                            </span>
-                                        </div>
-                                    </Space>
+                                    <div className="flex items-center justify-between w-full text-black hover:text-blue-600 ">
+                                        <p className=" ml-3">{item.partnerName}</p>
+                                        <Button
+                                            type="link"
+                                            danger
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteItem(item.partyId);
+
+                                            }}
+                                        >
+                                            <DeleteFilled />
+                                        </Button>
+                                    </div>
                                 </List.Item>
                             )}
                             style={{
@@ -407,7 +399,7 @@ const ManagePartner = () => {
                                 maxHeight: 200,
                                 overflowY: "auto",
                                 padding: "8px",
-                                background: "#fff"
+                                background: isDarkMode ? "#b4b4b4" : "#fff"
                             }}
                         />
                     }

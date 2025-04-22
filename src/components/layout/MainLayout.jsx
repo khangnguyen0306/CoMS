@@ -237,7 +237,7 @@ const MainLayout = () => {
       children: [
         { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "appendix", badgeCount: "addendaAssignedToApprove", color: "#fa8c16" },
         { icon: IoIosSend, label: 'Yêu cầu phê duyệt phụ lục', key: "sendAppendix", badgeCount: "addendaRejected", color: "#722ed1" },
-        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "appendixManageStaff", default: true, badgeCount: "addendaPendingApproval", color: "#13c2c2" },
+        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "appendixManageStaff", default: true, color: "#13c2c2" },
       ]
     },
     {
@@ -319,8 +319,8 @@ const MainLayout = () => {
       badgeType: "addenda",
       children: [
         { icon: PiStampFill, label: 'Phê duyệt phụ lục', key: "directorAppendixApprove", color: "#FF8247", badgeCount: "addendaRejected" },
-        { icon: AiFillSignature, label: 'Phụ lục chờ ký', key: "directorAppendixSign", color: "#41a9ff", badgeCount: "contractsSignPendingForDirector" },
-        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "diarecAllApendix", default: true, badgeCount: "addendaPendingApprovalForDirector" },
+        { icon: AiFillSignature, label: 'Phụ lục chờ ký', key: "directorAppendixSign", color: "#41a9ff", badgeCount: "addendaSignPendingForDirector" },
+        { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "diarecAllApendix", default: true },
       ]
     },
     {

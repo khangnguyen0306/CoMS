@@ -51,7 +51,7 @@ export const ContractAPI = baseApi.injectEndpoints({
             query: ({ page, keyword, size, statuses, sortBy = 'id', order = 'desc' }) => {
                 const statusesQuery = statuses ? statuses.map(status => `statuses=${status}`).join('&') : ['CREATED', 'UPDATED', 'REJECTED', 'FIXED'];
                 return {
-                    url: `contracts?page=${page || 0}&size=${size || 0}&${statusesQuery}&sortBy=${sortBy}&order="desc"&keyword=${keyword}`,
+                    url: `contracts?page=${page || 0}&size=${size || 0}&${statusesQuery}&sortBy=${sortBy}&order=${order}&keyword=${keyword}`,
                     method: "GET",
                 };
             },

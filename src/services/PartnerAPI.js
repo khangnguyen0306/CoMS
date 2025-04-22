@@ -68,7 +68,7 @@ export const partnerAPI = baseApi.injectEndpoints({
       query: ({ keyword, page, size }) => ({
         url: `parties/get-all`,
         params: {
-          keyword: keyword,
+          keyword: keyword ,
           page: page,
           pageSize: size,
           partnerType: "PARTNER_B",
