@@ -69,10 +69,12 @@ export const userAPI = baseApi.injectEndpoints({
         }),
 
         getUserStaffManager: builder.query({
-            query: () => ({
+            query: ({ page = 0, size = 10 }) => ({
                 url: `/users/get-all-staff-and-manager`,
                 method: "GET",
+                params: { page, size },
             }),
+
             providesTags: (result) =>
                 result?.users
                     ? result.users.map(({ id }) => ({ type: "USER", id }))

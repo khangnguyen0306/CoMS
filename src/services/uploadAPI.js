@@ -103,7 +103,18 @@ export const uploadAPI = createApi({
         };
       },
       invalidatesTags: [{ type: "Contract", id: "LIST" }],
-    })
+    }),
+    uploadSignFile: builder.mutation({
+      query: ({ addendumId, formData }) => {
+        return {
+          url: `addendums/upload-signed-addenda-file/${addendumId}`,
+          method: "PUT",
+          body: formData,
+        };
+      },
+      invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+    }),
+
 
   })
 })
@@ -115,5 +126,6 @@ export const {
   useFindLocationMutation,
   useUploadContractToSignMutation,
   useUploadImgSignMutation,
-  useUploadAppenixToSignMutation
+  useUploadAppenixToSignMutation,
+  useUploadSignFileMutation,
 } = uploadAPI;

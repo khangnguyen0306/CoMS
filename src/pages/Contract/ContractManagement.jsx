@@ -922,59 +922,59 @@ const ManageContracts = () => {
 
                 {isCEO ? (
                     <>
-                    <Checkbox.Group
-                                    value={checkedList}
-                                    options={options}
-                                    onChange={(value) => setCheckedList(value)}
-                                    className="my-5"
-                                />
-                    <Table
-                        columns={filteredColumns2}
-                        dataSource={contracts?.data?.content}
-                        rowKey="id"
-                        loading={isLoading}
-                        pagination={{
-                            current: paginationCEO.current, 
-                            pageSize: paginationCEO.pageSize,
-                            total: contracts?.data?.totalElements || 0,
-                            showSizeChanger: true,
-                            showQuickJumper: true,
-                            showTotal: (total) => `Tổng ${total} hợp đồng`,
-                        }}
-                        onChange={handleTableChange}
-                        expandable={{
-                            expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
-                        }}
-                        onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
-                    />
+                        <Checkbox.Group
+                            value={checkedList}
+                            options={options}
+                            onChange={(value) => setCheckedList(value)}
+                            className="my-5"
+                        />
+                        <Table
+                            columns={filteredColumns2}
+                            dataSource={contracts?.data?.content}
+                            rowKey="id"
+                            loading={isLoading}
+                            pagination={{
+                                current: paginationCEO.current,
+                                pageSize: paginationCEO.pageSize,
+                                total: contracts?.data?.totalElements || 0,
+                                showSizeChanger: true,
+                                showQuickJumper: true,
+                                showTotal: (total) => `Tổng ${total} hợp đồng`,
+                            }}
+                            onChange={handleTableChange}
+                            expandable={{
+                                expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                            }}
+                            onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                        />
                     </>
                 ) : isManager ? (
                     <>
-                    <Checkbox.Group
-                                    value={checkedList}
-                                    options={options}
-                                    onChange={(value) => setCheckedList(value)}
-                                    className="my-5"
-                                />
-                    <Table
-                        columns={filteredColumns2}
-                        dataSource={contractApprove?.data?.content}
-                        rowKey="id"
-                        loading={isLoading}
-                        pagination={{
-                            current: paginationManager.current,
-                            pageSize: paginationManager.pageSize,
-                            total: contractApprove?.data?.totalElements,
-                            showSizeChanger: true,
-                            showQuickJumper: true,
-                            showTotal: (total) => `Tổng ${total} hợp đồng`,
-                        }}
-                        onChange={handleTableChange}
-                        expandable={{
-                            expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
-                        }}
-                        onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
-                    />
+                        <Checkbox.Group
+                            value={checkedList}
+                            options={options}
+                            onChange={(value) => setCheckedList(value)}
+                            className="my-5"
+                        />
+                        <Table
+                            columns={filteredColumns2}
+                            dataSource={contractApprove?.data?.content}
+                            rowKey="id"
+                            loading={isLoading}
+                            pagination={{
+                                current: paginationManager.current,
+                                pageSize: paginationManager.pageSize,
+                                total: contractApprove?.data?.totalElements,
+                                showSizeChanger: true,
+                                showQuickJumper: true,
+                                showTotal: (total) => `Tổng ${total} hợp đồng`,
+                            }}
+                            onChange={handleTableChange}
+                            expandable={{
+                                expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                            }}
+                            onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                        />
                     </>
                 ) : isStaff ? (
 
