@@ -18,8 +18,15 @@ export const userAPI = baseApi.injectEndpoints({
                     : [{ type: "USER", id: "LIST" }],
         }),
         getUserById: builder.query({
+            query: () => ({
+                url: `/users/get-user`,
+                method: "GET",
+            }),
+            providesTags: (result, error, userId) => [{ type: "USER", id: userId }],
+        }),
+        getDetailUserById: builder.query({
             query: ({ id }) => ({
-                url: `/users/get-user/${id}`,
+                url: `/users/get-user-by-id/${id}`,
                 method: "GET",
             }),
             providesTags: (result, error, userId) => [{ type: "USER", id: userId }],
@@ -107,6 +114,7 @@ export const {
     useLazyGetAllUserQuery,
     useGetUserStaffManagerQuery,
     useGetUserByIdQuery,
+    useGetDetailUserByIdQuery,
     useLazyGetUserStaffManagerQuery,
     useChangePassWordMutation,
     useUpdateAvatarMutation,

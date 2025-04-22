@@ -1182,6 +1182,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         const legal = form.getFieldValue('legal') || '';
         const term = form.getFieldValue('term') || '';
         const contractContent = form.getFieldValue('contractContent') || '';
+        if (!legal && !term && !contractContent) return;
 
         const combinedContent = `
             <p><strong>Căn cứ pháp lý:</strong></p>
@@ -1197,16 +1198,19 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         form.setFieldsValue({
             combinedContent: combinedContent,
         });
-
-    }, []);
+        setContent(combinedContent);
+    }, [form.getFieldValue('legal'), form.getFieldValue('term'), form.getFieldValue('combinedContent')]);
 
 
     const applyAIDataToForm = (data) => {
-        console.log("applyAIDataToForm", data.effectiveDate);
+        console.log("applyAIDataToForm3", data.effectiveDate);
+        console.log("applyAIDataToForm2", data.expiryDate);
+        console.log("applyAIDataToForm1", data.signingDate);
         if (!data) {
             message.warning("Chưa có dữ liệu AI để áp dụng!");
             return;
         }
+        // setContent(data?.content?.contentContract || '');
         form.setFieldsValue({
             partner: {
                 partnerName: data?.partner?.partnerName,
@@ -1220,7 +1224,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             contractNumberFormat: data?.contractNumber,
             signingDate: data?.signingDate ? dayjs(new Date(...data.signingDate)) : null,
             contractLocation: data?.signingPlance, // Nếu key của bạn là "signingPlance", nếu không là "signingPlace" thì chỉnh lại
-            contractContent: data?.content?.contentContract || '',
+            // combinedContent: data?.content?.contentContract || '',
             term: data?.content?.term || '',
             legal: data?.content?.legal || '',
             totalValue: data?.totalValue || 0,
@@ -1706,6 +1710,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 <Form.Item
                                     shouldUpdate={(prev, curr) => prev.combinedContent !== curr.combinedContent}
                                     noStyle
+                                    name="combinedContent"
                                 >
                                     {() => {
                                         const value = form.getFieldValue('combinedContent');
@@ -1714,11 +1719,11 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                             <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
                                                 <RichTextEditor
                                                     key={value}
-                                                    content={value}
-
-                                                    onChangeContent={(...args) => {
-                                                        console.log("onChangeContent args:", args);
-                                                    }}
+                                                    content={content}
+                                                    onChangeContent={onValueChange}
+                                                    // onChangeContent={(...args) => {
+                                                    //     console.log("onChangeContent args:", args);
+                                                    // }}
 
                                                     extensions={extensions}
                                                     dark={isDarkMode}
@@ -1947,7 +1952,17 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 <Divider orientation="center" className="text-lg">Thời gian và hiệu lực</Divider>
                                 <Form.Item
                                     label="Thời gian hiệu lực hợp đồng"
-                                    name="dateRange"
+                                    validateTrigger="onChange"
+                                    help={
+                                        form.getFieldError('effectiveDate')?.[0] ||
+                                        form.getFieldError('expiryDate')?.[0]
+                                    }
+                                    validateStatus={
+                                        form.getFieldError('effectiveDate')?.length ||
+                                            form.getFieldError('expiryDate')?.length
+                                            ? 'error'
+                                            : ''
+                                    }
                                     rules={[
                                         { required: true, message: "Vui lòng chọn thời gian hiệu lực hợp đồng!" },
                                         ({ getFieldValue }) => ({
@@ -1978,33 +1993,71 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         showTime={{ format: 'HH:mm' }}
                                         format="DD/MM/YYYY HH:mm"
                                         placeholder={["Ngày bắt đầu có hiệu lực", "Ngày kết thúc hiệu lực"]}
+                                        value={[
+                                            form.getFieldValue('effectiveDate'),
+                                            form.getFieldValue('expiryDate'),
+                                        ]}
                                         disabledDate={(current) => {
                                             const signingDate = form.getFieldValue('signingDate');
-                                            if (!current) return false;
-                                            // Không cho chọn ngày trước hôm nay hoặc trước signingDate
-                                            return current < dayjs().startOf('day') || (signingDate && current <= signingDate);
+                                            return (
+                                                current < dayjs().startOf('day') ||
+                                                (signingDate && current <= dayjs(signingDate))
+                                            );
                                         }}
                                         onChange={(dates) => {
-                                            if (dates) {
-                                                form.setFieldsValue({
-                                                    effectiveDate: dates[0],
-                                                    expiryDate: dates[1],
-                                                });
-                                                handleEffectiveDateChange(dates[0]);
-                                                handleExpiryDateChange(dates[1]);
-                                            } else {
+                                            if (!dates) {
                                                 form.setFieldsValue({
                                                     effectiveDate: null,
                                                     expiryDate: null,
                                                     notifyEffectiveDate: null,
                                                     notifyExpiryDate: null,
                                                 });
+                                                form.setFields([
+                                                    { name: 'effectiveDate', errors: [] },
+                                                    { name: 'expiryDate', errors: [] },
+                                                ]);
+                                                return;
                                             }
+
+                                            const [effectiveDate, expiryDate] = dates;
+                                            const signingDate = form.getFieldValue('signingDate');
+
+                                            form.setFields([
+                                                { name: 'effectiveDate', errors: [] },
+                                                { name: 'expiryDate', errors: [] },
+                                            ]);
+
+                                            if (signingDate && effectiveDate.isBefore(dayjs(signingDate))) {
+                                                form.setFields([{
+                                                    name: 'effectiveDate',
+                                                    errors: ['Ngày bắt đầu hiệu lực phải sau ngày ký kết!'],
+                                                }]);
+                                            }
+                                            if (expiryDate.isBefore(effectiveDate)) {
+                                                form.setFields([{
+                                                    name: 'expiryDate',
+                                                    errors: ['Ngày kết thúc hiệu lực phải sau ngày bắt đầu!'],
+                                                }]);
+                                            }
+
+                                            // set value
+                                            form.setFieldsValue({ effectiveDate, expiryDate });
+                                            handleEffectiveDateChange?.(effectiveDate);
+                                            handleExpiryDateChange?.(expiryDate);
                                         }}
                                     />
                                 </Form.Item>
-                                <Form.Item name="effectiveDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]} />
-                                <Form.Item name="expiryDate" hidden rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]} />
+
+                                <Form.Item
+                                    name="effectiveDate"
+                                    hidden
+                                    rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu hiệu lực!" }]}
+                                />
+                                <Form.Item
+                                    name="expiryDate"
+                                    hidden
+                                    rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc hiệu lực!" }]}
+                                />
 
                                 {/* <Form.Item
                                     label="Tự động gia hạn khi hết hạn mà không có khiếu nại"
@@ -2489,7 +2542,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         <Button onClick={prev}> <CaretLeftOutlined /> Quay lại</Button>
                     )}
                     {currentStep < steps.length - 1 && (
-                        <Button type="primary" onClick={next}>Tiếp theo <CaretRightOutlined /></Button>
+                        <Button disabled={Loading} type="primary" onClick={next}>Tiếp theo <CaretRightOutlined /></Button>
                     )}
                     {currentStep === steps.length - 1 && (
                         <Button type="primary" htmlType="submit" loading={loadingCreateContract}>Gửi hợp đồng <CheckCircleOutlined /></Button>

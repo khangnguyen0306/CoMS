@@ -3,6 +3,7 @@ import { Input, Table, Tag, Space, Skeleton, Card, Empty, ConfigProvider } from 
 import { SearchOutlined } from '@ant-design/icons';
 import { useGetContractByPartnerIdQuery } from '../../services/ContractAPI';
 import { Link } from 'react-router-dom';
+import dayjs from 'dayjs';
 
 const ContractPartner = ({ partnerId }) => {
     // Quản lý state
@@ -66,9 +67,13 @@ const ContractPartner = ({ partnerId }) => {
         },
         {
             title: 'Ngày ký',
-            dataIndex: 'signDate',
-            key: 'signDate',
-            sorter: (a, b) => new Date(a.signDate) - new Date(b.signDate),
+            dataIndex: 'signingDate',
+            key: 'signingDate',
+            sorter: (a, b) => new Date(a.signingDate) - new Date(b.signingDate),
+            render: (dateArray) => {
+                const [year, month, day] = dateArray;
+                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+            },
         },
         {
             title: 'Trạng thái',
@@ -95,9 +100,13 @@ const ContractPartner = ({ partnerId }) => {
         },
         {
             title: 'Ngày hết hạn',
-            dataIndex: 'expirationDate',
-            key: 'expirationDate',
-            sorter: (a, b) => new Date(a.expirationDate) - new Date(b.expirationDate),
+            dataIndex: 'expiryDate',
+            key: 'expiryDate',
+            sorter: (a, b) => new Date(a.expiryDate) - new Date(b.expiryDate),
+            render: (dateArray) => {
+                const [year, month, day] = dateArray;
+                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+            },
         },
     ];
 
@@ -106,7 +115,10 @@ const ContractPartner = ({ partnerId }) => {
     if (fetchErrorContractData) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
 
     // Sắp xếp dữ liệu theo ngày ký giảm dần (mặc định)
-    const sortedData = (partnerContractData?.data.content || []).sort((a, b) => new Date(b.signDate) - new Date(a.signDate));
+    // const sortedData = (partnerContractData?.data.content || []).sort((a, b) => new Date(b.signingDate) - new Date(a.signingDate));
+    const raw = partnerContractData?.data.content || [];
+    const sortedData = [...raw]   // tạo bản sao mutable
+        .sort((a, b) => new Date(b.signingDate) - new Date(a.signingDate));
 
     return (
         <div>
@@ -140,7 +152,7 @@ const ContractPartner = ({ partnerId }) => {
                     pagination={{
                         current: currentPage,
                         pageSize: pageSize,
-                        total: partnerContractData?.totalElements || 0,
+                        total: partnerContractData?.totalElements,
                         showSizeChanger: true,
                         pageSizeOptions: ['10', '20', '50', '100'],
                     }}

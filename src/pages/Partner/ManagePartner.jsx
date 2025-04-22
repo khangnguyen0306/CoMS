@@ -22,11 +22,14 @@ import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuer
 import { validationPatterns } from "../../utils/ultil";
 import { useSelector } from "react-redux";
 import partnerIMG from "../../assets/Image/partner.jpg"
+import { selectCurrentUser } from "../../slices/authSlice";
 const { Link } = Typography;
 const { Search } = Input;
 
 const ManagePartner = () => {
     const navigate = useNavigate();
+    const user = useSelector(selectCurrentUser)
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [searchText, setSearchText] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -142,9 +145,9 @@ const ManagePartner = () => {
     const handleDelete = async (partnerId) => {
         Modal.confirm({
             title: 'xóa đối tác sẽ không thể phục hồi bạn có chắc muốn xóa không?',
-            okText:"Xóa đối tác",
+            okText: "Xóa đối tác",
             okButtonProps: { style: { backgroundColor: 'red', color: 'white' } },
-            cancelText:"Hủy",
+            cancelText: "Hủy",
             onOk: async () => {
                 try {
                     const result = await DeletePartner({ partnerId: partnerId });
@@ -425,9 +428,12 @@ const ManagePartner = () => {
                         style={{ width: 350 }}
                     />
                 </Dropdown>
-                <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
-                    Tạo khách hàng mới
-                </Button>
+                {!isCEO && (
+                    <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+                        Tạo khách hàng mới
+                    </Button>
+                )}
+
             </div>
 
 

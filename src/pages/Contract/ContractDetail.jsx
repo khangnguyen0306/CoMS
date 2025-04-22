@@ -559,14 +559,14 @@ const ContractDetail = () => {
 
                         </Tabs.TabPane>
                         <Tabs.TabPane tab="Phê duyệt" key="2">
-                            <Card style={{ margin: '16px',display:'flex',flexDirection:'column' }}>
+                            <Card style={{ margin: '16px', display: 'flex', flexDirection: 'column' }}>
                                 <Typography.Paragraph>
                                     Vui lòng đảm bảo rằng bạn đã đọc kỹ tất cả các thông tin liên quan đến phê duyệt.
                                 </Typography.Paragraph>
                                 <p>
-                                <Checkbox onChange={onCheckboxChange}>
-                                    Tôi đã đọc kỹ và quyết định phê duyệt
-                                </Checkbox>
+                                    <Checkbox onChange={onCheckboxChange}>
+                                        Tôi đã đọc kỹ và quyết định phê duyệt
+                                    </Checkbox>
                                 </p>
                                 <Button
                                     disabled={!confirmed}
@@ -730,7 +730,11 @@ const ContractDetail = () => {
                                 activeKey={activePanel}
                                 className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
                             >
-                                {contractData?.data?.paymentSchedules?.map((schedule, index) => (
+                                {(contractData?.data?.paymentSchedules?.length || 0) === 0 ? (
+                                    <div className="text-center text-gray-500 py-6 italic">
+                                        Không có đợt thanh toán nào cho hợp đồng này.
+                                    </div>
+                                ) : contractData?.data?.paymentSchedules?.map((schedule, index) => (
                                     <Panel
                                         key={schedule.id || index}
                                         header={
@@ -772,14 +776,12 @@ const ContractDetail = () => {
                                         }
                                         onClick={() => {
                                             setPaymentId(schedule.id);
-                                            // Mở panel này nếu chưa mở, hoặc đóng nếu đã mở
                                             setActivePanel((prev) =>
                                                 prev.includes(schedule.id) ? [] : [schedule.id]
                                             );
                                         }}
                                     >
                                         {schedule.status === "PAID" ? (
-                                            // Nếu đã thanh toán, chỉ hiển thị danh sách ảnh từ API
                                             <div>
                                                 <div className="text-gray-500 italic text-center mb-3">
                                                     Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:
@@ -807,17 +809,16 @@ const ContractDetail = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            // Nếu chưa thanh toán, hiển thị thông báo "Chưa thanh toán" với UI đẹp
-                                            <div className="p-8 rounded-lg bg-gradient-to-r  shadow-lg text-center">
+                                            <div className="p-8 rounded-lg bg-gradient-to-r shadow-lg text-center">
                                                 <p className={`text-3xl font-extrabold ${isDarkMode ? '' : 'text-red-600'} `}>Chưa thanh toán</p>
                                                 <p className="mt-4 text-lg ">
                                                     Hóa đơn sẽ được cập nhật sau khi thanh toán được xác nhận.
                                                 </p>
                                             </div>
-
                                         )}
                                     </Panel>
                                 ))}
+
                             </Collapse>
                         </Tabs.TabPane>
                     )}
