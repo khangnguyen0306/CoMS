@@ -485,6 +485,7 @@ const ManagePartner = () => {
                 onCancel={handleCancel}
                 cancelText={"Hủy"}
                 loading={isCreating || isEditing}
+                
 
             >
                 <Form form={form} layout="vertical" className="w-full ">

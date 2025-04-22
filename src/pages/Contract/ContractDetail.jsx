@@ -27,8 +27,12 @@ const ContractDetail = () => {
     const { Panel } = Collapse;
     const { id } = useParams();
     const navigate = useNavigate();
+    const clauseRef = useRef(null);
     const { data: contractData, isLoading: loadingDataContract, isError: contractError } = useGetContractDetailQuery(id);
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
+    const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
+    const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
+    
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const [paymentId, setPaymentId] = useState(null);
@@ -62,19 +66,19 @@ const ContractDetail = () => {
         skip: !paymentId,
     });
     // Lấy thông tin bên thuê theo partner_id
-    const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
-    const [fetchTerms] = useLazyGetTermDetailQuery();
 
+
+    const [fetchTerms] = useLazyGetTermDetailQuery();
     const [fetchDdateAudittrail, { data: auditTrailDate, isLoading: loadingAuditTrailDate }] = useLazyGetDateChangeContractQuery();
     const [fetchDataData] = useLazyGetDataChangeByDateQuery();
-    const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
+
 
     const stages = processData?.data?.stages || [];
 
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
 
-    const clauseRef = useRef(null);
+ 
 
 
     const loadTermDetail = async (termId) => {
@@ -1048,12 +1052,12 @@ const ContractDetail = () => {
                 <div className="flex justify-center mt-10 items-center pb-24">
                     <div className="flex flex-col gap-2 px-[18%] text-center">
                         <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
-                        <p><b>{contractData?.data?.partnerB.partnerName?.toUpperCase()}</b></p>
+                        <p><b>{contractData?.data?.partnerA.partnerName?.toUpperCase()}</b></p>
                         <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                     </div>
                     <div className="flex flex-col gap-2 px-[18%] text-center">
                         <p className="text-lg"><b>ĐẠI DIỆN BÊN B</b></p>
-                        <p><b>{bsInfor?.representativeName?.toUpperCase()}</b></p>
+                        <p><b>{contractData?.data?.partnerB.partnerName?.toUpperCase()}</b></p>
                         <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                     </div>
                 </div>
