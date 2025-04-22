@@ -4,7 +4,7 @@ import { baseApi } from "./BaseAPI";
 export const ConfigAPI = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getDateNofitifation: builder.query({
-      query: () => "/config/get-all",
+      query: () => "/configs/get-all",
       providesTags: (result) =>
         result
           ? result.map(({ id }) => ({ type: "Config", id }))

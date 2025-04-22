@@ -129,7 +129,11 @@ const CreateContractForm = () => {
             try {
                 const response = await getDateNotification().unwrap();
                 if (response) {
-                    setNotificationDays(response[0].value || 0);
+                    // Find the response with key PAYMENT_DEADLINE
+                    const paymentDeadline = response.find(item => item.key === "PAYMENT_DEADLINE");
+                    if (paymentDeadline) {
+                        setNotificationDays(paymentDeadline.value || 0);
+                    }
                 }
             } catch (error) {
                 // console.error('Error fetching notification days:', error);
@@ -251,9 +255,13 @@ const CreateContractForm = () => {
     const loadBMData = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 7 }).unwrap();
     };
+
     const loadDKKata = async ({ page, size, keyword }) => {
         return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
     };
+    // const loadPartnerData = async ({ page, size, keyword }) => {
+    //     return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
+    // };
 
     const loadTemplateData = async ({ page, size, keyword }) => {
         // Lấy giá trị loại hợp đồng đang được chọn
@@ -316,9 +324,9 @@ const CreateContractForm = () => {
 
 
     const onFinish = async () => {
-
+        setShouldBlockNavigation(false); 
         const data = form.getFieldsValue(true);
-        setShouldBlockNavigation(false); // bật điều hư
+    
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
         const additionalConfig = Object.keys(data)
             .filter(key => !isNaN(key)) // Chỉ lấy các key là số (1,2,3,...)
@@ -1092,7 +1100,7 @@ const CreateContractForm = () => {
                                             rules={[{ required: true, message: "Vui lòng chọn đối tác!" }]}
                                         >
                                             <LazySelectPartner
-                                                loadDataCallback={getPartnerData}
+                                                loadDataCallback={loadPartnerData}
                                                 options={partnerData?.data.content}
                                                 showSearch
                                                 placeholder="Chọn thông tin khách hàng"
@@ -1989,7 +1997,7 @@ const CreateContractForm = () => {
                             <div ref={otherContentRef} className="py-[100px]">
                                 <Divider orientation="center">Các nội dung khác</Divider>
 
-                                <Form.Item name="appendixEnabled" valuePropName="checked">
+                                {/* <Form.Item name="appendixEnabled" valuePropName="checked">
                                     <div className="flex items-center">
                                         <Switch
                                             className="mr-4"
@@ -2001,7 +2009,7 @@ const CreateContractForm = () => {
                                         />
                                         <p className="text-sm">Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
                                     </div>
-                                </Form.Item>
+                                </Form.Item> */}
 
                                 <Form.Item name="transferEnabled" valuePropName="checked">
                                     <div className="flex items-center">

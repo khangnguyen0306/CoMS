@@ -32,7 +32,7 @@ const ContractDetail = () => {
     const { data: appendixData, isLoading: loadingDataContractAppendix } = useGetAppendixByContractIdQuery({ id: id });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
     const { data: processData, isLoading: loadingDataProcess } = useGetProcessByContractIdQuery({ contractId: id });
-    
+
     const [termsData, setTermsData] = useState({});
     const [loadingTerms, setLoadingTerms] = useState({});
     const [paymentId, setPaymentId] = useState(null);
@@ -78,7 +78,7 @@ const ContractDetail = () => {
     const matchingStage = stages.find(stage => stage.approver === user?.id);
     const StageIdMatching = matchingStage?.stageId;
 
- 
+
 
 
     const loadTermDetail = async (termId) => {
@@ -941,31 +941,33 @@ const ContractDetail = () => {
                                             </p>
                                         )}
                                     </div>
-                                    <div className="mt-4">
-                                        <h4 className="font-bold text-lg"><u>THỜI GIAN HIỆU LỰC LIÊN QUAN</u></h4>
-                                        {contractData?.data?.effectiveDate && contractData?.data?.expiryDate && (
-                                            <div className="mt-3">
-                                                <p>
-                                                    - Ngày bắt đầu hiệu lực: {dayjs(parseDate(contractData?.data?.effectiveDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.effectiveDate)).format('DD/MM/YYYY')}</b>
-                                                </p>
-                                                <p>
-                                                    - Ngày chấm dứt hiệu lực: {dayjs(parseDate(contractData?.data?.expiryDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.expiryDate)).format('DD/MM/YYYY')}</b>
-                                                </p>
-                                            </div>
-                                        )}
-                                        {contractData?.data?.autoRenew && (
-                                            <p className="mt-3">
-                                                - Tự động gia hạn khi hợp đồng hết hạn nếu không có phản hồi từ các phía
-                                            </p>
-                                        )}
-                                        {contractData?.data?.appendixEnabled && (
-                                            <p className="mt-3">
-                                                - Cho phép tạo phụ lục khi hợp đồng có hiệu lực
-                                            </p>
-                                        )}
-                                    </div>
                                 </>
                             )}
+                            <div className="mt-4">
+                                <h4 className="font-bold text-lg"><u>THỜI GIAN HIỆU LỰC LIÊN QUAN</u></h4>
+                                {contractData?.data?.effectiveDate && contractData?.data?.expiryDate && (
+                                    <div className="mt-3">
+                                        <p>
+                                            - Ngày bắt đầu hiệu lực: {dayjs(parseDate(contractData?.data?.effectiveDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.effectiveDate)).format('DD/MM/YYYY')}</b>
+                                        </p>
+                                        <p>
+                                            - Ngày chấm dứt hiệu lực: {dayjs(parseDate(contractData?.data?.expiryDate)).format('HH:mm')} ngày <b>{dayjs(parseDate(contractData.data.expiryDate)).format('DD/MM/YYYY')}</b>
+                                        </p>
+                                    </div>
+                                )}
+                                {contractData?.data?.autoRenew && (
+                                    <p className="mt-3">
+                                        - Tự động gia hạn khi hợp đồng hết hạn nếu không có phản hồi từ các phía
+                                    </p>
+                                )}
+                                {contractData?.data?.appendixEnabled && (
+                                    <p className="mt-3">
+                                        - Cho phép tạo phụ lục khi hợp đồng có hiệu lực
+                                    </p>
+                                )}
+                            </div>
+
+
                         </div>
                         <div ref={clauseRef} onMouseUp={handleMouseUp} className="mt-2 relative">
                             <h4 className="font-bold text-lg mt-4"><u>CÁC LOẠI ĐIỀU KHOẢN</u></h4>

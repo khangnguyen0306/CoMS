@@ -1,10 +1,13 @@
 import React, { useMemo } from "react";
 import { Select, Spin } from "antd";
 import { useLazyLoadSelect } from "./CustomHook";
+import { useLazyLoadSelectPartner } from "./useLazyLoadSelectPartner";
 
 const LazySelectPartner = ({
     loadDataCallback,
     options: initialOptions = [],
+    globalSelected = [],
+    defaultValue=[],
     children,
     ...restProps
 }) => {
@@ -16,7 +19,7 @@ const LazySelectPartner = ({
         data,
         onSearch,
         keyword,
-    } = useLazyLoadSelect(loadDataCallback);
+    } = useLazyLoadSelectPartner(loadDataCallback);
 
     const mergedOptions = useMemo(() => {
         if (keyword) {
