@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Input, Button, DatePicker, Select, Divider, Space, Checkbox, Table, InputNumber, Typography, Popover, message, Form } from 'antd';
+import { Input, Button, DatePicker, Select, Divider, Space, Checkbox, Table, InputNumber, Typography, Popover, message, Form, Skeleton } from 'antd';
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import RichTextEditor from 'reactjs-tiptap-editor';
@@ -12,7 +12,6 @@ import { DeleteFilled, PlusOutlined, EyeFilled } from '@ant-design/icons';
 import { useGetAllContractQuery, useGetContractDetailQuery } from '../../../services/ContractAPI';
 import LazySelect from '../../../hooks/LazySelect';
 import { useLazyGetClauseManageQuery } from '../../../services/ClauseAPI';
-import TextArea from 'antd/es/input/TextArea';
 import { numberToVietnamese } from '../../../utils/ConvertMoney';
 import { TermsectionForAppendix } from '../../../config/TermsectionForAppendix';
 import ModalAdd from '../../Contract/component/ModalAdd';
@@ -49,11 +48,12 @@ const ContractAppendixPage = () => {
     );
     // console.log(contractDetailData)
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
-    const { data: appendixData, isLoading: isLoadingAppendix } = useGetAppendixDetailQuery({ id: appendixId }, { skip: !appendixId });
+    const { data: appendixData, isLoading: isLoadingAppendix, refetch } = useGetAppendixDetailQuery({ id: appendixId }, { skip: !appendixId });
     const { data: contracts, isLoading: isLoadingContracts } = useGetAllContractQuery(
         { status: "ACTIVE" },
         { skip: !!contractId }
     );
+
 
     useEffect(() => {
         if (appendixData) {
@@ -172,7 +172,7 @@ const ContractAppendixPage = () => {
     const onFinish = async (values) => {
         try {
             await form.validateFields();
-            
+
             // Check if at least one appendix type is selected
             if (selectedTypes.length === 0) {
                 message.error('Vui lòng chọn ít nhất một loại phụ lục!');
@@ -328,16 +328,7 @@ const ContractAppendixPage = () => {
         "7": { title: "ĐIỀU KHOẢN BẢO MẬT", loadData: loadBMData },
     };
 
- 
 
-    const calculateTotalContractValue = () => {
-        const contractItems = form.getFieldValue('contractItems') || [];
-        const totalContractValue = contractItems.reduce((sum, item) => {
-            const total = (item.unitPrice || 0) * (item.quantity || 0);
-            return sum + total;
-        }, 0);
-        return totalContractValue;
-    };
 
     const handleChange = (value) => {
         if (value) {
@@ -352,10 +343,23 @@ const ContractAppendixPage = () => {
             setContent(contractDetailData?.data.contractContent);
             setSelectedOthersTerms(contractDetailData?.data.additionalTerms?.map(term => term.original_term_id));
             if (selectedTypes.includes('extend') && contractDetailData?.data?.expiryDate) {
+                const generalTerms = contractDetailData?.data.generalTerms.map(term => term.original_term_id);
+
                 const [year, month, day, hour, minute] = contractDetailData.data.expiryDate;
                 const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
                 const expiryDate = dayjs(dateString);
+                const now = dayjs();
                 setContractExpiryDate(expiryDate);
+                let extendStart = expiryDate.add(1, 'day');
+                // Nếu extendStart đã nhỏ hơn now (quá khứ), dùng now
+                if (extendStart.isBefore(now, 'day')) {
+                    extendStart = now;
+                }
+
+                // 3. Tính ngày kết thúc gia hạn: extendStart + 1 năm
+                const extendEnd = extendStart.add(1, 'year');
+
+
                 const totalValue = contractDetailData?.data.amount || contractDetailData?.data.contractItems.reduce((sum, item) => sum + item.amount, 0);
                 const payments = contractDetailData?.data.paymentSchedules.map(schedule => {
                     const [year, month, day, hour, minute] = schedule.paymentDate;
@@ -366,13 +370,12 @@ const ContractAppendixPage = () => {
                         paymentMethod: schedule.paymentMethod,
                     };
                 });
+
+
                 form.setFieldsValue({
-                    extendDateRange: [
-                        expiryDate.add(1, 'day'),
-                        expiryDate.add(1, 'year'),
-                    ],
-                    extendContractDate: expiryDate.add(1, 'day'),
-                    contractExpirationDate: expiryDate.add(1, 'year'),
+                    extendDateRange: [extendStart, extendEnd],
+                    extendContractDate: extendStart,
+                    contractExpirationDate: extendEnd,
                     contractItems: contractDetailData?.data.contractItems?.map((item, index) => ({
                         id: item.id,
                         amount: item.amount,
@@ -381,6 +384,43 @@ const ContractAppendixPage = () => {
                     })) || [],
                     totalValue,
                     payments,
+                    generalTerms,
+                    additionalTerms: contractDetailData?.data.additionalTerms?.map(term => term.original_term_id) || [],
+                    "1": {
+                        A: contractDetailData?.data.additionalConfig?.["1"]?.A?.map(item => item.original_term_id) || [],
+                        B: contractDetailData?.data.additionalConfig?.["1"]?.B?.map(item => item.original_term_id) || [],
+                        Common: contractDetailData?.data.additionalConfig?.["1"]?.Common?.map(item => item.original_term_id) || []
+                    },
+                    "2": {
+                        A: contractDetailData?.data.additionalConfig?.["2"]?.A?.map(item => item.original_term_id) || [],
+                        B: contractDetailData?.data.additionalConfig?.["2"]?.B?.map(item => item.original_term_id) || [],
+                        Common: contractDetailData?.data.additionalConfig?.["2"]?.Common?.map(item => item.original_term_id) || []
+                    },
+                    "3": {
+                        A: contractDetailData?.data.additionalConfig?.["3"]?.A?.map(item => item.original_term_id) || [],
+                        B: contractDetailData?.data.additionalConfig?.["3"]?.B?.map(item => item.original_term_id) || [],
+                        Common: contractDetailData?.data.additionalConfig?.["3"]?.Common?.map(item => item.original_term_id) || []
+                    },
+                    "4": {
+                        A: contractDetailData?.data.additionalConfig?.["4"]?.A?.map(item => item.original_term_id) || [],
+                        B: contractDetailData?.data.additionalConfig?.["4"]?.B?.map(item => item.original_term_id) || [],
+                        Common: contractDetailData?.data.additionalConfig?.["4"]?.Common?.map(item => item.original_term_id) || []
+                    },
+                    "5": {
+                        A: contractDetailData?.data.additionalConfig?.["5"]?.A?.map(item => item.original_term_id) || [],
+                        B: contractDetailData?.data.additionalConfig?.["5"]?.B?.map(item => item.original_term_id) || [],
+                        Common: contractDetailData?.data.additionalConfig?.["5"]?.Common?.map(item => item.original_term_id) || []
+                    },
+                    "6": {
+                        A: contractDetailData?.data.additionalConfig?.["6"]?.A?.map(item => item.original_term_id) || [],
+                        B: contractDetailData?.data.additionalConfig?.["6"]?.B?.map(item => item.original_term_id) || [],
+                        Common: contractDetailData?.data.additionalConfig?.["6"]?.Common?.map(item => item.original_term_id) || []
+                    },
+                    "7": {
+                        A: contractDetailData?.data.additionalConfig?.["7"]?.A?.map(item => item.original_term_id) || [],
+                        B: contractDetailData?.data.additionalConfig?.["7"]?.B?.map(item => item.original_term_id) || [],
+                        Common: contractDetailData?.data.additionalConfig?.["7"]?.Common?.map(item => item.original_term_id) || []
+                    },
                 });
             }
 
@@ -400,7 +440,14 @@ const ContractAppendixPage = () => {
                         amount: schedule.amount,
                         paymentDate: dayjs(dateString),
                         paymentMethod: schedule.paymentMethod,
-
+                        notifyPaymentDate: schedule.notifyPaymentDate ? dayjs(new Date(
+                            schedule.notifyPaymentDate[0],
+                            schedule.notifyPaymentDate[1] - 1,
+                            schedule.notifyPaymentDate[2],
+                            schedule.notifyPaymentDate[3],
+                            schedule.notifyPaymentDate[4]
+                        ))
+                            : null,
                     };
                 });
                 form.setFieldsValue({
@@ -408,7 +455,8 @@ const ContractAppendixPage = () => {
                         id: item.id,
                         amount: item.amount,
                         description: item.description,
-                        itemOrder: item.itemOrder
+                        itemOrder: item.itemOrder,
+
                     })) || [],
                     totalValue,
                     payments,
@@ -537,11 +585,19 @@ const ContractAppendixPage = () => {
         },
     ];
 
+    if (isLoadingAppendix || isLoadingContracts) {
+        return (
+            <div className='min-h-[100vh] flex justify-center items-center'>
+                <Skeleton active />
+            </div>
+        )
+    }
+
     return (
         <div className={`min-h-screen p-8 ${isDarkMode ? 'bg-[#141414]' : ''}`}>
             <div className={`max-w-4xl mx-auto ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5] border'} shadow-lg rounded-lg p-6`}>
                 <h1 className="text-3xl font-bold mb-6 text-center">
-                  TẠO PHỤ LỤC HỢP ĐỒNG
+                    TẠO PHỤ LỤC HỢP ĐỒNG
                 </h1>
                 {errorMessage && (
                     <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -726,15 +782,15 @@ const ContractAppendixPage = () => {
                             <Divider orientation="center" className="text-lg">Hạng mục thanh toán</Divider>
                             <Form.List
                                 name="contractItems"
-                                // rules={[
-                                //     {
-                                //         validator: async (_, contractItems) => {
-                                //             if (!contractItems || contractItems.length < 1) {
-                                //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
-                                //             }
-                                //         },
-                                //     },
-                                // ]}
+                            // rules={[
+                            //     {
+                            //         validator: async (_, contractItems) => {
+                            //             if (!contractItems || contractItems.length < 1) {
+                            //                 return Promise.reject(new Error('Phải có ít nhất một hạng mục'));
+                            //             }
+                            //         },
+                            //     },
+                            // ]}
                             >
                                 {(fields, { add, remove }) => {
                                     window.remove = remove;
@@ -784,9 +840,9 @@ const ContractAppendixPage = () => {
                                             // }
 
                                             const totalValue = form.getFieldValue('totalValue');
-                                            if (!totalValue) {
-                                                return Promise.reject(new Error('Vui lòng nhập các hạng mục thanh toán trước!'));
-                                            }
+                                            // if (!totalValue) {
+                                            //     return Promise.reject(new Error('Vui lòng nhập các hạng mục thanh toán trước!'));
+                                            // }
 
                                             const totalPayments = payments.reduce((sum, payment) => {
                                                 return sum + (Number(payment.amount) || 0);
@@ -822,6 +878,7 @@ const ContractAppendixPage = () => {
                                                         parser={(value) => value.replace(/\D/g, '')}
                                                     />
                                                 </Form.Item>
+
                                                 <Form.Item
                                                     {...restField}
                                                     name={[name, "paymentDate"]}
@@ -831,7 +888,7 @@ const ContractAppendixPage = () => {
                                                             validator: (_, value) => {
                                                                 const extendStart = form.getFieldValue("extendContractDate");
                                                                 const extendEnd = form.getFieldValue("contractExpirationDate");
-
+                                                                const notifyPaymentDate = form.getFieldValue(["payments", name, "notifyPaymentDate"]);
                                                                 // Nếu chưa chọn thời gian gia hạn hoặc ngày thanh toán, không kiểm tra
                                                                 if (!extendStart || !extendEnd || !value) {
                                                                     return Promise.resolve();
@@ -841,15 +898,60 @@ const ContractAppendixPage = () => {
                                                                 if (value.isBefore(extendStart) || value.isAfter(extendEnd)) {
                                                                     return Promise.reject(new Error("Ngày thanh toán phải nằm trong thời gian gia hạn"));
                                                                 }
-
+                                                                if (notifyPaymentDate && value.isBefore(notifyPaymentDate)) {
+                                                                    return Promise.reject(new Error("Ngày thanh toán phải sau ngày thông báo thanh toán"));
+                                                                }
                                                                 return Promise.resolve();
                                                             },
+                                                            dependencies: ["extendContractDate", "contractExpirationDate", ["payments", name, "notifyPaymentDate"]],
                                                         },
                                                     ]}
                                                 >
                                                     <DatePicker
                                                         style={{ width: 150 }}
                                                         placeholder="Ngày thanh toán"
+                                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                                        format="DD/MM/YYYY"
+                                                    />
+                                                </Form.Item>
+
+                                                <Form.Item
+                                                    {...restField}
+                                                    name={[name, "notifyPaymentDate"]}
+                                                    rules={[
+                                                        { required: true, message: "Chọn ngày thông báo thanh toán" },
+                                                        {
+                                                            validator: (_, value) => {
+                                                                const extendStart = form.getFieldValue("extendContractDate");
+                                                                const extendEnd = form.getFieldValue("contractExpirationDate");
+                                                                const paymentDate = form.getFieldValue(["payments", name, "paymentDate"]);
+
+                                                                // Skip validation if the date or extension period is not set
+                                                                if (!value || !extendStart || !extendEnd) {
+                                                                    return Promise.resolve();
+                                                                }
+
+                                                                // Check if notifyPaymentDate is within the extension period
+                                                                if (value.isBefore(extendStart) || value.isAfter(extendEnd)) {
+                                                                    return Promise.reject(new Error("Ngày thông báo thanh toán phải nằm trong thời gian gia hạn"));
+                                                                }
+
+                                                                // Check if notifyPaymentDate is before paymentDate (if set)
+                                                                if (paymentDate && !(value.isBefore(paymentDate) || value.isSame(paymentDate))) {
+                                                                    return Promise.reject(new Error("Ngày thông báo thanh toán phải trước hoặc cùng ngày với ngày thanh toán"));
+                                                                }
+
+                                                                return Promise.resolve();
+                                                            },
+                                                            // Re-validate when these fields change
+                                                            dependencies: ["extendContractDate", "contractExpirationDate", ["payments", name, "paymentDate"]],
+                                                        },
+                                                    ]}
+                                                >
+                                                    <DatePicker
+                                                        style={{ width: 150 }}
+                                                        showTime
+                                                        placeholder="Ngày thông báo thanh toán"
                                                         disabledDate={(current) => current && current < dayjs().startOf('day')}
                                                         format="DD/MM/YYYY"
                                                     />
@@ -878,7 +980,119 @@ const ContractAppendixPage = () => {
                                     </>
                                 )}
                             </Form.List>
+                            <Divider orientation="center" className="text-lg">Điều khoản & Cam kết</Divider>
+                            <div className="ml-2 my-3">
+                                <p className="font-bold text-[16px] mb-1">Điều khoản chung</p>
+                                <p>Mô tả: (Điều khoản được áp dụng cho cả 2 bên)</p>
+                            </div>
 
+                            <Form.Item
+                                label={<div className="flex justify-between items-center gap-4">
+                                    <p>Điều khoản chung</p>
+                                    <Popover
+                                        // content={() => getTermsContent('generalTerms')}
+                                        title="Danh sách Điều khoản chung đã chọn"
+                                        trigger="hover"
+                                        placement="right"
+                                    >
+                                        <Button icon={<EyeFilled />} />
+                                    </Popover>
+                                </div>}
+                                name="generalTerms"
+                                rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
+                                className="ml-2"
+                            >
+                                <LazySelect
+                                    loadDataCallback={loadGenaralData}
+                                    options={generalData?.data.content}
+                                    showSearch
+                                    mode="multiple"
+                                    placeholder="Chọn điều khoản chung"
+                                    onChange={handleSelectChange}
+                                    dropdownRender={(menu) => (
+                                        <>
+                                            {menu}
+                                            <Divider style={{ margin: "8px 0" }} />
+                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModalAddClause(9)}>Thêm điều khoản</Button>
+                                            </Space>
+                                        </>
+                                    )}
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                label={<div className="ml-2 my-3 font-bold text-[16px] flex justify-between items-center gap-5">
+                                    <p>Các điều khoản khác</p>
+                                </div>}
+                                name="additionalTerms"
+                            >
+                                <Checkbox.Group
+                                    className="flex flex-col ml-4 gap-4"
+                                    options={[
+                                        { label: "ĐIỀU KHOẢN BỔ SUNG", value: 1 },
+                                        { label: "QUYỀN VÀ NGHĨA VỤ CÁC BÊN", value: 2 },
+                                        { label: "ĐIỀN KHOẢN BẢO HÀNH VÀ BẢO TRÌ", value: 3 },
+                                        { label: "ĐIỀU KHOẢN VỀ VI PHẠM VÀ BỒI THƯỜNG THIỆT HẠI", value: 4 },
+                                        { label: "ĐIỀU KHOẢN VỀ CHẤM DỨT HỢP ĐỒNG", value: 5 },
+                                        { label: "ĐIỀU KHOẢN VỀ GIẢI QUYẾT TRANH CHẤP", value: 6 },
+                                        { label: "ĐIỀU KHOẢN BẢO MẬT", value: 7 }
+                                    ]}
+                                    onChange={handleClauseCheckboxChange}
+                                />
+                            </Form.Item>
+
+                            <div className="flex flex-col">
+                                {selectedOthersTerms.map(termId => (
+                                    <TermsectionForAppendix
+                                        key={termId}
+                                        termId={termId}
+                                        title={termConfigs[termId].title}
+                                        form={form}
+                                        loadDataCallback={termConfigs[termId].loadData}
+                                    />
+                                ))}
+                            </div>
+
+                            <Divider orientation="center">Điều khoản khác</Divider>
+                            <Form.Item
+                                label={
+                                    <div className="flex justify-between items-center gap-4">
+                                        <p>Điều khoản khác </p>
+                                        {/* <Popover
+                                                content={() => getTermsContent('generalTerms')}
+                                                title="Danh sách Điều khoản chung đã chọn"
+                                                trigger="hover"
+                                                placement="right"
+                                            >
+                                                <Button icon={<EyeFilled />} />
+                                            </Popover> */}
+                                    </div>
+                                }
+                                name="otherTerms"
+                                // rules={[{ required: true, message: "Vui lòng chọn điều khoản khác!" }]}
+                                className="ml-2"
+                            >
+                                <LazySelect
+                                    loadDataCallback={loadDKKata}
+                                    options={generalData?.data.content}
+                                    showSearch
+                                    mode="multiple"
+                                    placeholder="Chọn điều khoản khác"
+                                    onChange={handleSelectOthersTermsChange}
+                                    dropdownRender={(menu) => (
+                                        <>
+                                            {menu}
+                                            <Divider style={{ margin: "8px 0" }} />
+                                            <Space style={{ padding: "0 8px 4px" }}>
+                                                <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModalAddClause(10)}>
+                                                    Thêm điều khoản
+                                                </Button>
+                                            </Space>
+                                        </>
+                                    )}
+                                />
+                            </Form.Item>
                         </>
                     )}
 
@@ -1037,9 +1251,9 @@ const ContractAppendixPage = () => {
                                                             validator: (_, value) => {
                                                                 const extendStart = form.getFieldValue("extendContractDate");
                                                                 const extendEnd = form.getFieldValue("contractExpirationDate");
-
+                                                                const notifyPaymentDate = form.getFieldValue(["payments", name, "notifyPaymentDate"]);
                                                                 // Nếu chưa chọn thời gian gia hạn hoặc ngày thanh toán, không kiểm tra
-                                                                if (!extendStart || !extendEnd || !value) {
+                                                                if (!extendStart || !extendEnd || !notifyPaymentDate || !value) {
                                                                     return Promise.resolve();
                                                                 }
 
@@ -1047,7 +1261,9 @@ const ContractAppendixPage = () => {
                                                                 if (value.isBefore(extendStart) || value.isAfter(extendEnd)) {
                                                                     return Promise.reject(new Error("Ngày thanh toán phải nằm trong thời gian hiệu lực"));
                                                                 }
-
+                                                                if (notifyPaymentDate && value.isBefore(notifyPaymentDate)) {
+                                                                    return Promise.reject(new Error("Ngày thanh toán phải sau ngày thông báo thanh toán"));
+                                                                }
                                                                 return Promise.resolve();
                                                             },
                                                         },
@@ -1056,6 +1272,47 @@ const ContractAppendixPage = () => {
                                                     <DatePicker
                                                         style={{ width: 150 }}
                                                         placeholder="Ngày thanh toán"
+                                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
+                                                        format="DD/MM/YYYY"
+                                                    />
+                                                </Form.Item>
+                                                <Form.Item
+                                                    {...restField}
+                                                    name={[name, "notifyPaymentDate"]}
+                                                    rules={[
+                                                        { required: true, message: "Chọn ngày thông báo thanh toán" },
+                                                        {
+                                                            validator: (_, value) => {
+                                                                const extendStart = form.getFieldValue("extendContractDate");
+                                                                const extendEnd = form.getFieldValue("contractExpirationDate");
+                                                                const paymentDate = form.getFieldValue(["payments", name, "paymentDate"]);
+
+                                                                // Skip validation if the date or extension period is not set
+                                                                if (!value || !extendStart || !extendEnd) {
+                                                                    return Promise.resolve();
+                                                                }
+
+                                                                // Check if notifyPaymentDate is within the extension period
+                                                                if (value.isBefore(extendStart) || value.isAfter(extendEnd)) {
+                                                                    return Promise.reject(new Error("Ngày thông báo thanh toán phải nằm trong thời gian gia hạn"));
+                                                                }
+
+                                                                // Check if notifyPaymentDate is before paymentDate (if set)
+                                                                if (paymentDate && !(value.isBefore(paymentDate) || value.isSame(paymentDate))) {
+                                                                    return Promise.reject(new Error("Ngày thông báo thanh toán phải trước hoặc cùng ngày với ngày thanh toán"));
+                                                                }
+
+                                                                return Promise.resolve();
+                                                            },
+                                                            // Re-validate when these fields change
+                                                            dependencies: ["extendContractDate", "contractExpirationDate", ["payments", name, "paymentDate"]],
+                                                        },
+                                                    ]}
+                                                >
+                                                    <DatePicker
+                                                        style={{ width: 150 }}
+                                                        showTime
+                                                        placeholder="Ngày thông báo thanh toán"
                                                         disabledDate={(current) => current && current < dayjs().startOf('day')}
                                                         format="DD/MM/YYYY"
                                                     />

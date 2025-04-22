@@ -974,6 +974,8 @@ const SignContract = () => {
 
         try {
             const data = await uploadFileToSign({ file: selectedFile }).unwrap();
+            console.log(data)
+
             const signInfo = {
                 llx: dataToSign.llx,
                 lly: dataToSign.lly,
@@ -989,7 +991,7 @@ const SignContract = () => {
 
             setSelectedFile(null)
             setSignedFile(null)
-
+            setSignMethod(null)
         } catch (err) {
             setError(err.message);
             writeToLog(err.message);
@@ -1058,9 +1060,10 @@ const SignContract = () => {
             // console.log('Ký thành công:', data);
 
             // Reset sau khi ký
-            setSelectedFile(null);
+            setSelectedFile(null);  
             setSignedFile(null);
             setIsUploading(false);
+            setSignMethod(null)
         } catch (err) {
             setError(err.message);
             writeToLog(err.message);
@@ -1508,7 +1511,7 @@ const SignContract = () => {
                             <p className='mb-4'>
                                 <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>Sẵn sàng ký</Tag>
                             </p>
-                            {/* {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>} */}
+                            {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
                             <div className='flex flex-col items-center gap-2'>
                                 <Checkbox
                                     disabled={isUploading}

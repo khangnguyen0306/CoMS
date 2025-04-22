@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Col, Row, Tabs } from "antd";
+import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Col, Row, Tabs, ConfigProvider } from "antd";
 import { EditFilled, PlusOutlined, StarFilled, StopFilled, StopOutlined } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
@@ -309,255 +309,274 @@ const UserManagement = () => {
 
     return (
         <div className="min-h-[50vh] p-4">
-            <Tabs
-                defaultActiveKey="1"
-                type="card"
-                style={{ marginBottom: 32 }}
-                className="mt-10"
-                activeKey={activeTab}
-                onChange={setActiveTab}
 
+            <ConfigProvider
+                theme={{
+                    components: {
+                        Tabs: {
+                            cardBg: "#6a7584",
+                            itemColor: "#ffff",
+                            colorBgContainer: '#1667ff',
+                            itemSelectedColor: "#ffff",
+                            motionDurationMid: '0.1s',
+                            motionDurationSlow: '0.1s',
+                            itemHoverColor: null,
+                            itemActiveColor: '#ffff',
+                        },
+                    },
+                    token: { fontFamily: "Roboto, sans-serif" }
+                }}
             >
-                <TabPane tab="Quản lý nhân sự" key="1">
-                    <div className="flex-1 p-4">
-                        <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                            QUẢN LÝ NHÂN SỰ
-                        </p>
-                        <Modal
-                            title="Thêm Nhân Sự"
-                            open={isModalVisible}
-                            onCancel={() => setIsModalVisible(false)}
-                            footer={null}
-                            width={850}
-                        >
-                            <Form form={form} layout="vertical" onFinish={handleSubmitAddUser}>
-                                <Row gutter={16}>
-                                    <Col span={12}>
-                                        <Form.Item
-                                            name="full_name"
-                                            label="Tên nhân sự"
-                                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên nhân sự!" }]}
-                                        >
-                                            <Input placeholder="Nhập tên nhân sự" />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={12}>
-                                        <Form.Item
-                                            name="phone_number"
-                                            label="Số điện thoại"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    whitespace: true,
-                                                    pattern: validationPatterns.phoneNumber.pattern,
-                                                    message: validationPatterns.phoneNumber.message,
-                                                },
-                                            ]}
-                                        >
-                                            <Input placeholder="Nhập sđt nhân sự" />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                                <Row gutter={16}>
-                                    <Col span={12}>
-                                        <Form.Item
-                                            name="email"
-                                            label="Email"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    whitespace: true,
-                                                    pattern: validationPatterns.email.pattern,
-                                                    message: validationPatterns.email.message,
-                                                },
-                                            ]}
-                                        >
-                                            <Input placeholder="Nhập email nhân sự" />
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={12}>
-                                        <Form.Item
-                                            name="address"
-                                            label="Địa chỉ"
-                                            rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
-                                        >
-                                            <Input placeholder="Nhập địa chỉ" />
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
-                                <Row gutter={16}>
-                                    <Col span={12}>
-                                        <Form.Item
-                                            name="role_id"
-                                            label="Chọn vai trò"
-                                            rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
-                                        >
-                                            <Select placeholder="Chọn vai trò" onChange={handleRoleChange}>
-                                                <Option value={2}>Giám đốc</Option>
-                                                <Option value={3}>Quản Lý</Option>
-                                                <Option value={4}>Nhân Viên</Option>
-                                            </Select>
-                                        </Form.Item>
-                                    </Col>
-                                    <Col span={12}>
-                                        <Form.Item
-                                            name="departmentId"
-                                            label="Chọn phòng ban"
-                                            rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
-                                        >
-                                            <Select placeholder="Chọn phòng ban">
-                                                {data?.data?.map((dept) => (
-                                                    <Option key={dept.departmentId} value={dept.departmentId}>
-                                                        {dept.departmentName}
-                                                    </Option>
-                                                ))}
-                                            </Select>
-                                        </Form.Item>
-                                    </Col>
-                                </Row>
+                <Tabs
+                    defaultActiveKey="1"
+                    type="card"
+                    style={{ marginBottom: 32 }}
+                    className="mt-10"
+                    activeKey={activeTab}
+                    onChange={setActiveTab}
 
-                                <Form.Item>
-                                    <div className="flex justify-center">
-                                        <Button type="primary" htmlType="submit" loading={loadingAdd}>
-                                            Thêm nhân sự
-                                        </Button>
-                                    </div>
-                                </Form.Item>
-                            </Form>
-                        </Modal>
-
-                        <Modal
-                            title="Đổi Thông Tin Nhân Sự"
-                            open={isModalUpdate}
-                            onCancel={() => setIsModalUpdate(false)}
-                            footer={null}
-                        >
-                            <Form
-                                form={form}
-                                layout="vertical"
-                                onFinish={(values) => {
-                                    console.log('Form data:', values);
-                                    handleSubmitEditUser(values)
-                                }}
+                >
+                    <TabPane tab="Quản lý nhân sự" key="1">
+                        <div className="flex-1 p-4">
+                            <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                                QUẢN LÝ NHÂN SỰ
+                            </p>
+                            <Modal
+                                title="Thêm Nhân Sự"
+                                open={isModalVisible}
+                                onCancel={() => setIsModalVisible(false)}
+                                footer={null}
+                                width={850}
                             >
-                                <Form.Item
-                                    name="id"
-                                    style={{ display: 'none' }}
-                                />
+                                <Form form={form} layout="vertical" onFinish={handleSubmitAddUser}>
+                                    <Row gutter={16}>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                name="full_name"
+                                                label="Tên nhân sự"
+                                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên nhân sự!" }]}
+                                            >
+                                                <Input placeholder="Nhập tên nhân sự" />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                name="phone_number"
+                                                label="Số điện thoại"
+                                                rules={[
+                                                    {
+                                                        required: true,
+                                                        whitespace: true,
+                                                        pattern: validationPatterns.phoneNumber.pattern,
+                                                        message: validationPatterns.phoneNumber.message,
+                                                    },
+                                                ]}
+                                            >
+                                                <Input placeholder="Nhập sđt nhân sự" />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                    <Row gutter={16}>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                name="email"
+                                                label="Email"
+                                                rules={[
+                                                    {
+                                                        required: true,
+                                                        whitespace: true,
+                                                        pattern: validationPatterns.email.pattern,
+                                                        message: validationPatterns.email.message,
+                                                    },
+                                                ]}
+                                            >
+                                                <Input placeholder="Nhập email nhân sự" />
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                name="address"
+                                                label="Địa chỉ"
+                                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
+                                            >
+                                                <Input placeholder="Nhập địa chỉ" />
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
+                                    <Row gutter={16}>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                name="role_id"
+                                                label="Chọn vai trò"
+                                                rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
+                                            >
+                                                <Select placeholder="Chọn vai trò" onChange={handleRoleChange}>
+                                                    <Option value={2}>Giám đốc</Option>
+                                                    <Option value={3}>Quản Lý</Option>
+                                                    <Option value={4}>Nhân Viên</Option>
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                        <Col span={12}>
+                                            <Form.Item
+                                                name="departmentId"
+                                                label="Chọn phòng ban"
+                                                rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
+                                            >
+                                                <Select placeholder="Chọn phòng ban">
+                                                    {data?.data?.map((dept) => (
+                                                        <Option key={dept.departmentId} value={dept.departmentId}>
+                                                            {dept.departmentName}
+                                                        </Option>
+                                                    ))}
+                                                </Select>
+                                            </Form.Item>
+                                        </Col>
+                                    </Row>
 
-                                <Form.Item
-                                    name="full_name"
-                                    label="Tên nhân sự"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên nhân sự!" }]}
+                                    <Form.Item>
+                                        <div className="flex justify-center">
+                                            <Button type="primary" htmlType="submit" loading={loadingAdd}>
+                                                Thêm nhân sự
+                                            </Button>
+                                        </div>
+                                    </Form.Item>
+                                </Form>
+                            </Modal>
+
+                            <Modal
+                                title="Đổi Thông Tin Nhân Sự"
+                                open={isModalUpdate}
+                                onCancel={() => setIsModalUpdate(false)}
+                                footer={null}
+                            >
+                                <Form
+                                    form={form}
+                                    layout="vertical"
+                                    onFinish={(values) => {
+                                        console.log('Form data:', values);
+                                        handleSubmitEditUser(values)
+                                    }}
                                 >
-                                    <Input placeholder="Nhập tên nhận sự" />
-                                </Form.Item>
+                                    <Form.Item
+                                        name="id"
+                                        style={{ display: 'none' }}
+                                    />
 
-                                <Form.Item
-                                    name="phone_number"
-                                    label="Số điện thoại"
-                                    rules={[{
-                                        required: true,
-                                        whitespace: true,
-                                        pattern: validationPatterns.phoneNumber.pattern,
-                                        message: validationPatterns.phoneNumber.message
-                                    }]}
-                                >
-                                    <Input placeholder="Nhập sđt nhận sự" />
-                                </Form.Item>
+                                    <Form.Item
+                                        name="full_name"
+                                        label="Tên nhân sự"
+                                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên nhân sự!" }]}
+                                    >
+                                        <Input placeholder="Nhập tên nhận sự" />
+                                    </Form.Item>
 
-                                <Form.Item
-                                    name="email"
-                                    label="Email"
-                                    rules={[{
-                                        required: true,
-                                        whitespace: true,
-                                        pattern: validationPatterns.email.pattern,
-                                        message: validationPatterns.email.message
-                                    }]}                        >
-                                    <Input placeholder="Nhập email nhận sự" />
-                                </Form.Item>
+                                    <Form.Item
+                                        name="phone_number"
+                                        label="Số điện thoại"
+                                        rules={[{
+                                            required: true,
+                                            whitespace: true,
+                                            pattern: validationPatterns.phoneNumber.pattern,
+                                            message: validationPatterns.phoneNumber.message
+                                        }]}
+                                    >
+                                        <Input placeholder="Nhập sđt nhận sự" />
+                                    </Form.Item>
 
-                                <Form.Item
-                                    name="address"
-                                    label="Địa chỉ"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
-                                >
-                                    <Input placeholder="Nhập tên nhận sự" />
-                                </Form.Item>
+                                    <Form.Item
+                                        name="email"
+                                        label="Email"
+                                        rules={[{
+                                            required: true,
+                                            whitespace: true,
+                                            pattern: validationPatterns.email.pattern,
+                                            message: validationPatterns.email.message
+                                        }]}                        >
+                                        <Input placeholder="Nhập email nhận sự" />
+                                    </Form.Item>
 
-                                <Form.Item
-                                    name="departmentId"
-                                    label="Chọn phòng ban"
-                                    rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
-                                >
-                                    <Select placeholder="Chọn phòng ban">
-                                        {data?.data?.map((dept) => (
-                                            <Option key={dept.departmentId} value={dept.departmentId}>
-                                                {dept.departmentName}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
+                                    <Form.Item
+                                        name="address"
+                                        label="Địa chỉ"
+                                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ của nhân sự!" }]}
+                                    >
+                                        <Input placeholder="Nhập tên nhận sự" />
+                                    </Form.Item>
 
-                                <Form.Item
-                                    name="role_id"
-                                    label="Chọn vai trò"
-                                    rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
-                                >
-                                    <Select placeholder="Chọn vai trò">
-                                        <Option value={2}>Giám đốc</Option>
-                                        <Option value={3}>Quản Lý</Option>
-                                        <Option value={4}>Nhân Viên</Option>
-                                    </Select>
-                                </Form.Item>
+                                    <Form.Item
+                                        name="departmentId"
+                                        label="Chọn phòng ban"
+                                        rules={[{ required: true, message: "Vui lòng chọn phòng ban!" }]}
+                                    >
+                                        <Select placeholder="Chọn phòng ban">
+                                            {data?.data?.map((dept) => (
+                                                <Option key={dept.departmentId} value={dept.departmentId}>
+                                                    {dept.departmentName}
+                                                </Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
 
-                                <Form.Item>
-                                    <div className="flex justify-center">
-                                        <Button type="primary" htmlType="submit">
-                                            Cập nhật nhân sự
-                                        </Button>
-                                    </div>
-                                </Form.Item>
-                            </Form>
-                        </Modal>
+                                    <Form.Item
+                                        name="role_id"
+                                        label="Chọn vai trò"
+                                        rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
+                                    >
+                                        <Select placeholder="Chọn vai trò">
+                                            <Option value={2}>Giám đốc</Option>
+                                            <Option value={3}>Quản Lý</Option>
+                                            <Option value={4}>Nhân Viên</Option>
+                                        </Select>
+                                    </Form.Item>
 
-                        <div className="mb-4 flex justify-between items-center gap-2">
+                                    <Form.Item>
+                                        <div className="flex justify-center">
+                                            <Button type="primary" htmlType="submit">
+                                                Cập nhật nhân sự
+                                            </Button>
+                                        </div>
+                                    </Form.Item>
+                                </Form>
+                            </Modal>
 
-                            <Space style={{ marginBottom: 16 }}>
-                                <Search
-                                    placeholder="Nhập mã nhân viên, tên hoặc email"
-                                    allowClear
-                                    onSearch={setSearchText}
-                                    style={{ width: "100%", minWidth: 500, maxWidth: 1200, marginBottom: 20 }}
-                                    enterButton="Tìm kiếm"
-                                />
-                            </Space>
-                            <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
-                                Tạo nhân sự mới
-                            </Button>
+                            <div className="mb-4 flex justify-between items-center gap-2">
+
+                                <Space style={{ marginBottom: 16 }}>
+                                    <Search
+                                        placeholder="Nhập mã nhân viên, tên hoặc email"
+                                        allowClear
+                                        onSearch={setSearchText}
+                                        style={{ width: "100%", minWidth: 500, maxWidth: 1200, marginBottom: 20 }}
+                                        enterButton="Tìm kiếm"
+                                    />
+                                </Space>
+                                <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+                                    Tạo nhân sự mới
+                                </Button>
+                            </div>
+                            <Table
+                                columns={columns}
+                                dataSource={filteredUsers}
+                                rowKey="id"
+                                pagination={{
+                                    current: page,
+                                    pageSize: size,
+                                    total: userData?.totalElements,
+                                    showSizeChanger: true,
+                                    onChange: (page, pageSize) => {
+                                        setPage(page);
+                                        setSize(pageSize);
+                                    },
+                                }}
+                            />
                         </div>
-                        <Table
-                            columns={columns}
-                            dataSource={filteredUsers}
-                            rowKey="id"
-                            pagination={{
-                                current: page,
-                                pageSize: size,
-                                total: userData?.totalElements,
-                                showSizeChanger: true,
-                                onChange: (page, pageSize) => {
-                                    setPage(page);
-                                    setSize(pageSize);
-                                },
-                            }}
-                        />
-                    </div>
-                </TabPane>
-                <TabPane tab="Quản lý phòng ban" key="2">
-                    <Department />
-                </TabPane>
-            </Tabs>
+                    </TabPane>
+                    <TabPane tab="Quản lý phòng ban" key="2">
+                        <Department />
+                    </TabPane>
+                </Tabs>
+            </ConfigProvider>
         </div>
 
     );

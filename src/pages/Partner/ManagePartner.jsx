@@ -16,12 +16,11 @@ import {
     Col,
     Tooltip
 } from "antd";
-import { PlusOutlined, EditFilled, DeleteFilled, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditFilled, DeleteFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation } from '../../services/PartnerAPI';
 import { validationPatterns } from "../../utils/ultil";
 import { useSelector } from "react-redux";
-import partnerIMG from "../../assets/Image/partner.jpg"
 import { selectCurrentUser } from "../../slices/authSlice";
 const { Link } = Typography;
 const { Search } = Input;
@@ -484,7 +483,7 @@ const ManagePartner = () => {
                 }}
             />
             <Modal
-                className="w-full"
+                className="w-full min-w-[800px]"
                 title={editingPartner ? "Chỉnh sửa khách hàng" : "Tạo khách hàng Mới"}
                 open={isModalVisible}
                 okText={editingPartner ? "Chỉnh sửa khách hàng" : "Tạo khách hàng Mới"}
@@ -493,8 +492,9 @@ const ManagePartner = () => {
                 cancelText={"Hủy"}
                 loading={isCreating || isEditing}
 
+
             >
-                <Form form={form} layout="vertical" className="w-full">
+                <Form form={form} layout="vertical" className="w-full ">
                     {/* Các trường chung được chia thành 2 cột */}
                     <Row gutter={16} className="w-full">
                         <Col xs={24} md={12}>

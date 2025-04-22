@@ -20,7 +20,6 @@ export const clauseAPI = baseApi.injectEndpoints({
            size, 
            order, 
            keyword, 
-           order:"desc"
           },
         method: "GET",
         

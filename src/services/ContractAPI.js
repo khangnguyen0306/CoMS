@@ -19,7 +19,7 @@ export const ContractAPI = baseApi.injectEndpoints({
                     size: params?.size || 10,
                     keyword: params?.keyword || "",
                     statuses: params?.status || "",
-                    order:"desc"
+                    order: "desc"
                 },
             }),
             providesTags: (result) =>
@@ -185,7 +185,9 @@ export const ContractAPI = baseApi.injectEndpoints({
                 url: `contracts/partner/${params.partnerId}`,
                 params: {
                     page: params?.page,
-                    size: params?.size
+                    size: params?.size,
+                    keyword: params?.keyword,
+                    order: "desc"
                 },
                 method: "GET",
             }),

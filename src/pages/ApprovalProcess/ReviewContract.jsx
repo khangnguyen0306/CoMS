@@ -130,7 +130,7 @@ const ReviewContract = () => {
                                     </Text>
                                     <div>
                                         <Text strong className="">Đối Tác:</Text>
-                                        <Text className="ml-2">{contract?.partner?.partnerName || "Chưa cập nhật"}</Text>
+                                        <Text className="ml-2">{contract?.partnerB?.partnerName || "Chưa cập nhật"}</Text>
                                     </div>
                                     <div>
                                         <Text strong className="">Tổng giá Trị:</Text>

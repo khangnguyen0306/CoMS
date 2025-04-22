@@ -60,7 +60,7 @@ const AppendixDetail = () => {
             refetchOnReconnect: true,
         }
     )
-    const { data: dataAppendixProcess, isLoading: isLoadingAppendixProcess, isError: isErrorAppendixProcess,refetch:refetchAppendix } = useGetWorkFlowByAppendixIdQuery(
+    const { data: dataAppendixProcess, isLoading: isLoadingAppendixProcess, isError: isErrorAppendixProcess, refetch: refetchAppendix } = useGetWorkFlowByAppendixIdQuery(
         { appendixId },
         { skip: !appendixId }
     );
@@ -119,7 +119,6 @@ const AppendixDetail = () => {
         }
     };
 
-
     const handleReject = async () => {
         try {
             await rejectProcess({ comment: reason, appendixId: appendixId, stageId: StageIdMatching }).unwrap();
@@ -174,7 +173,6 @@ const AppendixDetail = () => {
         return new Date(year, month - 1, day, hour, minute);
     };
 
-
     const contractItemsColumns = [
         { title: 'Số thứ tự', dataIndex: 'itemOrder', key: 'itemOrder' },
         { title: 'Mô tả', dataIndex: 'description', key: 'description' },
@@ -193,6 +191,14 @@ const AppendixDetail = () => {
         { title: 'Số tiền', dataIndex: 'amount', key: 'amount', render: (amount) => `${amount.toLocaleString()} VND` },
         {
             title: 'Ngày thanh toán', dataIndex: 'paymentDate', key: 'paymentDate', render: (dateArray) => {
+                if (!dateArray || dateArray.length < 5) return 'Invalid date';
+                const [year, month, day, hour, minute] = dateArray;
+                const date = new Date(year, month - 1, day, hour, minute);
+                return date.toLocaleDateString('vi-VN');
+            }
+        },
+        {
+            title: 'Ngày thông báo thanh toán', dataIndex: 'notifyPaymentDate', key: 'notifyPaymentDate', render: (dateArray) => {
                 if (!dateArray || dateArray.length < 5) return 'Invalid date';
                 const [year, month, day, hour, minute] = dateArray;
                 const date = new Date(year, month - 1, day, hour, minute);
@@ -1100,6 +1106,7 @@ const AppendixDetail = () => {
         paymentDate: schedule.paymentDate,
         status: schedule.status,
         paymentMethod: schedule.paymentMethod,
+        notifyPaymentDate: schedule.notifyPaymentDate
     }));
 
     if (isLoadingAppendix) {
@@ -1131,7 +1138,7 @@ const AppendixDetail = () => {
                         className="font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500 mt-10"
                         style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.2)' }}
                     >
-                        {appendixData?.data.title}
+                        {appendixData?.data.title.toUpperCase()}
                     </p>
 
                 </div>
@@ -1178,11 +1185,11 @@ const AppendixDetail = () => {
                             <Col className="flex flex-col gap-2" md={10} sm={24}>
                                 <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
                                 <p className="text-sm"><b>Tên công ty:</b> {appendixData?.data.partnerA.partnerName}</p>
-                                <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {appendixData?.data.partnerA.partnerAddress}</p>
+                                <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> {appendixData?.data.partnerA.address}</p>
                                 <p className="text-sm"><b>Người đại diện:</b> {appendixData?.data.partnerA.spokesmanName}</p>
                                 <p className="text-sm"><b>Chức vụ:</b> {appendixData?.data.partnerA.position}</p>
-                                <p className="text-sm"><b>Mã số thuế:</b> {appendixData?.data.partnerA.partnerTaxCode}</p>
-                                <p className="text-sm"><b>Email:</b> {appendixData?.data.partnerA.partnerEmail}</p>
+                                <p className="text-sm"><b>Mã số thuế:</b> {appendixData?.data.partnerA.taxCode}</p>
+                                <p className="text-sm"><b>Email:</b> {appendixData?.data.partnerA.email}</p>
                             </Col>
                             <Col className="flex flex-col gap-2" md={10} sm={24}>
                                 <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>

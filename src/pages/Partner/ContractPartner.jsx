@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Input, Table, Tag, Space, Skeleton, Card, Empty, ConfigProvider } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useGetContractByPartnerIdQuery } from '../../services/ContractAPI';
 import { Link } from 'react-router-dom';
+import { debounce } from 'lodash';
 import dayjs from 'dayjs';
 
 const ContractPartner = ({ partnerId }) => {
@@ -21,7 +22,7 @@ const ContractPartner = ({ partnerId }) => {
         partnerId: partnerId,
         page: currentPage - 1, // API thường bắt đầu từ page 0
         size: pageSize,
-        search: searchText,
+        keyword: searchText,
     });
 
     // Reset về trang 1 khi searchText thay đổi
@@ -29,11 +30,21 @@ const ContractPartner = ({ partnerId }) => {
         setCurrentPage(1);
     }, [searchText]);
 
+    useEffect(() => {
+        refetchContractData()
+    }, [partnerId])
+
+    // Create a debounced function for setting search text
+    const debouncedSetSearchText = useCallback(debounce((value) => {
+        setSearchText(value);
+    }, 200), []);
+
     // Xử lý sự kiện thay đổi trang hoặc kích thước trang
     const handleTableChange = (pagination) => {
         setCurrentPage(pagination.current);
         setPageSize(pagination.pageSize);
     };
+
 
     // Định nghĩa bộ lọc trạng thái
     const statusFilters = [
@@ -43,12 +54,25 @@ const ContractPartner = ({ partnerId }) => {
         { text: 'EXPIRED', value: 'Đã hết hạn' },
         { text: 'APPROVED', value: 'Đang chờ ký' },
     ];
+
     const Displaystatus = {
-        'SIGNED': "Đã ký",
-        'ACTIVE': "Đang hiệu lực",
-        'ENDED': "Hết hiệu lực",
-        'EXPIRED': "Đã hết hạn",
-        'APPROVED': "Đang chờ ký"
+        'SIGNED': <Tag color='default'>Đã ký</Tag>,
+        'ACTIVE': <Tag color='blue-inverse'>Đang hiệu lực</Tag>,
+        'ENDED': <Tag color='red'>Hết hiệu lực</Tag>,
+        'EXPIRED': <Tag color='red-inverse'>Đã hết hạn</Tag>,
+        'APPROVED': <Tag color='yellow-inverse'>Đang chờ ký</Tag>
+    };
+
+    const renderDate = (date) => {
+        return (
+            <p>Ngày {date[2]} tháng {date[1]} năm {date[0]}</p>
+        )
+    }
+
+    const parseDate = (dateArray) => {
+        if (!Array.isArray(dateArray) || dateArray.length < 5) return null;
+        const [year, month, day, hour, minute] = dateArray;
+        return new Date(year, month - 1, day, hour, minute);
     };
 
     // Định nghĩa cột của bảng
@@ -63,29 +87,25 @@ const ContractPartner = ({ partnerId }) => {
             title: 'Tên hợp đồng',
             dataIndex: 'title',
             key: 'title',
-            render: text => <Link className='text-cyan-600 font-semibold' to={`/contract/${text}`}>{text}</Link>,
+            render: (text, record) => (
+                <Link className='text-cyan-600 font-semibold' to={`/contractDetail/${record.id}`}>
+                    {text}
+                </Link>
+            ),
         },
         {
             title: 'Ngày ký',
             dataIndex: 'signingDate',
             key: 'signingDate',
-            sorter: (a, b) => new Date(a.signingDate) - new Date(b.signingDate),
-            render: (dateArray) => {
-                const [year, month, day] = dateArray;
-                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
-            },
+            sorter: (a, b) => parseDate(a.signingDate) - parseDate(b.signingDate),
+            render: date => renderDate(date),
         },
         {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
             render: status => (
-                <Tag color={status === 'SIGNED' ? 'green' :
-                    status === 'EXPIRED' ? 'red' :
-                        status === 'APPROVED' ? 'blue' :
-                            status === 'EDNED' ? 'orange' : 'default'}>
-                    {Displaystatus[status]}
-                </Tag>
+                Displaystatus[status]
             ),
             filters: statusFilters,
             // Giữ filters nhưng không dùng onFilter để tương thích server-side sau này
@@ -102,33 +122,28 @@ const ContractPartner = ({ partnerId }) => {
             title: 'Ngày hết hạn',
             dataIndex: 'expiryDate',
             key: 'expiryDate',
-            sorter: (a, b) => new Date(a.expiryDate) - new Date(b.expiryDate),
-            render: (dateArray) => {
-                const [year, month, day] = dateArray;
-                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
-            },
+            sorter: (a, b) => parseDate(a.expiryDate) - parseDate(b.expiryDate),
+            render: date => renderDate(date),
         },
     ];
+
+    // const sortedData = (partnerContractData?.data?.content || []).sort((a, b) => new Date(b.signDate) - new Date(a.signDate));
 
     // Xử lý trạng thái loading và error
     if (isFetchingContractData) return <Skeleton active />;
     if (fetchErrorContractData) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
 
     // Sắp xếp dữ liệu theo ngày ký giảm dần (mặc định)
-    // const sortedData = (partnerContractData?.data.content || []).sort((a, b) => new Date(b.signingDate) - new Date(a.signingDate));
-    const raw = partnerContractData?.data.content || [];
-    const sortedData = [...raw]   // tạo bản sao mutable
-        .sort((a, b) => new Date(b.signingDate) - new Date(a.signingDate));
+
 
     return (
         <div>
             <Space style={{ marginBottom: 16 }} className='w-full'>
                 <Input
-                    placeholder="Tìm kiếm theo tên, ngày ký, mã hợp đồng, ngày hết hạn, trạng thái"
-                    value={searchText}
-                    onChange={e => setSearchText(e.target.value)}
+                    placeholder="Tìm kiếm theo tên hợp đồng, mã hợp đồng"
+                    onChange={e => debouncedSetSearchText(e.target.value)}
                     prefix={<SearchOutlined />}
-                    className='w-full'
+                    className='w-full min-w-[500px]'
                 />
             </Space>
             <ConfigProvider
@@ -145,7 +160,7 @@ const ContractPartner = ({ partnerId }) => {
                 }}
             >
                 <Table
-                    dataSource={sortedData}
+                    dataSource={partnerContractData?.data?.content}
                     columns={columns}
                     rowKey="contractId"
                     bordered

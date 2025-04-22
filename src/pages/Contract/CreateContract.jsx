@@ -29,6 +29,7 @@ import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import topIcon from "../../assets/Image/top.svg"
 import { debounce, throttle } from "lodash";
 import ModalAdd from "./component/ModalAdd";
+import { useWarnOnLeave } from "../../hooks/UseWarnOnLeave";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -67,7 +68,7 @@ const CreateContractForm = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [loadingTerms, setLoadingTerms] = useState({});
     const [changeCCPL, setChangeCCPL] = useState(false);
-
+    const [shouldBlockNavigation, setShouldBlockNavigation] = useState(true);
 
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: form.getFieldValue('partnerId') });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
@@ -315,8 +316,9 @@ const CreateContractForm = () => {
 
 
     const onFinish = async () => {
-        const data = form.getFieldsValue(true);
 
+        const data = form.getFieldsValue(true);
+        setShouldBlockNavigation(false); // bật điều hư
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
         const additionalConfig = Object.keys(data)
             .filter(key => !isNaN(key)) // Chỉ lấy các key là số (1,2,3,...)
@@ -412,19 +414,22 @@ const CreateContractForm = () => {
         // Thêm TemplateData vào dữ liệu cuối cùng
         formattedData.TemplateData = templateData;
 
-        console.log("Formatted Data:", formattedData);
+        // console.log("Formatted Data:", formattedData);
 
         try {
             const response = await createContract(formattedData).unwrap();
             if (response.status === "CREATED") {
                 form.resetFields();
                 message.success("Tạo hợp đồng thành công!");
+
                 navigate('/contractsApproval');
             } else {
                 message.error(response.message);
+                setShouldBlockNavigation(true)
             }
         } catch (error) {
             console.log(error);
+            setShouldBlockNavigation(true)
             message.error("Lỗi khi tạo hợp đồng!");
         }
     };
@@ -1856,7 +1861,7 @@ const CreateContractForm = () => {
                                                 {menu}
                                                 <Divider style={{ margin: "8px 0" }} />
                                                 <Space style={{ padding: "0 8px 4px" }}>
-                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() =>handleOpenModalAddClause(9)}>
+                                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModalAddClause(9)}>
                                                         Thêm điều khoản
                                                     </Button>
                                                 </Space>
@@ -2290,6 +2295,8 @@ const CreateContractForm = () => {
         },
 
     ];
+
+    useWarnOnLeave(shouldBlockNavigation);
 
     return (
         <div className="min-h-[100vh]">

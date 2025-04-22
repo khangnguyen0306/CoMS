@@ -55,6 +55,22 @@ const PartnerDetail = () => {
         }
     };
 
+    useEffect(() => {
+        form.setFieldsValue({
+            partnerName: partnerData?.data.partnerName,
+            partnerCode: partnerData?.data.partnerCode,
+            taxCode: partnerData?.data.taxCode,
+            spokesmanName: partnerData?.data.spokesmanName,
+            spokesmanPosition: partnerData?.data.spokesmanPosition,
+            businessField: partnerData?.data.businessField,
+            address: partnerData?.data.address,
+            phone: partnerData?.data.phone,
+            email: partnerData?.data.email,
+            note: partnerData?.data.note,
+            position: partnerData?.data.position
+        })
+    }, [partyId])
+
 
     if (isFetching) return <Skeleton active />;
     if (fetchError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
@@ -62,32 +78,22 @@ const PartnerDetail = () => {
 
     const handleEditClick = () => {
         setIsEditing(true);
-        form.setFieldsValue({
-            partnerName: partnerData.partnerName,
-            partnerCode: partnerData.partnerCode,
-            taxCode: partnerData.taxCode,
-            spokesmanName: partnerData.spokesmanName,
-            spokesmanPosition: partnerData.spokesmanPosition,
-            businessField: partnerData.businessField,
-            address: partnerData.address,
-            phone: partnerData.phone,
-            email: partnerData.email,
-            note: partnerData.note,
-        });
     };
 
     const handleSaveClick = async () => {
         try {
             const updatedValues = await form.validateFields();
-            // await updatePartner(updatedValues).unwrap();
+            console.log(updatedValues)
+            await updatePartner(updatedValues).unwrap();
             message.success('Cập nhật thông tin thành công!');
-            setIsEditing(false); // Tắt chế độ chỉnh sửa
+            setIsEditing(false); 
         } catch (error) {
+            console.log(error)
             message.error('Cập nhật thất bại');
         }
     };
     return (
-        <div className="site-card-wrapper min-h-[70vh]">
+        <div className="site-card-wrapper min-h-[100vh]">
             <Breadcrumb
                 items={[
                     {
@@ -142,7 +148,7 @@ const PartnerDetail = () => {
                                                 <FaUserTie className='mr-3' />
                                                 {partnerData?.data.partnerName}
                                             </div>
-                                            <div>
+                                            {/* <div>
                                                 {!isEditing ? (
                                                     //để sau làm nút chỉnh sửa
                                                     <Button
@@ -158,39 +164,27 @@ const PartnerDetail = () => {
                                                         type="primary"
                                                         onClick={handleSaveClick}
                                                         icon={<SaveFilled />}
-                                                    // {/* loading={isUpdating} */}
+                                    
                                                     >
                                                         Lưu thay đổi
                                                     </Button>
                                                 )}
-                                            </div>
+                                            </div> */}
                                         </Title>
                                     }
                                 >
                                     {isEditing ? (
                                         <Form
+                                            // className='w-[80%]'
                                             form={form}
                                             layout="vertical"
-                                            initialValues={{
-                                                partnerName: partnerData?.data.partnerName,
-                                                partnerCode: partnerData?.data.partnerCode,
-                                                taxCode: partnerData?.data.taxCode,
-                                                spokesmanName: partnerData?.data.spokesmanName,
-                                                spokesmanPosition: partnerData?.data.spokesmanPosition,
-                                                businessField: partnerData?.data.businessField,
-                                                address: partnerData?.data.address,
-                                                phone: partnerData?.data.phone,
-                                                email: partnerData?.data.email,
-                                                note: partnerData?.data.note,
-                                                position: partnerData?.data.position
-                                            }}
                                         >
                                             <Form.Item label="Tên Partner" name="partnerName" rules={[{ required: true, message: 'Vui lòng nhập tên đối tác!' }]}>
                                                 <Input />
                                             </Form.Item>
-                                            <Form.Item label="Mã Partner" name="partnerCode">
+                                            {/* <Form.Item label="Mã Partner" name="partnerCode">
                                                 <Input />
-                                            </Form.Item>
+                                            </Form.Item> */}
                                             <Form.Item label="Mã số thuế" name="taxCode">
                                                 <Input />
                                             </Form.Item>

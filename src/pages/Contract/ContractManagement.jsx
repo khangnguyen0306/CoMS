@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image, Radio, Tabs, Checkbox } from "antd";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image, Radio, Tabs, Checkbox, ConfigProvider } from "antd";
 import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined, SignalFilled, SignatureOutlined, FilePdfOutlined } from "@ant-design/icons";
 import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useGetImgSignQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
@@ -236,7 +236,6 @@ const ManageContracts = () => {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        maxWidth: 80
                     }}>
                         {text}
                     </div>
@@ -533,7 +532,6 @@ const ManageContracts = () => {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        maxWidth: 80
                     }}>
                         {text}
                     </div>
@@ -924,12 +922,7 @@ const ManageContracts = () => {
                     )
                     }
                 </Space>
-                <Checkbox.Group
-                    value={checkedList}
-                    options={options}
-                    onChange={(value) => setCheckedList(value)}
-                    style={{ marginBottom: 16 }}
-                />
+
                 {isCEO ? (
                     <Table
                         columns={filteredColumns2}
@@ -971,50 +964,81 @@ const ManageContracts = () => {
                         onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                     />
                 ) : isStaff ? (
-                    <Tabs type="card" activeKey={activeKey} onChange={handleTabChange}>
-                        <TabPane tab="Hợp đồng của tôi" key="1">
-                            <Table
-                                columns={filteredColumns1}
-                                dataSource={contracts?.data?.content}
-                                rowKey="id"
-                                loading={isLoading}
-                                pagination={{
-                                    current: paginationStaff.current,
-                                    pageSize: paginationStaff.pageSize,
-                                    total: contracts?.data?.totalElements || 0,
-                                    showSizeChanger: true,
-                                    showQuickJumper: true,
-                                    showTotal: (total) => `Tổng ${total} hợp đồng`,
-                                }}
-                                onChange={handleTableChange}
-                                expandable={{
-                                    expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
-                                }}
-                                onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
-                            />
-                        </TabPane>
-                        <TabPane tab="Hợp đồng đã phê duyệt" key="2">
-                            <Table
-                                columns={filteredColumns2}
-                                dataSource={contractApprove?.data?.content}
-                                rowKey="id"
-                                loading={isLoading}
-                                // pagination={{
-                                //     current: paginationApprover.current,
-                                //     pageSize: paginationApprover.pageSize,
-                                //     total: contractApprove?.data?.totalElements,
-                                //     showSizeChanger: true,
-                                //     showQuickJumper: true,
-                                //     showTotal: (total) => `Tổng ${total} hợp đồng`,
-                                // }}
-                                onChange={handleTableChange}
-                                expandable={{
-                                    expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
-                                }}
-                                onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
-                            />
-                        </TabPane>
-                    </Tabs>
+
+                    <ConfigProvider
+                        theme={{
+                            components: {
+                                Tabs: {
+                                    cardBg: "#6a7584",
+                                    itemColor: "#ffff",
+                                    colorBgContainer: '#1667ff',
+                                    itemSelectedColor: "#ffff",
+                                    motionDurationMid: '0.1s',
+                                    motionDurationSlow: '0.1s',
+                                    itemHoverColor: null,
+                                    itemActiveColor: '#ffff',
+                                },
+                            },
+                            token: { fontFamily: "Roboto, sans-serif" }
+                        }}
+                    >
+                        <Tabs type="card" activeKey={activeKey} onChange={handleTabChange}>
+                            <TabPane tab="Hợp đồng của tôi" key="1">
+                                <Checkbox.Group
+                                    value={checkedList}
+                                    options={options}
+                                    onChange={(value) => setCheckedList(value)}
+                                    style={{ marginBottom: 16 }}
+                                />
+                                <Table
+                                    columns={filteredColumns1}
+                                    dataSource={contracts?.data?.content}
+                                    rowKey="id"
+                                    loading={isLoading}
+                                    pagination={{
+                                        current: paginationStaff.current,
+                                        pageSize: paginationStaff.pageSize,
+                                        total: contracts?.data?.totalElements || 0,
+                                        showSizeChanger: true,
+                                        showQuickJumper: true,
+                                        showTotal: (total) => `Tổng ${total} hợp đồng`,
+                                    }}
+                                    onChange={handleTableChange}
+                                    expandable={{
+                                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                                    }}
+                                    onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                                />
+                            </TabPane>
+                            <TabPane tab="Hợp đồng đã phê duyệt" key="2">
+                                <Checkbox.Group
+                                    value={checkedList}
+                                    options={options}
+                                    onChange={(value) => setCheckedList(value)}
+                                    className="my-5"
+                                />
+                                <Table
+                                    columns={filteredColumns2}
+                                    dataSource={contractApprove?.data?.content}
+                                    rowKey="id"
+                                    loading={isLoading}
+                                    // pagination={{
+                                    //     current: paginationApprover.current,
+                                    //     pageSize: paginationApprover.pageSize,
+                                    //     total: contractApprove?.data?.totalElements,
+                                    //     showSizeChanger: true,
+                                    //     showQuickJumper: true,
+                                    //     showTotal: (total) => `Tổng ${total} hợp đồng`,
+                                    // }}
+                                    onChange={handleTableChange}
+                                    expandable={{
+                                        expandedRowRender: (record) => <ExpandRowContent id={record.id} />,
+                                    }}
+                                    onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
+                                />
+                            </TabPane>
+                        </Tabs>
+                    </ConfigProvider>
                 ) : null}
 
 
