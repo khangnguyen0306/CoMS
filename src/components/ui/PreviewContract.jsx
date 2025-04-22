@@ -27,7 +27,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
     const formValues = data || (form ? form.getFieldsValue(true) : {});
 
 
-    console.log(formValues)
+    console.log(bsInfor)
 
     // Load term details for legal basis
     useEffect(() => {
@@ -680,12 +680,12 @@ const PreviewContract = ({ form, partnerId, data }) => {
             <div className='flex justify-center mt-10 items-center pb-24' >
                 <div className='flex flex-col gap-2 px-[18%] text-center'>
                     <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
-                    <p><b> {partnerDetail?.data.partnerName.toUpperCase()}</b></p>
+                    <p><b> {bsInfor?.data.partnerName?.toUpperCase()}</b></p>
                     <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                 </div>
                 <div className='flex flex-col gap-2 px-[18%] text-center'>
                     <p className='text-lg'><b>ĐẠI DIỆN BÊN B</b></p>
-                    <p><b> {bsInfor?.representativeName?.toUpperCase()}</b></p>
+                    <p><b> {partnerDetail?.data.partnerName.toUpperCase()}</b></p>
                     <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                 </div>
             </div>

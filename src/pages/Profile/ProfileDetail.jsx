@@ -17,7 +17,6 @@ const ProfileDetail = () => {
     const { id } = useParams();
     const user = useSelector(selectCurrentUser)
     const { data, isLoading, refetch } = useGetDetailUserByIdQuery({ id }, { skip: !id });
-    const { data, isLoading, refetch } = useGetDetailUserByIdQuery({ id }, { skip: !id });
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
 
     // console.log(user)
@@ -25,7 +24,6 @@ const ProfileDetail = () => {
 
     useEffect(() => {
         refetch()
-    }, [id])
     }, [id])
 
     const dislayGender = {
