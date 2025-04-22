@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Timeline, Upload, Tooltip, Collapse, Image, Radio, Tabs, Checkbox, ConfigProvider } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, CheckCircleFilled, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined, SignalFilled, SignatureOutlined, FilePdfOutlined } from "@ant-design/icons";
-import { useDuplicateContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useGetImgSignQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Upload, Tooltip, Collapse, Image, Tabs, Checkbox, ConfigProvider } from "antd";
+import { DeleteOutlined, SettingOutlined, EditFilled, PlusOutlined, LoadingOutlined, UploadOutlined, InboxOutlined, DownloadOutlined, SignatureOutlined, FilePdfOutlined } from "@ant-design/icons";
+import { useGetAllContractQuery, useGetContractDetailQuery, useGetImgBillQuery, useGetImgSignQuery, useSoftDeleteContractMutation } from "../../services/ContractAPI";
 import { BsClipboard2DataFill } from "react-icons/bs"
-import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { BiDuplicate } from "react-icons/bi";
@@ -23,7 +22,8 @@ const { Search } = Input;
 const ManageContracts = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState(searchParams.get('paramstatus') || null);
+    const [status, setStatus] = useState(searchParams.get('paramstatus') || []);
+    const [statusArray, setStatusArray] = useState([]);
     const { Panel } = Collapse;
     const [searchTextStaff, setSearchTextStaff] = useState("");
     const [searchTextManager, setSearchTextManager] = useState("");
@@ -50,8 +50,7 @@ const ManageContracts = () => {
     const [paymentId, setPaymentId] = useState(null);
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const [activePanel, setActivePanel] = useState([]);
-    const [uploadType, setUploadType] = useState("image");
-    const [duplicateContract] = useDuplicateContractMutation();
+
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
         page: paginationStaff.current - 1,
         size: paginationStaff.pageSize,
@@ -73,7 +72,6 @@ const ManageContracts = () => {
     const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
         skip: !paymentId,
     });
-
 
     const [uploadSign, { isLoading: LoadingSign }] = useUploadImgSignMutation();
 
@@ -224,6 +222,7 @@ const ManageContracts = () => {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        maxWidth: '50px'
                     }}>
                         {text}
                     </div>
@@ -361,6 +360,7 @@ const ManageContracts = () => {
                 { text: 'Đã kết thúc', value: 'ENDED' },
                 { text: 'Sắp hết hạn', value: 'EXPIRING' }
             ],
+            filterMultiple: true,
             onFilter: (value, record) => {
                 if (value === 'EXPIRING') {
                     if (record.status === 'ACTIVE' && record.expiryDate) {
@@ -372,6 +372,7 @@ const ManageContracts = () => {
                     }
                     return false;
                 }
+                // Handle other statuses
                 return record.status === value;
             },
             render: (status, record) => {
@@ -520,6 +521,7 @@ const ManageContracts = () => {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        maxWidth: '50px'
                     }}>
                         {text}
                     </div>
@@ -817,7 +819,7 @@ const ManageContracts = () => {
             setPaginationStaff(pagination);
         }
         if (filters?.status && filters?.status.length > 0) {
-            setStatus(filters?.status[0]);
+            setStatus(filters?.status);
         } else {
             setStatus(null);
         }
