@@ -126,5 +126,4 @@ export const {
     useChangePassWordMutation,
     useUpdateAvatarMutation,
     useGetUserManagerQuery,
-    useGetDetailUserByIdQuery
 } = userAPI;
