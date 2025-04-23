@@ -27,7 +27,7 @@ export const baseApi = createApi({
         // Khi token hết hạn → logout & về login
         api.dispatch(logOut());
         setTimeout(() => {
-          message.error('Phiên đã hết hạn, vui lòng đăng nhập lại!');
+          // message.error('Phiên đã hết hạn, vui lòng đăng nhập lại!');
           window.location.href = '/login';
         }, 500);
       }

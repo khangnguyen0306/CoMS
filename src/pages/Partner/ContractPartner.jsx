@@ -12,7 +12,7 @@ const ContractPartner = ({ partnerId }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    // Gọi API với các tham số phân trang và tìm kiếm
+
     const {
         data: partnerContractData,
         isLoading: isFetchingContractData,
@@ -20,12 +20,12 @@ const ContractPartner = ({ partnerId }) => {
         refetch: refetchContractData
     } = useGetContractByPartnerIdQuery({
         partnerId: partnerId,
-        page: currentPage - 1, // API thường bắt đầu từ page 0
+        page: currentPage - 1, 
         size: pageSize,
         keyword: searchText,
     });
 
-    // Reset về trang 1 khi searchText thay đổi
+    
     useEffect(() => {
         setCurrentPage(1);
     }, [searchText]);
@@ -34,19 +34,19 @@ const ContractPartner = ({ partnerId }) => {
         refetchContractData()
     }, [partnerId])
 
-    // Create a debounced function for setting search text
+
     const debouncedSetSearchText = useCallback(debounce((value) => {
         setSearchText(value);
     }, 200), []);
 
-    // Xử lý sự kiện thay đổi trang hoặc kích thước trang
+ 
     const handleTableChange = (pagination) => {
         setCurrentPage(pagination.current);
         setPageSize(pagination.pageSize);
     };
 
 
-    // Định nghĩa bộ lọc trạng thái
+
     const statusFilters = [
         { text: 'SIGNED', value: 'Đã ký' },
         { text: 'ACTIVE', value: 'Đang hiệu lực' },
@@ -127,13 +127,11 @@ const ContractPartner = ({ partnerId }) => {
         },
     ];
 
-    // const sortedData = (partnerContractData?.data?.content || []).sort((a, b) => new Date(b.signDate) - new Date(a.signDate));
 
     // Xử lý trạng thái loading và error
     if (isFetchingContractData) return <Skeleton active />;
     if (fetchErrorContractData) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
 
-    // Sắp xếp dữ liệu theo ngày ký giảm dần (mặc định)
 
 
     return (

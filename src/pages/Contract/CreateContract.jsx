@@ -89,7 +89,7 @@ const CreateContractForm = () => {
     const [getPartnerData, { data: partnerData, isLoading: isLoadingParnerData }] = useLazyGetPartnerListByPartnerTypeQuery()
     const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation()
     const [getTemplateDetail] = useLazyGetTemplateDataDetailQuery();
-    const [getContractLegal] = useLazyGetLegalCreateContractQuery();
+    const [getContractLegal, { data: legalData, isLoading: loadingLegal, refetch: refetchLegal }] = useLazyGetLegalCreateContractQuery();
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
     const [getDateNotification] = useLazyGetDateNofitifationQuery();
     const [notificationDays, setNotificationDays] = useState(null);
@@ -478,7 +478,7 @@ const CreateContractForm = () => {
             // console.log(result);
             if (result.status === "CREATED") {
                 message.success("Tạo căn cứ pháp lý thành công");
-                loadLegalData();
+                loadLegalData({ page: 0, size: 10, order: 'desc' });
                 setIsAddLegalModalOpen(false);
                 formLegal.resetFields();
             }
@@ -1379,10 +1379,10 @@ const CreateContractForm = () => {
                                 >
                                     <LazyLegalSelect
                                         onChange={() => setChangeCCPL(!changeCCPL)}
+                                        options={legalData?.data?.content}
                                         loadDataCallback={loadLegalData}
                                         showSearch
                                         mode="multiple"
-                                        defaultValue={templateDataSelected?.legalBasisTerms?.map(term => term.original_term_id) || []}
                                         placeholder="Chọn căn cứ pháp lý"
                                         dropdownRender={(menu) => (
                                             <>

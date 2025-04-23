@@ -41,6 +41,8 @@ const ManagePartner = () => {
         size: pageSize,
     });
 
+    const partnerDataReal = partnerData?.data?.content?.filter(partner => partner.partyId !== 1) || [];
+
     const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
     const [EditPartner, { isLoading: isEditing }] = useEditPartnerMutation();
     const [DeletePartner, { isLoading: loadingDeleting }] = useDeletePartnerMutation();
@@ -424,14 +426,11 @@ const ManagePartner = () => {
                         Tạo khách hàng mới
                     </Button>
                 )}
-
             </div>
-
-
 
             <Table
                 columns={columns}
-                dataSource={partnerData?.data?.content}
+                dataSource={partnerDataReal}
                 loading={isFetching}
                 onChange={handleTableChange}
                 pagination={{

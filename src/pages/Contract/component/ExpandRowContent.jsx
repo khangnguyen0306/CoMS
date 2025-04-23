@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
 import { Skeleton, Timeline, Tag, Empty, Upload, Button, Tooltip } from 'antd';
-import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, CloseCircleOutlined, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
 import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery, useSendReminderContractMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
@@ -101,8 +101,23 @@ const ExpandRowContent = ({ id, appendixId }) => {
     const statusText = {
         APPROVED: 'Đã duyệt',
         APPROVING: 'Đang duyệt',
+        REJECTED: 'Từ chối duyệt',
         NOT_STARTED: 'Chưa bắt đầu'
     };
+
+    const displayColor = {
+        NOT_STARTED: "default",
+        APPROVED: "green-inverse",
+        APPROVING: "gold-inverse",
+        REJECTED: "red"
+    }
+    const displayIcon = {
+        NOT_STARTED: <InfoCircleOutlined />,
+        APPROVED: <CheckCircleFilled />,
+        APPROVING: <LoadingOutlined />,
+        REJECTED: <CloseCircleOutlined />
+    }
+
     if (isLoading || isLoadingAppendix) {
         return <Skeleton />;
     }
@@ -123,24 +138,12 @@ const ExpandRowContent = ({ id, appendixId }) => {
                                 <div className="flex flex-col items-center gap-2">
                                     <p>
                                         <Tag
-                                            color={
-                                                stage.status === "APPROVED"
-                                                    ? "green-inverse"
-                                                    : stage.status === "NOT_STARTED"
-                                                        ? "default"
-                                                        : "gold-inverse"
-                                            }
+                                            color={displayColor[stage.status]}
                                         >
                                             <span className="mx-[2px]">
                                                 {statusText[stage.status] || stage.status}
                                             </span>
-                                            {stage.status === "APPROVED" ? (
-                                                <CheckCircleFilled />
-                                            ) : stage.status === "NOT_STARTED" ? (
-                                                <InfoCircleOutlined />
-                                            ) : (
-                                                <LoadingOutlined />
-                                            )}
+                                            {displayIcon[stage.status]}
                                         </Tag>
                                     </p>
                                     {stage.status === "APPROVED" && (
