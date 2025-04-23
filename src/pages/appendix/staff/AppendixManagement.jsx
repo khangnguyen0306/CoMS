@@ -292,7 +292,7 @@ const AppendixManagement = () => {
                                                     </span>
                                                 ),
                                             }] :
-                                            (record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
+                                            (record.status != "APPROVAL_PENDING" && record.status != "APPROVED" && record.status != "ACTIVE" && record.status != "SIGNED") ? [
                                                 {
                                                     key: "select-process",
                                                     icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
@@ -311,7 +311,7 @@ const AppendixManagement = () => {
                                         {
                                             key: "uploadImgSign",
                                             icon: <SignatureOutlined />,
-                                            label: "Xác nhận đã ký phụ lục",
+                                            label: record.status === "SIGNED" ? "Xem phụ lục đã ký" : "Xác nhận đã ký",
                                             onClick: () => handleOpenSignModal(record.addendumId),
                                         },
 
