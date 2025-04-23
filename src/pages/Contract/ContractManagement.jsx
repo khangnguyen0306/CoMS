@@ -22,6 +22,7 @@ const ManageContracts = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState(searchParams.get('paramstatus') || []);
+    const [statusCEO, setStatusCEO] = useState(["REJECTED", "APPROVAL_PENDING", "APPROVED", "SIGNED", "ACTIVE", "COMPLETED", "EXPIRED", "CANCELLED", "ENDED"]);
     const [statusArray, setStatusArray] = useState([]);
     const { Panel } = Collapse;
     const [searchTextStaff, setSearchTextStaff] = useState("");
@@ -96,7 +97,7 @@ const ManageContracts = () => {
         page: isStaff ? paginationStaff.current - 1 : paginationCEO.current - 1,
         size: isStaff ? paginationStaff.pageSize : paginationCEO.pageSize,
         keyword: searchTextStaff,
-        status: status
+        status: isCEO ? statusCEO : status,
     },
         {
             refetchOnMountOrArgChange: true,

@@ -6,10 +6,15 @@ import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
 import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
+import { useSelector } from 'react-redux';
+import { selectCurrentUser } from '../../../slices/authSlice';
+import { TbBellRingingFilled } from "react-icons/tb";
 
 const ExpandRowContent = ({ id, appendixId }) => {
     // console.log("ID:", id);
     // console.log("Appendix ID:", appendixId);
+    const user = useSelector(selectCurrentUser)
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
     const { data, isLoading, isError } = useGetProcessByContractIdQuery(
         { contractId: id },
         { skip: !id }
@@ -132,17 +137,27 @@ const ExpandRowContent = ({ id, appendixId }) => {
                                 </div>
                             }
                         >
-                            <div className="min-h-[50px]">
-                                <p>
+                            <div className="min-h-[50px] flex items-center justify-between">
+                                <p className="max-w-[150px]">
                                     Người duyệt: <b>{stage.approverName}</b>
                                 </p>
+
+                                {/* Hiển thị nút khi là bước đang APPROVING */}
+                                {isCEO && stage.status === "APPROVING" && (
+                                    <Button
+                                        type="text"
+                                        icon={<TbBellRingingFilled style={{ color: '#FAAD14' }} />}
+                                        className="bg-yellow-100 text-yellow-800 border-none hover:!text-yellow-900"
+                                    >
+                                        Nhắc nhở
+                                    </Button>
+                                )}
                             </div>
                         </Timeline.Item>
                     ))}
                 </Timeline>
-                <Button className=' text-center mb-4 -mt-48 left-1/2 transform -translate-x-1/2'>
-                    Nhắc nhở nhân viên duyệt
-                </Button>
+
+
             </div>
 
             {/* Cột bên phải: Các đợt thanh toán */}

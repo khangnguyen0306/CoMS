@@ -74,7 +74,9 @@ const CreateContractPDF = () => {
     const [isModalPartner, setIsModalPartner] = useState(false);
     const [partnerId, setPartnerId] = useState(null);
     const [AIData, setAIData] = useState(null);
-
+    // const [legalBasis, setLegalBasis] = useState([]);
+    // const [contentContract, setContentContract] = useState(null);
+    // const [terms, setTerms] = useState([]);
     const { data: partnerDetail, isLoading: isLoadingInfoPartner } = useGetPartnerInfoDetailQuery({ id: partnerId });
     const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
 
@@ -422,7 +424,7 @@ const CreateContractPDF = () => {
         // Thêm TemplateData vào dữ liệu cuối cùng
         formattedData.TemplateData = templateData;
 
-        // console.log("Formatted Data:", formattedData);
+        console.log("Formatted Data:", formattedData);
 
         try {
             const response = await createContract(formattedData).unwrap();
@@ -497,76 +499,76 @@ const CreateContractPDF = () => {
         return () => onValueChange.cancel();
     }, []);
 
-    useEffect(() => {
-        if (selectedTemplate) {
-            loadContractTemplateDetail(selectedTemplate)
-                .then((data) => {
-                    setTemplateDataSelected(data.data);
-                    setContent(data.data?.contractContent)
-                    setIsVATChecked(data.data?.autoAddVAT)
-                    setIsDateLateChecked(data.data?.isDateLateChecked)
-                    setIsAutoRenew(data.data?.autoRenew)
-                    setSelectedOthersTerms(data.data.additionalTerms?.map(term => term.original_term_id) || [])
-                    setIsAppendixEnabled(data.data?.appendixEnabled)
-                    setIsTransferEnabled(data.data?.transferEnabled)
-                    setIsSuspend(data.data?.suspend)
-                    setIsisViolate(data.data?.violate)
-                    form.setFieldsValue({
-                        legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
-                        generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
-                        autoAddVAT: data.data?.autoAddVAT,
-                        vatPercentage: data.data?.vatPercentage,
-                        isDateLateChecked: data.data?.isDateLateChecked,
-                        maxDateLate: data.data?.maxDateLate,
-                        autoRenew: data.data?.autoRenew,
-                        additionalTerms: data.data.additionalTerms?.map(term => term.original_term_id) || [],
-                        specialTermsA: data.data?.specialTermsA,
-                        specialTermsB: data.data?.specialTermsB,
-                        appendixEnabled: data.data?.appendixEnabled,
-                        transferEnabled: data.data?.transferEnabled,
-                        suspend: data.data?.suspend,
-                        violate: data.data?.violate,
-                        suspendContent: data.data?.suspendContent,
-                        // Add only original_term_id values from additionalConfig
-                        "1": {
-                            A: data.data.additionalConfig?.["1"]?.A?.map(item => item.original_term_id) || [],
-                            B: data.data.additionalConfig?.["1"]?.B?.map(item => item.original_term_id) || [],
-                            Common: data.data.additionalConfig?.["1"]?.Common?.map(item => item.original_term_id) || []
-                        },
-                        "2": {
-                            A: data.data.additionalConfig?.["2"]?.A?.map(item => item.original_term_id) || [],
-                            B: data.data.additionalConfig?.["2"]?.B?.map(item => item.original_term_id) || [],
-                            Common: data.data.additionalConfig?.["2"]?.Common?.map(item => item.original_term_id) || []
-                        },
-                        "3": {
-                            A: data.data.additionalConfig?.["3"]?.A?.map(item => item.original_term_id) || [],
-                            B: data.data.additionalConfig?.["3"]?.B?.map(item => item.original_term_id) || [],
-                            Common: data.data.additionalConfig?.["3"]?.Common?.map(item => item.original_term_id) || []
-                        },
-                        "4": {
-                            A: data.data.additionalConfig?.["4"]?.A?.map(item => item.original_term_id) || [],
-                            B: data.data.additionalConfig?.["4"]?.B?.map(item => item.original_term_id) || [],
-                            Common: data.data.additionalConfig?.["4"]?.Common?.map(item => item.original_term_id) || []
-                        },
-                        "5": {
-                            A: data.data.additionalConfig?.["5"]?.A?.map(item => item.original_term_id) || [],
-                            B: data.data.additionalConfig?.["5"]?.B?.map(item => item.original_term_id) || [],
-                            Common: data.data.additionalConfig?.["5"]?.Common?.map(item => item.original_term_id) || []
-                        },
-                        "6": {
-                            A: data.data.additionalConfig?.["6"]?.A?.map(item => item.original_term_id) || [],
-                            B: data.data.additionalConfig?.["6"]?.B?.map(item => item.original_term_id) || [],
-                            Common: data.data.additionalConfig?.["6"]?.Common?.map(item => item.original_term_id) || []
-                        },
-                        "7": {
-                            A: data.data.additionalConfig?.["7"]?.A?.map(item => item.original_term_id) || [],
-                            B: data.data.additionalConfig?.["7"]?.B?.map(item => item.original_term_id) || [],
-                            Common: data.data.additionalConfig?.["7"]?.Common?.map(item => item.original_term_id) || []
-                        }
-                    });
-                });
-        }
-    }, [selectedTemplate]);
+    // useEffect(() => {
+    //     if (selectedTemplate) {
+    //         loadContractTemplateDetail(selectedTemplate)
+    //             .then((data) => {
+    //                 setTemplateDataSelected(data.data);
+    //                 setContent(data.data?.contractContent)
+    //                 setIsVATChecked(data.data?.autoAddVAT)
+    //                 setIsDateLateChecked(data.data?.isDateLateChecked)
+    //                 setIsAutoRenew(data.data?.autoRenew)
+    //                 setSelectedOthersTerms(data.data.additionalTerms?.map(term => term.original_term_id) || [])
+    //                 setIsAppendixEnabled(data.data?.appendixEnabled)
+    //                 setIsTransferEnabled(data.data?.transferEnabled)
+    //                 setIsSuspend(data.data?.suspend)
+    //                 setIsisViolate(data.data?.violate)
+    //                 form.setFieldsValue({
+    //                     legalBasis: data.data.legalBasisTerms?.map(term => term.original_term_id),
+    //                     generalTerms: data.data?.generalTerms?.map(term => term.original_term_id),
+    //                     autoAddVAT: data.data?.autoAddVAT,
+    //                     vatPercentage: data.data?.vatPercentage,
+    //                     isDateLateChecked: data.data?.isDateLateChecked,
+    //                     maxDateLate: data.data?.maxDateLate,
+    //                     autoRenew: data.data?.autoRenew,
+    //                     additionalTerms: data.data.additionalTerms?.map(term => term.original_term_id) || [],
+    //                     specialTermsA: data.data?.specialTermsA,
+    //                     specialTermsB: data.data?.specialTermsB,
+    //                     appendixEnabled: data.data?.appendixEnabled,
+    //                     transferEnabled: data.data?.transferEnabled,
+    //                     suspend: data.data?.suspend,
+    //                     violate: data.data?.violate,
+    //                     suspendContent: data.data?.suspendContent,
+    //                     // Add only original_term_id values from additionalConfig
+    //                     "1": {
+    //                         A: data.data.additionalConfig?.["1"]?.A?.map(item => item.original_term_id) || [],
+    //                         B: data.data.additionalConfig?.["1"]?.B?.map(item => item.original_term_id) || [],
+    //                         Common: data.data.additionalConfig?.["1"]?.Common?.map(item => item.original_term_id) || []
+    //                     },
+    //                     "2": {
+    //                         A: data.data.additionalConfig?.["2"]?.A?.map(item => item.original_term_id) || [],
+    //                         B: data.data.additionalConfig?.["2"]?.B?.map(item => item.original_term_id) || [],
+    //                         Common: data.data.additionalConfig?.["2"]?.Common?.map(item => item.original_term_id) || []
+    //                     },
+    //                     "3": {
+    //                         A: data.data.additionalConfig?.["3"]?.A?.map(item => item.original_term_id) || [],
+    //                         B: data.data.additionalConfig?.["3"]?.B?.map(item => item.original_term_id) || [],
+    //                         Common: data.data.additionalConfig?.["3"]?.Common?.map(item => item.original_term_id) || []
+    //                     },
+    //                     "4": {
+    //                         A: data.data.additionalConfig?.["4"]?.A?.map(item => item.original_term_id) || [],
+    //                         B: data.data.additionalConfig?.["4"]?.B?.map(item => item.original_term_id) || [],
+    //                         Common: data.data.additionalConfig?.["4"]?.Common?.map(item => item.original_term_id) || []
+    //                     },
+    //                     "5": {
+    //                         A: data.data.additionalConfig?.["5"]?.A?.map(item => item.original_term_id) || [],
+    //                         B: data.data.additionalConfig?.["5"]?.B?.map(item => item.original_term_id) || [],
+    //                         Common: data.data.additionalConfig?.["5"]?.Common?.map(item => item.original_term_id) || []
+    //                     },
+    //                     "6": {
+    //                         A: data.data.additionalConfig?.["6"]?.A?.map(item => item.original_term_id) || [],
+    //                         B: data.data.additionalConfig?.["6"]?.B?.map(item => item.original_term_id) || [],
+    //                         Common: data.data.additionalConfig?.["6"]?.Common?.map(item => item.original_term_id) || []
+    //                     },
+    //                     "7": {
+    //                         A: data.data.additionalConfig?.["7"]?.A?.map(item => item.original_term_id) || [],
+    //                         B: data.data.additionalConfig?.["7"]?.B?.map(item => item.original_term_id) || [],
+    //                         Common: data.data.additionalConfig?.["7"]?.Common?.map(item => item.original_term_id) || []
+    //                     }
+    //                 });
+    //             });
+    //     }
+    // }, [selectedTemplate]);
 
 
     const hanldeOpenAddLegalModal = () => {
@@ -1177,14 +1179,14 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         }
     };
 
-    useEffect(() => {
+    const handleSetContractContent = () => {
+        const legal = AIData?.content?.legal;
+        const term = AIData?.content?.term;
+        const contractContent = AIData?.content?.contentContract;
 
-        const legal = form.getFieldValue('legal') || '';
-        const term = form.getFieldValue('term') || '';
-        const contractContent = form.getFieldValue('contractContent') || '';
-        if (!legal && !term && !contractContent) return;
+        if (legal && term && contractContent) {
 
-        const combinedContent = `
+            const combinedContent = `
             <p><strong>Căn cứ pháp lý:</strong></p>
             <p>${legal.replace(/\n/g, '<br />')}</p>
             <br />
@@ -1194,23 +1196,21 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             <p><strong>Điều khoản:</strong></p>
             <p>${term.replace(/\n/g, '<br />')}</p>
           `;
+            console.log("combinedContent", combinedContent);
+            setContent(combinedContent);
+            form.setFieldsValue({ contractContent: combinedContent });
+        };
+    }
+    const applyAIDataToForm = async (data) => {
+        // console.log("applyAIDataToForm3", data.effectiveDate);
+        // console.log("applyAIDataToForm2", data.expiryDate);
+        // console.log("applyAIDataToForm1", data.signingDate);
 
-        form.setFieldsValue({
-            combinedContent: combinedContent,
-        });
-        setContent(combinedContent);
-    }, [form.getFieldValue('legal'), form.getFieldValue('term'), form.getFieldValue('combinedContent')]);
-
-
-    const applyAIDataToForm = (data) => {
-        console.log("applyAIDataToForm3", data.effectiveDate);
-        console.log("applyAIDataToForm2", data.expiryDate);
-        console.log("applyAIDataToForm1", data.signingDate);
         if (!data) {
             message.warning("Chưa có dữ liệu AI để áp dụng!");
             return;
         }
-        // setContent(data?.content?.contentContract || '');
+        await handleSetContractContent()
         form.setFieldsValue({
             partner: {
                 partnerName: data?.partner?.partnerName,
@@ -1224,7 +1224,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             contractNumberFormat: data?.contractNumber,
             signingDate: data?.signingDate ? dayjs(new Date(...data.signingDate)) : null,
             contractLocation: data?.signingPlance, // Nếu key của bạn là "signingPlance", nếu không là "signingPlace" thì chỉnh lại
-            // combinedContent: data?.content?.contentContract || '',
+            contractContent: data?.content?.contentContract,
             term: data?.content?.term || '',
             legal: data?.content?.legal || '',
             totalValue: data?.totalValue || 0,
@@ -1372,17 +1372,20 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 beforeUpload={async (file) => {
                                                     setLoading(true);
                                                     try {
-                                                        const extractedData = await callAIForExtraction(file);
-                                                        console.log("Extracted data:", extractedData);
+                                                        const extractedData = await callAIForExtraction(file).then((data) => {
+                                                            console.log("AI response:", data)
+                                                            setAIData(data);
+                                                            const taxCode = data.partner.taxCode?.toString();
+                                                            setTaxCode(data.partner.taxCode);
+                                                            setContractTypeSelected(data.title);
+                                                            setNewCustomerData(data.partner || {});
+                                                            checkPartner(taxCode);
+                                                            applyAIDataToForm(data);
+                                                        });
+                                                        // console.log("Extracted data:", extractedData);
                                                         next();
-                                                        const data = extractedData.response ? extractedData.response : extractedData;
-                                                        setAIData(data);
-                                                        const taxCode = data.partner.taxCode?.toString();
-                                                        setTaxCode(data.partner.taxCode);
-                                                        setContractTypeSelected(data.title);
-                                                        setNewCustomerData(data.partner || {});
-                                                        checkPartner(taxCode);
-                                                        applyAIDataToForm(data);
+                                                        // const data = extractedData.response ? extractedData.response : extractedData;
+
                                                         // form.setFieldsValue({
                                                         //     partner: {
                                                         //         partnerName: data?.partner?.partnerName,
@@ -1708,34 +1711,26 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             </div>
                             <div ref={mainContentRef}>
                                 <Form.Item
-                                    shouldUpdate={(prev, curr) => prev.combinedContent !== curr.combinedContent}
-                                    noStyle
-                                    name="combinedContent"
+                                    name="contractContent"
+                                // shouldUpdate={(prev, curr) => prev.combinedContent !== curr.combinedContent}
+                                // noStyle
                                 >
-                                    {() => {
-                                        const value = form.getFieldValue('combinedContent');
-                                        // console.log("combinedContent", value);
-                                        return (
-                                            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
-                                                <RichTextEditor
-                                                    key={value}
-                                                    content={content}
-                                                    onChangeContent={onValueChange}
-                                                    // onChangeContent={(...args) => {
-                                                    //     console.log("onChangeContent args:", args);
-                                                    // }}
 
-                                                    extensions={extensions}
-                                                    dark={isDarkMode}
-                                                    hideBubble={true}
-                                                    dense={false}
-                                                    removeDefaultWrapper
-                                                    placeholder="Nhập nội dung hợp đồng tại đây..."
-                                                    contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
-                                                />
-                                            </Suspense>
-                                        );
-                                    }}
+                                    <RichTextEditor
+                                        key={content}
+                                        content={content}
+
+                                        onChangeContent={onValueChange}
+                                        extensions={extensions}
+                                        dark={isDarkMode}
+                                        hideBubble={true}
+                                        dense={false}
+                                        removeDefaultWrapper
+                                        placeholder="Nhập nội dung hợp đồng tại đây..."
+                                        contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
+                                    />
+
+
                                 </Form.Item>
 
 
@@ -1963,30 +1958,6 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                             ? 'error'
                                             : ''
                                     }
-                                    rules={[
-                                        { required: true, message: "Vui lòng chọn thời gian hiệu lực hợp đồng!" },
-                                        ({ getFieldValue }) => ({
-                                            validator(_, value) {
-                                                if (!value || value.length !== 2) {
-                                                    return Promise.resolve();
-                                                }
-                                                const [effectiveDate, expiryDate] = value;
-                                                const signingDate = getFieldValue('signingDate');
-
-                                                // Kiểm tra effectiveDate phải sau signingDate
-                                                if (signingDate && effectiveDate.isBefore(signingDate)) {
-                                                    return Promise.reject(new Error('Ngày bắt đầu hiệu lực phải sau ngày ký kết!'));
-                                                }
-
-                                                // Kiểm tra expiryDate phải sau effectiveDate
-                                                if (expiryDate.isBefore(effectiveDate)) {
-                                                    return Promise.reject(new Error('Ngày kết thúc hiệu lực phải sau ngày bắt đầu!'));
-                                                }
-
-                                                return Promise.resolve();
-                                            },
-                                        }),
-                                    ]}
                                 >
                                     <DatePicker.RangePicker
                                         className="w-full"

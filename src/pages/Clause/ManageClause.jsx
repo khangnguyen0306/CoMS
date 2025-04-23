@@ -63,7 +63,7 @@ const ManageClause = () => {
     const [formCreate] = Form.useForm();
     const [formCreateLegal] = Form.useForm();
     const [formImport] = Form.useForm();
-
+    const [formContractType] = Form.useForm();
 
     // Hàm chuyển mảng ngày thành Date (chú ý trừ 1 cho tháng)
     const convertToDate = (dateArr) => {
@@ -186,19 +186,19 @@ const ManageClause = () => {
     };
     const handleEditContractType = (record) => {
         setCurrentContractType(record);
-        form.setFieldsValue({ name: record.name });
+        formContractType.setFieldsValue({ name: record.name });
         setIsModalOpenContractType(true);
     };
 
     const handleAddContractType = () => {
-        form.resetFields();
+        formContractType.resetFields();
         setIsModalOpenAddContractType(true);
     };
 
     const handleOkAdd = async () => {
         try {
 
-            const values = await form.validateFields();
+            const values = await formContractType.validateFields();
             console.log("values", values);
             const processedValues = {
                 ...values,
@@ -207,6 +207,7 @@ const ManageClause = () => {
             await createContractType(processedValues).unwrap();
             message.success("Thêm loại hợp đồng thành công!");
             setIsModalOpenAddContractType(false);
+            formContractType.resetFields();
             refetch();
         } catch (error) {
             message.error("Thêm loại hợp đồng thất bại!");
@@ -215,7 +216,7 @@ const ManageClause = () => {
 
     const handleOkEdit = async () => {
         try {
-            const values = await form.validateFields();
+            const values = await formContractType.validateFields();
             const processedValues = {
                 ...values,
                 name: values.name ? values.name.charAt(0).toUpperCase() + values.name.slice(1) : values.name,
@@ -224,6 +225,7 @@ const ManageClause = () => {
             await editContractType({ id: currentContractType.id, ...processedValues }).unwrap();
             message.success("Cập nhật loại hợp đồng thành công!");
             setIsModalOpenContractType(false);
+            formContractType.resetFields();
             refetch(); // Tải lại danh sách
         } catch (error) {
             message.error("Cập nhật loại hợp đồng thất bại!");
@@ -270,11 +272,14 @@ const ManageClause = () => {
     };
 
     const handleSubmitUpdateClause = async (values) => {
+        console.log("values", values)
         try {
             const typeTermId = await getTypeTermId(values.type);
             setIdClauseToEdit(typeTermId)
+            console.log("typeTermId", idClauseToEdit)
+
             const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: idClauseToEdit }).unwrap();
-            // console.log(updatedData)
+            console.log(updatedData)
             if (updatedData.status == "OK") {
                 setIsModalOpenClause(false);
                 setIsModalOpenLegal(false);
@@ -669,6 +674,9 @@ const ManageClause = () => {
                             form={form}
                             layout="vertical"
                             onFinish={(values) => handleSubmitUpdateClause(values)}
+                            onFinishFailed={(errorInfo) => {
+                                console.log('Failed:', errorInfo);
+                            }}
                         >
                             <Form.Item
                                 name="id"
@@ -797,6 +805,9 @@ const ManageClause = () => {
                                 layout="vertical"
                                 onFinish={(values) => {
                                     handleSubmitUpdateClause(values)
+                                }}
+                                onFinishFailed={(errorInfo) => {
+                                    console.log('Failed:', errorInfo);
                                 }}
                                 initialValues={{
                                     type: 8,
@@ -965,7 +976,7 @@ const ManageClause = () => {
                             title="Thêm Loại Hợp Đồng"
                             open={isModalOpenAddContractType}
                             onCancel={() => {
-                                form.resetFields();
+                                formContractType.resetFields();
                                 setIsModalOpenAddContractType(false)
                             }}
                             onOk={handleOkAdd}
@@ -974,7 +985,7 @@ const ManageClause = () => {
                             cancelText="Hủy"
                         >
 
-                            <Form form={form} layout="vertical">
+                            <Form form={formContractType} layout="vertical">
                                 <Form.Item
                                     label="Tên Loại Hợp Đồng"
                                     name="name"
@@ -989,13 +1000,16 @@ const ManageClause = () => {
                         <Modal
                             title="Chỉnh Sửa Loại Hợp Đồng"
                             open={isModalOpenContractType}
-                            onCancel={() => setIsModalOpenContractType(false)}
+                            onCancel={() => {
+                                formContractType.resetFields();
+                                setIsModalOpenContractType(false)
+                            }}
                             onOk={handleOkEdit}
                             confirmLoading={loadingEdit}
                             okText="Cập nhật"
                             cancelText="Hủy"
                         >
-                            <Form form={form} layout="vertical">
+                            <Form form={formContractType} layout="vertical">
                                 <Form.Item
                                     label="Tên Loại Hợp Đồng"
                                     name="name"

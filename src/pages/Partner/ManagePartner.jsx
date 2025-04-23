@@ -269,21 +269,21 @@ const ManagePartner = () => {
             sorter: (a, b) => a.taxCode.localeCompare(b.taxCode),
             width: '200px',
         },
-        // {
-        //     title: 'Loại Partner',
-        //     dataIndex: 'partnerType',
-        //     width: '150px',
-        //     filters: [
-        //         { text: 'Nhà cung cấp', value: 'PARTNER_A' },
-        //         { text: 'Khách hàng', value: 'PARTNER_B' },
-        //     ],
-        //     onFilter: (value, record) => record.partnerType === value,
-        //     render: (type) => (
-        //         <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
-        //             {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
-        //         </Tag>
-        //     ),
-        // },
+        {
+            title: 'Loại Partner',
+            dataIndex: 'partnerType',
+            width: '150px',
+            filters: [
+                { text: 'Nhà cung cấp', value: 'PARTNER_A' },
+                { text: 'Khách hàng', value: 'PARTNER_B' },
+            ],
+            onFilter: (value, record) => record.partnerType === value,
+            render: (type) => (
+                <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
+                    {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
+                </Tag>
+            ),
+        },
         {
             title: 'Người đại diện',
             dataIndex: 'spokesmanName',
