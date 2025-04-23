@@ -135,7 +135,7 @@ const ManageClause = () => {
                 order: sortOrderClauseUser
             });
         }
-    }, [activeTab, pageUserClause, pageSizeUserClause, searchTermUserClause]);
+    }, [activeTab, pageUserClause, pageSizeUserClause, searchTermUserClause,sortOrderClauseUser]);
 
     const sortedClause = clauseData?.data?.content
         ?.slice()
@@ -251,11 +251,13 @@ const ManageClause = () => {
             if (result.status == "CREATED") {
                 message.success("Tạo điều khoản thành công");
                 refetchClause();
+                getClauseByUserData({ page: 0, size: 10 })
                 refetchLegal();
                 setIsModalOpenAdd(false);
                 setIsModalOpenAddLegal(false);
                 formCreate.resetFields();
                 formCreateLegal.resetFields()
+
             }
         } catch (error) {
             console.log(error)
@@ -292,6 +294,7 @@ const ManageClause = () => {
                 setIsModalOpenLegal(false);
                 setIdClauseToEdit('')
                 message.success("Cập nhật điều khoản thành công!");
+                getClauseByUserData({ page: 0, size: 10 })
                 refetchClause();
                 refetchLegal();
                 form.resetFields();
@@ -314,6 +317,7 @@ const ManageClause = () => {
                         // Thành công
                         console.log(result);
                         refetchClause();
+                        getClauseByUserData({ page: 0, size: 10 })
                         refetchLegal();
                         message.success(result.data.message || 'Xóa thành công');
                     } else if (result.error && result.error.status === 409) {
@@ -1086,7 +1090,7 @@ const ManageClause = () => {
                                 {/* Nút sắp xếp theo Ngày tạo */}
                                 <button
                                     onClick={handleSortByCreatedAtUser}
-                                    className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortOrderClause === 'asc'
+                                    className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortOrderClauseUser === 'asc'
                                         ? 'bg-red-500 hover:bg-red-600'
                                         : 'bg-blue-500 hover:bg-blue-600'
                                         }`}
