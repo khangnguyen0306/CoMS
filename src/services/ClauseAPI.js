@@ -15,14 +15,15 @@ export const clauseAPI = baseApi.injectEndpoints({
     getLegal: builder.query({
       query: ({ page, size, keyword, order }) => ({
         url: `/terms/get-all`,
-        params: { typeTermIds: 8,
-           page, 
-           size, 
-           order, 
-           keyword, 
-          },
+        params: {
+          typeTermIds: 8,
+          page,
+          size,
+          order,
+          keyword,
+        },
         method: "GET",
-        
+
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
     }),
@@ -39,6 +40,21 @@ export const clauseAPI = baseApi.injectEndpoints({
     getAllTypeClause: builder.query({
       query: () => ({
         url: `/terms/get-all-type-terms`,
+        method: "GET",
+      }),
+      providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+    }),
+
+    getAllClauseByUser: builder.query({
+      query: (params) => ({
+        url: `terms/get-all-by-user`,
+        params: {
+          // includeLegalBasis: true,
+          page: params.page,
+          size: params.size,
+          // sortBy: 'id',
+          order: params.order
+        },
         method: "GET",
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
@@ -107,5 +123,7 @@ export const {
   useGetLegalCreateContractQuery,
   useLazyGetLegalCreateContractQuery,
   useLazyGetTermDetailQuery,
-  useSearchTermsByHoverQuery
+  useSearchTermsByHoverQuery,
+  useGetAllClauseByUserQuery,
+  useLazyGetAllClauseByUserQuery
 } = clauseAPI;
