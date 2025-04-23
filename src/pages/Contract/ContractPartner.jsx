@@ -52,6 +52,7 @@ const model = genAI.getGenerativeModel({
     model: "gemini-2.0-pro-exp-02-05",
 });
 
+
 // Cấu hình generationConfig theo schema mới
 const generationConfig = {
     temperature: 1,

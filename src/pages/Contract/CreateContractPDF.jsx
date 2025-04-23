@@ -1203,7 +1203,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     }, [form.getFieldValue('legal'), form.getFieldValue('term')]);
 
 
-    const applyAIDataToForm = (data) => {
+    const applyAIDataToForm = async (data) => {
         console.log("applyAIDataToForm3", data.effectiveDate);
         console.log("applyAIDataToForm2", data.expiryDate);
         console.log("applyAIDataToForm1", data.signingDate);
