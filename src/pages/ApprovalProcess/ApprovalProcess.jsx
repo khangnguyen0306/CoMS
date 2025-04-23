@@ -39,7 +39,7 @@ const ApprovalProcess = () => {
             setApprovalStages(process.stages);
             // Remove the last stage if it exists
             if (process.stages.length > 0) {
-                const updatedStages = process.stages.slice(0, -1); // Remove the last stage
+                const updatedStages = process.stages
                 setApprovalStages(updatedStages);
                 setNumberStage(updatedStages.length);
             }

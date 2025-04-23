@@ -1691,7 +1691,7 @@ const CreateTemplate = () => {
                                     <p className="font-bold text-lg mt-5 my-3">IV. CÁC NỘI DUNG KHÁC </p>
                                     {/* <p className="font-bold text-[16px] ml-5 my-4">10. Phụ lục</p> */}
                                     <div className="ml-9">
-                                        <Form.Item name="appendixEnabled" valuePropName="checked">
+                                        {/* <Form.Item name="appendixEnabled" valuePropName="checked">
                                             <div className="flex items-center">
                                                 <Switch
                                                     className="mr-4"
@@ -1703,7 +1703,7 @@ const CreateTemplate = () => {
                                                 />
                                                 <p className="text-sm">Cho phép tạo phụ lục khi hợp đồng có hiệu lực</p>
                                             </div>
-                                        </Form.Item>
+                                        </Form.Item> */}
 
                                         <Form.Item name="transferEnabled" valuePropName="checked">
                                             <div className="flex items-center">

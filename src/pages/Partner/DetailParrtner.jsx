@@ -358,9 +358,9 @@ const PartnerDetail = () => {
                                                 }}
                                             >
                                                 <Tag color={getPartnerTypeColor(partnerData?.data.partnerType)}>
-                                                    {partnerData?.data.partnerType === "PARTY_B"
+                                                    {partnerData?.data.partnerType === "PARTNER_B"
                                                         ? "Khách hàng"
-                                                        : partnerData?.data.partnerType === "PARTY_A"
+                                                        : partnerData?.data.partnerType === "PARTNER_A"
                                                             ? "Nhà cung cấp"
                                                             : "Không xác định"}
                                                 </Tag>
