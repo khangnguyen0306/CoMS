@@ -114,7 +114,7 @@ const AuditrailContract = ({ auditTrails, getDetail, contractId }) => {
                                 ))}
                                 {hasMore[formattedDate] && (
                                     <div className="flex justify-center items-center">
-                                        <Button onClick={() => handleLoadMore(item.date)}>Xem thêm</Button>
+                                        <Button type="primary" onClick={() => handleLoadMore(item.date)}>Xem thêm</Button>
                                     </div>
                                 )}
                             </>

@@ -2301,13 +2301,13 @@ const CreateContractForm = () => {
                                 />
                             </div>
                         ))}
-                        <Button
+                        {/* <Button
                             type="dashed"
                             onClick={addNotification}
                             icon={<PlusOutlined />}
                         >
                             Thêm thông báo
-                        </Button>
+                        </Button> */}
                     </Form.Item>
                 </div>
             ),

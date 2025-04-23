@@ -13,3 +13,12 @@ export const formatSigningDate = (dateArray) => {
     
     return formattedDate.format("Ngày DD/ Tháng MMMM/ Năm YYYY");
 };
+
+export const formatDateToStringDate = (DateString) => {
+    if (!DateString) {
+        return <p>Không có</p>;
+    }
+    return (
+        <p>Ngày {DateString[2]} tháng {DateString[1]} năm {DateString[0]}</p>
+    );
+}
