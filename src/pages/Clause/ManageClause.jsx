@@ -2,14 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Modal, List, Select, message, Skeleton, Card, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Divider, Upload } from 'antd';
 import 'tailwindcss/tailwind.css';
-import { DeleteFilled, DownloadOutlined, EditFilled, PlusCircleFilled, UploadOutlined, WarningOutlined } from '@ant-design/icons';
-import { useGetClauseManageQuery, useUpdateClauseMutation } from '../../services/ClauseAPI';
+import { DeleteFilled, DownloadOutlined, EditFilled, PlusCircleFilled, UploadOutlined } from '@ant-design/icons';
+import { useGetClauseManageQuery, useLazyGetAllClauseByUserQuery, useUpdateClauseMutation } from '../../services/ClauseAPI';
 import { useGetAllTypeClauseQuery, useCreateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
 import TabPane from 'antd/es/tabs/TabPane';
 import dayjs from 'dayjs';
 import { useGetContractTypeQuery, useEditContractTypeMutation, useCreateContractTypeMutation } from '../../services/ContractAPI';
 import { useUploadClauseBFileMutation } from '../../services/uploadAPI';
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
 // import file from "../../assets/file/sample_file.xlsx"
@@ -18,10 +18,9 @@ const ManageClause = () => {
     const [searchTermClause, setSearchTermClause] = useState('');
     const [searchTermLegal, setSearchTermLegal] = useState('');
     const [selectedType, setSelectedType] = useState('');
-
     const [sortOrderClause, setSortOrderClause] = useState('desc');
+    const [sortOrderClauseUser, setSortOrderClauseUser] = useState('desc');
     const [sortByClause, setSortByClause] = useState('id');
-
     const [sortOrderLegal, setSortOrderLegal] = useState('desc');
     const [activeTab, setActiveTab] = useState("1");
     const [pageClause, setPageClause] = useState(0);
@@ -33,13 +32,15 @@ const ManageClause = () => {
     const [isModalOpenAdd, setIsModalOpenAdd] = useState(false);
     const [isModalOpenAddLegal, setIsModalOpenAddLegal] = useState(false);
     const [idClauseToEdit, setIdClauseToEdit] = useState('')
-
-    // const [searchTermContractType, setSearchTermContractType] = useState('');
     const [isModalOpenAddContractType, setIsModalOpenAddContractType] = useState(false);
     const [isModalOpenContractType, setIsModalOpenContractType] = useState(false);
     const [currentContractType, setCurrentContractType] = useState(null);
-
     const [isModalOpenImport, setIsModalOpenImport] = useState(false);
+    const [searchTermUserClause, setSearchTermUserClause] = useState('');
+    const [pageUserClause, setPageUserClause] = useState(0);
+    const [pageSizeUserClause, setPageSizeUserClause] = useState(10);
+    const [userTypeFilter, setUserTypeFilter] = useState('');
+
 
     const { data: clauseData, isLoading: loadingClause, isError: DataError, refetch: refetchClause } = useGetClauseManageQuery({
         keyword: searchTermClause,
@@ -49,10 +50,10 @@ const ManageClause = () => {
         order: sortOrderClause,
         sortBy: sortByClause
     });
-
     const { data: legalData, isLoading: loadingLegal, refetch: refetchLegal } = useGetLegalQuery({ page: pageLegal, size: pageSizeLegal, keyword: searchTermLegal, order: sortOrderLegal });
     const { data: typeContractData, isLoading: loadingTypeContract, refetch } = useGetContractTypeQuery();
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
+    const [getClauseByUserData, { data: ClauseByUserData, isLoading: isLoadingClause }] = useLazyGetAllClauseByUserQuery()
     const [createContractType, { isLoading: loadingCreateType }] = useCreateContractTypeMutation();
     const [editContractType, { isLoading: loadingEdit }] = useEditContractTypeMutation();
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
@@ -122,9 +123,20 @@ const ManageClause = () => {
         return `Được tạo ${diffYears} năm trước`;
     };
 
+    // console.log(activeTab)
 
+    useEffect(() => {
+        if (activeTab === "4") {
+            getClauseByUserData({
+                page: pageUserClause,
+                size: pageSizeUserClause,
+                keyword: searchTermUserClause,
+                typeTermIds: userTypeFilter,
+                order: sortOrderClauseUser
+            });
+        }
+    }, [activeTab, pageUserClause, pageSizeUserClause, searchTermUserClause]);
 
-    // Sắp xếp dữ liệu theo createdAt dựa vào sortOrder
     const sortedClause = clauseData?.data?.content
         ?.slice()
         .filter(item => !item.isDelete)
@@ -332,6 +344,10 @@ const ManageClause = () => {
         setSortByClause('id');
         setSortOrderClause(sortOrderClause === 'asc' ? 'desc' : 'asc');
     };
+    const handleSortByCreatedAtUser = () => {
+        setSortByClause('id');
+        setSortOrderClauseUser(sortOrderClauseUser === 'asc' ? 'desc' : 'asc');
+    };
 
     // const handleSortByContractCount = () => {
 
@@ -532,7 +548,7 @@ const ManageClause = () => {
                                         className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
                                         actions={[
                                             <div className="flex flex-col items-center gap-2 mr-3">
-                                                <div className="flex gap-3 mb-3">
+                                                {/* <div className="flex gap-3 mb-3">
                                                     <Button
                                                         type="primary"
                                                         onClick={(e) => {
@@ -555,11 +571,10 @@ const ManageClause = () => {
                                                     >
                                                         <DeleteFilled />
                                                     </Button>
-                                                </div>
-                                                <div className="text-center">
-                                                    <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
-                                                </div>
-                                                <div className="text-center">
+                                                </div> */}
+
+                                                <div className="text-right">
+                                                    <p className="text-sm mb-2 text-blue-300 font-bold">{calculateDaysAgo(clause.createdAt)}</p>
                                                     <p className="text-sm mb-2">Có {clause.contractCount} hợp đồng đang dùng điều khoản này</p>
                                                 </div>
                                             </div>
@@ -1048,10 +1063,202 @@ const ManageClause = () => {
                     </div>
                 </TabPane>
 
-                {/* Add Import Button */}
+
+                <TabPane tab="Điều Khoản của tôi" key="4">
+                    <div className="p-4 min-h-[100vh]">
+                        <div className='font-bold mb-10  text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                            <div className="flex items-center gap-4">
+                                QUẢN LÝ ĐIỀU KHOẢN CỦA tÔI
+                            </div>
+                        </div>
+
+                        <div className='flex justify-between w-full gap-4 mb-2'>
+
+                            <div className='flex gap-2 w-[80%]'>
+                                <Search
+                                    placeholder="Tìm kiếm tên điều khoản"
+                                    onSearch={setSearchTermUserClause}
+                                    enterButton="tìm kiếm"
+                                    allowClear
+                                    className="mb-4 max-w-[700px]"
+                                />
+                                <Select
+                                    placeholder="Chọn loại điều khoản"
+                                    value={userTypeFilter || undefined}
+                                    onChange={(value) => setUserTypeFilter(value || "")}
+                                    className="mb-4 min-w-[270px]"
+                                    allowClear
+                                >
+
+                                    {typeData?.data.map(item => (
+                                        <Option key={item.original_term_id} value={item.original_term_id}>
+                                            {item.name}
+                                        </Option>
+                                    ))}
+                                </Select>
+
+                                {/* Nút sắp xếp theo Ngày tạo */}
+                                <button
+                                    onClick={handleSortByCreatedAtUser}
+                                    className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortOrderClause === 'asc'
+                                        ? 'bg-red-500 hover:bg-red-600'
+                                        : 'bg-blue-500 hover:bg-blue-600'
+                                        }`}
+                                >
+                                    <span className="text-white opacity-100">
+                                        {sortOrderClauseUser === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <Button
+                                type="primary"
+                                onClick={openAddClauseModal}
+                                className="mb-4 justify-self-end"
+                                icon={<PlusCircleFilled />}
+                            >
+                                Thêm điều khoản
+                            </Button>
+                            <Button
+                                type="primary"
+                                onClick={() => setIsModalOpenImport(true)}
+                                className="mb-4"
+                                icon={<UploadOutlined />}
+                            >
+                                Tải lên Điều Khoản
+                            </Button>
+                        </div>
+                        {isLoadingClause ? (
+                            <Skeleton active />
+                        ) : (
+                            <List
+                                itemLayout="horizontal"
+                                pagination={{
+                                    current: pageUserClause + 1,
+                                    pageSize: pageSizeUserClause,
+                                    total: ClauseByUserData?.data?.totalElements || 0,
+                                    onChange: (newPage, newPageSize) => {
+                                        setPageUserClause(newPage - 1);
+                                        setPageSizeUserClause(newPageSize);
+                                    },
+                                }}
+                                dataSource={ClauseByUserData?.data?.content}
+                                renderItem={clause => (
+                                    <Popover
+                                        content={
+                                            <Card
+                                                bordered
+                                                className="shadow-lg rounded-lg min-w-[650px] max-w-[50vw]"
+                                            >
+                                                <p className="text-blue-600 text-base font-bold">{clause.label.toUpperCase()}</p>
+                                                <div className="mt-2 space-y-1 flex flex-col gap-2">
+                                                    <p>
+                                                        <Text strong>Mã: </Text> {clause.clauseCode}
+                                                    </p>
+                                                    <p>
+                                                        <Text strong>Loại: </Text> <Tag color={colorMap[clause.type] || "default"} className="w-fit">
+                                                            {clause.type}
+                                                        </Tag>
+                                                    </p>
+                                                    {/* <p>
+                                                    <Text strong>Tên: </Text> 
+                                                </p> */}
+                                                    <p>
+                                                        <Text strong>Nội dung: </Text> {clause.value}
+                                                    </p>
+                                                    <p>
+                                                        <Text strong>Ngày tạo: </Text>{dayjs(new Date(
+                                                            clause.createdAt[0],
+                                                            clause.createdAt[1] - 1,
+                                                            clause.createdAt[2]
+                                                        )).format("DD/M/YYYY")}
+                                                    </p>
+                                                </div>
+                                            </Card>
+
+                                        }
+                                        placement="bottomRight"
+                                        trigger="hover"
+                                    >
+                                        <List.Item
+                                            style={{ cursor: 'default' }}
+                                            // onClick={() => showModal(clause)}
+                                            className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
+                                            actions={[
+                                                <div className="flex flex-col items-center gap-2 mr-3">
+                                                    <div className="flex gap-3 mb-3">
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleUpdateClause(clause.clauseCode);
+                                                            }}
+                                                            className="flex items-center justify-center"
+                                                        >
+                                                            <EditFilled />
+                                                        </Button>
+                                                        <Button
+                                                            danger
+                                                            type="primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDelete(clause.id);
+                                                            }}
+                                                            className="flex items-center justify-center"
+                                                            loading={loadingDelete}
+                                                        >
+                                                            <DeleteFilled />
+                                                        </Button>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm mb-2">Có {clause.contractCount} hợp đồng đang dùng điều khoản này</p>
+                                                    </div>
+                                                </div>
+
+                                            ]}
+                                        >
+                                            <List.Item.Meta
+                                                className="px-7 py-4"
+                                                title={
+                                                    <div className="flex flex-row items-center gap-8">
+                                                        {/* Cột mã điều khoản */}
+                                                        <div className=" flex flex-col items-center min-w-[100px]">
+                                                            <p>Mã ĐK</p>
+                                                            <p className="font-bold text-base">{clause.clauseCode}</p>
+                                                        </div>
+                                                        {/* Cột thông tin điều khoản (loại và tên) */}
+                                                        <div className="flex flex-col gap-[6px]">
+                                                            <Tag color={colorMap[clause.type] || "default"} className="w-fit">
+                                                                {clause.type}
+                                                            </Tag>
+                                                            <p className="text-[#3378cc] font-bold text-base">{clause.label}</p>
+                                                            <p className="text-gray-400 text-sm">Nội dung: {clause.value.length > 200 ? `${clause.value.substring(0, 200)}...` : clause.value}</p>
+                                                            <p className="text-gray-400 text-sm">
+                                                                Ngày tạo: {dayjs(new Date(
+                                                                    clause.createdAt[0],
+                                                                    clause.createdAt[1] - 1,
+                                                                    clause.createdAt[2]
+                                                                )).format("DD/M/YYYY")}
+                                                            </p>
 
 
-                {/* Import Modal */}
+                                                        </div>
+                                                    </div>
+                                                }
+                                            />
+                                        </List.Item>
+
+                                    </Popover>
+                                )}
+                            />
+                        )}
+                    </div>
+                </TabPane>
+
+
 
 
             </Tabs>

@@ -49,7 +49,7 @@ import { selectCurrentUser } from "../../slices/authSlice";
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-pro-exp-02-05",
+    model: "gemini-2.0-flash-exp",
 });
 
 
@@ -58,7 +58,7 @@ const generationConfig = {
     temperature: 1,
     topP: 0.95,
     topK: 64,
-    maxOutputTokens: 8192,
+    // maxOutputTokens: 8192,
     responseMimeType: "application/json",
     responseSchema: {
         type: "object",
@@ -244,43 +244,41 @@ Trích xuất các trường sau:
 title: tiêu đề hợp đồng (string)
 partner: đối tượng chứa thông tin bên A, gồm:
 
-    -partnerName: tên đối tác (string)
+    -partnerName: tên đối tác bên A 
 
-    -spokesmanName: tên người đại diện (string)
+    -spokesmanName: tên người đại diện bên A 
 
-    -address: địa chỉ (string)
+    -address: địa chỉ bên A 
 
-    -email: email (string)
+    -email: email bên A
 
-    -position: vị trí của người đại diện trong công ty (string)
+    -position: vị trí của người đại diện trong công ty bên A
 
-    -taxCode: mã số thuế ghi đầy đủ ra không ghi tắt xxxxxx(string)
+    -taxCode: mã số thuế bên A
 
-    -phone: số điện thoại (string)
+    -phone: số điện thoại bên A
 
     -bank: một mảng các tài khoản ngân hàng bên A :
-        - bankName: tên ngân hàng (string)
-        - backAccountNumber: số tài khoản ngân hàng (string)
-contractNumber: số hợp đồng (string)
-totalValue: giá trị hợp đồng (number)
+        - bankName: tên ngân hàng bên A
+        - backAccountNumber: số tài khoản ngân hàng bên A
+contractNumber: mã số của hợp đồng 
+totalValue:tổng giá trị hợp đồng (number)
 effectiveDate: mảng biểu diễn ngày có hiệu lực của hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị của giờ, phút hoặc giây, trả về [0, 0, 0, 0, 0, 0].
 expiryDate: mảng biểu diễn ngày hết hiệu lực của hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].
 signingDate: mảng biểu diễn ngày ký hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].
-items: một mảng các hạng mục của hợp đồng, mỗi hạng mục chứa:
-  - description: nội dung hạng mục (string)
+items: một mảng các hạng mục thanh toán của hợp đồng, mỗi hạng mục chứa:
+  - description: nội dung hạng mục 
   - amount: số tiền của hạng mục (number)
-paymentSchedules: một mảng các đối tượng lịch thanh toán, mỗi đối tượng chứa:
+paymentSchedules: một mảng các đối tượng thanh toán, mỗi đối tượng chứa:
   - paymentOrder: số thứ tự của đợt thanh toán (number)
-  - paymentPercentage: phần trăm thanh toán của đợt đó (number)
   - paymentDate: mảng biểu diễn ngày thanh toán theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị, trả về [0, 0, 0, 0, 0, 0].
   - paymentMethod: phương thức thanh toán (string)
-  - amount: được tính bằng cách lấy totalValue nhân với paymentPercentage (number)
+  - amount: số tiền của mỗi đợt
 
 
-đảm bảo rằng tất cả paymentPercentage các đợt cộng lại bằng 100% và paymentOrder các đợt được sắp xếp theo thứ tự tăng dần và tổng amount của tất cả các đợt cộng lại bằng totalValue
-amount của các hạng mục trong items cộng lại bằng totalValue
+đảm bảo rằng tổng số tiền tất cả hạng mục bằng tổng số tiền của số lần thanh toán
 
-Trả về dữ liệu đã trích xuất sử dụng cấu trúc JSON như sau (chỉ trả về đối tượng JSON với key "response"):
+Trả về dữ liệu đã trích xuất sử dụng cấu trúc JSON như sau
 
 {
   "response": {
