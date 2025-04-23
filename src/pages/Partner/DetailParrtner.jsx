@@ -86,7 +86,7 @@ const PartnerDetail = () => {
             console.log(updatedValues)
             await updatePartner(updatedValues).unwrap();
             message.success('Cập nhật thông tin thành công!');
-            setIsEditing(false); 
+            setIsEditing(false);
         } catch (error) {
             console.log(error)
             message.error('Cập nhật thất bại');

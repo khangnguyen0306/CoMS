@@ -1,15 +1,20 @@
 import React from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
 import { Skeleton, Timeline, Tag, Empty, Upload, Button, Tooltip } from 'antd';
-import { CheckCircleFilled, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, CloseCircleOutlined, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
 import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
-import { useGetContractDetailQuery } from '../../../services/ContractAPI';
+import { useGetContractDetailQuery, useSendReminderContractMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
 import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
+import { useSelector } from 'react-redux';
+import { selectCurrentUser } from '../../../slices/authSlice';
+import { TbBellRingingFilled } from "react-icons/tb";
 
 const ExpandRowContent = ({ id, appendixId }) => {
     // console.log("ID:", id);
     // console.log("Appendix ID:", appendixId);
+    const user = useSelector(selectCurrentUser)
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
     const { data, isLoading, isError } = useGetProcessByContractIdQuery(
         { contractId: id },
         { skip: !id }
@@ -18,7 +23,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
         { appendixId },
         { skip: !appendixId }
     );
-
+    const [Reminder] = useSendReminderContractMutation();
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(id)
     // Hiển thị thông báo lỗi nếu có lỗi xảy ra
@@ -80,12 +85,39 @@ const ExpandRowContent = ({ id, appendixId }) => {
         }
     };
 
+    const ReminderContract = async () => {
+        try {
+            const res = await Reminder(id).unwrap();
+            console.log(typeof res);
+            const parsedRes = JSON.parse(res);
+            message.success(parsedRes.message);
+        } catch (error) {
+            console.error("Lỗi gửi nhắc nhở:", error);
+            message.error("Gửi nhắc nhở thất bại!");
+        }
+    };
+
     // Ánh xạ trạng thái sang tiếng Việt
     const statusText = {
         APPROVED: 'Đã duyệt',
         APPROVING: 'Đang duyệt',
+        REJECTED: 'Từ chối duyệt',
         NOT_STARTED: 'Chưa bắt đầu'
     };
+
+    const displayColor = {
+        NOT_STARTED: "default",
+        APPROVED: "green-inverse",
+        APPROVING: "gold-inverse",
+        REJECTED: "red"
+    }
+    const displayIcon = {
+        NOT_STARTED: <InfoCircleOutlined />,
+        APPROVED: <CheckCircleFilled />,
+        APPROVING: <LoadingOutlined />,
+        REJECTED: <CloseCircleOutlined />
+    }
+
     if (isLoading || isLoadingAppendix) {
         return <Skeleton />;
     }
@@ -106,24 +138,12 @@ const ExpandRowContent = ({ id, appendixId }) => {
                                 <div className="flex flex-col items-center gap-2">
                                     <p>
                                         <Tag
-                                            color={
-                                                stage.status === "APPROVED"
-                                                    ? "green-inverse"
-                                                    : stage.status === "NOT_STARTED"
-                                                        ? "default"
-                                                        : "gold-inverse"
-                                            }
+                                            color={displayColor[stage.status]}
                                         >
                                             <span className="mx-[2px]">
                                                 {statusText[stage.status] || stage.status}
                                             </span>
-                                            {stage.status === "APPROVED" ? (
-                                                <CheckCircleFilled />
-                                            ) : stage.status === "NOT_STARTED" ? (
-                                                <InfoCircleOutlined />
-                                            ) : (
-                                                <LoadingOutlined />
-                                            )}
+                                            {displayIcon[stage.status]}
                                         </Tag>
                                     </p>
                                     {stage.status === "APPROVED" && (
@@ -132,17 +152,28 @@ const ExpandRowContent = ({ id, appendixId }) => {
                                 </div>
                             }
                         >
-                            <div className="min-h-[50px]">
-                                <p>
+                            <div className="min-h-[50px] flex items-center justify-between">
+                                <p className="max-w-[150px]">
                                     Người duyệt: <b>{stage.approverName}</b>
                                 </p>
+
+                                {/* Hiển thị nút khi là bước đang APPROVING */}
+                                {isCEO && stage.status === "APPROVING" && (
+                                    <Button
+                                        type="text"
+                                        icon={<TbBellRingingFilled style={{ color: '#FAAD14' }} />}
+                                        className="bg-yellow-100 text-yellow-800 border-none hover:!text-yellow-900"
+                                        onClick={() => ReminderContract()}
+                                    >
+                                        Nhắc nhở
+                                    </Button>
+                                )}
                             </div>
                         </Timeline.Item>
                     ))}
                 </Timeline>
-                <Button className=' text-center mb-4 -mt-48 left-1/2 transform -translate-x-1/2'>
-                    Nhắc nhở nhân viên duyệt
-                </Button>
+
+
             </div>
 
             {/* Cột bên phải: Các đợt thanh toán */}

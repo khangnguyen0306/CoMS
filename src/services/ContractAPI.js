@@ -277,6 +277,13 @@ export const ContractAPI = baseApi.injectEndpoints({
             }),
             providesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
+        sendReminderContract: builder.mutation({
+            query: (contractId) => ({
+                url: `/contracts/send-approve-reminder/${contractId}`,
+                method: "POST",
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
 
 
     }),
@@ -311,5 +318,6 @@ export const {
     useUploadContractAlreadySignedMutation,
     useDuplicateContractWithNewPartnerMutation,
     useGetImgSignQuery,
-    useUploadContractOnlineSignedMutation
+    useUploadContractOnlineSignedMutation,
+    useSendReminderContractMutation,
 } = ContractAPI;

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Select, Spin, Popover } from "antd";
 import { useLazyLoadSelect } from "./CustomHook";
+import { useLazyLoadLegal } from "./useLazyLoadLegal";
 
 const LazyLegalSelect = ({
     loadDataCallback,
@@ -19,7 +20,7 @@ const LazyLegalSelect = ({
         data,
         onSearch,
         keyword,
-    } = useLazyLoadSelect(loadDataCallback);
+    } = useLazyLoadLegal(loadDataCallback);
 
     const mergedOptions = useMemo(() => {
         if (keyword) {

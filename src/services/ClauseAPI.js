@@ -31,7 +31,7 @@ export const clauseAPI = baseApi.injectEndpoints({
     getLegalCreateContract: builder.query({
       query: ({ page, size, keyword, order }) => ({
         url: `/terms/get-all-less-field`,
-        params: { typeTermIds: 8, page, size, order, keyword },
+        params: { typeTermIds: 8, page, size, order: order || "desc", keyword },
         method: "GET",
       }),
       providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],

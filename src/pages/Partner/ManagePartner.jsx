@@ -41,6 +41,8 @@ const ManagePartner = () => {
         size: pageSize,
     });
 
+    const partnerDataReal = partnerData?.data?.content?.filter(partner => partner.partyId !== 1) || [];
+
     const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
     const [EditPartner, { isLoading: isEditing }] = useEditPartnerMutation();
     const [DeletePartner, { isLoading: loadingDeleting }] = useDeletePartnerMutation();
@@ -269,21 +271,21 @@ const ManagePartner = () => {
             sorter: (a, b) => a.taxCode.localeCompare(b.taxCode),
             width: '200px',
         },
-        // {
-        //     title: 'Loại Partner',
-        //     dataIndex: 'partnerType',
-        //     width: '150px',
-        //     filters: [
-        //         { text: 'Nhà cung cấp', value: 'PARTNER_A' },
-        //         { text: 'Khách hàng', value: 'PARTNER_B' },
-        //     ],
-        //     onFilter: (value, record) => record.partnerType === value,
-        //     render: (type) => (
-        //         <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
-        //             {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
-        //         </Tag>
-        //     ),
-        // },
+        {
+            title: 'Loại Partner',
+            dataIndex: 'partnerType',
+            width: '150px',
+            filters: [
+                { text: 'Nhà cung cấp', value: 'PARTNER_A' },
+                { text: 'Khách hàng', value: 'PARTNER_B' },
+            ],
+            onFilter: (value, record) => record.partnerType === value,
+            render: (type) => (
+                <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
+                    {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
+                </Tag>
+            ),
+        },
         {
             title: 'Người đại diện',
             dataIndex: 'spokesmanName',
@@ -424,14 +426,11 @@ const ManagePartner = () => {
                         Tạo khách hàng mới
                     </Button>
                 )}
-
             </div>
-
-
 
             <Table
                 columns={columns}
-                dataSource={partnerData?.data?.content}
+                dataSource={partnerDataReal}
                 loading={isFetching}
                 onChange={handleTableChange}
                 pagination={{
