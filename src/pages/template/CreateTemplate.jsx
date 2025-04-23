@@ -99,6 +99,7 @@ import { useSelector } from "react-redux";
 import topIcon from "../../assets/Image/top.svg"
 import ChatModalWrapper from "../../components/ui/ChatModal";
 import { useWarnOnLeave } from "../../hooks/UseWarnOnLeave";
+import ModalAdd from "../Contract/component/ModalAdd";
 
 const { Step } = Steps;
 
@@ -149,6 +150,8 @@ const CreateTemplate = () => {
     const containerRef = useRef(null);
     const [isOverflowing, setIsOverflowing] = useState(false);
     const [shouldBlockNavigation, setShouldBlockNavigation] = useState(true);
+    const [adddClauseId, setIsAddClauseId] = useState(0);
+    const [isAddClasueModalOpen, setIsAddClauseModalOpen] = useState(false);
 
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
     const [createContractType, { isLoadingCreateType }] = useCreateContractTypeMutation()
@@ -293,7 +296,7 @@ const CreateTemplate = () => {
     };
 
     const handleSelectDKKChange = (newValues) => {
-        form.setFieldsValue({ otherTerms: newValues });
+        form.setFieldsValue({ othersTerms: newValues });
         setSelectedOthersTerms(newValues);
     };
 
@@ -305,9 +308,10 @@ const CreateTemplate = () => {
     };
 
     const handleRemoveDKKTerm = (termToRemove) => {
+        console.log(termToRemove)
         const updatedTerms = selectedOtherTypeTerms.filter(term => term !== termToRemove);
-        form.setFieldsValue({ otherTerms: updatedTerms });
-        setSelectedOtherTypeTerms(updatedTerms);
+        form.setFieldsValue({ othersTerms: updatedTerms });
+        setSelectedOthersTerms(updatedTerms);
         // handleSelectChange(updatedTerms);
     };
 
@@ -707,6 +711,10 @@ const CreateTemplate = () => {
         // setPromt(prompt);
     };
 
+    const handleOpenModalAddClause = (clauseId) => {
+        setIsAddClauseModalOpen(true)
+        setIsAddClauseId(clauseId)
+    }
     // console.log(promt)
     // console.log(form.getFieldsValue())
 
@@ -1210,7 +1218,7 @@ const CreateTemplate = () => {
                                                         {menu}
                                                         <Divider style={{ margin: "8px 0" }} />
                                                         <Space style={{ padding: "0 8px 4px" }}>
-                                                            <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(9)}>
+                                                            <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModalAddClause(9)}>
                                                                 Thêm điều khoản
                                                             </Button>
                                                         </Space>
@@ -1609,6 +1617,7 @@ const CreateTemplate = () => {
                                         >
                                             <LazySelect
                                                 loadDataCallback={loadDKKata}
+                                                options={generalData?.data.content}
                                                 showSearch
                                                 labelInValue
                                                 mode="multiple"
@@ -1619,7 +1628,7 @@ const CreateTemplate = () => {
                                                         {menu}
                                                         <Divider style={{ margin: "8px 0" }} />
                                                         <Space style={{ padding: "0 8px 4px" }}>
-                                                            <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddGeneralModal(10)}>
+                                                            <Button type="primary" icon={<PlusOutlined />} onClick={() => handleOpenModalAddClause(10)}>
                                                                 Thêm điều khoản
                                                             </Button>
                                                         </Space>
@@ -1646,7 +1655,7 @@ const CreateTemplate = () => {
                                                 ))}
                                             </ul>
                                         </div>
-                                        <Form.Item
+                                        {/* <Form.Item
                                             label={
                                                 <div className="ml-2 my-3">
                                                     <p className="font-bold text-[15px]"> ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p>
@@ -1671,14 +1680,14 @@ const CreateTemplate = () => {
                                             <TextArea rows={4}
                                                 placeholder="Nhập điều khoản bên B"
                                             />
-                                        </Form.Item>
+                                        </Form.Item> */}
                                     </div>
                                 </div>
                             </div>
                             <div ref={otherContentRef}>
                                 <div className="pb-[200px]">
-                                    <p className="font-bold text-lg mt-5">IV. CÁC NỘI DUNG KHÁC </p>
-                                    <p className="font-bold text-[16px] ml-5 my-4">10. Phụ lục</p>
+                                    <p className="font-bold text-lg mt-5 my-3">IV. CÁC NỘI DUNG KHÁC </p>
+                                    {/* <p className="font-bold text-[16px] ml-5 my-4">10. Phụ lục</p> */}
                                     <div className="ml-9">
                                         <Form.Item name="appendixEnabled" valuePropName="checked">
                                             <div className="flex items-center">
@@ -2204,7 +2213,7 @@ const CreateTemplate = () => {
 
             {/* đang hơi lag do sử dụng state */}
 
-            <Modal
+            {/* <Modal
                 title="Thêm điều khoản chung"
                 open={isAddGeneralModalOpen}
                 onOk={handleAddOkGeneralTerm}
@@ -2235,7 +2244,13 @@ const CreateTemplate = () => {
                         />
                     </Form.Item>
                 </Form>
-            </Modal>
+            </Modal> */}
+            <ModalAdd
+                clauseId={adddClauseId}
+                isModalAddOpen={isAddClasueModalOpen}
+                closeModalAdd={() => setIsAddClauseModalOpen(false)}
+                callBackCallAPI={adddClauseId == 9 ? () => loadGenaralData({ page: 0, size: 10 }) : () => loadDKKata({ page: 0, size: 10 })}
+            />
         </div>
     );
 };
