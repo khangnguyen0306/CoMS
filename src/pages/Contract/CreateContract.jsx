@@ -324,9 +324,9 @@ const CreateContractForm = () => {
 
 
     const onFinish = async () => {
-        setShouldBlockNavigation(false); 
+        setShouldBlockNavigation(false);
         const data = form.getFieldsValue(true);
-    
+
         // Xử lý additionalConfig, chỉ lấy các object có dữ liệu trong A, B hoặc Common
         const additionalConfig = Object.keys(data)
             .filter(key => !isNaN(key)) // Chỉ lấy các key là số (1,2,3,...)
@@ -1308,12 +1308,14 @@ const CreateContractForm = () => {
                                     <Form.Item
                                         label="Nơi ký kết"
                                         name="contractLocation"
+                                        className="min-w-[250px]"
                                         rules={[{ required: true, message: "Vui lòng chọn nơi ký kết hợp đồng!" }]}
                                     >
                                         <Select
                                             showSearch
                                             placeholder="Chọn nơi ký kết"
                                             optionFilterProp="children"
+                                            className="min-w-[170px]"
                                             filterOption={(input, option) =>
                                                 (option?.value ?? '').toLowerCase().includes(input.toLowerCase())
                                             }
@@ -1722,8 +1724,17 @@ const CreateContractForm = () => {
                                                                     placeholder="Ngày thanh toán"
                                                                     disabledDate={(current) => {
                                                                         const effectiveDate = form.getFieldValue('effectiveDate');
-                                                                        const expiryDate = form.getFieldValue('expiryDate')
-                                                                        return !current || current.isBefore(effectiveDate) || current.isAfter(expiryDate);
+                                                                        const expiryDate = form.getFieldValue('expiryDate');
+                                                                        if (current.isBefore(dayjs(), 'day')) {
+                                                                            return true;
+                                                                        }
+                                                                        if (
+                                                                            (effectiveDate && current.isBefore(effectiveDate, 'day')) ||
+                                                                            (expiryDate && current.isAfter(expiryDate, 'day'))
+                                                                        ) {
+                                                                            return true;
+                                                                        }
+                                                                        return false;
                                                                     }}
                                                                     format="DD/MM/YYYY"
                                                                     onChange={(date) => handlePaymentDateChange(date, name)}
@@ -2290,13 +2301,13 @@ const CreateContractForm = () => {
                                 />
                             </div>
                         ))}
-                        <Button
+                        {/* <Button
                             type="dashed"
                             onClick={addNotification}
                             icon={<PlusOutlined />}
                         >
                             Thêm thông báo
-                        </Button>
+                        </Button> */}
                     </Form.Item>
                 </div>
             ),

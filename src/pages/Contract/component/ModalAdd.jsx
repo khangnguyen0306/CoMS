@@ -8,14 +8,7 @@ import { PlusOutlined } from '@ant-design/icons'
 const ModalAdd = ({ isModalAddOpen, closeModalAdd, clauseId, callBackCallAPI }) => {
     const [form] = Form.useForm();
     const [addClause] = useCreateClauseMutation()
-    const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
 
-    // const loadDKKata = async ({ page, size, keyword }) => {
-    //     return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
-    // };
-    // const loadGenaralData = async ({ page, size, keyword }) => {
-    //     return getGeneralTerms({ page, size, keyword, typeTermIds: 9 }).unwrap();
-    // };
     const handleAddClause = async () => {
         const data = form.getFieldsValue(true)
 
@@ -30,8 +23,8 @@ const ModalAdd = ({ isModalAddOpen, closeModalAdd, clauseId, callBackCallAPI }) 
             }
 
         } catch (error) {
-            console.error("Lỗi tạo căn cứ pháp lý:", error);
-            message.error(`Có lỗi xảy ra khi tạo ${displayTitle[clauseId]}`);
+            // console.error("Lỗi tạo căn cứ pháp lý:", error);
+            message.error(error.data.message);
         }
     }
     const displayTitle = {

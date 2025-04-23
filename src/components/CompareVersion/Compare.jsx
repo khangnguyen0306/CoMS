@@ -21,8 +21,8 @@ const Compare = () => {
         return <div>Loading or insufficient data...</div>;
     }
 
-    const v1 = process[0];
-    const v2 = process[1];
+    const v1 = process[1];
+    const v2 = process[0];
 
 
 

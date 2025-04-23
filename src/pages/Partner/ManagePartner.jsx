@@ -125,18 +125,18 @@ const ManagePartner = () => {
                 ...values,
                 banking: bankingInfo,
             };
-            console.log(newPartnerData);
+            // console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData).unwrap();
+            console.log(result)
             if (result.status === "CREATED") {
-                message.success('Thêm mới thành công!');
+                message.success('Thêm mới đối tác thành công!');
                 refetch();
                 setIsModalVisible(false);
                 form.resetFields();
                 setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
-            } else {
-                message.error('Thêm mới thất bại vui lòng thử lại!');
             }
         } catch (error) {
+            message.error(error.data.message)
             console.error("Error creating partner:", error);
         }
     };
@@ -174,6 +174,7 @@ const ManagePartner = () => {
     const addBankAccount = () => {
         setBankAccounts([...bankAccounts, { bankName: '', backAccountNumber: '' }]);
     };
+
     const removeBankAccount = (index) => {
         if (bankAccounts.length > 1) {
             const updatedBanks = bankAccounts.filter((_, i) => i !== index);
@@ -228,20 +229,19 @@ const ManagePartner = () => {
                 banking: bankingInfo,
             };
             console.log(updatedPartnerData);
-            const result = await EditPartner({ ...updatedPartnerData, id: editingPartner.partyId });
+            const result = await EditPartner({ ...updatedPartnerData, id: editingPartner.partyId }).unwrap();
             console.log(result);
-            if (result.data.status === "OK") {
-                message.success('Cập nhật thành công!');
+            if (result.status === "OK") {
+                message.success('Cập nhật thông tin đối tác thành công!');
                 refetch();
                 setIsModalVisible(false);
                 form.resetFields();
                 setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
                 setEditingPartner(null);
-            } else {
-                message.error('Cập nhật thất bại vui lòng thử lại!');
             }
         } catch (error) {
-            console.error("Error updating partner:", error);
+            message.error(error.data.message)
+
         }
     };
 
@@ -586,10 +586,21 @@ const ManagePartner = () => {
                             <Form.Item
                                 name="taxCode"
                                 label="Mã số thuế"
-                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mã số thuế" }]}
+                                rules={[
+                                    { required: true, whitespace: true, message: "Vui lòng nhập mã số thuế" },
+                                    {
+                                        validator: (_, value) => {
+                                            if (!value || /^[0-9]{10}$/.test(value) || /^[0-9]{13}$/.test(value)) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(new Error("Mã số thuế phải gồm 10 hoặc 13 chữ số"));
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input />
                             </Form.Item>
+
                             <Form.Item
                                 name="phone"
                                 label="Điện thoại"

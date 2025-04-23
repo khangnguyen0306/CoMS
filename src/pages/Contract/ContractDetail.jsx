@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table, Collapse, Tooltip } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
 import dayjs from 'dayjs';
-import { BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, DollarOutlined, EditFilled, FileOutlined, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, PaperClipOutlined, RollbackOutlined, SmallDashOutlined } from '@ant-design/icons';
+import { BellFilled, BookOutlined, CheckCircleFilled, CheckOutlined, ClockCircleOutlined, CloseOutlined, DollarOutlined, EditFilled, FileOutlined, ForwardOutlined, HistoryOutlined, InfoCircleOutlined, LeftCircleFilled, LeftOutlined, LoadingOutlined, PaperClipOutlined, RollbackOutlined, SmallDashOutlined } from '@ant-design/icons';
 import { useLazyGetDataChangeByDateQuery, useLazyGetDateChangeContractQuery } from '../../services/AuditTrailAPI';
 import { useGetContractDetailQuery, useGetImgBillQuery } from '../../services/ContractAPI';
 import { useApproveProcessMutation, useGetProcessByContractIdQuery, useRejectProcessMutation } from '../../services/ProcessAPI';
@@ -18,10 +18,11 @@ import DisplayAppendix from '../appendix/staff/DisplayAppendix';
 import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
 import { IoSearchCircle } from "react-icons/io5";
 import ModalSearch from './component/ModalSearch';
-import html2canvas from 'html2canvas';
+import { formatDateToStringDate } from '../../utils/ConvertTime';
+// import html2canvas from 'html2canvas';
 const { Title, Text } = Typography;
-import jsPDF from 'jspdf';
-import { MdMarkChatRead } from "react-icons/md";
+// import jsPDF from 'jspdf';
+// import { MdMarkChatRead } from "react-icons/md";
 
 const ContractDetail = () => {
     const { Panel } = Collapse;
@@ -455,6 +456,8 @@ const ContractDetail = () => {
         setSearchModalVisible(true)
     };
 
+
+
     //hover hiển thin nút
     useEffect(() => {
         const element = clauseRef.current;
@@ -606,7 +609,49 @@ const ContractDetail = () => {
                             <p><b>Lần chỉnh sửa cuối cùng</b> {convertCreatedAt(contractData?.data.updatedAt)}</p>
                             <p><b>Trạng thái:</b> <span className='ml-3'>{statusContract[contractData?.data.status]}</span></p>
                             <Divider className="border-t-2 border-gray-400" />
+                            <Card>
+                                <p className='flex items-center gap-2'>
+                                    <BellFilled style={{ color: '#F1AF00', fontSize: '20px' }} />
+                                    <b>Các ngày thông báo: </b>
+                                </p>
+                                <div className='ml-1'>
+                                    <div className='flex flex-col gap-2 mt-5'>
+                                        <Tag color='blue' className='w-fit'>{formatDateToStringDate(contractData?.data.notifyEffectiveDate)}</Tag>
+                                        <p className='ml-1'><b>Nội dung: </b> Thông báo ngày hợp đồng bắt đầu có hiệu lực</p>
+                                    </div>
+
+                                    {contractData?.data.paymentSchedules && contractData?.data.paymentSchedules.length > 0 ? contractData?.data.paymentSchedules.map(schedule => (
+                                        <div key={schedule.id} className="flex flex-col gap-2 mt-5">
+                                            <Tag color="blue" className="w-fit">
+                                                {formatDateToStringDate(schedule.paymentDate)}
+                                            </Tag>
+
+                                            <p className="ml-1">
+                                                <b>Thanh toán đợt: </b>
+                                                {schedule.paymentOrder}
+                                            </p>
+
+                                            <p className="ml-1">
+                                                <b>Số tiền: </b>
+                                                {schedule.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                                            </p>
+
+                                            <p className="ml-1">
+                                                <b>Nội dung: </b>
+                                                {schedule.notifyPaymentContent}
+                                            </p>
+                                        </div>
+                                    )) : ""}
+
+                                    <div className='flex flex-col gap-2 mt-5'>
+                                        <Tag color='blue' className='w-fit'>{formatDateToStringDate(contractData?.data.notifyExpiryDate)}</Tag>
+                                        <p className='ml-1'><b>Nội dung: </b> Thông báo ngày hợp đồng bắt đầu có hiệu lực</p>
+                                    </div>
+                                </div>
+                            </Card>
                         </div>
+
+
                         {loadingDataProcess ? (
                             <div className='flex justify-center items-center'>
                                 <Spin />

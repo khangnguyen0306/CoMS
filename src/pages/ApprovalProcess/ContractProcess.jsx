@@ -26,7 +26,7 @@ const ContractProcess = () => {
         pageSize: 10,
     });
     const { data: contractsStatus, isLoading, isError, refetch } = useGetContractStatusQuery({
-        page: pagination.current - 1, // Nếu API sử dụng index bắt đầu từ 0
+        page: pagination.current - 1, 
         size: pagination.pageSize,
         statuses: filters.statuses,
         keyword: searchText
@@ -69,7 +69,7 @@ const ContractProcess = () => {
     };
 
     const handleTableChange = (pagination, filters, sorter) => {
-        console.log(filters)
+        // console.log(filters)
         setPagination({
             current: pagination.current,
             pageSize: pagination.pageSize,

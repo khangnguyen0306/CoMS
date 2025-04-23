@@ -212,6 +212,23 @@ const ManageContracts = () => {
         'DELETED': <Tag color="red">Đã xóa</Tag>,
         'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning /><p>Sắp hết hạn</p></p></Tag>,
     }
+    const displayStatus = {
+        'CREATED': 'ĐÃ TẠO',
+        'FIXED': 'ĐÃ CHỈNH SỬA',
+        'APPROVAL_PENDING': 'CHỜ PHÊ DUYỆT',
+        'APPROVED': 'ĐÃ PHÊ DUYỆT',
+        'UPDATED': 'ĐÃ CẬP NHẬT',
+        'PENDING': 'ĐANG CHỜ',
+        'REJECTED': 'TỪ CHỐI PHÊ DUYỆT',
+        'SIGNED': 'ĐÃ KÝ',
+        'ACTIVE': 'ĐANG HIỆU LỰC',
+        'COMPLETED': 'HOÀN THÀNH',
+        'EXPIRED': 'HẾT HIỆU LỰC',
+        'CANCELLED': 'ĐÃ HỦY',
+        'ENDED': 'ĐÃ KẾT THÚC',
+        'DELETED': 'ĐÃ XÓA',
+        'EXPIRING': 'SẮP HẾT HẠN',
+    };
 
     const handleExport = (id) => {
         setSelectedContractIdExport(id);
@@ -885,7 +902,7 @@ const ManageContracts = () => {
         <div className="flex flex-col md:flex-row min-h-[100vh]">
             <div className="flex-1 p-4">
                 <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
-                    QUẢN LÝ HỢP ĐỒNG
+                    QUẢN LÝ HỢP ĐỒNG {status ? displayStatus[status] : null}
                 </p>
                 <Space className="mb-[16px] flex items-center justify-between" >
                     <Search

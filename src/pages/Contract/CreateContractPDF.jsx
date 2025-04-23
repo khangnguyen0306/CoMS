@@ -1179,14 +1179,13 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         }
     };
 
-    const handleSetContractContent = () => {
-        const legal = AIData?.content?.legal;
-        const term = AIData?.content?.term;
-        const contractContent = AIData?.content?.contentContract;
+    useEffect(() => {
+        const legal = form.getFieldValue('legal') || '';
+        const term = form.getFieldValue('term') || '';
+        const contractContent = form.getFieldValue('contractContent') || '';
+        if (!legal && !term && !contractContent) return;
 
-        if (legal && term && contractContent) {
-
-            const combinedContent = `
+        const combinedContent = `
             <p><strong>Căn cứ pháp lý:</strong></p>
             <p>${legal.replace(/\n/g, '<br />')}</p>
             <br />
@@ -1196,16 +1195,18 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             <p><strong>Điều khoản:</strong></p>
             <p>${term.replace(/\n/g, '<br />')}</p>
           `;
-            console.log("combinedContent", combinedContent);
-            setContent(combinedContent);
-            form.setFieldsValue({ contractContent: combinedContent });
-        };
-    }
-    const applyAIDataToForm = async (data) => {
-        // console.log("applyAIDataToForm3", data.effectiveDate);
-        // console.log("applyAIDataToForm2", data.expiryDate);
-        // console.log("applyAIDataToForm1", data.signingDate);
 
+        form.setFieldsValue({
+            contractContent: combinedContent,
+        });
+        setContent(combinedContent);
+    }, [form.getFieldValue('legal'), form.getFieldValue('term')]);
+
+
+    const applyAIDataToForm = (data) => {
+        console.log("applyAIDataToForm3", data.effectiveDate);
+        console.log("applyAIDataToForm2", data.expiryDate);
+        console.log("applyAIDataToForm1", data.signingDate);
         if (!data) {
             message.warning("Chưa có dữ liệu AI để áp dụng!");
             return;
@@ -1227,6 +1228,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             contractContent: data?.content?.contentContract,
             term: data?.content?.term || '',
             legal: data?.content?.legal || '',
+            contractContent: data?.content?.contentContract || "",
             totalValue: data?.totalValue || 0,
             contractItems: data?.items || [],
             expiryDate: data?.expiryDate ? dayjs(new Date(...data.expiryDate)) : null,
@@ -1236,7 +1238,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                 paymentDate: p.paymentDate ? dayjs(new Date(...p.paymentDate)) : null
             })) || [],
         });
-        console.log("test lại", form.getFieldsValue(effectiveDate));
+        // console.log("test lại", form.getFieldsValue(effectiveDate));
         message.success("Đã áp dụng dữ liệu AI lên form!");
     };
 
@@ -1372,19 +1374,17 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 beforeUpload={async (file) => {
                                                     setLoading(true);
                                                     try {
-                                                        const extractedData = await callAIForExtraction(file).then((data) => {
-                                                            console.log("AI response:", data)
-                                                            setAIData(data);
-                                                            const taxCode = data.partner.taxCode?.toString();
-                                                            setTaxCode(data.partner.taxCode);
-                                                            setContractTypeSelected(data.title);
-                                                            setNewCustomerData(data.partner || {});
-                                                            checkPartner(taxCode);
-                                                            applyAIDataToForm(data);
-                                                        });
+                                                        const extractedData = await callAIForExtraction(file);
                                                         // console.log("Extracted data:", extractedData);
-                                                        next();
-                                                        // const data = extractedData.response ? extractedData.response : extractedData;
+
+                                                        const data = extractedData.response ? extractedData.response : extractedData;
+                                                        setAIData(data);
+                                                        const taxCode = data.partner.taxCode?.toString();
+                                                        setTaxCode(data.partner.taxCode);
+                                                        setContractTypeSelected(data.title);
+                                                        setNewCustomerData(data.partner || {});
+                                                        checkPartner(taxCode);
+                                                        applyAIDataToForm(data);
 
                                                         // form.setFieldsValue({
                                                         //     partner: {
@@ -1411,6 +1411,8 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                         //         paymentDate: p.paymentDate ? dayjs(new Date(...p.paymentDate)) : null
                                                         //     })) || [],
                                                         // });
+                                                        next();
+                                                        setLoading(false);
                                                     } catch (error) {
                                                         console.error("Lỗi khi xử lý file:", error);
                                                     } finally {
@@ -1533,8 +1535,8 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                         {/* <Button type="primary" onClick={applyAIDataToForm}>
                                             Áp dụng dữ liệu AI
                                         </Button> */}
-
-                                        {console.log("form", form.getFieldsValue())}
+                                        {/* 
+                                        {console.log("form", form.getFieldsValue())} */}
                                         <Form.Item
                                             name="contractName"
                                             label="Tên hợp đồng"
@@ -1711,26 +1713,29 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             </div>
                             <div ref={mainContentRef}>
                                 <Form.Item
+                                    label=" Soạn thảo nội dung hợp đồng"
                                     name="contractContent"
-                                // shouldUpdate={(prev, curr) => prev.combinedContent !== curr.combinedContent}
-                                // noStyle
+                                    className="mt-5"
+                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung hợp đồng!" }]}
                                 >
+                                    <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
+                                        <RichTextEditor
+                                            // key={value}
+                                            content={content}
+                                            onChangeContent={onValueChange}
+                                            // onChangeContent={(...args) => {
+                                            //     console.log("onChangeContent args:", args);
+                                            // }}
 
-                                    <RichTextEditor
-                                        key={content}
-                                        content={content}
-
-                                        onChangeContent={onValueChange}
-                                        extensions={extensions}
-                                        dark={isDarkMode}
-                                        hideBubble={true}
-                                        dense={false}
-                                        removeDefaultWrapper
-                                        placeholder="Nhập nội dung hợp đồng tại đây..."
-                                        contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
-                                    />
-
-
+                                            extensions={extensions}
+                                            dark={isDarkMode}
+                                            hideBubble={true}
+                                            dense={false}
+                                            removeDefaultWrapper
+                                            placeholder="Nhập nội dung hợp đồng tại đây..."
+                                            contentClass="max-h-[400px] overflow-auto [&::-webkit-scrollbar]:hidden hover:[&::-webkit-scrollbar]:block [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:bg-gray-200"
+                                        />
+                                    </Suspense>
                                 </Form.Item>
 
 
