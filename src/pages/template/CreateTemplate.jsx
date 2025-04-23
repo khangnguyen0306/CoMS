@@ -291,11 +291,13 @@ const CreateTemplate = () => {
     }, []);
 
     const handleSelectChange = (newValues) => {
+        // console.log(newValues)
         form.setFieldsValue({ generalTerms: newValues });
         setSelectedGeneralTerms(newValues);
     };
 
     const handleSelectDKKChange = (newValues) => {
+        // console.log(newValues)
         form.setFieldsValue({ othersTerms: newValues });
         setSelectedOthersTerms(newValues);
     };
@@ -309,7 +311,7 @@ const CreateTemplate = () => {
 
     const handleRemoveDKKTerm = (termToRemove) => {
         console.log(termToRemove)
-        const updatedTerms = selectedOtherTypeTerms.filter(term => term !== termToRemove);
+        const updatedTerms = selectedOthersTerms.filter(term => term !== termToRemove);
         form.setFieldsValue({ othersTerms: updatedTerms });
         setSelectedOthersTerms(updatedTerms);
         // handleSelectChange(updatedTerms);
