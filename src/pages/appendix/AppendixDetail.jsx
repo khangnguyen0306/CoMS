@@ -15,6 +15,7 @@ import { FaPenNib } from 'react-icons/fa6';
 import { useUploadContractAlreadySignedMutation } from '../../services/ContractAPI';
 import { DataToSign } from '../../utils/DataToSign';
 import { AuthenSignContractOnline } from '../Contract/signContract/AuthenSignOnlineContract';
+import { useGetNumberNotiForAllQuery } from '../../services/NotiAPI';
 
 const { Panel } = Collapse;
 
@@ -86,7 +87,7 @@ const AppendixDetail = () => {
     const [fetchTerms] = useLazyGetTermDetailQuery();
     const [uploadFileToSign] = useUploadAppenixToSignMutation();
     const [uploadOnlineSigned] = useUploadAppendixOnlineSignedMutation();
-
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
 
     useEffect(() => {
         refetch();
@@ -388,7 +389,7 @@ const AppendixDetail = () => {
 
             // console.log(data)
             hubProxy.invoke('SignDocument', data.FileId, signInfo, dataToSign.page, token);
-
+            refetchNoti()
 
             setSelectedFile(null)
             // setSignedFile(null)
@@ -455,6 +456,7 @@ const AppendixDetail = () => {
                         }
                     })
                 // console.log(upload)
+                refetchNoti()
                 message.success("Ký phụ lục và" + upload.data.message)
                 navigate('/appendix?paramstatus=APPROVED', { replace: true })
             } else {
@@ -1165,13 +1167,13 @@ const AppendixDetail = () => {
                     </div>
 
                     {/* II. Nội dung phụ lục */}
-                    <div className="p-4">
+                    <div className="p-4 ml-9">
                         <h2 className="text-xl font-semibold mb-4">II. Nội dung phụ lục</h2>
                         <div className="text-center mt-9 mb-10">
                             <p className="font-bold text-xl pt-8">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                             <p className="font-bold text-lg mt-2">Độc lập - Tự do - Hạnh phúc</p>
                             <p>---------oOo---------</p>
-                            <p className="text-lg font-bold mt-5">
+                            <p className="text-3xl font-bold mt-5">
                                 {appendixData?.data.title ? appendixData?.data.title.toUpperCase() : ''}
                             </p>
                             <p className="mt-3 text-base">

@@ -66,6 +66,9 @@ const RealTimeNotification = () => {
                 const isAppendix = contentToCheck.includes("phụ lục");
 
                 if (text && text.includes("phụ lục")) {
+                    if(text && text.includes("phụ lục hợp đồng cần phê duyệt")){
+                        navigate("/approve/appendix", { replace: true });
+                    }
                     if (user.roles[0] === "ROLE_STAFF") {
                         navigate("/appendix", { replace: true });
                     } else if (user.roles[0] === "ROLE_MANAGER") {

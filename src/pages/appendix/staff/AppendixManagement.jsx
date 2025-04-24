@@ -308,14 +308,18 @@ const AppendixManagement = () => {
                                             label: "Nhân bản phụ lục",
                                             onClick: () => handleOpenDuplicate(record),
                                         },
-                                        {
-                                            key: "uploadImgSign",
-                                            icon: <SignatureOutlined />,
-                                            label: record.status === "SIGNED" ? "Xem phụ lục đã ký" : "Xác nhận đã ký",
-                                            onClick: () => handleOpenSignModal(record.addendumId),
-                                        },
+                                        ...(record.status == "SIGNED" && user.roles[0] == "ROLE_STAFF"
+                                            ? [
+                                                {
+                                                    key: "uploadImgSign",
+                                                    icon: <SignatureOutlined />,
+                                                    label: record.status === "SIGNED" ? "Xem phụ lục đã ký" : "Xác nhận đã ký",
+                                                    onClick: () => handleOpenSignModal(record.addendumId),
+                                                }
+                                            ]
+                                            : []),
 
-                                        ...(record.status == "CREATED" || record.status == "UPDATED" || record.status == "REJECTED"
+                                        ...((record.status == "CREATED" || record.status == "UPDATED" || record.status == "REJECTED") && user.id == record.createdBy.userId
                                             ? [{
 
                                                 key: "delete",
