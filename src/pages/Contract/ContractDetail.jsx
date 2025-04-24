@@ -381,7 +381,8 @@ const ContractDetail = () => {
     };
     const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
     const isApprover = processData?.data.stages?.some(stage => stage.approver === user?.id);
-
+    const isCreator = contractData?.data.user.user_id == user.id
+    const canEdit = contractData?.data.status == "CREATED" || contractData?.data.status == "UPDATED" || contractData?.data.status == "REJECTED" 
     const paymentItemsColumns = [
         {
             title: 'STT',
@@ -505,30 +506,30 @@ const ContractDetail = () => {
             </Button> */}
 
             <div className="flex justify-between relative">
-                {contractData?.data?.status === "APPROVAL_PENDING" && (
-                    !isApprover && user.roles[0] !== "ROLE_MANAGER" ? (
-                        <Button
-                            type='primary'
-                            icon={<EditFilled style={{ fontSize: 20 }} />}
-                            onClick={() => navigate(`/EditContract/${id}`)}
-                        >
-                            Sửa hợp đồng
-                        </Button>
-                    ) : (
-                        <Button
-                            type="primary"
-                            className="fixed right-5 top-20 flex flex-col h-fit "
-                            onClick={showDrawerAprove}
-                        >
-                            <div className='flex flex-col items-center'>
-                                <p className='flex items-center justify-center'>
-                                    <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} />
-                                    <Image width={40} className='py-1' height={40} src={note} preview={false} />
-                                </p>
-                                <p className={`${!isDarkMode ? "text-white" : ''}`}>Phê duyệt</p>
-                            </div>
-                        </Button>
-                    )
+                {isCreator && canEdit && (
+                    <Button
+                        type='primary'
+                        icon={<EditFilled style={{ fontSize: 20 }} />}
+                        onClick={() => navigate(`/EditContract/${id}`)}
+                    >
+                        Sửa hợp đồng
+                    </Button>
+                )}
+                {contractData?.data?.status === "APPROVAL_PENDING" && isApprover &&(
+                    <Button
+                        type="primary"
+                        className="fixed right-5 top-20 flex flex-col h-fit "
+                        onClick={showDrawerAprove}
+                    >
+                        <div className='flex flex-col items-center'>
+                            <p className='flex items-center justify-center'>
+                                <LeftOutlined style={{ fontSize: 25, color: '#ffffff' }} />
+                                <Image width={40} className='py-1' height={40} src={note} preview={false} />
+                            </p>
+                            <p className={`${!isDarkMode ? "text-white" : ''}`}>Phê duyệt</p>
+                        </div>
+                    </Button>
+
                 )}
 
                 <Button type='link' onClick={showDrawer}>

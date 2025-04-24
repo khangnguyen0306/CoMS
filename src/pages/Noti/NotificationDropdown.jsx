@@ -31,7 +31,7 @@ const NotificationDropdown = () => {
   // Khi có dữ liệu mới, cập nhật danh sách thông báo
   useEffect(() => {
     if (notiData?.data?.content) {
-      setNotifications((prev) => [...prev, ...notiData.data.content]);
+      setNotifications((prev) => [...notiData.data.content, ...prev]);
     }
   }, [notiData]);
 
@@ -195,7 +195,7 @@ const NotificationDropdown = () => {
           fetchNotifications({ page, size: pageSize });
         }}
       >
-        <Badge count={notiNumber} size="small" className="flex justify-center items-center">
+        <Badge count={notiData?.data.unreadCount} size="small" className="flex justify-center items-center">
           <BellFilled
             style={{
               fontSize: 24,
