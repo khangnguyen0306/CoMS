@@ -135,7 +135,7 @@ const ManageClause = () => {
                 order: sortOrderClauseUser
             });
         }
-    }, [activeTab, pageUserClause, pageSizeUserClause, searchTermUserClause,sortOrderClauseUser]);
+    }, [activeTab, pageUserClause, pageSizeUserClause, searchTermUserClause, sortOrderClauseUser]);
 
     const sortedClause = clauseData?.data?.content
         ?.slice()
@@ -448,7 +448,7 @@ const ManageClause = () => {
                                     onSearch={setSearchTermClause}
                                     enterButton="tìm kiếm"
                                     allowClear
-                                    className="mb-4 max-w-[700px]"
+                                    className="mb-4 max-w-[500px]"
                                 />
                                 <Select
                                     placeholder="Chọn loại điều khoản"
@@ -1072,7 +1072,7 @@ const ManageClause = () => {
                     <div className="p-4 min-h-[100vh]">
                         <div className='font-bold mb-10  text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
-                                QUẢN LÝ ĐIỀU KHOẢN CỦA tÔI
+                                QUẢN LÝ ĐIỀU KHOẢN CỦA TÔI
                             </div>
                         </div>
 
@@ -1084,7 +1084,7 @@ const ManageClause = () => {
                                     onSearch={setSearchTermUserClause}
                                     enterButton="tìm kiếm"
                                     allowClear
-                                    className="mb-4 max-w-[700px]"
+                                    className="mb-4 max-w-[500px]"
                                 />
                                 <Select
                                     placeholder="Chọn loại điều khoản"

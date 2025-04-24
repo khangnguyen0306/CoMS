@@ -790,7 +790,7 @@ const ManageContracts = () => {
             refetch();
             message.success(parsedRes.message);
             setFileList([]);
-            setActivePanel([]);
+            // setActivePanel([]);
             setIsUpdateStatusModalVisible(false);
 
         } catch (error) {
@@ -1091,6 +1091,7 @@ const ManageContracts = () => {
                         <h3 className="text-2xl font-semibold text-center mb-4">Các đợt thanh toán</h3>
                         <Collapse
                             bordered
+                            accordion
                             activeKey={activePanel}
                             onChange={(key) => setActivePanel(key)}
                             className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}

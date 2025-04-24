@@ -1224,7 +1224,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             },
             contractNumberFormat: data?.contractNumber,
             signingDate: data?.signingDate ? dayjs(new Date(...data.signingDate)) : null,
-            contractLocation: data?.signingPlance, // Nếu key của bạn là "signingPlance", nếu không là "signingPlace" thì chỉnh lại
+            contractLocation: data?.signingPlance,
             contractContent: data?.content?.contentContract,
             term: data?.content?.term || '',
             legal: data?.content?.legal || '',

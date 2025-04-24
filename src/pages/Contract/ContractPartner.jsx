@@ -49,7 +49,7 @@ import { selectCurrentUser } from "../../slices/authSlice";
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-pro-exp-02-05",
 });
 
 
@@ -944,6 +944,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     </h3>
                                     <Collapse
                                         bordered
+                                        accordion
                                         className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
                                         onChange={(key) => setActivePanel(key)}
                                     >
