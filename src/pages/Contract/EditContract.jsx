@@ -59,6 +59,7 @@ const EditContract = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [notificationDays, setNotificationDays] = useState(null);
     const [termsData, setTermsData] = useState({});
+    const [shouldBlockNavigation, setShouldBlockNavigation] = useState(true);
 
     const [getContractTypeData, { data: contractTypeData, isLoading: isLoadingContractType }] = useLazyGetContractTypeQuery();
     const [getTemplateData, { data: templateData, isLoading }] = useLazyGetAllTemplateQuery();
@@ -410,9 +411,10 @@ const EditContract = () => {
         setCurrentStep(currentStep - 1);
     };
 
-    const onFinish = async (values) => {
+    const onFinish = async () => {
+        setShouldBlockNavigation(false)
         const data = form.getFieldsValue(true);
-        console.log(data);
+        // console.log(data);
         const formatDateArray = (date) => {
             if (!date) return null;
             const d = new Date(date);
@@ -516,8 +518,10 @@ const EditContract = () => {
                 navigate('/contract');
             }
         } catch (error) {
+            setShouldBlockNavigation(true)
             message.error(error?.data?.message || "Có lỗi xảy ra khi cập nhật hợp đồng!");
-            console.error(error);
+            // console.error(error);
+
         }
     };
 
@@ -1997,6 +2001,9 @@ const EditContract = () => {
             ),
         },
     ];
+
+    useWarnOnLeave(shouldBlockNavigation);
+
 
     return (
         <div className="min-h-[100vh]">

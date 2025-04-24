@@ -19,6 +19,7 @@ import pdfMake from "pdfmake/build/pdfmake";
 import { FaPenNib } from "react-icons/fa6";
 import { AuthenSignContractOnline } from './AuthenSignOnlineContract';
 import { DataToSign } from '../../../utils/DataToSign';
+import { useGetNumberNotiForAllQuery } from '../../../services/NotiAPI';
 
 const SignContract = () => {
     const { contractId } = useParams();
@@ -64,6 +65,7 @@ const SignContract = () => {
     const [uploadFilePDF] = useFindLocationMutation();
     const [uploadOnlineSigned] = useUploadContractOnlineSignedMutation();
     const [uploadFileSignedAlready] = useUploadContractAlreadySignedMutation();
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
 
     const stages = processData?.data?.stages || [];
 
@@ -988,7 +990,7 @@ const SignContract = () => {
 
             hubProxy.invoke('SignDocument', data.FileId, signInfo, dataToSign.page, token);
 
-
+            refetchNoti()
             setSelectedFile(null)
             setSignedFile(null)
             setSignMethod(null)
@@ -1052,6 +1054,7 @@ const SignContract = () => {
                         }
                     })
                 // console.log(upload)
+                refetchNoti()
                 message.success("Ký hợp đồng và" + upload.data.message)
                 navite('/director/contractReadyToSign', { replace: true })
             } else {
@@ -1060,7 +1063,7 @@ const SignContract = () => {
             // console.log('Ký thành công:', data);
 
             // Reset sau khi ký
-            setSelectedFile(null);  
+            setSelectedFile(null);
             setSignedFile(null);
             setIsUploading(false);
             setSignMethod(null)
@@ -1511,7 +1514,7 @@ const SignContract = () => {
                             <p className='mb-4'>
                                 <Tag color='green' icon={<CheckCircleFilled />} className='w-fit'>Sẵn sàng ký</Tag>
                             </p>
-                            {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>}
+                            {/* {error && <p style={{ color: 'red' }}>Lỗi: {error}</p>} */}
                             <div className='flex flex-col items-center gap-2'>
                                 <Checkbox
                                     disabled={isUploading}

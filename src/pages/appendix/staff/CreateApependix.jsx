@@ -689,7 +689,7 @@ const ContractAppendixPage = () => {
                         </Checkbox.Group>
 
                         {/* Hiển thị các tùy chọn con khi edit được chọn */}
-                        {selectedTypes.includes('edit') && (
+                        {/* {selectedTypes.includes('edit') && (
                             <div className="ml-4 flex flex-col gap-2 mt-4">
                                 <Checkbox
                                     onChange={(e) => handleEditOptionChange('cost', e.target.checked)}
@@ -704,7 +704,7 @@ const ContractAppendixPage = () => {
                                     Thay đổi nội dung và điều khoản
                                 </Checkbox>
                             </div>
-                        )}
+                        )} */}
 
 
                     </Form.Item>
@@ -1097,7 +1097,7 @@ const ContractAppendixPage = () => {
                     )}
 
 
-                    {selectedTypes.includes('edit') && editOptions.cost && (
+                    {/* {selectedTypes.includes('edit') && editOptions.cost && (
                         <>
                             <Form.Item
                                 label="Thời gian hiệu lực hợp đồng"
@@ -1342,9 +1342,9 @@ const ContractAppendixPage = () => {
                                 )}
                             </Form.List>
                         </>
-                    )}
+                    )} */}
 
-                    {selectedTypes.includes('edit') && editOptions.terms && (
+                    {selectedTypes.includes('edit') && (
                         <>
                             <Form.Item
                                 label=" Soạn thảo nội dung hợp đồng"

@@ -204,7 +204,8 @@ const ManageTemplate = () => {
                         placeholder=" Vui lòng nhập vào tên hợp đồng"
                         allowClear
                         onSearch={setSearchText}
-                        style={{ width: "100%", maxWidth: 700 }}
+                        // style={{ width: "100%", maxWidth: 700 }}
+                        className="min-w-[400px]"
                     />
                 </Space>
 
