@@ -97,7 +97,8 @@ const ManageContracts = () => {
         page: isStaff ? paginationStaff.current - 1 : paginationCEO.current - 1,
         size: isStaff ? paginationStaff.pageSize : paginationCEO.pageSize,
         keyword: searchTextStaff,
-        status: isCEO ? statusCEO : status,
+        status: status,
+        isCEO: isCEO
     },
         {
             refetchOnMountOrArgChange: true,

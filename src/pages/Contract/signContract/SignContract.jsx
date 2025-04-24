@@ -1053,10 +1053,16 @@ const SignContract = () => {
                             contractId: contractId
                         }
                     })
+                if (upload.error) {
+                    message.error(upload.error.data.message)
+                    navite('/director/contractReadyToSign', { replace: true })
+                } else {
+                    refetchNoti()
+                    message.success("Ký hợp đồng và" + upload.data.message)
+                    navite('/director/contractReadyToSign', { replace: true })
+                }
                 // console.log(upload)
-                refetchNoti()
-                message.success("Ký hợp đồng và" + upload.data.message)
-                navite('/director/contractReadyToSign', { replace: true })
+
             } else {
                 message.error("Có lỗi xảy ra vui lòng thử lại !")
             }

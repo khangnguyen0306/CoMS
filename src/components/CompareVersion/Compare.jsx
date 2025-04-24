@@ -21,9 +21,7 @@ const Compare = () => {
         return <div>Loading or insufficient data...</div>;
     }
 
-    const v1 = process[1];
-    const v2 = process[0];
-
+    const [v1, v2] = [...process].sort((a, b) => a.id - b.id);
 
 
     const stripHtml = (html) => html.replace(/<\/?[^>]+(>|$)/g, "");
