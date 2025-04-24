@@ -248,7 +248,7 @@ const ApprovalProcess = () => {
                     <Form form={form} layout="vertical">
                         {stepsData[current]?.content}
                         <div className="mt-5 flex justify-between">
-                            {numberStage <= 3 && (
+                            {numberStage < 4 && (
                                 <Button onClick={handleAddStage} icon={<PlusOutlined />}>
                                     Thêm đợt phê duyệt
                                 </Button>

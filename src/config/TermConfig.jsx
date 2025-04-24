@@ -329,7 +329,7 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
         <div className="mt-4 ">
 
             <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} mb-5 rounded-lg max-h-[550px] overflow-auto `}>
-                {termId === 1 && (
+                {/* {termId === 1 && ( */}
                     <div className="p-5 mb-4">
                         {Object.values(groupedCommon).map((group, index) => (
                             <div key={group.typeName} className="term-group flex flex-col gap-1 mt-3">
@@ -368,7 +368,7 @@ export const TermSection = ({ termId, title, form, loadDataCallback }) => {
                             </div>
                         )}
                     </div>
-                )}
+                {/* )} */}
 
             </div>
             <h4 className="font-bold">{title}</h4>

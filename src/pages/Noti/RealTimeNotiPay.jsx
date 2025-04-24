@@ -46,7 +46,7 @@ const RealTimeNotification = () => {
         });
 
         refetchNoti();
-        fetchNotifications()
+        fetchNotifications({ page: 0, size: 10 })
 
         const text = data.message.toLowerCase();
 
@@ -125,7 +125,7 @@ const RealTimeNotification = () => {
 
         stompClient.activate();
         refetchNoti();
-        fetchNotifications();
+        fetchNotifications({ page: 0, size: 10 })
         return () => {
             stompClient.deactivate();
         };
