@@ -32,7 +32,6 @@ const EditAppendix = () => {
     const [textValue, setTextValue] = useState("");
     const [adddClauseId, setIsAddClauseId] = useState(0);
 
-
     const { data: contractDetailData, isLoading: isLoadingContractDetail, refetch: refecthContractDetail } = useGetContractDetailQuery(contractId, { skip: !contractId });
     const { data: appendixData, isLoading: isLoadingAppendix, refetch } = useGetAppendixDetailQuery({ id: appendixId }, { skip: !appendixId });
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
@@ -154,7 +153,7 @@ const EditAppendix = () => {
                         schedule.paymentDate[4]
                     ))
                         : null,
-                        notifyPaymentDate: schedule.notifyPaymentDate ? dayjs(new Date(
+                    notifyPaymentDate: schedule.notifyPaymentDate ? dayjs(new Date(
                         schedule.notifyPaymentDate[0],
                         schedule.notifyPaymentDate[1] - 1,
                         schedule.notifyPaymentDate[2],
@@ -283,34 +282,35 @@ const EditAppendix = () => {
     };
 
     const loadDKBSData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 1 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 1, order: 'desc' }).unwrap();
     };
 
     const loadQVNVCBData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 2 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 2, order: 'desc' }).unwrap();
     };
 
     const loadBHVBTData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 3 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 3, order: 'desc' }).unwrap();
     };
 
     const loadVPBTTHData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 4 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 4, order: 'desc' }).unwrap();
     };
 
     const loadCDHDData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 5 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 5, order: 'desc' }).unwrap();
     };
 
     const loadGQTCData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 6 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 6, order: 'desc' }).unwrap();
     };
 
     const loadBMData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 7 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 7, order: 'desc' }).unwrap();
     };
+
     const loadGenaralData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 9 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 9, order: 'desc' }).unwrap();
     };
 
     const termConfigs = {
@@ -427,7 +427,6 @@ const EditAppendix = () => {
                             (sum, item) => sum + (item.amount || 0),
                             0
                         );
-                        // console.log(total)
                         handleChange(total)
                         form.setFieldsValue({ totalValue: total });
                     }
@@ -764,7 +763,6 @@ const EditAppendix = () => {
                                 <p className="font-bold text-[16px] mb-1">Điều khoản chung</p>
                                 <p>Mô tả: (Điều khoản được áp dụng cho cả 2 bên)</p>
                             </div>
-
                             <Form.Item
                                 label={<div className="flex justify-between items-center gap-4">
                                     <p>Điều khoản chung</p>

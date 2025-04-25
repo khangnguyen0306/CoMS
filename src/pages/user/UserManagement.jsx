@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Col, Row, Tabs, ConfigProvider } from "antd";
-import { EditFilled, PlusOutlined, StarFilled, StopFilled, StopOutlined } from "@ant-design/icons";
+import { EditFilled, PlusOutlined, StarFilled, StopFilled } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
 import { validationPatterns } from "../../utils/ultil";
@@ -48,7 +48,7 @@ const UserManagement = () => {
     };
 
     const filteredUsers = userData?.content ? filterUsers(userData?.content) : [];
-    console.log("Filtered users:", filteredUsers);
+    // console.log("Filtered users:", filteredUsers);
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -86,7 +86,7 @@ const UserManagement = () => {
     }
 
     const handleSubmitEditUser = async (values) => {
-        console.log('Form data:', values);
+        // console.log('Form data:', values);
         try {
             const { id, ...body } = values;
             const result = await UpdateUser({
@@ -107,17 +107,17 @@ const UserManagement = () => {
     const handleDelete = async (userId) => {
         Modal.confirm({
             centered: true,
-            title: 'Không cho tài khoản này đăng nhập vô hệ thống?',
+            title: 'Cấm tài khoản này đăng nhập vào hệ thống?',
             onOk: async () => {
                 try {
-                    const result = await BanUser({ userId: userId });
-                    console.log(result);
+                    const result = await BanUser({ userId: userId }).unwrap();
+                    // console.log(result);
                     refetch();
-                    message.success(result?.data?.message);
+                    message.success("Cấm tài khoản thành công !");
                 }
                 catch (error) {
                     console.error("Error during delete:", error);
-                    message.error('Chặn thất bại, vui lòng thử lại!');
+                    message.error(error?.data?.message);
                 }
             },
 
@@ -126,6 +126,7 @@ const UserManagement = () => {
 
         });
     };
+
     const handleActive = async (userId) => {
         Modal.confirm({
             centered: true,
@@ -309,7 +310,7 @@ const UserManagement = () => {
     // if (isError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
 
     return (
-        <div className="min-h-[50vh] p-4">
+        <div className="min-h-[100vh] p-4">
 
             <ConfigProvider
                 theme={{
