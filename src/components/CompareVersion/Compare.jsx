@@ -195,7 +195,7 @@ const Compare = () => {
             key: 'paymentDate',
             render: (paymentDate, record) => {
                 const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
-                const isDifferent = v1Schedule && !dayjs(v1Schedule.paymentDate).isSame(dayjs(paymentDate));
+                const isDifferent = v1Schedule && formatDate(v1Schedule.paymentDate) !== (formatDate(paymentDate));
                 return (
                     <span className={isDifferent ? 'bg-yellow-300 text-green-800 px-1' : ''}>
                         {formatDate(paymentDate)}
@@ -217,6 +217,61 @@ const Compare = () => {
                         : 'Chuyển khoản';
                 return (
                     <span className={isDifferent ? 'bg-yellow-300 text-green-800 px-1' : ''}>
+                        {methodText}
+                    </span>
+                );
+            },
+        },
+    ];
+    const paymentSchedulesColumnsNoDifferent = [
+        {
+            title: 'Đợt',
+            dataIndex: 'paymentOrder',
+            key: 'paymentOrder',
+            align: 'center',
+        },
+        {
+            title: 'Số tiền (VND)',
+            dataIndex: 'amount',
+            key: 'amount',
+            render: (value, record) => {
+                const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
+                const isDifferent = v1Schedule && v1Schedule.amount !== value;
+                return (
+                    <span >
+                        {new Intl.NumberFormat('vi-VN').format(value)}
+                    </span>
+                );
+            },
+        },
+        {
+            title: 'Ngày thanh toán',
+            dataIndex: 'paymentDate',
+            key: 'paymentDate',
+            render: (paymentDate, record) => {
+                const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
+                const isDifferent = v1Schedule && !dayjs(v1Schedule.paymentDate).isSame(dayjs(paymentDate));
+                return (
+                    <span >
+                        {formatDate(paymentDate)}
+                    </span>
+                );
+            },
+        },
+        {
+            title: 'Phương thức thanh toán',
+            dataIndex: 'paymentMethod',
+            key: 'paymentMethod',
+            render: (method, record) => {
+                const v1Schedule = v1.paymentSchedules.find(s => s.paymentOrder === record.paymentOrder);
+                const isDifferent = v1Schedule && v1Schedule.paymentMethod !== method;
+                const methodText = method === 'cash'
+                    ? 'Tiền mặt'
+                    : method === 'creditCard'
+                        ? 'Thẻ tín dụng'
+                        : 'Chuyển khoản';
+                return (
+                    <span >
                         {methodText}
                     </span>
                 );
@@ -348,7 +403,7 @@ const Compare = () => {
                     <p className="font-semibold mt-4 mb-3"><u>2. NỘI DUNG HỢP ĐỒNG</u></p>
                     <div
                         className="ml-1"
-                        dangerouslySetInnerHTML={{ __html: v1.contractContent || "Chưa nhập" }}
+                        dangerouslySetInnerHTML={{ __html: stripHtml(v1.contractContent) || "Chưa nhập" }}
                     />
                     {/* PaymentSchedules */}
                     <div className="mt-4">
@@ -397,7 +452,7 @@ const Compare = () => {
                         </div>
                         <Table
                             dataSource={v1.paymentSchedules}
-                            columns={paymentSchedulesColumns}
+                            columns={paymentSchedulesColumnsNoDifferent}
                             rowKey="paymentOrder"
                             pagination={false}
                             bordered

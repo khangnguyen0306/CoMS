@@ -23,7 +23,7 @@ const UserManagement = () => {
 
 
     const [form] = Form.useForm();
-    const [formAdd] = Form.useForm();
+    const [formUpdate] = Form.useForm();
 
     const { data: userData, isLoading, isError, refetch } = useGetAllUserQuery({
         search: searchText,
@@ -72,8 +72,8 @@ const UserManagement = () => {
     const showEditModal = (record) => {
         // console.log("Record:", record);
         setIsModalUpdate(true);
-        form.resetFields();
-        form.setFieldsValue({
+        // form.resetFields();
+        formUpdate.setFieldsValue({
             id: record.id,
             full_name: record.full_name,
             phone_number: record.phone_number,
@@ -97,7 +97,7 @@ const UserManagement = () => {
             message.success(result.message);
             refetch();
             setIsModalUpdate(false);
-            form.resetFields();
+            formUpdate.resetFields();
         } catch (error) {
             console.error("Lỗi cập nhật thông tin:", error);
             message.error(error?.data?.message);
@@ -458,10 +458,10 @@ const UserManagement = () => {
                                 footer={null}
                             >
                                 <Form
-                                    form={form}
+                                    form={formUpdate}
                                     layout="vertical"
                                     onFinish={(values) => {
-                                        console.log('Form data:', values);
+                                        // console.log('Form data:', values);
                                         handleSubmitEditUser(values)
                                     }}
                                 >

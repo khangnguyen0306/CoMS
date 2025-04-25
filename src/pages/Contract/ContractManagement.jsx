@@ -22,7 +22,7 @@ const ManageContracts = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState(searchParams.get('paramstatus') || []);
-    const [statusCEO, setStatusCEO] = useState(["REJECTED", "APPROVAL_PENDING", "APPROVED", "SIGNED", "ACTIVE", "COMPLETED", "EXPIRED", "CANCELLED", "ENDED"]);
+    const [statusCEO, setStatusCEO] = useState();
     const [statusArray, setStatusArray] = useState([]);
     const { Panel } = Collapse;
     const [searchTextStaff, setSearchTextStaff] = useState("");
@@ -870,7 +870,7 @@ const ManageContracts = () => {
         }
     };
 
-    const alwaysVisibleKeys = ['signedFilePath', 'action'];
+    const alwaysVisibleKeys = ['signedFilePath', 'action',];
 
     // Mặc định check hết tất cả (bao gồm cả những cột bắt buộc)
     const defaultCheckedList = columnStaff.map((col) => col.key);

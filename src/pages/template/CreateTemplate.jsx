@@ -439,11 +439,7 @@ const CreateTemplate = () => {
             message.success("Thêm loại hợp đồng thành công!");
             refetch();
         } catch (error) {
-            if (error.data == "exist") {
-                message.error("Loại hợp đồng đã tồn tại!");
-            } else {
-                message.error("Lỗi khi tạo loại hợp đồng!");
-            }
+            message.error(error.data.message);
 
         }
     };
@@ -499,7 +495,7 @@ const CreateTemplate = () => {
             }
         } catch (error) {
             // console.log(error);
-            message.error("Lỗi khi xóa loại hợp đồng!");
+            message.error(error.data.message);
         }
     };
 
@@ -743,6 +739,7 @@ const CreateTemplate = () => {
                                     <Space style={{ padding: "0 8px 4px" }}>
                                         <Input
                                             placeholder="Nhập loại hợp đồng mới"
+                                            className="min-w-[400px]"
                                             ref={inputRef}
                                             value={newTypeCreate}
                                             onChange={onNewTypeChange}
@@ -802,11 +799,11 @@ const CreateTemplate = () => {
                         />
                     </Form.Item>
                     <Form.Item
-                        label="Tên template"
+                        label="Tên mẫu hợp đồng"
                         name="templateName"
-                        rules={[{ required: true, message: "Vui lòng nhập tên template!" }]}
+                        rules={[{ required: true, message: "Vui lòng nhập tên mẫu hợp đồng!" }]}
                     >
-                        <Input placeholder="Nhập tên template" onChange={handleTemplateNameChange} />
+                        <Input placeholder="Nhập tên mẫu hợp đồng" onChange={handleTemplateNameChange} />
                     </Form.Item>
 
                 </Form>
@@ -2031,8 +2028,8 @@ const CreateTemplate = () => {
 
 
     const handleSubmit = async () => {
+        setShouldBlockNavigation(false)
         try {
-            setShouldBlockNavigation(false)
             const contractTitle = form.getFieldValue('contractTitle') || '';
             const partyInfo = form.getFieldValue('partyInfo') || '';
             const legalBasis = form.getFieldValue('legalBasis') || [];
@@ -2156,7 +2153,7 @@ const CreateTemplate = () => {
                         icon={<BsSave2Fill />}
                         iconPosition="end"
                     >
-                        Lưu Template
+                        Lưu mẫu
                     </Button>
                 )}
             </div>
@@ -2189,7 +2186,7 @@ const CreateTemplate = () => {
                     <Form.Item
                         name="legalLabel"
                         label="Tên căn cứ pháp lý"
-                        rules={[{ required: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                        rules={[{ required: true, whitespace:true,message: "Vui lòng nhập tên căn cứ!" }]}
                     >
                         <Input
                             value={newLegalBasis.name}
@@ -2198,7 +2195,7 @@ const CreateTemplate = () => {
                         />
                     </Form.Item>
                     <Form.Item
-                        rules={[{ required: true, message: "Vui lòng nhập nội dung căn cứ!" }]}
+                        rules={[{ required: true, whitespace:true,message: "Vui lòng nhập nội dung căn cứ!" }]}
                         label="Nội dung"
                         name="legalContent"
                     >
