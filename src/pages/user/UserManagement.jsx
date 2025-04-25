@@ -52,7 +52,7 @@ const UserManagement = () => {
 
     const showModal = () => {
         setIsModalVisible(true);
-        form.resetFields();
+        formAdd.resetFields();
     };
 
     const handleSubmitAddUser = async (values) => {
@@ -62,7 +62,7 @@ const UserManagement = () => {
             message.success("Tạo nhân sự thành công");
             refetch();
             setIsModalVisible(false);
-            form.resetFields();
+            formAdd.resetFields();
         } catch (error) {
             console.error("Lỗi tạo nhân sự:", error);
             message.error(error?.data?.message);
@@ -100,7 +100,7 @@ const UserManagement = () => {
             formUpdate.resetFields();
         } catch (error) {
             console.error("Lỗi cập nhật thông tin:", error);
-            message.error("Có lỗi xảy ra khi cập nhật thông tin!");
+            message.error(error?.data?.message);
         }
     };
 
@@ -345,11 +345,14 @@ const UserManagement = () => {
                             <Modal
                                 title="Thêm Nhân Sự"
                                 open={isModalVisible}
-                                onCancel={() => setIsModalVisible(false)}
+                                onCancel={() => {
+                                    setIsModalVisible(false)
+                                    formAdd.resetFields()
+                                }}
                                 footer={null}
                                 width={850}
                             >
-                                <Form form={form} layout="vertical" onFinish={handleSubmitAddUser}>
+                                <Form form={formAdd} layout="vertical" onFinish={handleSubmitAddUser}>
                                     <Row gutter={16}>
                                         <Col span={12}>
                                             <Form.Item
@@ -448,7 +451,10 @@ const UserManagement = () => {
                             <Modal
                                 title="Đổi Thông Tin Nhân Sự"
                                 open={isModalUpdate}
-                                onCancel={() => setIsModalUpdate(false)}
+                                onCancel={() => {
+                                    form.resetFields()
+                                    setIsModalUpdate(false)
+                                }}
                                 footer={null}
                             >
                                 <Form

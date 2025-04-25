@@ -67,6 +67,7 @@ const AuditrailContract = ({ auditTrails, getDetail, contractId }) => {
     return (
         <Collapse
             accordion
+
             expandIcon={({ isActive }) => (
                 <CaretRightOutlined rotate={isActive ? 90 : 0} />
             )}

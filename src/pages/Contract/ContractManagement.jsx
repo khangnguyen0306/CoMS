@@ -71,7 +71,7 @@ const ManageContracts = () => {
 
     const [uploadSign, { isLoading: LoadingSign }] = useUploadImgSignMutation();
 
-    const { data: dataSign, isLoading: LoadingImage, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
+    const { data: dataSign, isLoading: LoadingImage, isError: ErrorSign, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
         skip: !selectedContractId,
     });
 
@@ -791,7 +791,7 @@ const ManageContracts = () => {
             refetch();
             message.success(parsedRes.message);
             setFileList([]);
-            setActivePanel([]);
+            // setActivePanel([]);
             setIsUpdateStatusModalVisible(false);
 
         } catch (error) {
@@ -1092,8 +1092,12 @@ const ManageContracts = () => {
                         <h3 className="text-2xl font-semibold text-center mb-4">Các đợt thanh toán</h3>
                         <Collapse
                             bordered
+                            accordion
                             activeKey={activePanel}
-                            onChange={(key) => setActivePanel(key)}
+                            onChange={(key) => {
+                                setActivePanel(key);
+                                setPaymentId(key);
+                            }}
                             className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
                         >
                             {dataPayment?.data?.paymentSchedules?.map((schedule, index) => (
@@ -1136,13 +1140,7 @@ const ManageContracts = () => {
                                             </div>
                                         </div>
                                     }
-                                    onClick={() => {
-                                        setPaymentId(schedule.id);
-                                        // Mở panel này nếu chưa mở, hoặc đóng nếu đã mở
-                                        setActivePanel((prev) =>
-                                            prev.includes(schedule.id) ? [] : [schedule.id]
-                                        );
-                                    }}                                >
+                                >
                                     {schedule.status === "PAID" ? (
                                         // Nếu đã thanh toán, chỉ hiển thị danh sách ảnh từ API
                                         <div>
@@ -1249,16 +1247,115 @@ const ManageContracts = () => {
                 onCancel={handleCloseUpdateSignModal}
                 footer={null}
                 width={700}
+                destroyOnClose
             >
-                {isLoadingPayment ? (
+                {LoadingImage ? (
                     <Spin />
-                ) : isErrorPayment ? (
-                    <div className="text-center text-red-500">Có lỗi xảy ra khi tải dữ liệu</div>
+                ) : ErrorSign ? (
+
+                    <>
+                        <Upload.Dragger
+                            multiple
+                            disabled={isManager || isCEO || isApprover}
+                            name="files"
+                            accept="image/png,image/jpeg,application/pdf"
+                            beforeUpload={(file) => {
+                                const isImage = file.type === "image/png" || file.type === "image/jpeg";
+                                const isPDF = file.type === "application/pdf";
+
+                                if (!isImage && !isPDF) {
+                                    message.error(`${file.name} không phải là hình PNG/JPG hoặc file PDF!`);
+                                    return Upload.LIST_IGNORE;
+                                }
+
+                                setFileList((prev) => [...prev, file]);
+                                return false; // Không upload tự động
+                            }}
+                            showUploadList={false}
+                        >
+                            <p className="ant-upload-drag-icon">
+                                <InboxOutlined />
+                            </p>
+                            <div className="ant-upload-text">Click hoặc kéo file vào đây để tải lên</div>
+                            <p className="ant-upload-hint">Hỗ trợ tải lên nhiều file hình hoặc PDF.</p>
+                        </Upload.Dragger>
+
+                        {fileList.length > 0 && (
+                            <div className="file-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                {fileList.map((file, index) => {
+                                    const isImage = file.type.startsWith("image/");
+                                    return (
+                                        <div
+                                            key={index}
+                                            onMouseEnter={() => setHoveredIndex(index)}
+                                            onMouseLeave={() => setHoveredIndex(null)}
+                                            style={{ position: "relative" }}
+                                        >
+                                            {isImage ? (
+                                                <Image
+                                                    src={URL.createObjectURL(file)}
+                                                    alt="Preview"
+                                                    style={{
+                                                        width: "100px",
+                                                        height: "100px",
+                                                        objectFit: "cover",
+                                                        borderRadius: "8px"
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div
+                                                    style={{
+                                                        width: "100px",
+                                                        height: "100px",
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        alignItems: "center",
+                                                        border: "1px solid #ddd",
+                                                        borderRadius: "8px",
+                                                        backgroundColor: "#f5f5f5"
+                                                    }}
+                                                >
+                                                    <FilePdfOutlined style={{ fontSize: "30px", color: "#e74c3c" }} />
+                                                </div>
+                                            )}
+                                            {hoveredIndex === index && (
+                                                <Button
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={() => handleDeleteImg(index)}
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: "5px",
+                                                        right: "5px",
+                                                        backgroundColor: "red",
+                                                        color: "white",
+                                                        borderRadius: "50%",
+                                                        padding: "5px",
+                                                        border: "none"
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <Button
+                            type="primary"
+                            icon={LoadingSign ? <LoadingOutlined /> : <UploadOutlined />}
+                            onClick={() => handleUploadSign(selectedContractId)}
+                            disabled={fileList.length === 0 || LoadingSign}
+                            style={{ marginTop: "10px" }}
+                        >
+                            {LoadingSign ? "Đang tải lên..." : "Tải lên"}
+                        </Button>
+
+
+                    </>
                 ) : (
                     <div className="p-4">
-                        {/* Đã có hóa đơn */}
 
-                        {dataSign?.data?.length > 0 ? (
+                        {dataSign?.data?.length > 0 && dataSign?.data ? (
                             <>
                                 <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
                                 <div
@@ -1411,8 +1508,6 @@ const ManageContracts = () => {
                                 >
                                     {LoadingSign ? "Đang tải lên..." : "Tải lên"}
                                 </Button>
-
-
                             </>
                         )}
 

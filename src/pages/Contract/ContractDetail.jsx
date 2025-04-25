@@ -773,10 +773,11 @@ const ContractDetail = () => {
                             </div>
                         </Tabs.TabPane>
                     )}
-                    {["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(contractData?.data?.status) && (
+                    {["SIGNED", "ACTIVE"].includes(contractData?.data?.status) && (
                         <Tabs.TabPane icon={<DollarOutlined />} tab="Các đợt thanh toán" key="4">
                             <Collapse
                                 bordered
+                                accordion
                                 activeKey={activePanel}
                                 className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
                             >
