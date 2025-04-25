@@ -18,6 +18,7 @@ import { PreviewSection } from "../../components/ui/PreviewSection";
 import { TermSection } from "../../config/TermConfig";
 import PreviewContract from "../../components/ui/PreviewContract";
 import { useDispatch, useSelector } from "react-redux";
+import { useWarnOnLeave } from "../../hooks/UseWarnOnLeave";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -42,6 +43,7 @@ const EditTemplate = () => {
     const [templateDataSelected, setTemplateDataSelected] = useState(null);
     const [isAddLegalModalOpen, setIsAddLegalModalOpen] = useState(false);
     const [newLegalBasis, setNewLegalBasis] = useState({ name: '', content: '' });
+    const [shouldBlockNavigation, setShouldBlockNavigation] = useState(true);
     const [content, setContent] = useState('')
     const [isVATChecked, setIsVATChecked] = useState(false);
     const [isDateLateChecked, setIsDateLateChecked] = useState(false);
@@ -133,6 +135,7 @@ const EditTemplate = () => {
     };
 
     const onFinish = async () => {
+        setShouldBlockNavigation(false)
         const data = form.getFieldsValue(true);
         // console.log(data)
         // Xử lý additionalConfig: chuyển các key số thành "additionalPropX"
@@ -181,9 +184,10 @@ const EditTemplate = () => {
             navigate('/managetemplate');
             message.success("Cập nhật mẫu hợp đồng thành công!");
         } else {
+            setShouldBlockNavigation(false)
             message.error(response.message);
         }
-        await refetchDataTable()
+        // await refetchDataTable()
     };
 
 
@@ -687,7 +691,7 @@ const EditTemplate = () => {
         setNewGeneralTerm({ name: "", typeId: null, content: "" });
     };
 
-
+    useWarnOnLeave(shouldBlockNavigation);
     // Các bước của form
     const steps = [
         {
@@ -869,6 +873,7 @@ const EditTemplate = () => {
                                 className="w-full"
                                 label={
                                     <div className="flex justify-between items-center gap-4">
+                                        
                                         <p>Căn phứ pháp lý</p>
                                         <Popover
                                             content={() => getTermsContent('legalBasis')}

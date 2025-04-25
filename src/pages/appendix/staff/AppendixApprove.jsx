@@ -267,19 +267,26 @@ const AppendixApprove = () => {
                                                     </span>
                                                 ),
                                             }] : []),
-                                    {
-                                        key: "duplicate",
-                                        icon: <IoDuplicate />,
-                                        label: "Nhân bản phụ lục",
-                                        onClick: () => handleOpenDuplicate(record),
-                                    },
-                                    {
-                                        key: "delete",
-                                        icon: <DeleteOutlined />,
-                                        label: "Xóa",
-                                        danger: true,
-                                        onClick: () => handleDelete(record),
-                                    },
+                                    ...(user.id == record.createdBy.userId
+                                        ? [
+                                            {
+                                                key: "duplicate",
+                                                icon: <IoDuplicate />,
+                                                label: "Nhân bản phụ lục",
+                                                onClick: () => handleOpenDuplicate(record),
+                                            }]
+                                        : []),
+                                    ...((record.status == "CREATED" || record.status == "UPDATED" || record.status == "REJECTED") && user.id == record.createdBy.userId
+                                        ? [
+                                            {
+                                                key: "delete",
+                                                icon: <DeleteOutlined />,
+                                                label: "Xóa",
+                                                danger: true,
+                                                onClick: () => handleDelete(record),
+                                            }
+                                        ]
+                                        : []),
                                 ],
                             }}
                         >
