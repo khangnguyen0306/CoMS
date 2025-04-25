@@ -50,7 +50,7 @@ const ModalAdd = ({ isModalAddOpen, closeModalAdd, clauseId, callBackCallAPI }) 
                     <Form.Item
                         name="termName"
                         label="Tên điều khoản"
-                        rules={[{ required: true, message: "Vui lòng nhập tên điều khoản!" }]}
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }]}
                     >
                         <Input
                             // onChange={(e) => setNewGeneralTerm({ ...newGeneralTerm, name: e.target.value })}
@@ -60,7 +60,7 @@ const ModalAdd = ({ isModalAddOpen, closeModalAdd, clauseId, callBackCallAPI }) 
                     <Form.Item
                         name="termContent"
                         label="Nội dung"
-                        rules={[{ required: true, message: "Vui lòng nhập nội dung điều khoản!" }]}
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung điều khoản!" }]}
                     >
                         <TextArea
                             // value={newGeneralTerm.content}
