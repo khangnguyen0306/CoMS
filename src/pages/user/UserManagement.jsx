@@ -100,7 +100,7 @@ const UserManagement = () => {
             formUpdate.resetFields();
         } catch (error) {
             console.error("Lỗi cập nhật thông tin:", error);
-            message.error("Có lỗi xảy ra khi cập nhật thông tin!");
+            message.error(error?.data?.message);
         }
     };
 
@@ -345,7 +345,10 @@ const UserManagement = () => {
                             <Modal
                                 title="Thêm Nhân Sự"
                                 open={isModalVisible}
-                                onCancel={() => setIsModalVisible(false)}
+                                onCancel={() => {
+                                    setIsModalVisible(false)
+                                    form.resetFields()
+                                }}
                                 footer={null}
                                 width={850}
                             >
@@ -448,7 +451,10 @@ const UserManagement = () => {
                             <Modal
                                 title="Đổi Thông Tin Nhân Sự"
                                 open={isModalUpdate}
-                                onCancel={() => setIsModalUpdate(false)}
+                                onCancel={() => {
+                                    form.resetFields()
+                                    setIsModalUpdate(false)
+                                }}
                                 footer={null}
                             >
                                 <Form
