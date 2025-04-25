@@ -444,7 +444,7 @@ const ManageClause = () => {
 
                             <div className='flex gap-2 w-[80%]'>
                                 <Search
-                                    placeholder="Tìm kiếm tên điều khoản"
+                                    placeholder="Tìm kiếm tên điều khoản hoặc nội dung"
                                     onSearch={setSearchTermClause}
                                     enterButton="tìm kiếm"
                                     allowClear
@@ -738,7 +738,7 @@ const ManageClause = () => {
                         </div>
                         <div className='flex gap-4 items-center'>
                             <Search
-                                placeholder="Tìm kiếm tên căn cứ"
+                                placeholder="Tìm kiếm tên căn cứ hoặc nội dung căn cứ"
                                 onSearch={setSearchTermLegal}
                                 enterButton="Tìm kiếm"
                                 allowClear
@@ -1080,7 +1080,7 @@ const ManageClause = () => {
 
                             <div className='flex gap-2 w-[80%]'>
                                 <Search
-                                    placeholder="Tìm kiếm tên điều khoản"
+                                    placeholder="Tìm kiếm tên điều khoản hoặc nội dung"
                                     onSearch={setSearchTermUserClause}
                                     enterButton="tìm kiếm"
                                     allowClear

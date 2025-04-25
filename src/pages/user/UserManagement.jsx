@@ -52,7 +52,7 @@ const UserManagement = () => {
 
     const showModal = () => {
         setIsModalVisible(true);
-        formAdd.resetFields();
+        form.resetFields();
     };
 
     const handleSubmitAddUser = async (values) => {
@@ -62,7 +62,7 @@ const UserManagement = () => {
             message.success("Tạo nhân sự thành công");
             refetch();
             setIsModalVisible(false);
-            formAdd.resetFields();
+            form.resetFields();
         } catch (error) {
             console.error("Lỗi tạo nhân sự:", error);
             message.error(error?.data?.message);
@@ -347,12 +347,12 @@ const UserManagement = () => {
                                 open={isModalVisible}
                                 onCancel={() => {
                                     setIsModalVisible(false)
-                                    formAdd.resetFields()
+                                    form.resetFields()
                                 }}
                                 footer={null}
                                 width={850}
                             >
-                                <Form form={formAdd} layout="vertical" onFinish={handleSubmitAddUser}>
+                                <Form form={form} layout="vertical" onFinish={handleSubmitAddUser}>
                                     <Row gutter={16}>
                                         <Col span={12}>
                                             <Form.Item
