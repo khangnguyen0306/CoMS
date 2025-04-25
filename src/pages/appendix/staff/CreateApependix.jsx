@@ -99,7 +99,7 @@ const ContractAppendixPage = () => {
 
 
     const loadGenaralData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 9 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 9, order: 'desc' }).unwrap();
     };
 
     const generateAppendixTitle = () => {
@@ -283,35 +283,35 @@ const ContractAppendixPage = () => {
     };
 
     const loadDKBSData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 1 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 1, order: 'desc' }).unwrap();
     };
 
     const loadQVNVCBData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 2 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 2, order: 'desc' }).unwrap();
     };
 
     const loadBHVBTData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 3 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 3, order: 'desc' }).unwrap();
     };
 
     const loadVPBTTHData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 4 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 4, order: 'desc' }).unwrap();
     };
 
     const loadDKKata = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 10 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 10, order: 'desc' }).unwrap();
     };
 
     const loadCDHDData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 5 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 5, order: 'desc' }).unwrap();
     };
 
     const loadGQTCData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 6 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 6, order: 'desc' }).unwrap();
     };
 
     const loadBMData = async ({ page, size, keyword }) => {
-        return getGeneralTerms({ page, size, keyword, typeTermIds: 7 }).unwrap();
+        return getGeneralTerms({ page, size, keyword, typeTermIds: 7, order: 'desc' }).unwrap();
     };
 
     const handleOpenModalAddClause = (clauseId) => {
@@ -599,6 +599,7 @@ const ContractAppendixPage = () => {
                 <h1 className="text-3xl font-bold mb-6 text-center">
                     TẠO PHỤ LỤC HỢP ĐỒNG
                 </h1>
+
                 {errorMessage && (
                     <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
                         {errorMessage}

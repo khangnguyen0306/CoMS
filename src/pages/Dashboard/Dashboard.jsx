@@ -1,11 +1,13 @@
 import React, { useRef, useState } from "react";
-import { Row, Col, Card, Statistic, Table, Button, Input, Space, Spin } from "antd";
-import { AreaChartOutlined, SearchOutlined } from '@ant-design/icons';
+import { Row, Col, Button, Input, Space, Spin } from "antd";
+import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, Tooltip, Cell } from "recharts";
-import { GlowingEffectDemoSecond, GridItem, GridItemCustom } from "../../components/ui/ComponentEffect";
+import { GridItem, GridItemCustom } from "../../components/ui/ComponentEffect";
 import { useSelector } from "react-redux";
 import { useGetDashboardataQuery } from "../../services/BsAPI";
+import { useGetAllContractQuery } from "../../services/ContractAPI";
+import ContractList from "./ContractList";
 
 const Home = () => {
     const [searchText, setSearchText] = useState('');
@@ -14,6 +16,19 @@ const Home = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const currentYear = new Date().getFullYear();
     const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
+
+    const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
+        page: 0,
+        size: 10,
+        isCEO: true
+    },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    );
+
+    console.log(contracts)
 
 
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -314,7 +329,7 @@ const Home = () => {
         name: statusTitles[item.name] || item.name // Chuyển đổi tên trạng thái
     }));
 
-    if (loadingDashboard) {
+    if (loadingDashboard || isLoading) {
         return (
             <div className="flex justify-center items-center h-screen w-screen">
                 <Spin size="large" />
@@ -469,14 +484,18 @@ const Home = () => {
                             </div>
                         </Col>
                     } />
-
-
             </Row>
 
+            <p className='font-bold text-[25px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent mt-10' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
+            >CÁC HỢP ĐỒNG GẦN ĐÂY
+            </p>
+            <div className="flex justify-center ">
+                <ContractList contracts={contracts?.data.content} />
+            </div>
 
-
+            
             {/* Bảng dữ liệu */}
-            <Table
+            {/* <Table
                 columns={columns}
                 dataSource={tableData}
                 bordered
@@ -514,7 +533,7 @@ const Home = () => {
                         )
                     }
                 }}
-            />
+            /> */}
 
         </div >
 

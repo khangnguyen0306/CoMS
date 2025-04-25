@@ -170,7 +170,6 @@ const ManageContracts = () => {
         setSelectedContractForDuplicate(null);
     };
 
-
     const handleDelete = (record) => {
         if (record?.status === "ACTIVE" || record?.status === "SIGNED") {
             message.warning("Không thể xóa hợp đồng đang hiệu lực hoặc đã thanh toán.");
@@ -213,6 +212,7 @@ const ManageContracts = () => {
         'DELETED': <Tag color="red">Đã xóa</Tag>,
         'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning /><p>Sắp hết hạn</p></p></Tag>,
     }
+
     const displayStatus = {
         'CREATED': 'ĐÃ TẠO',
         'FIXED': 'ĐÃ CHỈNH SỬA',
@@ -234,7 +234,6 @@ const ManageContracts = () => {
     const handleExport = (id) => {
         setSelectedContractIdExport(id);
     };
-
 
     const columnStaff = [
         {
@@ -1073,9 +1072,8 @@ const ManageContracts = () => {
                     </ConfigProvider>
                 ) : null}
 
-
-
             </div>
+
             <Modal
                 title="Cập nhật trạng thái thanh toán"
                 open={isUpdateStatusModalVisible}
