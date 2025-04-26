@@ -48,6 +48,7 @@ const signContract = Loadable({ loader: () => import("../pages/Contract/signCont
 const ProfileDetaiUser = Loadable({ loader: () => import("../pages/Profile/ProfileDetail") });
 const ErrorPage = Loadable({ loader: () => import("../routers/ErrorPage") });
 const EditAppendix = Loadable({ loader: () => import("../pages/appendix/staff/EditAppendix") });
+const ContractNearlyExpired = Loadable({ loader: () => import("../pages/Contract/ContractNearlyExpired") });
 
 
 export const router = createBrowserRouter([
@@ -398,6 +399,10 @@ export const router = createBrowserRouter([
                     {
                         path: "contractReadyToSign",
                         element: contractReadyToSign,
+                    },
+                    {
+                        path: "nearlyExpired",
+                        element: ContractNearlyExpired,
                     },
                     {
                         path: "signContract/:contractId",

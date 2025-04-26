@@ -72,7 +72,11 @@ const PartnerDetail = () => {
     }, [partyId])
 
 
-    if (isFetching) return <Skeleton active />;
+    if (isFetching)   return (
+        <div className='flex justify-center items-center min-h-[100vh]'>
+            <Skeleton active />;
+        </div>
+    );
     if (fetchError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
     if (!partnerData) return <Card><Empty description="Không có dữ liệu để hiển thị" /></Card>;
 

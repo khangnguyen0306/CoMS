@@ -1230,8 +1230,6 @@ const ManageContracts = () => {
                                 </Panel>
                             ))}
                         </Collapse>
-
-
                         <div className="text-center mt-8">
                             <Button onClick={handleCloseUpdateStatusModal}>Đóng</Button>
                         </div>

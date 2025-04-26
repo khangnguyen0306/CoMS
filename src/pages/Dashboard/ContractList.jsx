@@ -9,6 +9,8 @@ const ContractList = ({ contracts }) => {
   const [showAll, setShowAll] = useState(false);
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
   const navigate = useNavigate()
+
+  
   // Mappings trạng thái
   const displayStatus = {
     CREATED: 'ĐÃ TẠO',
@@ -58,11 +60,11 @@ const ContractList = ({ contracts }) => {
   };
 
   // Xử lý hiển thị số lượng contracts
-  const displayCount = showAll ? contracts.length : 5;
+  const displayCount = showAll ? contracts.length : 4;
   const visibleContracts = contracts.slice(0, displayCount);
 
   // Nút xem thêm/thu gọn
-  const loadMore = contracts.length > 5 && (
+  const loadMore = contracts.length > 4 && (
     <div style={{ textAlign: 'center', marginTop: 16 }}>
       <Button type="link" onClick={() => setShowAll(!showAll)}>
         {showAll ? 'Thu gọn' : 'Xem thêm'}
@@ -78,7 +80,7 @@ const ContractList = ({ contracts }) => {
       renderItem={(contract) => (
         <List.Item>
           <Card
-            className="shadow-md hover:shadow-lg transition-shadow duration-300"
+            className="shadow-md hover:shadow-lg cursor-pointer hover:scale-[1.02] transition-transform duration-200"
             onClick={() => navigate(`/contractDetail/${contract.id}`)}
           >
             <Card.Meta
@@ -109,10 +111,10 @@ const ContractList = ({ contracts }) => {
                 <Text strong>Loại hợp đồng:</Text>
                 <Text>{contract.contractType.name}</Text>
               </div>
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <Text strong>Đối tác:</Text>
                 <Text>{contract.partnerB.partnerName}</Text>
-              </div>
+              </div> */}
               <div className="flex gap-2">
                 <Text strong>Ngày ký:</Text>
                 <Text>{formatDate(contract.signingDate)}</Text>

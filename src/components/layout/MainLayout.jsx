@@ -35,6 +35,8 @@ import { IoIosCloseCircle } from "react-icons/io";
 import { FaSwatchbook } from "react-icons/fa6";
 import { PiStampFill } from "react-icons/pi";
 import { AiFillSignature } from "react-icons/ai";
+import { IoMdWarning } from "react-icons/io";
+
 const MainLayout = () => {
   const dispatch = useDispatch();
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
@@ -83,7 +85,8 @@ const MainLayout = () => {
     'directorAppendixApprove': '/director/appendix?paramstatus=CREATED',
     'directorAppendixSign': '/appendix?paramstatus=APPROVED',
     'approveManager': '/contract?paramstatus=APPROVED',
-    'sendAppendix': '/appendix?paramstatus=CREATED'
+    'sendAppendix': '/appendix?paramstatus=CREATED',
+    'nearlyExpired': '/director/nearlyExpired',
   }
 
   const handleLogout = useCallback(() => {
@@ -309,6 +312,7 @@ const MainLayout = () => {
         { icon: FaHandshakeSimple, label: 'Hợp đồng đối tác', key: "contractPartner" },
         { icon: FaClock, label: 'Hợp đồng chờ ký', key: "contractsNeedSign", color: "#faad14", badgeCount: "contractsSignPendingForDirector" },
         { icon: CheckCircleFilled, label: 'Hợp đồng đã ký', key: "contractsSigned", color: "#52c41a" },
+        { icon: IoMdWarning, label: 'Hợp đồng sắp hết hạn', key: "nearlyExpired", color: "#ffff00" },
         { icon: FcExpired, label: 'Hợp đồng đã hết hạn', key: "contractsExpired", color: "#f5222d" },
         { icon: IoIosCloseCircle, label: 'Hợp đồng đã từ chối ', key: "contractsRejected", color: "#f5222d" },
       ]

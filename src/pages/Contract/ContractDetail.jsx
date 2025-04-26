@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table, Collapse, Tooltip } from 'antd';
+import { Button, Col, Row, Spin, Drawer, Card, Tabs, Tag, Form, Input, Space, message, Timeline, Divider, Image, Typography, Checkbox, List, Table, Collapse, Tooltip, Skeleton } from 'antd';
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { numberToVietnamese } from '../../utils/ConvertMoney';
@@ -476,10 +476,10 @@ const ContractDetail = () => {
 
     if (isLoadingBsData || loadingDataContract | loadingDataContractAppendix) {
         return (
-            <div className="flex justify-center items-center">
-                <Spin />
+            <div className='flex justify-center items-center min-h-[100vh]'>
+                <Skeleton active />;
             </div>
-        );
+        )
     }
 
 

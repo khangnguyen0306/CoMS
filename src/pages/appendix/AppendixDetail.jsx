@@ -1127,7 +1127,7 @@ const AppendixDetail = () => {
                         className='p-5'
                         items={[
                             {
-                                title: <Link to={user.roles[0] == "ROLE_STAFF" ? "/appendix" : "/manager/appendixFull"} >Quản lý phụ lục</Link>,
+                                title: <Link to={user.roles[0] == "ROLE_STAFF" ? "/appendix" : user.roles[0] == "ROLE_MANAGER" ? "/manager/appendixFull" : "/director/appendixFull"} >Quản lý phụ lục</Link>,
                             },
                             {
                                 title: <p className='font-bold'>{appendixData?.data.title}</p>,
