@@ -410,6 +410,8 @@ const ManageClause = () => {
             }).unwrap();
             message.success("Tải điều khoản từ file lên thành công !");
             refetchClause()
+            // getClauseByUserData({ page: 0, size: 10 })
+            // getLegalByUserData({ page: 0, size: 10,typeTermIds: 8 })
             formImport.resetFields()
         } catch (error) {
             console.error("Error importing file:", error);
@@ -738,7 +740,7 @@ const ManageClause = () => {
                                         className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
                                         actions={[
                                             <div className="flex flex-col items-center gap-2 mr-3">
-                                                <div className="flex gap-3 mb-3">
+                                                {/* <div className="flex gap-3 mb-3">
                                                     <Button
                                                         type="primary"
                                                         onClick={(e) => {
@@ -762,7 +764,7 @@ const ManageClause = () => {
                                                     >
                                                         <DeleteFilled />
                                                     </Button>
-                                                </div>
+                                                </div> */}
                                                 <div className="text-center">
                                                     <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
                                                 </div>
