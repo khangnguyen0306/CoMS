@@ -445,7 +445,7 @@ const ManagePartner = () => {
                     current: currentPage,
                     pageSize: pageSize,
                     total: partnerData?.data?.totalElements || 0,
-                    showTotal: (total) => `Tổng ${total - 1} bản ghi`,
+                    showTotal: (total) => `Tổng ${total} bản ghi`,
                 }}
                 bordered
                 components={{

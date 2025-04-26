@@ -28,7 +28,8 @@ import {
     PlusCircleFilled,
     InboxOutlined,
     DeleteOutlined,
-    PlusOutlined
+    PlusOutlined,
+    FilePdfOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
@@ -44,7 +45,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useCheckExistPartnerAMutation, useCreatePartnerMutation, useGetPartnerListQuery } from "../../services/PartnerAPI";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
-
+import { ConsoleLogger } from "@microsoft/signalr/dist/esm/Utils";
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 // Lấy API key từ biến môi trường
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -202,11 +205,11 @@ const ContractPartner = () => {
     const user = useSelector(selectCurrentUser);
 
     const isStaff = user?.roles?.includes("ROLE_STAFF");
-
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
+    const isManager = user?.roles?.includes("ROLE_MANAGER");
     const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
         skip: !paymentId,
     });
-
 
 
     const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
@@ -350,9 +353,17 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     // Hàm submit tạo hợp đồng
     const handleSubmit = async () => {
+        const formData = new FormData();
+        fileList.forEach((file) => {
+            formData.append("file", file);
+        });
+
+        const url = await uploadFilePDF({ formData }).unwrap();
+        console.log("url nè", url.data)
         try {
             let values = form.getFieldsValue();
-            values.fileUrl = url;
+            console.log(values.effectiveDate)
+            values.fileUrl = url.data;
             values.partnerName = partnerName;
             values.effectiveDate = values.effectiveDate
                 ? [
@@ -404,7 +415,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                 }));
             }
             console.log("Transformed form values:", values);
-            await createContractPartner(values).unwrap();
+
+
+            const res = await createContractPartner(values).unwrap();
+            console.log("Create contract response:", res);
             message.success("Hợp đồng đã được tạo thành công!");
 
 
@@ -664,6 +678,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             };
             console.log(newPartnerData);
             const result = await CreatePartner(newPartnerData).unwrap();
+            console.log("Create partner result:", result);
             if (result.status === "CREATED") {
                 message.success('Thêm mới thành công!');
                 setIsModalPartner(false);
@@ -745,27 +760,63 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             title: "Tải file",
             dataIndex: "fileUrl",
             key: "fileUrl",
-            render: (text, record) => (
-                <div className="flex flex-col items-center gap-3">
-                    <Button
-                        type="primary"
-                        className="px-2"
-                        icon={<DownloadOutlined style={{ fontSize: "20px" }} />}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const link = document.createElement("a");
-                            link.href = record.fileUrl;
-                            link.download = record.fileUrl.split("/").pop();
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }}
-                    >
-                        Tải file
-                    </Button>
-                </div>
-            )
+            render: (_, record) => {
+                let urls = [];
+                try {
+                    urls = JSON.parse(record.fileUrl);
+                } catch {
+                    urls = record.fileUrl
+                        .replace(/^\[|\]$/g, '')
+                        .split(/\s*,\s*/)
+                        .filter(u => u);
+                }
+
+
+                const downloadAllAsZip = async () => {
+                    const zip = new JSZip();
+                    // Fetch tất cả file về dưới dạng Blob và thêm vào ZIP
+                    await Promise.all(
+                        urls.map(async (url) => {
+                            const res = await fetch(url);
+                            const blob = await res.blob();
+
+                            const match = url.match(/fl_attachment:([^/]+)/);
+                            const attachmentKey = match ? match[1] : null;
+
+                            const ext = url.split('.').pop();
+
+                            const filename = attachmentKey
+                                ? `${attachmentKey}.${ext}`
+                                : url.split('/').pop();
+
+                            zip.file(filename, blob);
+                        })
+                    );
+
+                    // Tạo file ZIP và save
+                    const content = await zip.generateAsync({ type: "blob" });
+                    saveAs(content, "files.zip");
+                };
+
+                return (
+                    <div className="flex flex-col items-center gap-2">
+                        {/* Nút tải tất cả */}
+                        {urls.length > 1 && (
+                            <Button
+                                type="dashed"
+                                icon={<DownloadOutlined />}
+                                onClick={downloadAllAsZip}
+                            >
+                                Tải tất cả ({urls.length})
+                            </Button>
+                        )}
+
+
+                    </div>
+                );
+            }
         },
+
         {
             title: "Tên hợp đồng",
             dataIndex: "title",
@@ -811,13 +862,13 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             },
             defaultSortOrder: "ascend"
         },
-        {
-            title: "Giá trị",
-            dataIndex: "totalValue",
-            key: "totalValue",
-            render: (value) => value?.toLocaleString("vi-VN") + " VND",
-            sorter: (a, b) => a.totalValue - b.totalValue
-        },
+        // {
+        //     title: "Giá trị",
+        //     dataIndex: "totalValue",
+        //     key: "totalValue",
+        //     render: (value) => value?.toLocaleString("vi-VN") + " VND",
+        //     sorter: (a, b) => a.totalValue - b.totalValue
+        // },
         {
             title: "Hành động",
             key: "action",
@@ -883,6 +934,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     const handleDeleteImg = (index) => {
         setFileList((prev) => prev.filter((_, i) => i !== index));
     };
+
 
     return (
         <div className="flex flex-col md:flex-row min-h-[100vh]">
@@ -1105,7 +1157,121 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                 >
                     <Form form={formUpload} layout="vertical">
                         <Form.Item>
+                            <Upload.Dragger
+                                multiple
+                                disabled={isManager || isCEO}
+                                name="files"
+                                accept="image/png,image/jpeg,application/pdf"
+                                beforeUpload={(file) => {
+                                    const isImage = file.type === "image/png" || file.type === "image/jpeg";
+                                    const isPDF = file.type === "application/pdf";
+
+                                    if (!isImage && !isPDF) {
+                                        message.error(`${file.name} không phải là hình PNG/JPG hoặc file PDF!`);
+                                        return Upload.LIST_IGNORE;
+                                    }
+                                    setFileList((prev) => [...prev, file]);
+                                    return false;
+                                }}
+                                showUploadList={false}
+                            >
+                                <p className="ant-upload-drag-icon">
+                                    <InboxOutlined />
+                                </p>
+                                <div className="ant-upload-text">Click hoặc kéo file vào đây để tải lên</div>
+                                <p className="ant-upload-hint">Hỗ trợ tải lên nhiều file hình hoặc PDF.</p>
+                            </Upload.Dragger>
+
+                            {fileList.length > 0 && (
+                                <div className="file-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                    {fileList.map((file, index) => {
+                                        const isImage = file.type.startsWith("image/");
+                                        return (
+                                            <div
+                                                key={index}
+                                                onMouseEnter={() => setHoveredIndex(index)}
+                                                onMouseLeave={() => setHoveredIndex(null)}
+                                                style={{ position: "relative" }}
+                                            >
+                                                {isImage ? (
+                                                    <Image
+                                                        src={URL.createObjectURL(file)}
+                                                        alt="Preview"
+                                                        style={{
+                                                            width: "100px",
+                                                            height: "100px",
+                                                            objectFit: "cover",
+                                                            borderRadius: "8px"
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        style={{
+                                                            width: "100px",
+                                                            height: "100px",
+                                                            display: "flex",
+                                                            justifyContent: "center",
+                                                            alignItems: "center",
+                                                            border: "1px solid #ddd",
+                                                            borderRadius: "8px",
+                                                            backgroundColor: "#f5f5f5"
+                                                        }}
+                                                    >
+                                                        <FilePdfOutlined style={{ fontSize: "30px", color: "#e74c3c" }} />
+                                                    </div>
+                                                )}
+                                                {hoveredIndex === index && (
+                                                    <Button
+                                                        icon={<DeleteOutlined />}
+                                                        onClick={() => handleDeleteImg(index)}
+                                                        style={{
+                                                            position: "absolute",
+                                                            top: "5px",
+                                                            right: "5px",
+                                                            backgroundColor: "red",
+                                                            color: "white",
+                                                            borderRadius: "50%",
+                                                            padding: "5px",
+                                                            border: "none"
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                             <Upload
+                                accept="application/pdf"
+                                maxCount={1}
+                                showUploadList={false}
+                                beforeUpload={async (file) => {
+                                    setLoading(true);
+                                    try {
+                                        const extractedData = await callAIForExtraction(file);
+                                        console.log("Extracted data:", extractedData);
+                                        setExtractedData(extractedData);
+                                        setPartnerName(extractedData?.partner.partnerName);
+                                        setTaxCode(extractedData?.partner?.taxCode || "");
+                                        setNewCustomerData(extractedData?.partner || {});
+                                        fillFormWithExtractedData(extractedData);
+                                    } catch (error) {
+                                        console.error("Lỗi khi xử lý file:", error);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                    return false;
+                                }}
+                            >
+                                <Button
+                                    disabled={Loading}
+                                    icon={Loading ? <LoadingOutlined /> : <UploadOutlined />}
+                                    className="mt-10"
+                                >
+                                    {Loading ? "AI đang xử lý..." : "Dùng AI đọc thông tin"}
+                                </Button>
+                            </Upload>
+                            {/* <Upload
                                 beforeUpload={async (file) => {
                                     setLoading(true);
                                     try {
@@ -1138,7 +1304,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 <Button icon={Loading ? <LoadingOutlined /> : <UploadOutlined />}>
                                     {Loading ? "AI đang xử lý..." : "Chọn file PDF"}
                                 </Button>
-                            </Upload>
+                            </Upload> */}
                         </Form.Item>
                     </Form>
 
@@ -1153,51 +1319,143 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 <Form.Item
                                     label="Tên đối tác"
                                     name={["partner", "partnerName"]}
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên đối tác!" }]}
+                                    placeholder="Nhập tên đối tác"
+                                    rules={[
+                                        { required: true, whitespace: true, message: "Vui lòng nhập tên đối tác!" },
+                                        // {
+                                        //     pattern: /^[A-Za-zÀ-ỹ\s]+$/,
+                                        //     message: "Tên chỉ được chứa chữ và khoảng trắng!",
+                                        // },
+                                    ]}
                                 >
                                     <Input />
                                 </Form.Item>
                                 <Form.Item
                                     label="Mã hợp đồng"
                                     name="contractNumber"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mã hợp đồng!" }]}
+                                    placeholder="Nhập mã hợp đồng"
+                                    rules={[
+                                        { required: true, whitespace: true, message: "Vui lòng nhập mã hợp đồng!" },
+                                        // {
+                                        //     pattern: /^[A-Z0-9\-]{3,}$/,
+                                        //     message:
+                                        //         "Mã hợp đồng tối thiểu 3 ký tự, chỉ gồm chữ in hoa, số và '-'!",
+                                        // },
+                                    ]}
+
                                 >
                                     <Input />
                                 </Form.Item>
-                                <Form.Item
-                                    label="Tổng giá trị"
-                                    name="totalValue"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tổng giá trị!" }]}
-                                >
-                                    <InputNumber
-                                        style={{ width: '100%' }}
-                                        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND'}
-                                        parser={value => value.replace(/\s?VND|\./g, '')}
-                                    />
-                                </Form.Item>
+
                             </Col>
                             <Col span={12}>
                                 <Form.Item
+                                    label="Ngày ký"
+                                    name="signingDate"
+                                    dependencies={['effectiveDate']}
+                                    placeholder="Nhập ngày ký"
+                                    rules={[
+
+                                        { required: true, message: "Vui lòng chọn ngày ký!" },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                const effectiveDate = getFieldValue('effectiveDate');
+                                                console.log("effectiveDate", effectiveDate)
+                                                if (!effectiveDate || !value) {
+                                                    return Promise.resolve();
+                                                }
+
+                                                if (value.isBefore(effectiveDate) || value.isSame(effectiveDate)) {
+                                                    return Promise.resolve();
+                                                }
+                                                return Promise.reject(new Error('Ngày ký kết phải trước hoặc cùng ngày có hiệu lực!'));
+                                            },
+                                        }),
+                                    ]}
+                                >
+                                    <DatePicker
+                                        className="w-[100%]"
+                                        showTime={{ format: 'HH:mm:ss' }}
+                                        format="DD/MM/YYYY HH:mm:ss"
+                                    />
+                                </Form.Item>
+                                <Form.Item
                                     label="Ngày có hiệu lực"
                                     name="effectiveDate"
-                                    rules={[{ required: true, message: "Vui lòng chọn ngày có hiệu lực!" }]}
+                                    dependencies={['signingDate']}
+                                    placeholder="Nhập ngày có hiệu lực"
+                                    rules={[
+                                        { required: true, message: "Vui lòng chọn ngày có hiệu lực!" },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                if (!value) {
+                                                    return Promise.resolve();
+                                                }
+
+                                                const signingDate = getFieldValue('signingDate');
+                                                if (signingDate && value.isBefore(signingDate, 'day')) {
+                                                    return Promise.reject(
+                                                        new Error('Ngày có hiệu lực phải sau hoặc cùng ngày ký kết!')
+                                                    );
+                                                }
+                                                return Promise.resolve();
+                                            },
+                                        }),
+                                    ]}
                                 >
-                                    <DatePicker className="w-[100%]" />
+                                    <DatePicker
+                                        className="w-[100%]"
+                                        showTime={{ format: 'HH:mm:ss' }}
+                                        format="DD/MM/YYYY HH:mm:ss"
+                                        disabledDate={(current) => {
+                                            const signingDate = form.getFieldValue('signingDate');
+                                            return (
+                                                current &&
+                                                signingDate &&
+                                                current.isBefore(signingDate.startOf('day'))
+                                            );
+                                        }}
+                                    />
                                 </Form.Item>
+
                                 <Form.Item
                                     label="Ngày hết hiệu lực"
                                     name="expiryDate"
-                                    rules={[{ required: true, message: "Vui lòng chọn ngày hết hiệu lực!" }]}
+                                    dependencies={['effectiveDate']}
+                                    placeholder="Nhập ngày hết hiệu lực"
+                                    rules={[
+                                        { required: true, message: "Vui lòng chọn ngày hết hiệu lực!" },
+                                        ({ getFieldValue }) => ({
+                                            validator(_, value) {
+                                                if (!value) {
+                                                    return Promise.resolve();
+                                                }
+
+                                                const effectiveDate = getFieldValue('effectiveDate');
+                                                if (effectiveDate && !value.isAfter(effectiveDate, 'day')) {
+                                                    return Promise.reject(
+                                                        new Error('Ngày hết hiệu lực phải sau ngày có hiệu lực!')
+                                                    );
+                                                }
+                                                return Promise.resolve();
+                                            },
+                                        }),
+                                    ]}
                                 >
-                                    <DatePicker className="w-[100%]" />
+                                    <DatePicker
+                                        className="w-[100%]"
+                                        showTime={{ format: 'HH:mm:ss' }}
+                                        format="DD/MM/YYYY HH:mm:ss"
+                                        disabledDate={(current) => {
+                                            const effectiveDate = form.getFieldValue('effectiveDate');
+                                            if (!current) return false;
+                                            const isBeforeOrSameStart =
+                                                effectiveDate && current <= effectiveDate.startOf('day');
+                                            return isBeforeOrSameStart;
+                                        }}
+                                    />
                                 </Form.Item>
-                                <Form.Item
-                                    label="Ngày ký"
-                                    name="signingDate"
-                                    rules={[{ required: true, message: "Vui lòng chọn ngày ký!" }]}
-                                >
-                                    <DatePicker className="w-[100%]" />
-                                </Form.Item>
+
                             </Col>
                         </Row>
                         <Form.Item
@@ -1207,58 +1465,6 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         >
                             <Input />
                         </Form.Item>
-
-
-                        {/* Nhập liệu cho items của hợp đồng */}
-                        <Form.List name="items">
-                            {(fields, { add, remove }) => (
-                                <>
-                                    {fields.map(({ key, name, ...restField }, index) => (
-                                        <div key={key} style={{ border: "1px solid #ccc", padding: "16px", marginBottom: "16px" }}>
-                                            <h4>Hạng mục {index + 1}</h4>
-                                            <Form.Item
-                                                {...restField}
-                                                label="Giá trị hạng mục"
-                                                name={[name, "amount"]}
-                                                rules={[{ required: true, message: "Vui lòng nhập giá trị hạng mục!" }]}
-                                            >
-                                                <InputNumber
-                                                    style={{ width: '100%' }}
-                                                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND'}
-                                                    parser={value => value.replace(/\s?VND|\./g, '')}
-                                                />
-                                            </Form.Item>
-                                            <Form.Item
-                                                {...restField}
-                                                label="Nội dung hạng mục"
-                                                name={[name, "description"]}
-                                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung hạng mục!" }]}
-                                            >
-                                                <Input />
-                                            </Form.Item>
-                                            <Button
-                                                type="dashed"
-                                                onClick={() => remove(name)}
-                                                icon={<DeleteFilled />}
-                                                style={{ marginBottom: 8 }}
-                                            >
-                                                Xóa hạng mục
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    <Form.Item>
-                                        <Button
-                                            type="dashed"
-                                            onClick={() => add()}
-                                            block
-                                            icon={<PlusCircleFilled />}
-                                        >
-                                            Thêm hạng mục
-                                        </Button>
-                                    </Form.Item>
-                                </>
-                            )}
-                        </Form.List>
 
                         {/* Nhập liệu cho paymentSchedules */}
                         <Form.List name="paymentSchedules">
@@ -1278,14 +1484,6 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 </Form.Item>
                                             </Space>
 
-                                            <Form.Item
-                                                {...restField}
-                                                label="Tỷ lệ thanh toán"
-                                                name={[name, "paymentPercentage"]}
-                                                rules={[{ required: true, message: "Vui lòng nhập tỷ lệ thanh toán!" }]}
-                                            >
-                                                <Input suffix="%" />
-                                            </Form.Item>
 
                                             <Form.Item
                                                 {...restField}
@@ -1300,16 +1498,69 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 {...restField}
                                                 label="Ngày thanh toán"
                                                 name={[name, "paymentDate"]}
-                                                rules={[{ required: true, message: "Vui lòng chọn ngày thanh toán!" }]}
+                                                placeholder="Nhập ngày thanh toán"
+                                                dependencies={['effectiveDate', 'expiryDate']}
+                                                rules={[
+                                                    { required: true, message: "Vui lòng chọn ngày thanh toán!" },
+                                                    ({ getFieldValue }) => ({
+                                                        validator(_, value) {
+                                                            if (!value) {
+                                                                return Promise.resolve();
+                                                            }
+
+                                                            const effectiveDate = getFieldValue('effectiveDate');
+                                                            const expiryDate = getFieldValue('expiryDate');
+                                                            if (!effectiveDate || !expiryDate) {
+                                                                return Promise.resolve();
+                                                            }
+
+                                                            const sameOrAfterStart = value.isAfter(effectiveDate, 'day');
+                                                            const sameOrBeforeEnd = value.isBefore(expiryDate, 'day');
+                                                            if (sameOrAfterStart && sameOrBeforeEnd) {
+                                                                return Promise.resolve();
+                                                            }
+                                                            return Promise.reject(
+                                                                new Error("Ngày thanh toán phải nằm trong khoảng hiệu lực hợp đồng!")
+                                                            );
+                                                        }
+                                                    })
+                                                ]}
                                             >
-                                                <DatePicker className="w-[100%]" />
+                                                <DatePicker
+                                                    className="w-[100%]"
+                                                    showTime={{ format: 'HH:mm:ss' }}
+                                                    format="DD/MM/YYYY HH:mm:ss"
+                                                    disabledDate={(current) => {
+                                                        const effectiveDate = form.getFieldValue('effectiveDate');
+                                                        const expiryDate = form.getFieldValue('expiryDate');
+                                                        if (!current || !effectiveDate || !expiryDate) {
+                                                            return false;
+                                                        }
+                                                        return (
+                                                            current.isBefore(effectiveDate.startOf('day'), 'day') ||
+                                                            current.isAfter(expiryDate.endOf('day'), 'day')
+                                                        );
+                                                    }}
+                                                />
+
                                             </Form.Item>
 
                                             <Form.Item
                                                 {...restField}
                                                 label="Số tiền thanh toán"
                                                 name={[name, "amount"]}
-                                                rules={[{ required: true, message: "Vui lòng nhập số tiền thanh toán!" }]}
+                                                rules={[
+                                                    { required: true, message: "Vui lòng nhập số tiền thanh toán!" },
+                                                    {
+                                                        validator(_, value) {
+                                                            const num = parseFloat(value);
+                                                            if (isNaN(num) || num <= 0) {
+                                                                return Promise.reject(new Error("Số tiền phải lớn hơn 0!"));
+                                                            }
+                                                            return Promise.resolve();
+                                                        },
+                                                    },
+                                                ]}
                                             >
                                                 <Input suffix=" VND" />
                                             </Form.Item>
@@ -1337,6 +1588,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 </>
                             )}
                         </Form.List>
+
 
                         <Form.Item>
                             <Button disabled={Loading} type="primary" htmlType="submit">
@@ -1487,14 +1739,6 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                                 </Form.Item>
                                             </Space>
 
-                                            <Form.Item
-                                                {...restField}
-                                                label="Tỷ lệ thanh toán"
-                                                name={[name, "paymentPercentage"]}
-                                                rules={[{ required: true, message: "Vui lòng nhập tỷ lệ thanh toán!" }]}
-                                            >
-                                                <Input suffix="%" />
-                                            </Form.Item>
 
                                             <Form.Item
                                                 {...restField}

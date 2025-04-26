@@ -382,7 +382,7 @@ const ContractDetail = () => {
     const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
     const isApprover = processData?.data.stages?.some(stage => stage.approver === user?.id);
     const isCreator = contractData?.data.user.user_id == user.id
-    const canEdit = contractData?.data.status == "CREATED" || contractData?.data.status == "UPDATED" || contractData?.data.status == "REJECTED" 
+    const canEdit = contractData?.data.status == "CREATED" || contractData?.data.status == "UPDATED" || contractData?.data.status == "REJECTED"
     const paymentItemsColumns = [
         {
             title: 'STT',
@@ -515,7 +515,7 @@ const ContractDetail = () => {
                         Sửa hợp đồng
                     </Button>
                 )}
-                {contractData?.data?.status === "APPROVAL_PENDING" && isApprover &&(
+                {contractData?.data?.status === "APPROVAL_PENDING" && isApprover && (
                     <Button
                         type="primary"
                         className="fixed right-5 top-20 flex flex-col h-fit "
@@ -722,8 +722,6 @@ const ContractDetail = () => {
                                                             </div>
                                                         ) : stage.status === "REJECTED" ? (
                                                             <CloseOutlined className="timeline-clock-icon" style={{ color: 'red' }} />
-                                                        ) : stage.status === "SKIPPED" ? (
-                                                            <ForwardOutlined className="timeline-clock-icon" style={{ color: 'orange' }} />
                                                         ) : stage.status === "NOT_STARTED" ? (
                                                             <SmallDashOutlined className="timeline-clock-icon" style={{ color: 'gray' }} />
                                                         ) : (
@@ -773,7 +771,7 @@ const ContractDetail = () => {
                             </div>
                         </Tabs.TabPane>
                     )}
-                    {[ "SIGNED", "ACTIVE","EXPIRED","ENDED"].includes(contractData?.data?.status) && (
+                    {["ACTIVE", "EXPIRED", "ENDED"].includes(contractData?.data?.status) && (
                         <Tabs.TabPane icon={<DollarOutlined />} tab="Các đợt thanh toán" key="4">
                             <Collapse
                                 bordered

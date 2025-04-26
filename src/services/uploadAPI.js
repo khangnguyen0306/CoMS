@@ -26,7 +26,6 @@ export const uploadAPI = createApi({
         headers: {
           "Content-Type": undefined,
         },
-        responseHandler: (response) => response.text(),
       }),
       transformResponse: (response) => response,
       providesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
