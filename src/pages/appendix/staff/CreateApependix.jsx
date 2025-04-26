@@ -608,7 +608,7 @@ const ContractAppendixPage = () => {
                 <Form
                     form={form}
                     onFinishFailed={(errorInfo) => {
-                        console.log(errorInfo);
+                        // console.log(errorInfo);
                         const errorMessages = errorInfo.errorFields.map(field => field.errors[0]).join(' và ');
                         message.error(errorMessages);
                     }}

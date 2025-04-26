@@ -45,7 +45,6 @@ const AppendixApprove = () => {
         }
     });
 
-    const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const [deleteappendix] = useDeleteAppendixMutation()
     const [resubmitAppendix] = useResubmitAppendixMutation()
 
@@ -267,15 +266,6 @@ const AppendixApprove = () => {
                                                     </span>
                                                 ),
                                             }] : []),
-                                    ...(user.id == record.createdBy.userId
-                                        ? [
-                                            {
-                                                key: "duplicate",
-                                                icon: <IoDuplicate />,
-                                                label: "Nhân bản phụ lục",
-                                                onClick: () => handleOpenDuplicate(record),
-                                            }]
-                                        : []),
                                     ...((record.status == "CREATED" || record.status == "UPDATED" || record.status == "REJECTED") && user.id == record.createdBy.userId
                                         ? [
                                             {
@@ -340,14 +330,6 @@ const AppendixApprove = () => {
                         enterButton="Tìm kiếm"
                         disabled={isLoading}
                     />
-                    <div>
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                        >
-                            <Link to={'/CreateAppendix'}> Tạo phụ lục</Link>
-                        </Button>
-                    </div>
                 </Space>
                 <Table
                     columns={columns}
