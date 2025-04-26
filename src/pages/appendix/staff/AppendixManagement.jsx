@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Image, Upload } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, UndoOutlined, DownloadOutlined, SignatureOutlined, InboxOutlined, UploadOutlined, LoadingOutlined, FilePdfOutlined } from "@ant-design/icons";
+import { DeleteOutlined, SettingOutlined, EditFilled, CheckCircleFilled, UndoOutlined, DownloadOutlined, SignatureOutlined, InboxOutlined, UploadOutlined, LoadingOutlined, FilePdfOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -10,7 +10,6 @@ import ExpandRowContent from "../../Contract/component/ExpandRowContent";
 import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery, useGetImgSignAppendixQuery, useResubmitAppendixMutation } from "../../../services/AppendixAPI";
 import Process from "../../Process/Process";
 import { IoDuplicate } from "react-icons/io5";
-import { IoSend } from "react-icons/io5";
 import DuplicateModal from "../component/DuplicateAppendix";
 import { useUploadSignFileMutation } from "../../../services/uploadAPI";
 const { Search } = Input;
@@ -53,7 +52,6 @@ const AppendixManagement = () => {
     console.log("hi", dataSign)
 
 
-    const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
     const [deleteappendix] = useDeleteAppendixMutation()
     const [resubmitAppendix] = useResubmitAppendixMutation()
 
@@ -274,14 +272,7 @@ const AppendixManagement = () => {
                                                 onClick: () => navigate(`/EditAppendix/${record.contractId}/${record.addendumId}`),
                                             }]
                                             : []),
-                                        ...(record.status == "ACTIVE"
-                                            ? [{
-                                                key: "createAppendix",
-                                                icon: <PlusOutlined style={{ color: '#228eff' }} />,
-                                                label: "Tạo phụ lục",
-                                                onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
-                                            }]
-                                            : []),
+                                        ////////////////////////////////////////////////////////////////////////////////////////////////// trạng thái
                                         ...(record.status === "REJECTED" ? [
                                             {
                                                 key: "select-process",
@@ -302,18 +293,12 @@ const AppendixManagement = () => {
                                                         </span>
                                                     ),
                                                 }] : []),
-                                        {
-                                            key: "duplicate",
-                                            icon: <IoDuplicate />,
-                                            label: "Nhân bản phụ lục",
-                                            onClick: () => handleOpenDuplicate(record),
-                                        },
                                         ...(record.status == "SIGNED" && user.roles[0] == "ROLE_STAFF"
                                             ? [
                                                 {
                                                     key: "uploadImgSign",
                                                     icon: <SignatureOutlined />,
-                                                    label: record.status === "SIGNED" ? "Xem phụ lục đã ký" : "Xác nhận đã ký",
+                                                    label: record.status === "SIGNED" ? "Xác nhận đã ký" : "Xem phụ lục đã ký",
                                                     onClick: () => handleOpenSignModal(record.addendumId),
                                                 }
                                             ]

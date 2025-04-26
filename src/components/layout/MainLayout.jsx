@@ -45,7 +45,7 @@ const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser);
   const { data: numberNoti, isLoading: loadingNumber } = useGetNumberNotiForAllQuery()
-
+  const status = ["CREATED", "UPDATED", "REJECTED"]
   const router = {
     '1': '/',
     'managerDashboard': "/manager/dashboard",
@@ -85,9 +85,11 @@ const MainLayout = () => {
     'directorAppendixApprove': '/director/appendix?paramstatus=CREATED',
     'directorAppendixSign': '/appendix?paramstatus=APPROVED',
     'approveManager': '/contract?paramstatus=APPROVED',
-    'sendAppendix': '/appendix?paramstatus=CREATED',
+    'sendAppendix': `/appendix?paramstatus=${status}`,
     'nearlyExpired': '/director/nearlyExpired',
   }
+
+
 
   const handleLogout = useCallback(() => {
     Modal.confirm({
@@ -109,7 +111,7 @@ const MainLayout = () => {
 
 
   const navManager = [
-    { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
+    // { icon: MdDashboard, label: 'Dashboard', key: "dashboard", default: true },
     {
       icon: FaFileContract,
       label: 'Hợp đồng',
