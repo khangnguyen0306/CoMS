@@ -2,14 +2,14 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGetContractDetailQuery } from '../../../services/ContractAPI';
 import { useGetAppendixDetailQuery, useUpdateAppendixMutation } from '../../../services/AppendixAPI';
-import { Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, message, Popover, Select, Skeleton, Space, Table, Typography } from 'antd';
+import { Button, Card, Checkbox, DatePicker, Divider, Drawer, Form, Input, InputNumber, message, Popover, Select, Skeleton, Space, Table, Typography } from 'antd';
 import dayjs from 'dayjs';
 import RichTextEditor from 'reactjs-tiptap-editor';
 import 'reactjs-tiptap-editor/style.css';
 import 'katex/dist/katex.min.css'
 import { TermsectionForAppendix } from '../../../config/TermsectionForAppendix';
 import LazySelect from '../../../hooks/LazySelect';
-import { DeleteFilled, EyeFilled, PlusOutlined } from '@ant-design/icons';
+import { DeleteFilled, EyeFilled, LeftOutlined, PlusOutlined } from '@ant-design/icons';
 import { useLazyGetClauseManageQuery } from '../../../services/ClauseAPI';
 import { numberToVietnamese } from '../../../utils/ConvertMoney';
 
@@ -17,13 +17,15 @@ import ModalAdd from "../../Contract/component/ModalAdd";
 import { debounce } from 'lodash';
 import { extensions } from '../../../utils/textEditor';
 import { useSelector } from 'react-redux';
+import { useGetAppendixCommentQuery } from '../../../services/ProcessAPI';
+import { FaCommentDots } from 'react-icons/fa';
 
 const EditAppendix = () => {
     const { contractId, appendixId } = useParams()
     const [form] = Form.useForm()
     const navigate = useNavigate()
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-
+    const [drawerVisible, setDrawerVisible] = useState(false);
     const [isAddClasueModalOpen, setIsAddClauseModalOpen] = useState(false);
     const [content, setContent] = useState('');
     const [contentSell, setContentSell] = useState('');
@@ -33,12 +35,13 @@ const EditAppendix = () => {
     const [adddClauseId, setIsAddClauseId] = useState(0);
 
     const { data: contractDetailData, isLoading: isLoadingContractDetail, refetch: refecthContractDetail } = useGetContractDetailQuery(contractId, { skip: !contractId });
+    console.log(contractDetailData)
     const { data: appendixData, isLoading: isLoadingAppendix, refetch } = useGetAppendixDetailQuery({ id: appendixId }, { skip: !appendixId });
     const [getGeneralTerms, { data: generalData, isLoading: loadingGenaral, refetch: refetchGenaral }] = useLazyGetClauseManageQuery();
 
     const [updateAppendix, { isLoading }] = useUpdateAppendixMutation()
-
-
+    const { data: cmtData, isLoadingCommentAppendix, error } = useGetAppendixCommentQuery({ appendixId: appendixId }, { skip: !appendixId });
+    console.log(cmtData)
 
     useEffect(() => {
         refetch(),
@@ -136,11 +139,19 @@ const EditAppendix = () => {
     };
 
     useEffect(() => {
-        if (appendixData) {
+        if (appendixData && contractDetailData) {
+            // console.log(appendixData)
             setContent(appendixData?.data.contractContent || appendixData.data.content);
-            setContentSell(appendixData.data.content);
+            setContentSell(appendixData?.data.content);
             setSelectedOthersTerms(appendixData?.data.additionalTerms?.map(term => term.original_term_id));
-            // setContractExpiryDate(expiryDate);
+            setContractExpiryDate(contractDetailData?.data.expiryDate ? dayjs(new Date(
+                contractDetailData.data.expiryDate[0],
+                contractDetailData.data.expiryDate[1] - 1,
+                contractDetailData.data.expiryDate[2],
+                contractDetailData.data.expiryDate[3],
+                contractDetailData.data.expiryDate[4]
+            ))
+                : null,);
             const totalValue = appendixData?.data.contractItems.reduce((sum, item) => sum + item.amount, 0);
             const payments = appendixData?.data.paymentSchedules.map(schedule => {
                 return {
@@ -389,6 +400,13 @@ const EditAppendix = () => {
         },
     ];
 
+    const showDrawer = () => {
+        setDrawerVisible(true);
+    };
+    const closeDrawer = () => {
+        setDrawerVisible(false);
+    };
+
     const handleChange = (value) => {
         if (value) {
             setTextValue(numberToVietnamese(value));
@@ -396,10 +414,17 @@ const EditAppendix = () => {
             setTextValue("");
         }
     };
+    const formatDate = (date) => {
+        if (!date) return null;
 
-    // console.log(form.getFieldsValue(true))
-    // console.log(con)
-    if (isLoadingAppendix || isLoadingContractDetail) {
+        if (Array.isArray(date)) {
+            const [year, month, day, hour, minute, second] = date;
+            return dayjs(new Date(year, month - 1, day, hour, minute, second)).format("DD-MM-YYYY hh:mm:ss");
+        }
+        return dayjs(date).format("DD-MM-YYYY hh:mm:ss");
+    };
+
+    if (isLoadingAppendix || isLoadingContractDetail || isLoadingCommentAppendix) {
         return (
             <div className='flex justify-center items-center min-h-[100vh]'><Skeleton active /></div>
         )
@@ -411,6 +436,17 @@ const EditAppendix = () => {
             <p className='font-bold text-[34px] text-center mb-10 text-transparent bg-custom-gradient bg-clip-text' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                 CHỈNH SỬA PHỤ LỤC
             </p>
+            {cmtData?.data[0] && (
+                <div className="fixed top-20 right-4 z-50">
+                    <Button
+                        className={`w-fit h-fit py-1 border-[#00a6ff] ${!isDarkMode ? "bg-[#e6f7ff]" : null}`}
+                        onClick={showDrawer}>
+                        <p className="flex justify-center items-center py-2"><LeftOutlined style={{ fontSize: 20 }} />
+                            <FaCommentDots style={{ fontSize: 30, marginLeft: 10, color: '#00a6ff' }} />
+                        </p>
+                    </Button>
+                </div>
+            )}
             <Form
                 form={form}
                 onFinishFailed={(errorInfo) => {
@@ -491,6 +527,7 @@ const EditAppendix = () => {
 
                                     return current < nextDay || (expiredDate && current < expiredDate);
                                 }}
+
                                 onChange={(dates) => {
                                     if (dates) {
                                         form.setFieldsValue({
@@ -898,6 +935,39 @@ const EditAppendix = () => {
                     </Button>
                 </Form.Item>
             </Form>
+
+
+            <Drawer
+                title="Bình luận phụ lục hợp đồng"
+                placement="right"
+                loading={isLoadingCommentAppendix}
+                onClose={closeDrawer}
+                open={drawerVisible}
+                width={600}
+            >
+                <div className="p-4 min-h-full">
+                    {cmtData?.data ? (
+                        cmtData?.data?.map((cmt, index) => (
+                            <div className=" rounded-md ">
+                                <div className="font-semibold  text-base mb-2">
+                                    <p>{cmt.commenter}</p>
+                                </div>
+                                <div className="text-xs mb-4">
+                                    {formatDate(cmt.commentedAt)}
+                                </div>
+                                <Card
+                                    className="w-full min-h-3 resize-none shadow-lg"
+                                    readOnly
+                                >
+                                    {cmt.comment}
+                                </Card>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="">Không có bình luận nào</p>
+                    )}
+                </div>
+            </Drawer>
 
             <ModalAdd
                 clauseId={adddClauseId}

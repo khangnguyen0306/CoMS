@@ -94,6 +94,15 @@ export const processAPI = baseApi.injectEndpoints({
         { type: "ProcessList", id: contractId },
       ],
     }),
+    getAppendixComment: builder.query({
+      query: ({ appendixId }) => ({
+        url: `/addendums/get-addendum-comments/${appendixId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, appendixId) => [
+        { type: "ProcessList", id: appendixId },
+      ],
+    }),
     resubmitProcess: builder.mutation({
       query: ({ contractId }) => ({
         url: `/approval-workflows/resubmit/${contractId}`,
@@ -149,5 +158,6 @@ export const {
   useResubmitProcessMutation,
   useGetContractPorcessPendingManagerQuery,
   useApproveOldWorkFlowMutation,
-  useAssignNewAppendixWorkFlowMutation
+  useAssignNewAppendixWorkFlowMutation,
+  useGetAppendixCommentQuery
 } = processAPI;

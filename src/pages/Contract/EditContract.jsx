@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Drawer, Image, Card, Table, Tooltip } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Drawer, Card, Table, Tooltip } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLazyGetAllTemplateQuery } from "../../services/TemplateAPI";
@@ -24,9 +24,7 @@ import { VietnameseProvinces } from "../../utils/Province";
 import { useLazyGetDateNofitifationQuery } from "../../services/ConfigAPI";
 import { useSelector } from "react-redux";
 import topIcon from "../../assets/Image/top.svg"
-import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import { useGetcommentQuery } from "../../services/ProcessAPI";
-import viewComment from "../../assets/Image/view.svg"
 import { useWarnOnLeave } from "../../hooks/UseWarnOnLeave";
 import { FaCommentDots } from "react-icons/fa";
 
@@ -59,7 +57,6 @@ const EditContract = () => {
     const [isViolate, setIsisViolate] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-    const [notificationDays, setNotificationDays] = useState(null);
     const [termsData, setTermsData] = useState({});
     const [shouldBlockNavigation, setShouldBlockNavigation] = useState(true);
 
@@ -73,7 +70,7 @@ const EditContract = () => {
     const [createClause] = useCreateClauseMutation();
     const [UpdateContract, { isLoading: loadingUpdateContract }] = useUpdateContractMutation();/////
     const [getContract, { data: contractData, isLoading: isLoadingContract }] = useLazyGetContractDetailQuery();
-    const { data: cmtData, error } = useGetcommentQuery({ contractId: id }); const { data: bsInfor, isLoading: isLoadingBsData } = useGetBussinessInformatinQuery();
+    const { data: cmtData, error } = useGetcommentQuery({ contractId: id });
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
     const [showScroll, setShowScroll] = useState(false)
@@ -104,6 +101,7 @@ const EditContract = () => {
             getContract(id);
         }
     }, [id]);
+
     const showDrawer = () => {
         setDrawerVisible(true);
     };
@@ -2024,7 +2022,7 @@ const EditContract = () => {
                 {cmtData?.data[0] && (
                     <div className="fixed top-20 right-4 z-50">
                         <Button
-                            className="w-fit h-fit py-1 border-[#00a6ff] bg-[#e6f7ff]"
+                            className={`w-fit h-fit py-1 border-[#00a6ff] ${!isDarkMode ? "bg-[#e6f7ff]" : null}`}
                             onClick={showDrawer}>
                             <p className="flex justify-center items-center py-2"><LeftOutlined style={{ fontSize: 20 }} />
                                 <FaCommentDots style={{ fontSize: 30, marginLeft: 10, color: '#00a6ff' }} />
