@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Row, Col, Button, Input, Space, Spin } from "antd";
+import { Row, Col, Button, Input, Space, Spin, Skeleton } from "antd";
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, Tooltip, Cell } from "recharts";
@@ -331,10 +331,10 @@ const Home = () => {
 
     if (loadingDashboard || isLoading) {
         return (
-            <div className="flex justify-center items-center h-screen w-screen">
-                <Spin size="large" />
+            <div className='flex justify-center items-center min-h-[100vh]'>
+                <Skeleton active />;
             </div>
-        );
+        )
     }
 
     return (
@@ -351,12 +351,13 @@ const Home = () => {
                             title={statusTitles[stat.status] || stat.status}
                             description={
                                 <div className={`${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                                    <a
+                                    <p
                                         href="/desired-link"
                                         className={`flex items-center justify-center text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-500'} hover:underline`}
                                     >
                                         {stat.count}
-                                    </a>
+                                    </p>
+                                    <p>Hợp đồng</p>
                                 </div>
                             }
                             className={`${isDarkMode ? 'bg-dark-card' : 'bg-white'}`}
@@ -493,7 +494,7 @@ const Home = () => {
                 <ContractList contracts={contracts?.data.content} />
             </div>
 
-            
+
             {/* Bảng dữ liệu */}
             {/* <Table
                 columns={columns}

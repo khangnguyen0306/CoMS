@@ -94,7 +94,12 @@ const Profile = () => {
         "OTHER": "Khác"
     }
 
-    if (isLoading || DepartmentLoading) return <Skeleton active />;
+    if (isLoading || DepartmentLoading)
+        return (
+            <div className='flex justify-center items-center min-h-[100vh]'>
+                <Skeleton active />;
+            </div>
+        );
 
     return (
         <div className="p-6 min-h-screen">

@@ -11,7 +11,7 @@ export const ContractAPI = baseApi.injectEndpoints({
                     : [{ type: "ContractType", id: "UNKNOWN_ID" }],
         }),
 
-        
+
         getAllContract: builder.query({
             query: (params) => ({
                 url: `contracts`,
@@ -21,6 +21,22 @@ export const ContractAPI = baseApi.injectEndpoints({
                     keyword: params?.keyword || "",
                     statuses: params?.status ? params.status : params?.isCEO == true ? ["REJECTED", "APPROVAL_PENDING", "APPROVED", "SIGNED", "ACTIVE", "COMPLETED", "EXPIRED", "CANCELLED", "ENDED"] : "",
                     order: "desc"
+                },
+            }),
+            providesTags: (result) =>
+                result
+                    ? result.data.content.map(({ id }) => ({ type: "Contract", id }))
+                    : [{ type: "Contract", id: "LIST" }],
+        }),
+
+        getContractNearExpired: builder.query({
+            query: (params) => ({
+                url: `contracts`,
+                params: {
+                    page: params?.page || 0,
+                    size: params?.size || 10,
+                    keyword: params?.keyword || "",
+                    days: params.days
                 },
             }),
             providesTags: (result) =>
@@ -321,4 +337,5 @@ export const {
     useGetImgSignQuery,
     useUploadContractOnlineSignedMutation,
     useSendReminderContractMutation,
+    useGetContractNearExpiredQuery
 } = ContractAPI;

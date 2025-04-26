@@ -12,8 +12,12 @@ export const ConfigAPI = baseApi.injectEndpoints({
     }),
     createDateNofitication: builder.mutation({
       query: (data) => ({
-        url: `config?key=${data.key}&value=${data.value}&description=${data.description}`,
+        url: `configs/update/${data.configId}`,
         method: "POST",
+        body: {
+          key: data.key,
+          value: data.value
+        }
       }),
       invalidatesTags: [{ type: "Config", id: "LIST" }],
     }),

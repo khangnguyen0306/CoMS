@@ -1,49 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Form, InputNumber, Button, Card, Space, Typography, message, Descriptions, Spin, Checkbox } from 'antd';
-import { EditOutlined, SaveOutlined, PlusOutlined } from '@ant-design/icons';
-import { useCreateDateNofiticationMutation, useGetDateNofitifationQuery } from '../../services/ConfigAPI';
+import {
+    Tabs,
+    Form,
+    InputNumber,
+    Button,
+    Card,
+    Space,
+    Typography,
+    message,
+    Descriptions,
+    Spin,
+} from 'antd';
+import { EditOutlined, SaveOutlined, PlusOutlined, EditFilled } from '@ant-design/icons';
+import {
+    useCreateDateNofiticationMutation,
+    useGetDateNofitifationQuery,
+} from '../../services/ConfigAPI';
 
 const { Title, Text } = Typography;
 
 const Setting = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const { data: dateNotifi, isLoading, isError, refetch } = useGetDateNofitifationQuery();
-    const [createDateNoftifi, { isLoading: loadingCreate }] = useCreateDateNofiticationMutation();
+    const [editingField, setEditingField] = useState(null); // 'notificationDays', 'approvalDays', 'create'
+
+    const { data: dateNotifi, isLoading, refetch } = useGetDateNofitifationQuery();
+    const [createDateNoftifi] = useCreateDateNofiticationMutation();
     const [settings, setSettings] = useState(null);
 
-    // Cập nhật settings khi nhận được dữ liệu từ API
-    console.log(dateNotifi?.length)
+    // Map API data to settings
     useEffect(() => {
-        if (dateNotifi) {
+        if (Array.isArray(dateNotifi) && dateNotifi.length) {
             setSettings({
-                notificationDays: parseInt(dateNotifi[dateNotifi?.length - 1]?.value) || 0,
-                approvalDays: parseInt(dateNotifi[0]?.value) || 0
+                approvalDays: parseInt(dateNotifi.find(item => item.key === 'APPROVAL_DEADLINE')?.value, 10) || 0,
+                notificationDays: parseInt(dateNotifi.find(item => item.key === 'PAYMENT_DEADLINE')?.value, 10) || 0,
             });
         }
     }, [dateNotifi]);
 
+    // Save a single field or both
     const handleSave = async (values) => {
+        // console.log(values)
         setLoading(true);
         try {
-            const formData = [
-                {
-                    key: "1",
-                    value: values?.notificationDays.toString(),
-                    description: "Số ngày thông báo mặc định trước đợt thanh toán"
-                },
-                {
-                    key: "2",
-                    value: values?.approvalDays.toString(),
-                    description: "Số ngày cho phép phê duyệt mặc định"
-                }
-            ];
+            let payload = {};
 
-            // Gửi dữ liệu lên API
-            await createDateNoftifi(formData).unwrap();
+            if (editingField === 'notificationDays') {
+                payload = {
+                    configId: 2,
+                    key: 'PAYMENT_DEADLINE',
+                    value: values.notificationDays.toString(),
+                };
+            } else {
+                payload = {
+                    configId: 1,
+                    key: 'APPROVAL_DEADLINE',
+                    value: values.approvalDays.toString(),
+                };
+            }
+
+            // console.log(payload)
+            await createDateNoftifi(payload).unwrap();
             refetch();
-            setIsEditMode(false);
+            setEditingField(null);
             message.success('Cài đặt đã được lưu thành công!');
         } catch (error) {
             console.error('Error saving settings:', error);
@@ -53,153 +72,197 @@ const Setting = () => {
         }
     };
 
-    const handleEditClick = () => {
-        form.setFieldsValue(settings || { notificationDays: 0, approvalDays: 0 });
-        setIsEditMode(true);
-    };
-
-    const handleCancel = () => {
-        setIsEditMode(false);
-    };
-
     if (isLoading) {
         return (
-            <div className='flex items-center justify-center'>
+            <div className="flex items-center justify-center">
                 <Spin />
             </div>
         );
     }
 
-    const renderContractSettingsContent = () => {
-        if (isEditMode) {
-            return (
-                <Form
-                    form={form}
-                    layout="vertical"
-                    initialValues={{ ...settings, editNotificationDays: false, editApprovalDays: false }}
-                    onFinish={(values) => {
-                        const updatedSettings = {};
-                        if ('notificationDays' in values) {
-                            updatedSettings.notificationDays = values.notificationDays;
-                        }
-                        if ('approvalDays' in values) {
-                            updatedSettings.approvalDays = values.approvalDays;
-                        }
-                        handleSave(updatedSettings);
-                    }}
-                >
-                    <Form.Item name="editNotificationDays" valuePropName="checked">
-                        <Checkbox>Chỉnh sửa số ngày thông báo mặc định trước đợt thanh toán</Checkbox>
-                    </Form.Item>
+    // Render content
+    const renderContent = () => {
+        // Creation form when no prior settings
+        // if (!settings) {
+        //     if (editingField === 'create') {
+        //         return (
+        //             <Form
+        //                 form={form}
+        //                 layout="vertical"
+        //                 initialValues={{ notificationDays: 0, approvalDays: 0 }}
+        //                 onFinish={handleSave}
+        //             >
+        //                 <Form.Item
+        //                     name="notificationDays"
+        //                     label="Số ngày thông báo mặc định trước đợt thanh toán"
+        //                     rules={[
+        //                         { required: true, message: 'Vui lòng nhập số ngày thông báo!' },
+        //                         { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
+        //                         { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' },
+        //                     ]}
+        //                 >
+        //                     <InputNumber min={1} max={90} addonAfter="ngày" />
+        //                 </Form.Item>
 
-                    <Form.Item
-                        className='mt-[-20px]'
-                        shouldUpdate={(prevValues, currentValues) => prevValues.editNotificationDays !== currentValues.editNotificationDays}>
-                        {({ getFieldValue }) =>
-                            getFieldValue('editNotificationDays') ? (
-                                <Form.Item
-                                    name="notificationDays"
-                                    label="Số ngày thông báo mặc định trước đợt thanh toán"
-                                    rules={[
-                                        { required: true, message: 'Vui lòng nhập số ngày thông báo mặc định!' },
-                                        { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
-                                        { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' }
-                                    ]}
-                                >
-                                    <InputNumber
-                                        min={1}
-                                        max={90}
-                                        addonAfter="ngày"
-                                        style={{ width: '200px' }}
-                                    />
-                                </Form.Item>
-                            ) : null
-                        }
-                    </Form.Item>
-                    <Form.Item  name="editApprovalDays" valuePropName="checked">
-                        <Checkbox>Chỉnh sửa số ngày cho phép phê duyệt mặc định</Checkbox>
-                    </Form.Item>
-                    <Form.Item
-                        className='mt-[-20px]'
-                        shouldUpdate={(prevValues, currentValues) => prevValues.editApprovalDays !== currentValues.editApprovalDays}>
-                        {({ getFieldValue }) =>
-                            getFieldValue('editApprovalDays') ? (
-                                <Form.Item
-                                    name="approvalDays"
-                                    label="Số ngày cho phép phê duyệt mặc định"
-                                    rules={[
-                                        { required: true, message: 'Vui lòng nhập số ngày cho phép phê duyệt mặc định!' },
-                                        { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
-                                        { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' }
-                                    ]}
-                                >
-                                    <InputNumber
-                                        min={1}
-                                        max={90}
-                                        addonAfter="ngày"
-                                        style={{ width: '200px' }}
-                                    />
-                                </Form.Item>
-                            ) : null
-                        }
-                    </Form.Item>
-                    <Form.Item>
-                        <Space>
+        //                 <Form.Item
+        //                     name="approvalDays"
+        //                     label="Số ngày cho phép phê duyệt mặc định"
+        //                     rules={[
+        //                         { required: true, message: 'Vui lòng nhập số ngày phê duyệt!' },
+        //                         { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
+        //                         { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' },
+        //                     ]}
+        //                 >
+        //                     <InputNumber min={1} max={90} addonAfter="ngày" />
+        //                 </Form.Item>
+
+        //                 <Form.Item>
+        //                     <Space>
+        //                         <Button
+        //                             type="primary"
+        //                             htmlType="submit"
+        //                             icon={<SaveOutlined />}
+        //                             loading={loading}
+        //                         >
+        //                             Lưu cài đặt
+        //                         </Button>
+        //                         <Button onClick={() => setEditingField(null)}>Hủy</Button>
+        //                     </Space>
+        //                 </Form.Item>
+        //             </Form>
+        //         );
+        //     }
+
+        //     return (
+        //         <div style={{ textAlign: 'center', padding: 30 }}>
+        //             <Space direction="vertical" size="large">
+        //                 <Text>Chưa có cài đặt thông tin hợp đồng.</Text>
+        //                 <Button
+        //                     type="primary"
+        //                     icon={<PlusOutlined />}
+        //                     onClick={() => setEditingField('create')}
+        //                 >
+        //                     Thêm cài đặt
+        //                 </Button>
+        //             </Space>
+        //         </div>
+        //     );
+        // }
+
+        // When have settings
+        return (
+            <Descriptions title="Cài đặt hiện tại" bordered column={1}>
+                {/* Notification Days */}
+                <Descriptions.Item label="Số ngày thông báo mặc định trước đợt thanh toán">
+                    <Space className='flex justify-between'>
+                        <Text>{settings?.notificationDays} ngày</Text>
+                        {!editingField && (
                             <Button
-                                type="primary"
-                                htmlType="submit"
-                                icon={<SaveOutlined />}
-                                loading={loading}
+                                size="middle"
+                                className='ml-3'
+                                icon={<EditFilled />}
+                                onClick={() => {
+                                    setEditingField('notificationDays');
+                                    form.setFieldsValue({ notificationDays: settings?.notificationDays });
+                                }}
                             >
-                                Lưu cài đặt
+                                Sửa
                             </Button>
-                            <Button onClick={handleCancel}>
-                                Hủy
+                        )}
+                    </Space>
+                </Descriptions.Item>
+                {editingField === 'notificationDays' && (
+                    <Descriptions.Item>
+                        <Form
+                            form={form}
+                            layout="inline"
+                            initialValues={{ notificationDays: settings?.notificationDays }}
+                            onFinish={(vals) => handleSave({ notificationDays: vals.notificationDays })}
+                            style={{ marginBottom: 16 }}
+                        >
+                            <Form.Item
+                                name="notificationDays"
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập số ngày thông báo!' },
+                                    { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
+                                    { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' },
+                                ]}
+                            >
+                                <InputNumber min={1} max={90} addonAfter="ngày" />
+                            </Form.Item>
+                            <Form.Item>
+                                <Space>
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit"
+                                        icon={<SaveOutlined />}
+                                        loading={loading}
+                                    >
+                                        Lưu
+                                    </Button>
+                                    <Button onClick={() => setEditingField(null)}>Hủy</Button>
+                                </Space>
+                            </Form.Item>
+                        </Form>
+                    </Descriptions.Item>
+                )}
+
+                {/* Approval Days */}
+                <Descriptions.Item label="Thông báo trước cho giám đốc khi hợp đồng chưa được phê duyệt trước">
+                    <Space className='flex justify-between'>
+                        <Text>{settings?.approvalDays} ngày</Text>
+                        {!editingField && (
+                            <Button
+                                size="middle"
+                                className='ml-3'
+                                icon={<EditFilled />}
+                                onClick={() => {
+                                    setEditingField('approvalDays');
+                                    form.setFieldsValue({ approvalDays: settings?.approvalDays });
+                                }}
+                            >
+                                Sửa
                             </Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
-            );
-        } else {
-            return (
-                <div>
-                    {settings ? (
-                        <>
-                            <Descriptions title="Cài đặt hiện tại" bordered column={1}>
-                                <Descriptions.Item label="Số ngày thông báo mặc định trước các ngày, đợt thanh toán">
-                                    {settings.notificationDays} ngày
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Số ngày mặc định giới hạn phê duyệt hợp đồng">
-                                    {settings.approvalDays} ngày
-                                </Descriptions.Item>
-                            </Descriptions>
-                            <div style={{ marginTop: '20px' }}>
-                                <Button
-                                    type="primary"
-                                    icon={<EditOutlined />}
-                                    onClick={handleEditClick}
-                                >
-                                    Sửa cài đặt
-                                </Button>
-                            </div>
-                        </>
-                    ) : (
-                        <div style={{ textAlign: 'center', padding: '30px 0' }}>
-                            <Space direction="vertical" size="large">
-                                <Text>Chưa có cài đặt thông tin hợp đồng.</Text>
-                                <Button
-                                    type="primary"
-                                    icon={<PlusOutlined />}
-                                    onClick={handleEditClick}
-                                >
-                                    Thêm cài đặt
-                                </Button>
-                            </Space>
-                        </div>
-                    )}
-                </div>
-            );
-        }
+                        )}
+                    </Space>
+                </Descriptions.Item>
+                {editingField === 'approvalDays' && (
+                    <Descriptions.Item>
+                        <Form
+                            form={form}
+                            layout="inline"
+                            initialValues={{ approvalDays: settings?.approvalDays }}
+                            onFinish={(vals) => handleSave({ approvalDays: vals.approvalDays })}
+                            style={{ marginBottom: 16 }}
+                        >
+                            <Form.Item
+                                name="approvalDays"
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập số ngày phê duyệt!' },
+                                    { type: 'number', min: 1, message: 'Số ngày phải lớn hơn 0!' },
+                                    { type: 'number', max: 90, message: 'Số ngày không được vượt quá 90!' },
+                                ]}
+                            >
+                                <InputNumber min={1} max={90} addonAfter="ngày" />
+                            </Form.Item>
+                            <Form.Item>
+                                <Space>
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit"
+                                        icon={<SaveOutlined />}
+                                        loading={loading}
+                                    >
+                                        Lưu
+                                    </Button>
+                                    <Button onClick={() => setEditingField(null)}>Hủy</Button>
+                                </Space>
+                            </Form.Item>
+                        </Form>
+                    </Descriptions.Item>
+                )}
+            </Descriptions>
+        );
     };
 
     const items = [
@@ -207,37 +270,15 @@ const Setting = () => {
             key: '1',
             label: 'Cài đặt thông tin hợp đồng',
             children: (
-                <Card
-                    style={{
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                        borderRadius: '8px'
-                    }}
-                >
-                    {renderContractSettingsContent()}
+                <Card style={{ boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', borderRadius: 8 }}>
+                    {renderContent()}
                 </Card>
             ),
         },
-        // {
-        //     key: '2',
-        //     label: 'Cài đặt khác',
-        //     children: (
-        //         <Card
-        //             style={{
-        //                 boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        //                 borderRadius: '8px'
-        //             }}
-        //         >
-        //             <Space direction="vertical" align="center" style={{ width: '100%', padding: '20px' }}>
-        //                 <Title level={5}>Cài đặt khác</Title>
-        //                 <Text type="secondary">Hiện tại chưa có dữ liệu cài đặt khác.</Text>
-        //             </Space>
-        //         </Card>
-        //     ),
-        // },
     ];
 
     return (
-        <div style={{ padding: '20px', height: '100vh', overflow: 'auto' }}>
+        <div style={{ padding: 20, height: '100vh', overflow: 'auto' }}>
             <Title level={3}>Cài đặt hệ thống</Title>
             <Tabs defaultActiveKey="1" items={items} />
         </div>

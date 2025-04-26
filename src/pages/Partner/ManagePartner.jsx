@@ -14,7 +14,8 @@ import {
     message,
     Row,
     Col,
-    Tooltip
+    Tooltip,
+    Skeleton
 } from "antd";
 import { PlusOutlined, EditFilled, DeleteFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -355,8 +356,15 @@ const ManagePartner = () => {
         form.setFieldsValue({ abbreviation: abbreviation });
     };
 
+    if (isFetching)
+        return (
+            <div className='flex justify-center items-center min-h-[100vh]'>
+                <Skeleton active />;
+            </div>
+        )
+
     return (
-        <div className="min-h-[100vh]   -full">
+        <div className="min-h-[100vh]   w-full">
             <p
                 className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent'
                 style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
@@ -437,7 +445,7 @@ const ManagePartner = () => {
                     current: currentPage,
                     pageSize: pageSize,
                     total: partnerData?.data?.totalElements || 0,
-                    showTotal: (total) => `Tổng ${total-1} bản ghi`,
+                    showTotal: (total) => `Tổng ${total - 1} bản ghi`,
                 }}
                 bordered
                 components={{

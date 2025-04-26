@@ -400,7 +400,14 @@ const ManageClause = () => {
     };
 
 
-    if (loadingClause || loadingType || loadingLegal || loadingTypeContract) return <Skeleton active />;
+    if (loadingClause || loadingType || loadingLegal || loadingTypeContract)
+        return (
+            <div className='flex justify-center items-center min-h-[100vh]'>
+                <Skeleton active />;
+            </div>
+        )
+
+
 
     return (
         <ConfigProvider

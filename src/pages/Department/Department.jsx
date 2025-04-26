@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Space, Skeleton, List, Divider } from 'antd';
+import { Button, Modal, Form, Input, message, Space, Skeleton, List, Divider } from 'antd';
 import {
     useCreateDepartmentMutation,
     useGetDepartmentsQuery,
@@ -90,7 +90,7 @@ const Department = () => {
         <div className="min-h-[100vh] p-4 w-full">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Danh sách Phòng Ban</h2>
-                <Button type="primary" onClick={showAddModal} icon={<PlusOutlined/>}>
+                <Button type="primary" onClick={showAddModal} icon={<PlusOutlined />}>
                     Thêm Phòng Ban
                 </Button>
             </div>
@@ -146,7 +146,7 @@ const Department = () => {
                     <Form.Item
                         label="Tên Phòng Ban"
                         name="departmentName"
-                        rules={[{ required: true,whitespace: true, message: 'Vui lòng nhập tên phòng ban!' }]}
+                        rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên phòng ban!' }]}
                     >
                         <Input placeholder="Nhập tên phòng ban" />
                     </Form.Item>
