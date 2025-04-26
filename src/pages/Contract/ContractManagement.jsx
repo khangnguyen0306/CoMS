@@ -458,12 +458,6 @@ const ManageContracts = () => {
                                                     `/CreateAppendix/?contractId=${record.id}&contractNumber=${record.contractNumber}`
                                                 ),
                                         },
-                                        {
-                                            key: "updateStatus",
-                                            icon: <BsClipboard2DataFill />,
-                                            label: "Cập nhật trạng thái thanh toán",
-                                            onClick: () => openUpdateStatusModal(record.id),
-                                        },
                                     ]
                                     : []),
                                 {
@@ -472,16 +466,16 @@ const ManageContracts = () => {
                                     label: "Nhân bản",
                                     onClick: () => handleDuplicate(record.id),
                                 },
-                                // ...(["APPROVED", "PENDING", "SIGNED", "ACTIVE"].includes(record.status)
-                                //     ? [
-                                //         {
-                                //             key: "updateStatus",
-                                //             icon: <BsClipboard2DataFill />,
-                                //             label: "Cập nhật trạng thái thanh toán",
-                                //             onClick: () => openUpdateStatusModal(record.id),
-                                //         },
-                                //     ]
-                                //     : []),
+                                ...(["ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "updateStatus",
+                                            icon: <BsClipboard2DataFill />,
+                                            label: "Cập nhật trạng thái thanh toán",
+                                            onClick: () => openUpdateStatusModal(record.id),
+                                        },
+                                    ]
+                                    : []),
                                 ...(["SIGNED", "ACTIVE"].includes(record.status)
                                     ? [
                                         {
@@ -725,7 +719,7 @@ const ManageContracts = () => {
 
                             items: [
                                 // sau active mới hiên
-                                ...(["ACTIVE"].includes(record.status)
+                                ...(["ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
                                     ? [
                                         {
                                             key: "updateStatus",
