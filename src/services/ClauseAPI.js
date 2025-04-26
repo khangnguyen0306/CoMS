@@ -50,6 +50,22 @@ export const clauseAPI = baseApi.injectEndpoints({
         url: `terms/get-all-by-user`,
         params: {
           // includeLegalBasis: true,
+          typeTermIds:params.typeTermIds,
+          page: params.page,
+          size: params.size,
+          // sortBy: 'id',
+          order: params.order
+        },
+        method: "GET",
+      }),
+      providesTags: (result, error, Clause) => [{ type: "Clause", id: Clause }],
+    }),
+    getAllLegalByUser: builder.query({
+      query: (params) => ({
+        url: `terms/get-all-by-user`,
+        params: {
+          // includeLegalBasis: true,
+          typeTermIds:params.typeTermIds,
           page: params.page,
           size: params.size,
           // sortBy: 'id',
@@ -125,5 +141,7 @@ export const {
   useLazyGetTermDetailQuery,
   useSearchTermsByHoverQuery,
   useGetAllClauseByUserQuery,
-  useLazyGetAllClauseByUserQuery
+  useLazyGetAllClauseByUserQuery,
+  useGetAllLegalByUserQuery,
+  useLazyGetAllLegalByUserQuery
 } = clauseAPI;

@@ -11,7 +11,7 @@ import {
     Descriptions,
     Spin,
 } from 'antd';
-import { EditOutlined, SaveOutlined, PlusOutlined, EditFilled } from '@ant-design/icons';
+import { SaveOutlined, EditFilled } from '@ant-design/icons';
 import {
     useCreateDateNofiticationMutation,
     useGetDateNofitifationQuery,

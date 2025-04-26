@@ -69,7 +69,7 @@ const BussinessInfor = () => {
             const result = await updateInformation({ id: 1, ...payload }).unwrap();
             if (result.status === "OK") {
                 message.success('Thông tin đã được cập nhật thành công!');
-                form.resetFields()
+                // form.resetFields()
                 refetch();
 
                 setIsEditing(false);
