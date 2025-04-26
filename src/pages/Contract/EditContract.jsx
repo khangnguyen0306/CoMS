@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Collapse, ConfigProvider, Timeline, Drawer, Image, Card, Table, Tooltip } from "antd";
+import { Steps, Form, Input, Select, DatePicker, Checkbox, Button, Space, Divider, message, Row, Col, Spin, Modal, Popover, InputNumber, Typography, Switch, Timeline, Drawer, Image, Card, Table, Tooltip } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLazyGetAllTemplateQuery } from "../../services/TemplateAPI";
 import { FcNext } from "react-icons/fc";
-import { useLazyGetPartnerListByPartnerTypeQuery, useLazyGetPartnerListQuery } from "../../services/PartnerAPI";
+import { useLazyGetPartnerListByPartnerTypeQuery } from "../../services/PartnerAPI";
 import LazySelectPartner from "../../hooks/LazySelectPartner";
 import LazySelectContractType from "../../hooks/LazySelectContractType";
-import { useCreateContractMutation, useCreateContractTypeMutation, useLazyGetContractDetailQuery, useLazyGetContractTypeQuery, useUpdateContractMutation } from "../../services/ContractAPI";
+import { useCreateContractTypeMutation, useLazyGetContractDetailQuery, useLazyGetContractTypeQuery, useUpdateContractMutation } from "../../services/ContractAPI";
 import { CaretLeftOutlined, CaretRightOutlined, CheckCircleFilled, CheckCircleOutlined, DeleteFilled, EditFilled, EyeFilled, InfoCircleOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import LazySelect from "../../hooks/LazySelect";
 import { useCreateClauseMutation, useLazyGetClauseManageQuery, useLazyGetLegalCreateContractQuery, useLazyGetTermDetailQuery } from "../../services/ClauseAPI";
@@ -28,6 +28,7 @@ import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import { useGetcommentQuery } from "../../services/ProcessAPI";
 import viewComment from "../../assets/Image/view.svg"
 import { useWarnOnLeave } from "../../hooks/UseWarnOnLeave";
+import { FaCommentDots } from "react-icons/fa";
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -1825,13 +1826,6 @@ const EditContract = () => {
                                     // )}
                                     />
                                 </Form.Item>
-                                {/* <Form.Item
-                                    label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN A</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên A)</p></div>} name="specialTermsA">
-                                    <TextArea rows={4} placeholder="Nhập điều khoản bên A" />
-                                </Form.Item>
-                                <Form.Item label={<div className="ml-2 my-3"><p className="font-bold text-[16px]">ĐIỀU KHOẢN ĐẶC BIỆT BÊN B</p><p>Mô tả: (Điều khoản được áp dụng cho chỉ riêng bên B)</p></div>} name="specialTermsB">
-                                    <TextArea rows={4} placeholder="Nhập điều khoản bên B" />
-                                </Form.Item> */}
                             </div>
                             <div ref={otherContentRef} className="pt-[50px] pb-[400px]">
                                 <Divider orientation="center">Các nội dung khác</Divider>
@@ -2019,7 +2013,6 @@ const EditContract = () => {
                             (sum, item) => sum + (item.amount || 0),
                             0
                         );
-                        // console.log(total)
                         handleChange(total)
                         form.setFieldsValue({ totalValue: total });
                     }
@@ -2031,9 +2024,11 @@ const EditContract = () => {
                 {cmtData?.data[0] && (
                     <div className="fixed top-20 right-4 z-50">
                         <Button
-                            className="w-fit h-fit"
+                            className="w-fit h-fit py-1 border-[#00a6ff] bg-[#e6f7ff]"
                             onClick={showDrawer}>
-                            <p className="flex justify-center items-center py-2"><LeftOutlined style={{ fontSize: 20 }} /><Image preview={false} width={40} height={40} src={viewComment} /></p>
+                            <p className="flex justify-center items-center py-2"><LeftOutlined style={{ fontSize: 20 }} />
+                                <FaCommentDots style={{ fontSize: 30, marginLeft: 10, color: '#00a6ff' }} />
+                            </p>
                         </Button>
                     </div>
                 )}
@@ -2043,7 +2038,7 @@ const EditContract = () => {
                 </Steps>
                 <div className="mb-6">{steps[currentStep].content}</div>
                 <div className="flex justify-end space-x-2">
-                    {currentStep > 0 && <Button onClick={prev}><CaretLeftOutlined /> Quay lại</Button>}
+                    {currentStep > 0 && <Button onClick={prev}><CaretLeftOutlined /> Quay lại </Button>}
                     {currentStep < steps.length - 1 && <Button type="primary" onClick={next}>Tiếp theo <CaretRightOutlined /></Button>}
                     {currentStep === steps.length - 1 && (
                         <Button type="primary" htmlType="submit" loading={loadingUpdateContract}>Cập nhật hợp đồng <CheckCircleOutlined /></Button>

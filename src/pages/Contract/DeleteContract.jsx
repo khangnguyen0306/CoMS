@@ -3,10 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Input, Button, Modal, List, Select, message, Skeleton, Card, Empty, Image, Pagination, Row, Col, Spin } from 'antd';
 import 'tailwindcss/tailwind.css';
 import { DeleteFilled, RedoOutlined } from '@ant-design/icons';
-import { useGetBussinessInformatinQuery } from '../../services/BsAPI';
 import TrashIcon from '../../assets/Image/delete.svg'
 import { useDeleteContractMutation, useGetAllContractQuery, useGetContractDetailQuery, useReStoreContractMutation } from '../../services/ContractAPI';
-
 import { useLazyGetTermDetailQuery } from '../../services/ClauseAPI';
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
@@ -25,13 +23,12 @@ const DeletedContract = () => {
     const [allContractTypes, setAllContractTypes] = useState([]);
     const [visible, setVisible] = useState(false);
     const [selectedContract, setSelectedContract] = useState(null);
-    const { data: bsInfor, isLoading: isLoadingBSInfo, isError: BsDataError } = useGetBussinessInformatinQuery();
     const { data: contractData, isLoading: loadingTemplate, isError: DataError, refetch } = useGetAllContractQuery(queryParams);
     const { data: contractDetail, isLoading: isLoadingcontractDetail, isError: isErrorcontractDetail } =
         useGetContractDetailQuery(selectedContract, { skip: !selectedContract });
     const [fetchTerms] = useLazyGetTermDetailQuery();
 
-    console.log('contractDetail', contractDetail?.data)
+    // console.log('contractDetail', contractDetail?.data)
     const [deleteContract] = useDeleteContractMutation()
     const [restoreContract, { isLoading: loadingRestore }] = useReStoreContractMutation()
 
@@ -223,7 +220,11 @@ const DeletedContract = () => {
     if (isLoadingcontractDetail) return <Skeleton active />;
 
 
-    if (loadingTemplate) return <Skeleton active />;
+    if (loadingTemplate) return (
+        <div className='flex justify-center items-center min-h-[100vh]'>
+            <Skeleton active />;
+        </div>
+    );
     if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
     return (
         <div className="p-4 min-h-[100vh]">
@@ -301,7 +302,7 @@ const DeletedContract = () => {
                 open={visible}
                 onCancel={() => setVisible(false)}
                 footer={false}
-                loading={isLoadingcontractDetail && isLoadingBSInfo}
+                loading={isLoadingcontractDetail}
                 width="80%"
             >
                 {selectedContract && (

@@ -32,7 +32,7 @@ const BussinessInfor = () => {
                 taxCode: Data.data.taxCode || '',
                 address: Data.data.address || '',
                 representativeName: Data.data.spokesmanName || '',
-                representativeTitle: Data.data.position || '', 
+                representativeTitle: Data.data.position || '',
                 phone: Data.data.phone || '',
                 email: Data.data.email || '',
                 bankAccounts: Data.data.banking || [{ bankName: '', backAccountNumber: '' }],
@@ -59,7 +59,7 @@ const BussinessInfor = () => {
             phone: values.phone,
             email: values.email,
             banking: values.bankAccounts,                     // sử dụng key banking thay vì bankAccounts
-            // Nếu không có partnerType trong form, có thể lấy từ initialValues hoặc gán mặc định (ví dụ: PARTY_B)
+            position: values.representativeTitle,
             partnerType: initialValues.partnerType || 'PARTY_B'
         };
 
@@ -69,8 +69,9 @@ const BussinessInfor = () => {
             const result = await updateInformation({ id: 1, ...payload }).unwrap();
             if (result.status === "OK") {
                 message.success('Thông tin đã được cập nhật thành công!');
+                // form.resetFields()
                 refetch();
-                form.resetFields()
+
                 setIsEditing(false);
             } else {
                 message.error(result.data.message)
@@ -117,7 +118,7 @@ const BussinessInfor = () => {
                                 label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                     <FaHouseUser fontSize={20} /> Tên doanh nghiệp:</p>}
                                 name="businessName"
-                                rules={[{ required: true, message: 'Vui lòng nhập tên doanh nghiệp!' }]}
+                                rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên doanh nghiệp!' }]}
                             >
                                 <Input placeholder="Tên đầy đủ của doanh nghiệp" />
                             </Form.Item>
@@ -125,12 +126,25 @@ const BussinessInfor = () => {
                                 label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                     <MdConfirmationNumber fontSize={20} /> Mã số thuế:</p>}
                                 name="taxCode"
-                                rules={[{ required: true, message: 'Vui lòng nhập mã số thuế!' }]}
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập mã số thuế!' },
+                                    {
+                                        validator: (_, value) => {
+                                            if (!value || value.length === 10 || value.length === 13) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(new Error('Mã số thuế phải có 10 hoặc 13 số!'));
+                                        }
+                                    }
+                                ]}
                             >
-                                <Input placeholder="Mã định danh của doanh nghiệp" />
+                                <Input placeholder="Mã số thuế của doanh nghiệp" />
                             </Form.Item>
-                            <Form.Item label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                <FaMapMarkerAlt fontSize={20} /> Địa chỉ trụ sở chính:</p>} name="address">
+                            <Form.Item
+                                label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                                    rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên doanh nghiệp!' }]}
+                                >
+                                    <FaMapMarkerAlt fontSize={20} /> Địa chỉ trụ sở chính:</p>} name="address">
                                 <Input placeholder="Địa chỉ liên lạc chính thức" />
                             </Form.Item>
                             <Row gutter={16}>
@@ -151,12 +165,37 @@ const BussinessInfor = () => {
                                     </Form.Item>
                                 </Col>
                             </Row>
-                            <Form.Item label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                <FaPhone fontSize={20} /> Số điện thoại:</p>} name="phone">
+                            <Form.Item
+                                label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    <FaPhone fontSize={20} /> Số điện thoại:</p>}
+                                name="phone"
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                                    {
+                                        validator: (_, value) => {
+                                            const phoneRegex = /^[0-9]{10,15}$/; // Adjust the regex as needed
+                                            if (!value || phoneRegex.test(value)) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(new Error('Số điện thoại không hợp lệ!'));
+                                        }
+                                    }
+                                ]}
+                            >
                                 <Input placeholder="Số điện thoại liên hệ chính" />
                             </Form.Item>
-                            <Form.Item label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                <FaEnvelope fontSize={20} /> Email:</p>} name="email">
+                            <Form.Item
+                                label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    <FaEnvelope fontSize={20} /> Email:</p>}
+                                name="email"
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập email!' },
+                                    {
+                                        type: 'email',
+                                        message: 'Email không hợp lệ!',
+                                    },
+                                ]}
+                            >
                                 <Input placeholder="Email chính thức" />
                             </Form.Item>
                             <div className='mb-4'>
@@ -188,8 +227,8 @@ const BussinessInfor = () => {
                             </Form.Item>
                         </Form>
                     ) : (
-                        <div className={`w-full ml-[60px] rounded-lg p-6 ${isDarkMode ? "bg-[#222222]" : "bg-[#fffff]"}`}>
-                            <div className="text-right mb-4 absolute top-0 right-0">
+                        <div className={`w-full ml-[60px] rounded-lg p-10 ${isDarkMode ? "bg-[#222222]" : "bg-[#fffff]"}`}>
+                            <div className="text-right mb-2 absolute top-0 right-0">
                                 <Button
                                     icon={<FaEdit />}
                                     type="primary"
@@ -199,8 +238,8 @@ const BussinessInfor = () => {
                                     Chỉnh sửa
                                 </Button>
                             </div>
-                            <Row gutter={[16, 24]} className=''>
-                                <Col xs={24} md={12} className='w-fit flex flex-col gap-4'>
+                            <Row gutter={[16, 24]} justify={"center"}>
+                                <Col xs={24} md={10} className='w-fit flex flex-col gap-5'>
                                     <div>
                                         <p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                             <FaHouseUser fontSize={20} /> Tên doanh nghiệp:
@@ -241,7 +280,7 @@ const BussinessInfor = () => {
                                             <FaUser fontSize={20} /> Chức danh:
                                         </p>
                                         <p className={`ml-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            {initialValues.representativeTitle || 'Chưa có thông tin'}
+                                            {initialValues.position || 'Chưa có thông tin'}
                                         </p>
                                     </div>
                                     <div>
