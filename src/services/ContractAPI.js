@@ -301,6 +301,13 @@ export const ContractAPI = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
         }),
+        setContractToPartner: builder.mutation({
+            query: ({ partnerContractId, partnerId }) => ({
+                url: `partner-contracts/set-to-partner/${partnerContractId}/${partnerId}`,
+                method: "PUT",
+            }),
+            invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
+        }),
 
 
     }),
@@ -337,5 +344,6 @@ export const {
     useGetImgSignQuery,
     useUploadContractOnlineSignedMutation,
     useSendReminderContractMutation,
-    useGetContractNearExpiredQuery
+    useGetContractNearExpiredQuery,
+    useSetContractToPartnerMutation,
 } = ContractAPI;

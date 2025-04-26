@@ -1,9 +1,9 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Image, Layout, Menu, notification, theme, Modal, Badge, Avatar, Skeleton } from "antd";
-import { AuditOutlined, CheckCircleFilled, LoginOutlined, MenuOutlined, TagsOutlined, UserOutlined } from "@ant-design/icons";
+import { AuditOutlined, CheckCircleFilled, FacebookFilled, InstagramFilled, LinkedinFilled, LoginOutlined, MailFilled, MenuOutlined, PhoneFilled, TagsOutlined, TwitterCircleFilled, UserOutlined } from "@ant-design/icons";
 import React, { useCallback, useState } from "react";
 import { Footer, Header } from "antd/es/layout/layout";
-import { FaUserTie } from "react-icons/fa";
+import { FaExternalLinkAlt, FaExternalLinkSquareAlt, FaMapPin, FaUserTie } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { FaFileContract } from "react-icons/fa";
@@ -547,17 +547,100 @@ const MainLayout = () => {
 
           {/* Phần footer */}
 
-          <Footer
-            style={{
-              textAlign: 'center',
-              marginBottom: -25,
-              paddingBottom: 15,
-            }}
-          >
-            Ant Design ©{new Date().getFullYear()} Created by Khang
+          <Footer className="bg-blue-50 border-t border-blue-100 mt-auto">
+            <div className="container mx-auto px-4 py-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center mb-2">
+                    <Image
+                      preview={false}
+                      src={LOGO}
+                      height={60}
+                      width={60}
+                      className="cursor-pointer p-2"
+                      onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : user?.roles[0] == "ROLE_MANAGER" ? "/manager/dashboard" : '/contract')}
+                      alt="Logo"
+                    />
+                    <h3 className="text-lg font-semibold text-blue-800">CoMS</h3>
+                  </div>
+                  <p className="text-gray-600 text-sm">Hệ thống quản lý hợp đồng toàn diện, giúp doanh nghiệp của bạn quản lý hiệu quả các hợp đồng và đối tác.</p>
+                  <div className="flex space-x-3 mt-2">
+                    <a href="#" className="text-blue-500 hover:text-blue-700">
+                      <FacebookFilled size={18} />
+                    </a>
+                    <a href="#" className="text-blue-500 hover:text-blue-700">
+                      <TwitterCircleFilled size={18} />
+                    </a>
+                    <a href="#" className="text-blue-500 hover:text-blue-700">
+                      <LinkedinFilled size={18} />
+                    </a>
+                    <a href="#" className="text-blue-500 hover:text-blue-700">
+                      <InstagramFilled size={18} />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex flex-col space-y-3">
+                  <h3 className="text-md font-semibold text-blue-800 mb-2">Liên kết nhanh</h3>
+                  <a href="/contract" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                    <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý hợp đồng
+                  </a>
+                  <a href="/partner" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                    <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý đối tác
+                  </a>
+                  <a href="/clause" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                    <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý điều khoản
+                  </a>
+                  <a href="/appendix" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                    <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý phụ lục
+                  </a>
+                </div>
+
+                <div className="flex flex-col space-y-3 -ml-10">
+                  <h3 className="text-md font-semibold text-blue-800 mb-2">Liên hệ</h3>
+                  <p className="text-gray-600 text-sm flex items-start">
+                    <FaMapPin size={16} className="mr-2 mt-1 flex-shrink-0" />
+                    <span>Lô E2a-7, Đường D1 Khu Công nghệ cao, P. Long Thạnh Mỹ, TP. Thủ Đức, TP. Hồ Chí Minh</span>
+                  </p>
+                  <p className="text-gray-600 text-sm flex items-center">
+                    <PhoneFilled size={16} className="mr-2 flex-shrink-0" />
+                    <span>0906782333</span>
+                  </p>
+                  <p className="text-gray-600 text-sm flex items-center">
+                    <MailFilled size={16} className="mr-2 flex-shrink-0" />
+                    <span>anndh2@fe.edu.vn</span>
+                  </p>
+                </div>
+
+                <div className="flex flex-col space-y-3">
+                  <h3 className="text-md font-semibold text-blue-800 mb-2">Đăng ký nhận tin</h3>
+                  <p className="text-gray-600 text-sm">Nhận thông tin cập nhật về tính năng mới và khuyến mãi</p>
+                  <div className="flex mt-2">
+                    <input
+                      type="email"
+                      className="px-3 py-2 bg-white border border-blue-200 rounded-l-md w-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Email của bạn"
+                    />
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r-md text-sm">
+                      Gửi
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-blue-100 mt-6 pt-4">
+                <div className="flex flex-col md:flex-row justify-between items-center">
+                  <p className="text-gray-600 text-sm">
+                    &copy; {new Date().getFullYear()} CoMS - Hệ thống quản lý hợp đồng. Tất cả quyền được bảo lưu.
+                  </p>
+                  <div className="flex space-x-4 mt-3 md:mt-0">
+                    <a className="text-gray-600 hover:text-blue-500 text-sm">Điều khoản sử dụng</a>
+                    <a className="text-gray-600 hover:text-blue-500 text-sm">Chính sách bảo mật</a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </Footer>
-
-
 
         </Layout>
 

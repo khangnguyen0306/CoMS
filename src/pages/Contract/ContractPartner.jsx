@@ -37,6 +37,7 @@ import {
     useDeleteContractPartnerMutation,
     useGetContractPartnerQueryQuery,
     useGetImgBillQuery,
+    useSetContractToPartnerMutation,
     useUpdateContractPartnerMutation,
 } from "../../services/ContractAPI";
 import { validationPatterns } from "../../utils/ultil";
@@ -169,11 +170,14 @@ const statusContract = {
 
 const ContractPartner = () => {
     const { Panel } = Collapse;
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+
     const [uploadFilePDF, { isLoading: uploadLoading }] = useUploadFilePDFMutation();
     const [createContractPartner] = useCreateContractPartnerMutation();
     const [updateContractPartner] = useUpdateContractPartnerMutation();
     const [deleteContractPartner] = useDeleteContractPartnerMutation();
     const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
+    const [setContractToPartner, { isLoading: LoadingContractPartner }] = useSetContractToPartnerMutation();
     const [searchText, setSearchText] = useState("");
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(10);
@@ -189,7 +193,10 @@ const ContractPartner = () => {
     const [paymentId, setPaymentId] = useState(null);
     const [hoveredIndex, setHoveredIndex] = useState(null);
 
+    const [partnerID, setPartnerID] = useState(null);
+    const [contractID, setContractID] = useState(null);
     const [Loading, setLoading] = useState(false);
+    const [isLoadingCreate, setIsLoadingCreate] = useState(false);
     const [extractedData, setExtractedData] = useState(null);
     const [bankAccounts, setBankAccounts] = useState([{ bankName: '', backAccountNumber: '' }]);
     const [newCustomerData, setNewCustomerData] = useState(null);
@@ -201,6 +208,8 @@ const ContractPartner = () => {
         page: page - 1,
         size
     });
+
+    console.log("partner", partnerID)
 
     const user = useSelector(selectCurrentUser);
 
@@ -353,6 +362,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     // Hàm submit tạo hợp đồng
     const handleSubmit = async () => {
+        setIsLoadingCreate(true);
         const formData = new FormData();
         fileList.forEach((file) => {
             formData.append("file", file);
@@ -401,7 +411,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             if (values.paymentSchedules && Array.isArray(values.paymentSchedules)) {
                 values.paymentSchedules = values.paymentSchedules.map((schedule) => ({
                     ...schedule,
-                    amountItem: total * (Number(schedule.paymentPercentage) || 0) / 100,
+                    amountItem: schedule.amount,
                     paymentDate: schedule.paymentDate
                         ? [
                             schedule.paymentDate.year(),
@@ -419,6 +429,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
             const res = await createContractPartner(values).unwrap();
             console.log("Create contract response:", res);
+            setContractID(res.data.partnerContractId);
             message.success("Hợp đồng đã được tạo thành công!");
 
 
@@ -426,6 +437,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
             console.error(error);
             message.error("Lỗi khi xử lý file hoặc tạo hợp đồng.");
         } finally {
+            setIsLoadingCreate(false);
             refetch();
             setIsModalVisible(false);
             form.resetFields();
@@ -667,28 +679,61 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     const handleOk = async () => {
         try {
             const values = await formPartner.validateFields();
-            const bankingInfo = bankAccounts.map(account => ({
-                bankName: account.bankName,
-                backAccountNumber: account.backAccountNumber,
+            const bankingInfo = bankAccounts.map(acc => ({
+                bankName: acc.bankName,
+                backAccountNumber: acc.backAccountNumber,
             }));
             const newPartnerData = {
                 ...values,
                 partnerType: "PARTNER_A",
                 banking: bankingInfo,
             };
-            console.log(newPartnerData);
+
+            console.log("Creating partner with:", newPartnerData);
             const result = await CreatePartner(newPartnerData).unwrap();
             console.log("Create partner result:", result);
-            if (result.status === "CREATED") {
-                message.success('Thêm mới thành công!');
-                setIsModalPartner(false);
-                formPartner.resetFields();
-                setBankAccounts([{ bankName: '', backAccountNumber: '' }]);
-            } else {
-                message.error('Thêm mới thất bại vui lòng thử lại!');
+
+            if (result.status !== "CREATED") {
+                message.error("Thêm mới thất bại, vui lòng thử lại!");
+                return;
             }
+
+            const newPartnerId = result.data.partyId;
+            message.success("Thêm mới thành công!");
+            setPartnerID(newPartnerId);
+            setIsModalPartner(false);
+            formPartner.resetFields();
+            setBankAccounts([{ bankName: "", backAccountNumber: "" }]);
+
+            if (contractID && newPartnerId) {
+                try {
+                    console.log("Bắt đầu gán hợp đồng", contractID, newPartnerId);
+                    const assignRes = await setContractToPartner({
+                        partnerContractId: contractID,
+                        partnerId: newPartnerId,
+                    }).unwrap();
+                    console.log("Set contract to partner result:", assignRes);
+
+                    if (assignRes.status === "OK") {
+                        message.success("Gán hợp đồng thành công!");
+                    } else {
+                        message.error("Gán hợp đồng thất bại!");
+                    }
+                } catch (assignError) {
+                    console.error("Lỗi khi gán hợp đồng:", assignError);
+                    message.error("Không thể gán hợp đồng. Vui lòng thử lại!");
+                } finally {
+                    refetch();
+                }
+            } else {
+                console.warn("Thiếu contractID hoặc partnerID, bỏ qua gán hợp đồng.");
+            }
+
         } catch (error) {
             console.error("Error creating partner:", error);
+            message.error(
+                error?.data?.message || "Lỗi tạo đối tác. Vui lòng kiểm tra lại!"
+            );
         }
     };
 
@@ -997,26 +1042,26 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     <Collapse
                                         bordered
                                         accordion
-                                        className="bg-[#fafafa] border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]"
+                                        className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
                                         onChange={(key) => setActivePanel(key)}
                                     >
                                         {record?.paymentSchedules.map((schedule, index) => (
                                             <Panel
                                                 key={schedule.id || index}
                                                 header={
-                                                    <div className="flex items-center justify-between w-full">
+                                                    <div className={`${isDarkMode ? '!text-white' : '!text-black'} flex items-center justify-between w-full`}>
                                                         {/* Số tiền */}
 
                                                         <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
                                                             <span
-                                                                className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                                className="font-bold  text-lg whitespace-nowrap overflow-hidden text-ellipsis"
                                                                 style={{ maxWidth: "250px" }}
                                                             >
                                                                 {schedule.amount.toLocaleString()} VND
                                                             </span>
                                                         </Tooltip>
                                                         {/* Ngày thanh toán */}
-                                                        <span className="text-base text-gray-800">
+                                                        <span className="text-base ">
                                                             {schedule.paymentDate
                                                                 ? dayjs(
                                                                     new Date(
@@ -1153,7 +1198,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     open={isModalVisible}
                     onCancel={closeModel}
                     footer={null}
-                    width={600}
+                    width="90%"
                 >
                     <Form form={formUpload} layout="vertical">
                         <Form.Item>
@@ -1591,7 +1636,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
 
                         <Form.Item>
-                            <Button disabled={Loading} type="primary" htmlType="submit">
+                            <Button disabled={isLoadingCreate} type="primary" htmlType="submit">
                                 Tạo hợp đồng
                             </Button>
                         </Form.Item>

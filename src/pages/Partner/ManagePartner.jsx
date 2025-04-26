@@ -264,7 +264,7 @@ const ManagePartner = () => {
                     {text}
                 </Link>
             ),
-            width: '200px',
+            width: '400px',
         },
         {
             title: 'Mã số thuế',
