@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Input, Button, Modal, List, Select, message, Skeleton, Card, ConfigProvider, Tag, Popover, Typography, Form, Tabs, Divider, Upload } from 'antd';
 import 'tailwindcss/tailwind.css';
 import { DeleteFilled, DownloadOutlined, EditFilled, PlusCircleFilled, UploadOutlined } from '@ant-design/icons';
-import { useGetClauseManageQuery, useLazyGetAllClauseByUserQuery, useUpdateClauseMutation } from '../../services/ClauseAPI';
+import { useGetClauseManageQuery, useLazyGetAllClauseByUserQuery, useLazyGetAllLegalByUserQuery, useUpdateClauseMutation } from '../../services/ClauseAPI';
 import { useGetAllTypeClauseQuery, useCreateClauseMutation, useGetLegalQuery, useDeleteClauseMutation } from '../../services/ClauseAPI';
 import TabPane from 'antd/es/tabs/TabPane';
 import dayjs from 'dayjs';
@@ -16,10 +16,12 @@ const { Search } = Input;
 
 const ManageClause = () => {
     const [searchTermClause, setSearchTermClause] = useState('');
+    const [searchTermUserLegal, setSearchTermUserLegal] = useState('');
     const [searchTermLegal, setSearchTermLegal] = useState('');
     const [selectedType, setSelectedType] = useState('');
     const [sortOrderClause, setSortOrderClause] = useState('desc');
     const [sortOrderClauseUser, setSortOrderClauseUser] = useState('desc');
+    const [sortOrderLegalUser, setSortOrderLegalUser] = useState('desc');
     const [sortByClause, setSortByClause] = useState('id');
     const [sortOrderLegal, setSortOrderLegal] = useState('desc');
     const [activeTab, setActiveTab] = useState("1");
@@ -39,6 +41,8 @@ const ManageClause = () => {
     const [searchTermUserClause, setSearchTermUserClause] = useState('');
     const [pageUserClause, setPageUserClause] = useState(0);
     const [pageSizeUserClause, setPageSizeUserClause] = useState(10);
+    const [pageUserLegal, setPageUserLegal] = useState(0);
+    const [pageSizeUserLegal, setPageSizeUserLegal] = useState(10);
     const [userTypeFilter, setUserTypeFilter] = useState('');
 
 
@@ -54,6 +58,7 @@ const ManageClause = () => {
     const { data: typeContractData, isLoading: loadingTypeContract, refetch } = useGetContractTypeQuery();
     const { data: typeData, isLoading: loadingType } = useGetAllTypeClauseQuery();
     const [getClauseByUserData, { data: ClauseByUserData, isLoading: isLoadingClause }] = useLazyGetAllClauseByUserQuery()
+    const [getLegalByUserData, { data: LegalByUserData, isLoading: isLoadingLegal }] = useLazyGetAllLegalByUserQuery()
     const [createContractType, { isLoading: loadingCreateType }] = useCreateContractTypeMutation();
     const [editContractType, { isLoading: loadingEdit }] = useEditContractTypeMutation();
     const [createClause, { isLoading: loadingCreate }] = useCreateClauseMutation();
@@ -134,8 +139,16 @@ const ManageClause = () => {
                 typeTermIds: userTypeFilter,
                 order: sortOrderClauseUser
             });
+        } else if (activeTab === "5") {
+            getLegalByUserData({
+                page: pageUserLegal,
+                size: pageSizeUserLegal,
+                keyword: searchTermUserLegal,
+                typeTermIds: 8,
+                order: sortOrderLegalUser
+            });
         }
-    }, [activeTab, pageUserClause, pageSizeUserClause, searchTermUserClause, sortOrderClauseUser]);
+    }, [activeTab, pageUserClause, pageSizeUserClause,pageSizeUserLegal,pageUserLegal, searchTermUserClause, searchTermUserLegal, userTypeFilter, sortOrderLegalUser, sortOrderClauseUser]);
 
     const sortedClause = clauseData?.data?.content
         ?.slice()
@@ -211,7 +224,7 @@ const ManageClause = () => {
         try {
 
             const values = await formContractType.validateFields();
-            console.log("values", values);
+            // console.log("values", values);
             const processedValues = {
                 ...values,
                 name: values.name ? values.name.charAt(0).toUpperCase() + values.name.slice(1) : values.name,
@@ -246,15 +259,16 @@ const ManageClause = () => {
 
 
     const handleSubmitAddClause = async (values) => {
-        console.log(values)
+        // console.log(values)
         try {
             const result = await createClause({ typeTermId: values.type, label: values.label, value: values.value }).unwrap();
-            console.log(result)
+            // console.log(result)
             if (result.status == "CREATED") {
                 message.success("Tạo điều khoản thành công");
                 refetchClause();
-                getClauseByUserData({ page: 0, size: 10 })
                 refetchLegal();
+                getClauseByUserData({ page: 0, size: 10 })
+                getLegalByUserData({ page: 0, size: 10,typeTermIds: 8 })
                 setIsModalOpenAdd(false);
                 setIsModalOpenAddLegal(false);
                 formCreate.resetFields();
@@ -290,7 +304,7 @@ const ManageClause = () => {
         try {
             const typeTermId = await getTypeTermId(values.type);
             setIdClauseToEdit(typeTermId)
-            console.log("typeTermId", idClauseToEdit)
+            // console.log("typeTermId", idClauseToEdit)
 
             const updatedData = await updateClause({ termId: values.id, label: values.label, value: values.value, typeTermId: idClauseToEdit }).unwrap();
             console.log(updatedData)
@@ -300,6 +314,7 @@ const ManageClause = () => {
                 setIdClauseToEdit('')
                 message.success("Cập nhật điều khoản thành công!");
                 getClauseByUserData({ page: 0, size: 10 })
+                getLegalByUserData({ page: 0, size: 10,typeTermIds: 8 })
                 refetchClause();
                 refetchLegal();
                 form.resetFields();
@@ -320,9 +335,10 @@ const ManageClause = () => {
 
                     if (result.data) {
                         // Thành công
-                        console.log(result);
+                        // console.log(result);
                         refetchClause();
                         getClauseByUserData({ page: 0, size: 10 })
+                        getLegalByUserData({ page: 0, size: 10 , typeTermIds: 8})
                         refetchLegal();
                         message.success(result.data.message || 'Xóa thành công');
                     } else if (result.error && result.error.status === 409) {
@@ -351,6 +367,9 @@ const ManageClause = () => {
     const handleSortByCreatedAtUser = () => {
         setSortByClause('id');
         setSortOrderClauseUser(sortOrderClauseUser === 'asc' ? 'desc' : 'asc');
+    };
+    const handleSortByCreatedAtUserLegal = () => {
+        setSortOrderLegalUser(sortOrderLegalUser === 'asc' ? 'desc' : 'asc');
     };
 
     // const handleSortByContractCount = () => {
@@ -400,7 +419,7 @@ const ManageClause = () => {
     };
 
 
-    if (loadingClause || loadingType || loadingLegal || loadingTypeContract)
+    if (loadingClause || loadingType || loadingLegal || loadingTypeContract || isLoadingLegal)
         return (
             <div className='flex justify-center items-center min-h-[100vh]'>
                 <Skeleton active />;
@@ -628,110 +647,7 @@ const ManageClause = () => {
                         />
 
                     </div>
-                    <Modal
-                        title="Thêm điều khoản"
-                        open={isModalOpenAdd}
-                        onCancel={() => {
-                            formCreate.resetFields();
-                            setIsModalOpenAdd(false);
-                        }}
-                        footer={null}
-                        width={600}
-                    >
-                        <Form
-                            form={formCreate}
-                            layout="vertical"
-                            onFinish={(values) => {
-                                handleSubmitAddClause(values)
-                            }}
-                        >
-                            <Form.Item
-                                name="label"
-                                label="Tên điều khoản"
-                                rules={[
-                                    { required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }
-                                ]}
-                            >
-                                <Input placeholder="Nhập tên điều khoản" />
-                            </Form.Item>
 
-
-                            <Form.Item
-                                name="type"
-                                label="Loại điều khoản"
-                                rules={[{ required: true, message: "Vui lòng chọn loại điều khoản!" }]}
-                            >
-                                <Select placeholder="Chọn loại điều khoản">
-                                    {typeData?.data.map(item => (
-                                        <Option key={item.original_term_id} value={item.original_term_id}>
-                                            {item.name}
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-
-
-                            <Form.Item
-                                name="value"
-                                label="Nội dung"
-                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
-                            >
-                                <Input.TextArea rows={5} />
-                            </Form.Item>
-
-
-                            <Form.Item>
-                                <Button type="primary" htmlType="submit">
-                                    Tạo Điều Khoản
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Modal>
-
-                    <Modal
-                        title="Cập nhật điều khoản"
-                        open={isModalOpenClause}
-                        onCancel={() => {
-                            setIsModalOpenClause(false)
-                        }}
-                        footer={null}
-                    >
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            onFinish={(values) => handleSubmitUpdateClause(values)}
-                            onFinishFailed={(errorInfo) => {
-                                console.log('Failed:', errorInfo);
-                            }}
-                        >
-                            <Form.Item
-                                name="id"
-                            />
-
-                            <Form.Item
-                                name="label"
-                                label="Tên điều khoản"
-                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }]}
-                            >
-                                <Input placeholder="Nhập tên điều khoản" />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="value"
-                                label="Nội dung"
-                                rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
-                            >
-                                <Input.TextArea rows={5} />
-                            </Form.Item>
-
-
-                            <Form.Item>
-                                <Button loading={loadingUpdate} type="primary" htmlType="submit">
-                                    Cập Nhật Điều Khoản
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Modal>
                 </TabPane>
 
                 {/* Tab Căn cứ Pháp Lý */}
@@ -771,104 +687,7 @@ const ManageClause = () => {
                             </div>
                         </div>
 
-                        <Modal
-                            title="Thêm Căn cứ Pháp Lý"
-                            open={isModalOpenAddLegal}
-                            onCancel={() => {
-                                formCreateLegal.resetFields();
-                                setIsModalOpenAddLegal(false)
-                            }}
-                            footer={null}
-                        >
-                            <Form
-                                form={formCreateLegal}
-                                layout="vertical"
-                                onFinish={(values) => {
-                                    handleSubmitAddClause(values)
-                                }}
-                                initialValues={{
-                                    type: 8,
-                                }}
-                            >
-                                <Form.Item name="type" hidden>
-                                    <Input />
-                                </Form.Item>
 
-                                <Form.Item
-                                    name="label"
-                                    label="Tên căn cứ"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
-                                >
-                                    <Input placeholder="Nhập tên căn cứ" />
-                                </Form.Item>
-
-                                <Form.Item
-                                    name="value"
-                                    label="Nội dung"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
-                                >
-                                    <Input.TextArea rows={5} />
-                                </Form.Item>
-
-                                <Form.Item>
-                                    <Button loading={loadingCreate} type="primary" htmlType="submit">
-                                        Tạo Căn cứ
-                                    </Button>
-                                </Form.Item>
-                            </Form>
-                        </Modal>
-                        <Modal
-                            title="Cập Nhật Căn cứ"
-                            open={isModalOpenLegal}
-                            onCancel={() => {
-                                form.resetFields();
-                                setIsModalOpenLegal(false)
-                            }}
-                            footer={null}
-                        >
-                            <Form
-                                form={form}
-                                layout="vertical"
-                                onFinish={(values) => {
-                                    handleSubmitUpdateClause(values)
-                                }}
-                                onFinishFailed={(errorInfo) => {
-                                    console.log('Failed:', errorInfo);
-                                }}
-                                initialValues={{
-                                    type: 8,
-                                }}
-                            >
-                                <Form.Item name="type" hidden>
-                                    <Input type="hidden" />
-                                </Form.Item>
-
-                                <Form.Item
-                                    name="id"
-                                />
-                                <Form.Item
-                                    name="label"
-                                    label="Tên căn cứ"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
-                                >
-                                    <Input placeholder="Nhập tên căn cứ" />
-                                </Form.Item>
-
-                                <Form.Item
-                                    name="value"
-                                    label="Nội dung"
-                                    rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
-                                >
-                                    <Input.TextArea rows={5} />
-                                </Form.Item>
-
-                                <Form.Item>
-                                    <Button type="primary" htmlType="submit">
-                                        Cập Nhật Căn cứ
-                                    </Button>
-                                </Form.Item>
-                            </Form>
-                        </Modal>
                         <List
                             itemLayout="horizontal"
                             pagination={{
@@ -1270,6 +1089,182 @@ const ManageClause = () => {
                 </TabPane>
 
 
+                <TabPane tab="Căn cứ pháp lý của tôi" key="5">
+                    <div className="p-4 min-h-[100vh]">
+                        <div className='font-bold mb-10  text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                            <div className="flex items-center gap-4">
+                                QUẢN LÝ CĂN CỨ PHÁP LÝ CỦA TÔI
+                            </div>
+                        </div>
+
+                        <div className='flex justify-between w-full gap-4 mb-2'>
+
+                            <div className='flex gap-2 w-[80%]'>
+                                <Search
+                                    placeholder="Tìm kiếm tên căn cứ hoặc nội dung"
+                                    onSearch={setSearchTermUserLegal}
+                                    enterButton="tìm kiếm"
+                                    allowClear
+                                    className="mb-4 max-w-[500px]"
+                                />
+
+                                {/* Nút sắp xếp theo Ngày tạo */}
+                                <button
+                                    onClick={handleSortByCreatedAtUserLegal}
+                                    className={`mb-4 h-[32px] flex items-center gap-2 font-semibold py-2 px-4 rounded shadow-md transition duration-200 ${sortOrderClauseUser === 'asc'
+                                        ? 'bg-red-500 hover:bg-red-600'
+                                        : 'bg-blue-500 hover:bg-blue-600'
+                                        }`}
+                                >
+                                    <span className="text-white opacity-100">
+                                        {sortOrderLegalUser === 'asc' ? 'Cũ nhất' : 'Mới nhất'}
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div className='flex justify-end w-full gap-4'>
+                                <Button
+                                    type="primary"
+                                    onClick={openAddLagelModal}
+                                    className="mb-4"
+                                    icon={<PlusCircleFilled />}
+                                >
+                                    Thêm Căn cứ
+                                </Button>
+                            </div>
+                        </div>
+                        {isLoadingLegal ? (
+                            <Skeleton active />
+                        ) : (
+                            <List
+                                itemLayout="horizontal"
+                                pagination={{
+                                    current: pageUserLegal + 1,
+                                    pageSize: pageSizeUserLegal,
+                                    total: LegalByUserData?.data?.totalElements || 0,
+                                    onChange: (newPage, newPageSize) => {
+                                        setPageUserLegal(newPage - 1);
+                                        setPageSizeUserLegal(newPageSize);
+                                    },
+                                }}
+                                dataSource={LegalByUserData?.data?.content}
+                                renderItem={clause => (
+                                    <Popover
+                                        content={
+                                            <Card
+                                                bordered
+                                                className="shadow-lg rounded-lg min-w-[650px] max-w-[50vw]"
+                                            >
+                                                <p className="text-blue-600 text-base font-bold">{clause.label.toUpperCase()}</p>
+                                                <div className="mt-2 space-y-1 flex flex-col gap-2">
+                                                    <p>
+                                                        <Text strong>Mã: </Text> {clause.clauseCode}
+                                                    </p>
+                                                    <p>
+                                                        <Text strong>Loại: </Text> <Tag color={colorMap[clause.type] || "default"} className="w-fit">
+                                                            {clause.type}
+                                                        </Tag>
+                                                    </p>
+                                                    {/* <p>
+                                                    <Text strong>Tên: </Text> 
+                                                </p> */}
+                                                    <p>
+                                                        <Text strong>Nội dung: </Text> {clause.value}
+                                                    </p>
+                                                    <p>
+                                                        <Text strong>Ngày tạo: </Text>{dayjs(new Date(
+                                                            clause.createdAt[0],
+                                                            clause.createdAt[1] - 1,
+                                                            clause.createdAt[2]
+                                                        )).format("DD/M/YYYY")}
+                                                    </p>
+                                                </div>
+                                            </Card>
+
+                                        }
+                                        placement="bottomRight"
+                                        trigger="hover"
+                                    >
+                                        <List.Item
+                                            style={{ cursor: 'default' }}
+                                            // onClick={() => showModal(clause)}
+                                            className="hover:shadow-lg rounded-md shadow-sm mb-2 cursor-pointer"
+                                            actions={[
+                                                <div className="flex flex-col items-center gap-2 mr-3">
+                                                    <div className="flex gap-3 mb-3">
+                                                    <Button
+                                                        type="primary"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleUpdateLegal(clause.clauseCode);
+                                                        }}
+                                                        className="flex items-center justify-center"
+
+                                                    >
+                                                        <EditFilled />
+                                                    </Button>
+                                                        <Button
+                                                            danger
+                                                            type="primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDelete(clause.id);
+                                                            }}
+                                                            className="flex items-center justify-center"
+                                                            loading={loadingDelete}
+                                                        >
+                                                            <DeleteFilled />
+                                                        </Button>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm mb-2">{calculateDaysAgo(clause.createdAt)}</p>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm mb-2">Có {clause.contractCount} hợp đồng đang dùng điều khoản này</p>
+                                                    </div>
+                                                </div>
+
+                                            ]}
+                                        >
+                                            <List.Item.Meta
+                                                className="px-7 py-4"
+                                                title={
+                                                    <div className="flex flex-row items-center gap-8">
+                                                        {/* Cột mã điều khoản */}
+                                                        <div className=" flex flex-col items-center min-w-[100px]">
+                                                            <p>Mã ĐK</p>
+                                                            <p className="font-bold text-base">{clause.clauseCode}</p>
+                                                        </div>
+                                                        {/* Cột thông tin điều khoản (loại và tên) */}
+                                                        <div className="flex flex-col gap-[6px]">
+                                                            <Tag color={colorMap[clause.type] || "default"} className="w-fit">
+                                                                {clause.type}
+                                                            </Tag>
+                                                            <p className="text-[#3378cc] font-bold text-base">{clause.label}</p>
+                                                            <p className="text-gray-400 text-sm">Nội dung: {clause.value.length > 200 ? `${clause.value.substring(0, 200)}...` : clause.value}</p>
+                                                            <p className="text-gray-400 text-sm">
+                                                                Ngày tạo: {dayjs(new Date(
+                                                                    clause.createdAt[0],
+                                                                    clause.createdAt[1] - 1,
+                                                                    clause.createdAt[2]
+                                                                )).format("DD/M/YYYY")}
+                                                            </p>
+
+
+                                                        </div>
+                                                    </div>
+                                                }
+                                            />
+                                        </List.Item>
+
+                                    </Popover>
+                                )}
+                            />
+                        )}
+                    </div>
+                </TabPane>
+
+
 
 
             </Tabs>
@@ -1329,6 +1324,209 @@ const ManageClause = () => {
                             Tải lên
                         </Button>
 
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            <Modal
+                title="Thêm Căn cứ Pháp Lý"
+                open={isModalOpenAddLegal}
+                onCancel={() => {
+                    formCreateLegal.resetFields();
+                    setIsModalOpenAddLegal(false)
+                }}
+                footer={null}
+            >
+                <Form
+                    form={formCreateLegal}
+                    layout="vertical"
+                    onFinish={(values) => {
+                        handleSubmitAddClause(values)
+                    }}
+                    initialValues={{
+                        type: 8,
+                    }}
+                >
+                    <Form.Item name="type" hidden>
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="label"
+                        label="Tên căn cứ"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                    >
+                        <Input placeholder="Nhập tên căn cứ" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="value"
+                        label="Nội dung"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
+                    >
+                        <Input.TextArea rows={5} />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button loading={loadingCreate} type="primary" htmlType="submit">
+                            Tạo Căn cứ
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+            <Modal
+                title="Cập Nhật Căn cứ"
+                open={isModalOpenLegal}
+                onCancel={() => {
+                    form.resetFields();
+                    setIsModalOpenLegal(false)
+                }}
+                footer={null}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={(values) => {
+                        handleSubmitUpdateClause(values)
+                    }}
+                    onFinishFailed={(errorInfo) => {
+                        console.log('Failed:', errorInfo);
+                    }}
+                    initialValues={{
+                        type: 8,
+                    }}
+                >
+                    <Form.Item name="type" hidden>
+                        <Input type="hidden" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="id"
+                    />
+                    <Form.Item
+                        name="label"
+                        label="Tên căn cứ"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
+                    >
+                        <Input placeholder="Nhập tên căn cứ" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="value"
+                        label="Nội dung"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung!" }]}
+                    >
+                        <Input.TextArea rows={5} />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Cập Nhật Căn cứ
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+            <Modal
+                title="Thêm điều khoản"
+                open={isModalOpenAdd}
+                onCancel={() => {
+                    formCreate.resetFields();
+                    setIsModalOpenAdd(false);
+                }}
+                footer={null}
+                width={600}
+            >
+                <Form
+                    form={formCreate}
+                    layout="vertical"
+                    onFinish={(values) => {
+                        handleSubmitAddClause(values)
+                    }}
+                >
+                    <Form.Item
+                        name="label"
+                        label="Tên điều khoản"
+                        rules={[
+                            { required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }
+                        ]}
+                    >
+                        <Input placeholder="Nhập tên điều khoản" />
+                    </Form.Item>
+
+
+                    <Form.Item
+                        name="type"
+                        label="Loại điều khoản"
+                        rules={[{ required: true, message: "Vui lòng chọn loại điều khoản!" }]}
+                    >
+                        <Select placeholder="Chọn loại điều khoản">
+                            {typeData?.data.map(item => (
+                                <Option key={item.original_term_id} value={item.original_term_id}>
+                                    {item.name}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+
+
+                    <Form.Item
+                        name="value"
+                        label="Nội dung"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
+                    >
+                        <Input.TextArea rows={5} />
+                    </Form.Item>
+
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Tạo Điều Khoản
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            <Modal
+                title="Cập nhật điều khoản"
+                open={isModalOpenClause}
+                onCancel={() => {
+                    setIsModalOpenClause(false)
+                }}
+                footer={null}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={(values) => handleSubmitUpdateClause(values)}
+                    onFinishFailed={(errorInfo) => {
+                        console.log('Failed:', errorInfo);
+                    }}
+                >
+                    <Form.Item
+                        name="id"
+                    />
+
+                    <Form.Item
+                        name="label"
+                        label="Tên điều khoản"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên điều khoản!" }]}
+                    >
+                        <Input placeholder="Nhập tên điều khoản" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="value"
+                        label="Nội dung"
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập mô tả!" }]}
+                    >
+                        <Input.TextArea rows={5} />
+                    </Form.Item>
+
+
+                    <Form.Item>
+                        <Button loading={loadingUpdate} type="primary" htmlType="submit">
+                            Cập Nhật Điều Khoản
+                        </Button>
                     </Form.Item>
                 </Form>
             </Modal>
