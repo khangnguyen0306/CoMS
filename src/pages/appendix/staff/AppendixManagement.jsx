@@ -49,7 +49,7 @@ const AppendixManagement = () => {
     const { data: dataSign, isLoading: LoadingImage, isError: ErrorImage, refetch: refetchImg } = useGetImgSignAppendixQuery({ id: selectedAppendixtId }, {
         skip: !selectedAppendixtId,
     });
-    console.log("hi", dataSign)
+    // console.log("hi", dataSign)
 
 
     const [deleteappendix] = useDeleteAppendixMutation()
@@ -123,17 +123,18 @@ const AppendixManagement = () => {
             title: 'Phụ lục sẽ được gửi lại để phê duyệt',
             onOk: async () => {
                 try {
-                    await resubmitAppendix(record.addendumId).unwrap();
-                } catch (error) {
-                    console.log(error)
-                    if (error.originalStatus == 200) {
-                        message.success(error.data);
+                    const result = await resubmitAppendix(record.addendumId).unwrap();
+
+                    if (result.status == "OK") {
+                        message.success(result.message);
                         refetch()
                     } else {
-                        const errorMessage = error?.data?.message?.split(": ")?.[1] || "Gửi yêu cầu phê duyệt phụ lục thất bại!";
+                        const errorMessage = result?.message?.split(": ")?.[1] || "Gửi yêu cầu phê duyệt phụ lục thất bại!";
                         message.error(errorMessage);
                     }
+                } catch (error) {
 
+                    console.log(error)
 
                 }
             },
@@ -148,6 +149,7 @@ const AppendixManagement = () => {
         'APPROVAL_PENDING': <Tag color="gold-inverse">Chờ phê duyệt</Tag>,
         'APPROVED': <Tag color="green-inverse">Đã phê duyệt</Tag>,
         'UPDATED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
+        'FIXED': <Tag color="blue-inverse">Đã cập nhật</Tag>,
         'REJECTED': <Tag color="red-inverse">Từ chối</Tag>,
         'SIGNED': <Tag color="purple-inverse">Đã ký</Tag>,
     }
@@ -264,16 +266,7 @@ const AppendixManagement = () => {
                             <Dropdown
                                 menu={{
                                     items: [
-                                        ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED" && record.status !== "SIGNED" && record.status !== "ACTIVE "
-                                            ? [{
-                                                key: "edit",
-                                                icon: <EditFilled style={{ color: '#228eff' }} />,
-                                                label: "Sửa",
-                                                onClick: () => navigate(`/EditAppendix/${record.contractId}/${record.addendumId}`),
-                                            }]
-                                            : []),
-                                        ////////////////////////////////////////////////////////////////////////////////////////////////// trạng thái
-                                        ...(record.status === "REJECTED" ? [
+                                        ...(record.status === "REJECTED" || record.status === "FIXED" ? [
                                             {
                                                 key: "select-process",
                                                 icon: <UndoOutlined style={{ color: "#ffcf48" }} />,
@@ -293,6 +286,14 @@ const AppendixManagement = () => {
                                                         </span>
                                                     ),
                                                 }] : []),
+                                        ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED" && record.status !== "SIGNED" && record.status !== "ACTIVE "
+                                            ? [{
+                                                key: "edit",
+                                                icon: <EditFilled style={{ color: '#228eff' }} />,
+                                                label: "Sửa",
+                                                onClick: () => navigate(`/EditAppendix/${record.contractId}/${record.addendumId}`),
+                                            }]
+                                            : []),
                                         ...(record.status == "SIGNED" && user.roles[0] == "ROLE_STAFF"
                                             ? [
                                                 {

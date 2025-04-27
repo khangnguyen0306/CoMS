@@ -45,6 +45,7 @@ const LazySelectContractTemplate = ({
                 <Select.Option
                     key={tl?.id}
                     value={tl?.id}
+                    title={tl?.contractTitle}
                 >
                     {tl.contractTitle}
                 </Select.Option>

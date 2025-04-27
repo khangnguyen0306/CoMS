@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Col, Row, Tabs, ConfigProvider } from "antd";
+import { Table, Input, Space, Button, message, Tag, Skeleton, Popover, Modal, Form, Select, Tooltip, Col, Row, Tabs, ConfigProvider, Empty, Card } from "antd";
 import { EditFilled, PlusOutlined, StarFilled, StopFilled } from "@ant-design/icons";
 import { VscVmActive } from "react-icons/vsc";
 import { useGetAllUserQuery, useBanUserMutation, useActiveUserMutation, useUpdateUserMutation, useAddUserMutation } from "../../services/UserAPI";
@@ -152,6 +152,13 @@ const UserManagement = () => {
         setRoleId(value);
     };
 
+    const roleTranslations = {
+        'ADMIN': 'Quản trị viên',
+        'STAFF': 'Nhân viên',
+        'MANAGER': 'Quản lý',
+        'DIRECTOR': 'Giám đốc'
+    };
+
     const columns = [
         {
             title: "Mã nhân viên",
@@ -206,8 +213,11 @@ const UserManagement = () => {
             dataIndex: "role",
             key: "role",
             filters: userData
-                ? Array.from(new Set(userData?.content?.map(user => user.role?.roleName))) // Lấy danh sách unique roles
-                    .map(roleName => ({ text: roleName, value: roleName }))
+                ? Array.from(new Set(userData?.content?.map(user => user.role?.roleName)))
+                    .map(roleName => ({
+                        text: roleTranslations[roleName] || roleName,
+                        value: roleName
+                    }))
                 : [],
             onFilter: (value, record) => record.role?.roleName === value,
             render: (role, record) => {
@@ -306,8 +316,13 @@ const UserManagement = () => {
         },
     ];
 
-    if (isLoading) return <Skeleton active />;
-    // if (isError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+    if (isLoading)
+        return (
+            <div className="flex min-h-[100vh] justify-center items-center">
+                <Skeleton active />
+            </div>
+        )
+    if (isError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
 
     return (
         <div className="min-h-[100vh] p-4">

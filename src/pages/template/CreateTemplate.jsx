@@ -2122,7 +2122,11 @@ const CreateTemplate = () => {
 
     useWarnOnLeave(shouldBlockNavigation);
 
-    if (isLoading || isLoadingType) return <Skeleton active />;
+    if (isLoading || isLoadingType) return (
+        <div className="flex min-h-[100vh] justify-center items-center">
+            <Skeleton active />
+        </div>
+    );
     if (isError) return <Card className="min-h-[100vh]"><Empty description="Không thể tải dữ liệu" /></Card>;
     if (!bsInfor) return <Card className="min-h-[100vh]"><Empty description="Không có dữ liệu để hiển thị" /></Card>;
 
@@ -2186,7 +2190,7 @@ const CreateTemplate = () => {
                     <Form.Item
                         name="legalLabel"
                         label="Tên căn cứ pháp lý"
-                        rules={[{ required: true, whitespace:true,message: "Vui lòng nhập tên căn cứ!" }]}
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập tên căn cứ!" }]}
                     >
                         <Input
                             value={newLegalBasis.name}
@@ -2195,7 +2199,7 @@ const CreateTemplate = () => {
                         />
                     </Form.Item>
                     <Form.Item
-                        rules={[{ required: true, whitespace:true,message: "Vui lòng nhập nội dung căn cứ!" }]}
+                        rules={[{ required: true, whitespace: true, message: "Vui lòng nhập nội dung căn cứ!" }]}
                         label="Nội dung"
                         name="legalContent"
                     >

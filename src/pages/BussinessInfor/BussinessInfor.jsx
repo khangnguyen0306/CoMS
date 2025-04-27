@@ -14,13 +14,13 @@ import { FaSave } from "react-icons/fa";
 import { useSelector } from 'react-redux';
 import { useEditPartnerMutation, useGetPartnerInfoDetailQuery } from '../../services/PartnerAPI';
 import { PlusOutlined } from '@ant-design/icons';
-
+import { SiWritedotas } from "react-icons/si";
 const BussinessInfor = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([{ bankName: '', backAccountNumber: '' }]);
     const [form] = Form.useForm();
     const { data: Data, isLoading, refetch } = useGetPartnerInfoDetailQuery({ id: 1 });
-    console.log(Data)
+    // console.log(Data)
     const initialValues = Data?.data || {};
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [updateInformation] = useEditPartnerMutation();
@@ -31,6 +31,7 @@ const BussinessInfor = () => {
                 businessName: Data.data.partnerName || '',
                 taxCode: Data.data.taxCode || '',
                 address: Data.data.address || '',
+                abbreviation: Data.data.abbreviation || '',
                 representativeName: Data.data.spokesmanName || '',
                 representativeTitle: Data.data.position || '',
                 phone: Data.data.phone || '',
@@ -60,7 +61,8 @@ const BussinessInfor = () => {
             email: values.email,
             banking: values.bankAccounts,                     // sử dụng key banking thay vì bankAccounts
             position: values.representativeTitle,
-            partnerType: initialValues.partnerType || 'PARTY_B'
+            partnerType: initialValues.partnerType || 'PARTY_B',
+            abbreviation: values.abbreviation,
         };
 
         console.log("Payload:", payload);
@@ -114,14 +116,28 @@ const BussinessInfor = () => {
                             onFinish={handleSave}
                             className={`shadow-md rounded-lg p-8 `}
                         >
-                            <Form.Item
-                                label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                    <FaHouseUser fontSize={20} /> Tên doanh nghiệp:</p>}
-                                name="businessName"
-                                rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên doanh nghiệp!' }]}
-                            >
-                                <Input placeholder="Tên đầy đủ của doanh nghiệp" />
-                            </Form.Item>
+                            <Row gutter={16} justify={"center"} className='flex items-center'>
+                                <Col xs={24} md={12}>
+                                    <Form.Item
+                                        label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                            <FaHouseUser fontSize={20} /> Tên doanh nghiệp:</p>}
+                                        name="businessName"
+                                        rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên doanh nghiệp!' }]}
+                                    >
+                                        <Input placeholder="Tên đầy đủ của doanh nghiệp" />
+                                    </Form.Item>
+                                </Col>
+                                <Col xs={24} md={12}>
+                                    <Form.Item
+                                        label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                            <SiWritedotas fontSize={20} /> Tên doanh nghiệp viết tắt:</p>}
+                                        name="abbreviation"
+                                        rules={[{ required: true, whitespace: true, message: 'Vui lòng nhập tên doanh nghiệp!' }]}
+                                    >
+                                        <Input placeholder="Tên đầy đủ của doanh nghiệp" />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
                             <Form.Item
                                 label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                     <MdConfirmationNumber fontSize={20} /> Mã số thuế:</p>}
@@ -147,7 +163,7 @@ const BussinessInfor = () => {
                                     <FaMapMarkerAlt fontSize={20} /> Địa chỉ trụ sở chính:</p>} name="address">
                                 <Input placeholder="Địa chỉ liên lạc chính thức" />
                             </Form.Item>
-                            <Row gutter={16}>
+                            <Row gutter={16} justify={"center"} className='flex items-center'>
                                 <Col xs={24} md={12}>
                                     <Form.Item
                                         label={<p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -275,6 +291,14 @@ const BussinessInfor = () => {
 
                                 </Col>
                                 <Col xs={24} md={12} className='w-fit flex flex-col gap-4'>
+                                    <div>
+                                        <p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                            <SiWritedotas fontSize={20} /> Tên doanh nghiệp viết tắt
+                                        </p>
+                                        <p className={`ml-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {initialValues.abbreviation || 'Chưa có thông tin'}
+                                        </p>
+                                    </div>
                                     <div>
                                         <p className={`font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                             <FaUser fontSize={20} /> Chức danh:
