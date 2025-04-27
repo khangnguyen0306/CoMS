@@ -90,8 +90,13 @@ const DeleteTemplate = () => {
 
 
 
-  if (loadingTemplate) return <Skeleton active />;
+  if (loadingTemplate) return (
+    <div className="flex min-h-[100vh] justify-center items-center">
+      <Skeleton active />
+    </div>
+  );
   if (DataError) return <Card><Empty description="Không thể tải dữ liệu" /></Card>;
+
   return (
     <div className="p-4 min-h-[100vh]">
       <p className="font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent" style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
@@ -184,12 +189,12 @@ const DeleteTemplate = () => {
             <div className="p-4 rounded-md flex flex-col gap-4">
               <div className="flex flex-col gap-2 " md={10} sm={24} >
                 <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                <p className=" "><b>Tên công ty:</b> {bsInfor?.businessName}</p>
-                <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.address}</p>
-                <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.representativeName} </p></p>
-                <p className=""><b>Chức vụ:</b> {bsInfor?.representativeTitle}</p>
-                <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.taxCode}</p></p>
-                <p className=""><b>Email:</b> {bsInfor?.email}</p>
+                <p className=" "><b>Tên công ty:</b> {bsInfor?.data.partnerName}</p>
+                <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                <p className=""><b>Chức vụ:</b> {bsInfor?.data.position}</p>
+                <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
               </div>
               <div className="flex flex-col gap-2" md={10} sm={24}>
                 <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>

@@ -6,7 +6,7 @@ const LazySelect = ({
     loadDataCallback,
     options: initialOptions = [],
     globalSelected = [],
-    defaultValue=[],
+    defaultValue = [],
     children,
     ...restProps
 }) => {
@@ -50,24 +50,19 @@ const LazySelect = ({
                     title={dk?.value}
                     className={isGloballySelected ? "option-selected" : ""}
                 >
-                    <Popover
-                        className="w-full"
-                        content={dk?.value}
-                        trigger="hover"
-                        getPopupContainer={(trigger) => trigger.parentElement}
-                    >
-                        {dk.label}{" "}
-                        {isGloballySelected && (
-                            <span style={{ color: "red", fontWeight: "bold" }}>
-                                (Đã chọn)
-                            </span>
-                        )}
-                    </Popover>
+
+                    {dk.label}{" "}
+                    {isGloballySelected && (
+                        <span style={{ color: "red", fontWeight: "bold" }}>
+                            (Đã chọn)
+                        </span>
+                    )}
+
                 </Select.Option>
             );
         });
     };
-   
+
     return (
         <>
             <Select

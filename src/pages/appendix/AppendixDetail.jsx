@@ -667,9 +667,9 @@ const AppendixDetail = () => {
                         margin: [0, 3, 0, 3],
                         fontSize: 11
                     },
-                    appendixData.data.partnerA?.partnerAddress && {
+                    appendixData.data.partnerA?.address && {
                         text: [
-                            { text: 'Địa chỉ trụ sở chính: ', style: "boldtext" }, { text: appendixData.data.partnerA.partnerAddress }
+                            { text: 'Địa chỉ trụ sở chính: ', style: "boldtext" }, { text: appendixData.data.partnerA.address }
                         ],
                         margin: [0, 3, 0, 3],
                         fontSize: 11
@@ -688,16 +688,16 @@ const AppendixDetail = () => {
                         margin: [0, 3, 0, 3],
                         fontSize: 11
                     },
-                    appendixData.data.partnerA?.partnerTaxCode && {
+                    appendixData.data.partnerA?.taxCode && {
                         text: [
-                            { text: 'Mã số thuế: ', style: "boldtext" }, { text: appendixData.data.partnerA.partnerTaxCode }
+                            { text: 'Mã số thuế: ', style: "boldtext" }, { text: appendixData.data.partnerA.taxCode }
                         ],
                         margin: [0, 3, 0, 3],
                         fontSize: 11
                     },
-                    appendixData.data.partnerA?.partnerEmail && {
+                    appendixData.data.partnerA?.email && {
                         text: [
-                            { text: 'Email: ', style: "boldtext" }, { text: appendixData.data.partnerA.partnerEmail }
+                            { text: 'Email: ', style: "boldtext" }, { text: appendixData.data.partnerA.email }
                         ],
                         margin: [0, 3, 0, 3],
                         fontSize: 11

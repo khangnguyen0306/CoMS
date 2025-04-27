@@ -26,6 +26,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
     const [Reminder] = useSendReminderContractMutation();
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(id)
+    console.log(dataPayment)
     // Hiển thị thông báo lỗi nếu có lỗi xảy ra
     if (isError || isErrorAppendix) {
         return <p>Lỗi khi tải dữ liệu!</p>;
@@ -56,15 +57,17 @@ const ExpandRowContent = ({ id, appendixId }) => {
 
     // Hàm định dạng ngày thành chuỗi DD/MM/YYYY HH:mm:ss
     const formatDate = (dateArray) => {
-        const date = arrayToDate(dateArray);
-        return date.toLocaleString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        });
+        // Check if the array has at least 6 elements
+        if (dateArray.length < 6) {
+            return <p>Ngày không hợp lệ</p>; // Return a default message if data is insufficient
+        }
+
+        // Format the date if the array has enough elements
+        return (
+            <p>
+                {dateArray[2] + "/" + dateArray[1] + "/" + dateArray[0] + "   lúc     " + dateArray[3] + ":" + dateArray[4] + ":" + dateArray[5]}
+            </p>
+        );
     };
 
     const uploadFile = async (file, paymentScheduleId) => {

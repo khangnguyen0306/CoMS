@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Select, Spin, Popover } from "antd";
+import { Select, Spin } from "antd";
 import { useLazyLoadSelect } from "./CustomHook";
 import { useLazyLoadLegal } from "./useLazyLoadLegal";
 
@@ -39,26 +39,15 @@ const LazyLegalSelect = ({
 
 
         return mergedOptions?.map((dk) => {
-            const isGloballySelected = globalSelected.includes(dk.original_term_id);
+            // const isGloballySelected = globalSelected.includes(dk.original_term_id);
             return (
                 <Select.Option
                     key={dk?.original_term_id}
                     value={dk?.original_term_id}
-                    className={isGloballySelected ? "option-selected" : ""}
+                    title={dk?.value}
+
                 >
-                    <Popover
-                        className="w-full"
-                        content={dk?.value}
-                        trigger="hover"
-                        getPopupContainer={(trigger) => trigger.parentElement}
-                    >
-                        {dk.label}{" "}
-                        {isGloballySelected && (
-                            <span style={{ color: "red", fontWeight: "bold" }}>
-                                (Đã chọn)
-                            </span>
-                        )}
-                    </Popover>
+                    {dk.label}
                 </Select.Option>
             );
         });

@@ -203,7 +203,11 @@ const ApprovalProcess = () => {
     };
 
     if (isLoading || isLoadingUser) {
-        return <Skeleton active />;
+        return (
+            <div className="flex min-h-[100vh] justify-center items-center">
+                <Skeleton active />
+            </div>
+        )
     }
 
     return (
@@ -233,12 +237,12 @@ const ApprovalProcess = () => {
             <div className="mb-6">
                 <Steps current={current} onChange={handleStepChange}>
                     {stepsData.map((item, index) => (
-                        <Step 
-                        key={item.key || index} 
-                        title={item.title} 
-                        description={item.description || ""}
-                        
-                         />
+                        <Step
+                            key={item.key || index}
+                            title={item.title}
+                            description={item.description || ""}
+
+                        />
                     ))}
                 </Steps>
             </div>

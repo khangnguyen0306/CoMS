@@ -11,19 +11,26 @@ import { selectCurrentUser } from "../../slices/authSlice";
 import { useGetContractPorcessPendingQuery } from "../../services/ProcessAPI";
 import ExpandRowContent from "./component/ExpandRowContent";
 import { useGetNumberNotiForAllQuery } from "../../services/NotiAPI";
-import { useUploadBillingContractMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
+import { useCancelContractMutation, useUploadBillingContractMutation, useUploadImgSignMutation } from "../../services/uploadAPI";
 import ExportContractPDF from "./component/ExportContractPDF";
 import DuplicateContractModal from './component/DuplicateContractModal';
 import TabPane from "antd/es/tabs/TabPane";
 import { IoIosWarning } from "react-icons/io";
 const { Search } = Input;
-
+import { ImCancelCircle } from "react-icons/im";
+import ModalCancelContract from "./component/ModalCancelContract";
+import ModalCancelInformation from "./component/ModalCancelInformation";
+import { IoInformationCircleOutline } from "react-icons/io5";
 const ManageContracts = () => {
+    const navigate = useNavigate()
+    const userL = useSelector(selectCurrentUser)
+    const user = useSelector(selectCurrentUser)
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
+    const isManager = user?.roles?.includes("ROLE_MANAGER");
+    const isStaff = user?.roles?.includes("ROLE_STAFF");
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState(searchParams.get('paramstatus') || []);
-    const [statusCEO, setStatusCEO] = useState();
-    const [statusArray, setStatusArray] = useState([]);
     const { Panel } = Collapse;
     const [searchTextStaff, setSearchTextStaff] = useState("");
     const [searchTextManager, setSearchTextManager] = useState("");
@@ -62,25 +69,9 @@ const ManageContracts = () => {
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment, refetch: refetchPaymnet } = useGetContractDetailQuery(selectedContractId, {
         skip: !selectedContractId,
     });
-
-    const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
-
     const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
         skip: !paymentId,
     });
-
-    const [uploadSign, { isLoading: LoadingSign }] = useUploadImgSignMutation();
-
-    const { data: dataSign, isLoading: LoadingImage, isError: ErrorSign, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
-        skip: !selectedContractId,
-    });
-
-    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
-    const user = useSelector(selectCurrentUser)
-    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
-    const isManager = user?.roles?.includes("ROLE_MANAGER");
-    const isStaff = user?.roles?.includes("ROLE_STAFF");
-    // Manager đang lỗi vì API này
     const { data: contractApprove, isLoading: isLoadingManager, refetch: refetchManager } = useGetContractPorcessPendingQuery({
         approverId: user.id,
         page: isManager ? paginationManager.current - 1 : 0,
@@ -105,10 +96,16 @@ const ManageContracts = () => {
             refetchOnReconnect: true,
         }
     );
-    const navigate = useNavigate()
+    const { data: dataSign, isLoading: LoadingImage, isError: ErrorSign, refetch: refetchImg } = useGetImgSignQuery(selectedContractId, {
+        skip: !selectedContractId,
+    });
     const [softDelete] = useSoftDeleteContractMutation()
+    const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
+    const [uploadSign, { isLoading: LoadingSign }] = useUploadImgSignMutation();
+    const [uploadBill, { isLoading: LoadingBill }] = useUploadBillingContractMutation();
 
-    const userL = useSelector(selectCurrentUser)
+
+
     const tableData = isManager
         ? contractApprove?.data?.content
         : contracts?.data?.content || [];
@@ -116,7 +113,10 @@ const ManageContracts = () => {
     const [selectedContractIdExport, setSelectedContractIdExport] = useState(null);
     const [isDuplicateModalVisible, setIsDuplicateModalVisible] = useState(false);
     const [selectedContractForDuplicate, setSelectedContractForDuplicate] = useState(null);
-
+    const [contractIdCancel, setContracyIdCancel] = useState(0);
+    const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+    const [isCancelInforOpen, setIsCancelInforOpen] = useState(false);
+    const [contractIdInfo, setContracyIdInfo] = useState(0);
     // Update status when searchParams change
     useEffect(() => {
         const newStatus = searchParams.get('paramstatus');
@@ -151,6 +151,18 @@ const ManageContracts = () => {
         setIsModalSignedVisible(true);
         setFileList([]);
     };
+
+    const openCancelSignModal = (contractId) => {
+        setContracyIdCancel(contractId);
+        setIsCancelModalVisible(true);
+    };
+
+    const openInforCancelModal = (contractId) => {
+        setContracyIdInfo(contractId);
+        setIsCancelInforOpen(true);
+    };
+
+
 
     // Hàm đóng modal cập nhật trạng thái
     const handleCloseUpdateSignModal = () => {
@@ -465,16 +477,7 @@ const ManageContracts = () => {
                                     label: "Nhân bản",
                                     onClick: () => handleDuplicate(record.id),
                                 },
-                                ...(["ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
-                                    ? [
-                                        {
-                                            key: "updateStatus",
-                                            icon: <BsClipboard2DataFill />,
-                                            label: "Cập nhật trạng thái thanh toán",
-                                            onClick: () => openUpdateStatusModal(record.id),
-                                        },
-                                    ]
-                                    : []),
+
                                 ...(["SIGNED", "ACTIVE"].includes(record.status)
                                     ? [
                                         {
@@ -485,7 +488,22 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-
+                                ...(["ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "updateStatus",
+                                            icon: <BsClipboard2DataFill />,
+                                            label: "Cập nhật trạng thái thanh toán",
+                                            onClick: () => openUpdateStatusModal(record.id),
+                                        },
+                                        {
+                                            key: "cancelContract",
+                                            icon: <ImCancelCircle style={{ color: 'red' }} />,
+                                            label: "Hủy hợp đồng",
+                                            onClick: () => openCancelSignModal(record.id),
+                                        },
+                                    ]
+                                    : []),
 
                                 {
                                     key: "export",
@@ -493,6 +511,18 @@ const ManageContracts = () => {
                                     label: "Export",
                                     onClick: () => handleExport(record.id),
                                 },
+
+                                ...(["CANCELLED"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "cancelInfor",
+                                            icon: <IoInformationCircleOutline style={{ color: 'red' }} />,
+                                            label: "Thông tin hủy",
+                                            onClick: () => openInforCancelModal(record.id),
+                                        },
+
+                                    ]
+                                    : []),
 
                                 ...(record.status !== "APPROVAL_PENDING" &&
                                     record.status !== "APPROVED" &&
@@ -1259,7 +1289,7 @@ const ManageContracts = () => {
                                 }
 
                                 setFileList((prev) => [...prev, file]);
-                                return false; // Không upload tự động
+                                return false;
                             }}
                             showUploadList={false}
                         >
@@ -1519,6 +1549,17 @@ const ManageContracts = () => {
                 contractId={selectedContractForDuplicate}
                 refetch={refetch}
                 refetchNoti={refetchNoti}
+            />
+            <ModalCancelContract
+                visible={isCancelModalVisible}
+                onCancel={() => setIsCancelModalVisible(false)}
+                contractId={contractIdCancel}
+                refetch={refetch}
+            />
+            <ModalCancelInformation
+                visible={isCancelInforOpen}
+                onCancel={() => setIsCancelInforOpen(false)}
+                contractId={contractIdInfo}
             />
         </div>
     );

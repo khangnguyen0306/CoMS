@@ -18,6 +18,7 @@ export const uploadAPI = createApi({
     },
   }),
   endpoints: (builder) => ({
+
     uploadFilePDF: builder.mutation({
       query: ({ formData }) => ({
         url: `partner-contracts/upload-contract-file`,
@@ -30,6 +31,7 @@ export const uploadAPI = createApi({
       transformResponse: (response) => response,
       providesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
     }),
+
     uploadBillingContract: builder.mutation({
       query: ({ paymentScheduleId, formData }) => ({
         url: `/partner-contracts/upload-bills/${paymentScheduleId}`,
@@ -39,6 +41,7 @@ export const uploadAPI = createApi({
       }),
       invalidatesTags: (result, error, contractId) => [{ type: "Contract", id: contractId }],
     }),
+
 
     uploadClauseBFile: builder.mutation({
       query: ({ typeTermId, file }) => {
@@ -103,6 +106,7 @@ export const uploadAPI = createApi({
       },
       invalidatesTags: [{ type: "Contract", id: "LIST" }],
     }),
+
     uploadSignFile: builder.mutation({
       query: ({ addendumId, formData }) => {
         return {
@@ -113,7 +117,17 @@ export const uploadAPI = createApi({
       },
       invalidatesTags: [{ type: "Appendix", id: "LIST" }],
     }),
-
+    cancelContract: builder.mutation({
+      query: ({ contractIdCancel, formData }) => {
+        return {
+          url: `/contracts/cancel-contract/${contractIdCancel}`,
+          method: "PUT",
+          body: formData,
+          formData: true, 
+        };
+      },
+      invalidatesTags: [{ type: "Contract", id: "LIST" }],
+    }),
 
   })
 })
@@ -127,4 +141,5 @@ export const {
   useUploadImgSignMutation,
   useUploadAppenixToSignMutation,
   useUploadSignFileMutation,
+  useCancelContractMutation
 } = uploadAPI;

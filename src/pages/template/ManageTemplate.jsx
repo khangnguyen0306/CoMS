@@ -5,10 +5,13 @@ import { useDeleteTemplateMutation, useDuplicateTemplateMutation, useGetAllTempl
 import { useGetBussinessInformatinQuery } from "../../services/BsAPI";
 import pressBtIcon from "../../assets/Image/press-button.svg"
 import dayjs from "dayjs";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../slices/authSlice";
 const { Search } = Input;
 const { confirm } = Modal;
 const ManageTemplate = () => {
+    const user = useSelector(selectCurrentUser)
     const navigate = useNavigate();
     const [selectedTemplateId, setSelectedTemplateId] = useState(null);
     const { data: bsInfor, isLoadingBSInfo, isError: BsDataError } = useGetBussinessInformatinQuery()
@@ -18,7 +21,6 @@ const ManageTemplate = () => {
     const [filterType, setFilterType] = useState(null);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
     const [duplicateTemplate] = useDuplicateTemplateMutation();
     const [deleteTemplate] = useDeleteTemplateMutation();
     const [currentPage, setCurrentPage] = useState(1);
@@ -59,7 +61,7 @@ const ManageTemplate = () => {
             item.contractTitle.toLowerCase().includes(searchText.toLowerCase())
         )
         .filter((item) => (filterType ? item.contractTypeId === filterType : true))
-        .sort((a, b) => new Date(b.createdAt[0],b.createdAt[1] - 1,b.createdAt[2]) - new Date(a.createdAt[0],a.createdAt[1] - 1,a.createdAt[2]));
+        .sort((a, b) => new Date(b.createdAt[0], b.createdAt[1] - 1, b.createdAt[2]) - new Date(a.createdAt[0], a.createdAt[1] - 1, a.createdAt[2]));
 
     // Xóa template
     const showDeleteConfirm = async (id) => {
@@ -95,7 +97,7 @@ const ManageTemplate = () => {
         } catch (error) {
             console.error("Error duplicating template:", error);
             message.error("Lỗi khi nhân bản mẫu hợp đồng!");
-        }  
+        }
     };
     // Cột Table
     const columns = [
@@ -146,43 +148,44 @@ const ManageTemplate = () => {
                 );
             }
         },
+        ...(user.roles[0] == "ROLE_ADMIN" ? [
+            {
 
-        {
-            title: "Tùy chỉnh",
-            key: "action",
-            render: (_, record) => (
-                <Space>
-                    <Dropdown
-                        menu={{
-                            items: [
-                                {
-                                    key: "edit",
-                                    icon: <EditFilled style={{ color: 'blue' }} />,
-                                    label: "Sửa",
-                                    onClick: () => navigate(`/admin/EditTemplate/${record.id}`)
+                title: "Tùy chỉnh",
+                key: "action",
+                render: (_, record) => (
+                    <Space>
+                        <Dropdown
+                            menu={{
+                                items: [
+                                    {
+                                        key: "edit",
+                                        icon: <EditFilled style={{ color: 'blue' }} />,
+                                        label: "Sửa",
+                                        onClick: () => navigate(`/admin/EditTemplate/${record.id}`)
 
-                                },
-                                {
-                                    key: "duplicate",
-                                    icon: <CopyFilled style={{ color: 'orange' }} />,
-                                    label: "Nhân bản",
-                                    onClick: () => handleDuplicate(record.id)
-                                },
-                                {
-                                    key: "delete",
-                                    icon: <DeleteFilled />,
-                                    label: "Xóa",
-                                    danger: true,
-                                    onClick: () => showDeleteConfirm(record.id)
-                                }
-                            ]
-                        }}
-                    >
-                        <Button ><SettingFilled /></Button>
-                    </Dropdown>
-                </Space>
-            ),
-        },
+                                    },
+                                    {
+                                        key: "duplicate",
+                                        icon: <CopyFilled style={{ color: 'orange' }} />,
+                                        label: "Nhân bản",
+                                        onClick: () => handleDuplicate(record.id)
+                                    },
+                                    {
+                                        key: "delete",
+                                        icon: <DeleteFilled />,
+                                        label: "Xóa",
+                                        danger: true,
+                                        onClick: () => showDeleteConfirm(record.id)
+                                    }
+                                ]
+                            }}
+                        >
+                            <Button ><SettingFilled /></Button>
+                        </Dropdown>
+                    </Space>
+                ),
+            }] : []),
     ];
 
     if (isLoading) {
@@ -561,15 +564,15 @@ const ManageTemplate = () => {
                             </div>
                             <p className="mt-3 ml-4"> Hôm nay, Hợp đồng dịch vụ này được lập vào ngày.......tháng..........năm............................., tại............................................. bởi và giữa: </p>
                             <div className="p-4 rounded-md flex flex-col gap-4">
-                            <div className="flex flex-col gap-2 " md={10} sm={24} >
-                                        <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
-                                        <p className=" "><b>Tên công ty:</b>  {bsInfor?.data.partnerName}</p>
-                                        <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
-                                        <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
-                                        <p className=""><b>Chức vụ:</b> {bsInfor?.data.position}</p>
-                                        <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
-                                        <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
-                                    </div>
+                                <div className="flex flex-col gap-2 " md={10} sm={24} >
+                                    <p className="font-bold text-lg "><u>BÊN CUNG CẤP (BÊN A)</u></p>
+                                    <p className=" "><b>Tên công ty:</b>  {bsInfor?.data.partnerName}</p>
+                                    <p className=""><b>Địa chỉ trụ sở chính:</b> {bsInfor?.data.address}</p>
+                                    <p className="flex  justify-between"><p><b>Người đại diện:</b> {bsInfor?.data.spokesmanName} </p></p>
+                                    <p className=""><b>Chức vụ:</b> {bsInfor?.data.position}</p>
+                                    <p className='flex   justify-between'><p><b>Mã số thuế:</b> {bsInfor?.data.taxCode}</p></p>
+                                    <p className=""><b>Email:</b> {bsInfor?.data.email}</p>
+                                </div>
                                 <div className="flex flex-col gap-2" md={10} sm={24}>
                                     <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
                                     <p className=" "><b>Tên công ty: </b>....................................................................................................................................</p>

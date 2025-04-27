@@ -63,6 +63,15 @@ export const ContractAPI = baseApi.injectEndpoints({
                 { type: "Contract", id: Contract },
             ],
         }),
+        getContractInforCancel: builder.query({
+            query: (contractId) => ({
+                url: `contracts/get-cancel-reason/${contractId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Contract) => [
+                { type: "Contract", id: Contract },
+            ],
+        }),
 
         getContractStatus: builder.query({
             query: ({ page, keyword, size, statuses, sortBy = 'id', order = 'desc' }) => {
@@ -346,4 +355,6 @@ export const {
     useSendReminderContractMutation,
     useGetContractNearExpiredQuery,
     useSetContractToPartnerMutation,
+    useGetContractInforCancelQuery,
+    useLazyGetContractInforCancelQuery
 } = ContractAPI;

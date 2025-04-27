@@ -45,7 +45,7 @@ const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(true);
   const user = useSelector(selectCurrentUser);
   const { data: numberNoti, isLoading: loadingNumber } = useGetNumberNotiForAllQuery()
-  const status = ["CREATED", "UPDATED", "REJECTED"]
+  const status = ["CREATED", "UPDATED", "REJECTED", "FIXED", "APPROVAL_PENDING"]
   const router = {
     '1': '/',
     'managerDashboard': "/manager/dashboard",
@@ -72,6 +72,7 @@ const MainLayout = () => {
     'approvalContractCEO': '/director/approvalContract',
     'approvalContractStaff': '/approvalContract',
     'department': '/admin/department',
+    'viewTemplate': '/managetemplate',
     'managerAppendix': "/manager/appendix",
     'directorAppendixSign': '/director/appendixSign',
     'directorManageAppendix': "/director/appendix",
@@ -221,7 +222,7 @@ const MainLayout = () => {
   const navStaff = [
     { icon: FaUserTie, label: 'Khách hàng', key: "client" },
     { icon: GoLaw, label: 'Quản lý điều khoản', key: "clause" },
-
+    { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "viewTemplate" },
     {
       icon: FaFileContract,
       label: 'Hợp đồng',
@@ -245,6 +246,7 @@ const MainLayout = () => {
         { icon: MenuOutlined, label: 'Tất cả phụ lục', key: "appendixManageStaff", default: true, color: "#13c2c2" },
       ]
     },
+
     {
       icon: LoginOutlined, key: "logout", label: 'Đăng xuất', onClick: handleLogout
     },
@@ -549,7 +551,7 @@ const MainLayout = () => {
 
           {/* Phần footer */}
 
-          <Footer className="bg-blue-50 border-t border-blue-100 mt-auto">
+          <Footer className={`${!isDarkMode ? "bg-blue-50" : ""} border-t border-blue-100 mt-auto`}>
             <div className="container mx-auto px-4 py-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="flex flex-col space-y-3">
@@ -560,10 +562,13 @@ const MainLayout = () => {
                       height={60}
                       width={60}
                       className="cursor-pointer p-2"
-                      onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : user?.roles[0] == "ROLE_MANAGER" ? "/manager/dashboard" : '/contract')}
+                      onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : user?.roles[0] == "ROLE_MANAGER" ? "/manager/dashboard" : '/')}
                       alt="Logo"
                     />
-                    <h3 className="text-lg font-semibold text-blue-800">CoMS</h3>
+                    <div className="ml-2">
+                      <h3 className="text-lg font-semibold text-blue-800">COMS</h3>
+                      <p className="text-gray-600 text-[12px]">Quản lý hợp đồng nhanh chóng</p>
+                    </div>
                   </div>
                   <p className="text-gray-600 text-sm">Hệ thống quản lý hợp đồng toàn diện, giúp doanh nghiệp của bạn quản lý hiệu quả các hợp đồng và đối tác.</p>
                   <div className="flex space-x-3 mt-2">
@@ -584,18 +589,18 @@ const MainLayout = () => {
 
                 <div className="flex flex-col space-y-3">
                   <h3 className="text-md font-semibold text-blue-800 mb-2">Liên kết nhanh</h3>
-                  <a href="/contract" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                  <p href="/contract" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
                     <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý hợp đồng
-                  </a>
-                  <a href="/partner" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                  </p>
+                  <p href="/partner" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
                     <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý đối tác
-                  </a>
-                  <a href="/clause" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                  </p>
+                  <p href="/clause" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
                     <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý điều khoản
-                  </a>
-                  <a href="/appendix" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
+                  </p>
+                  <p href="/appendix" className="text-gray-600 hover:text-blue-500 text-sm flex items-center">
                     <FaExternalLinkAlt size={14} className="mr-2" /> Quản lý phụ lục
-                  </a>
+                  </p>
                 </div>
 
                 <div className="flex flex-col space-y-3 -ml-10">
@@ -610,13 +615,13 @@ const MainLayout = () => {
                   </p>
                   <p className="text-gray-600 text-sm flex items-center">
                     <MailFilled size={16} className="mr-2 flex-shrink-0" />
-                    <span>anndh2@fe.edu.vn</span>
+                    <span >anndh2@fe.edu.vn</span>
                   </p>
                 </div>
 
                 <div className="flex flex-col space-y-3">
                   <h3 className="text-md font-semibold text-blue-800 mb-2">Đăng ký nhận tin</h3>
-                  <p className="text-gray-600 text-sm">Nhận thông tin cập nhật về tính năng mới và khuyến mãi</p>
+                  <p className="text-gray-600 text-sm">Nhận thông tin cập nhật về tính năng mới</p>
                   <div className="flex mt-2">
                     <input
                       type="email"
