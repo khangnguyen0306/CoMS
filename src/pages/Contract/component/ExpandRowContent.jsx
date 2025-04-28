@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
 import { Skeleton, Timeline, Tag, Empty, Upload, Button, Tooltip } from 'antd';
 import { CheckCircleFilled, CloseCircleOutlined, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
@@ -11,23 +11,30 @@ import { selectCurrentUser } from '../../../slices/authSlice';
 import { TbBellRingingFilled } from "react-icons/tb";
 
 const ExpandRowContent = ({ id, appendixId }) => {
-    // console.log("ID:", id);
-    // console.log("Appendix ID:", appendixId);
     const user = useSelector(selectCurrentUser)
     const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
-    const { data, isLoading, isError } = useGetProcessByContractIdQuery(
+    const { data, isLoading, isError, refetch: refetchContract } = useGetProcessByContractIdQuery(
         { contractId: id },
         { skip: !id }
     );
-    const { data: dataAppendix, isLoading: isLoadingAppendix, isError: isErrorAppendix } = useGetWorkFlowByAppendixIdQuery(
+    const { data: dataAppendix, isLoading: isLoadingAppendix, isError: isErrorAppendix, refetch: refetchAppendix } = useGetWorkFlowByAppendixIdQuery(
         { appendixId },
         { skip: !appendixId }
     );
     const [Reminder] = useSendReminderContractMutation();
 
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(id)
-    console.log(dataPayment)
+    // console.log(dataPayment)
     // Hiển thị thông báo lỗi nếu có lỗi xảy ra
+
+    useEffect(() => {
+        if (id) {
+            refetchContract()
+        } else if (appendixId) {
+            refetchAppendix()
+        }
+    }, [id, appendixId])
+
     if (isError || isErrorAppendix) {
         return <p>Lỗi khi tải dữ liệu!</p>;
     }

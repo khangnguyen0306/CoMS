@@ -476,7 +476,7 @@ const MainLayout = () => {
               height={60}
               width={60}
               className="cursor-pointer p-2"
-              onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : user?.roles[0] == "ROLE_MANAGER" ? "/manager/dashboard" : '/contract')}
+              onClick={() => navigate(user?.roles[0] == "ROLE_ADMIN" ? "/admin" : user?.roles[0] == "ROLE_MANAGER" ? "/manager/contract" : '/contract')}
               alt="Logo"
             />
             <p className={`ml-2 ${isDarkMode ? "text-white" : "text-black"}`}>Quản lý hợp đồng CoMS</p>
@@ -553,7 +553,7 @@ const MainLayout = () => {
 
           <Footer className={`${!isDarkMode ? "bg-blue-50" : ""} border-t border-blue-100 mt-auto`}>
             <div className="container mx-auto px-4 py-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="flex flex-col space-y-3">
                   <div className="flex items-center mb-2">
                     <Image
@@ -619,7 +619,7 @@ const MainLayout = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-col space-y-3">
+                {/* <div className="flex flex-col space-y-3">
                   <h3 className="text-md font-semibold text-blue-800 mb-2">Đăng ký nhận tin</h3>
                   <p className="text-gray-600 text-sm">Nhận thông tin cập nhật về tính năng mới</p>
                   <div className="flex mt-2">
@@ -632,7 +632,7 @@ const MainLayout = () => {
                       Gửi
                     </button>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               <div className="border-t border-blue-100 mt-6 pt-4">

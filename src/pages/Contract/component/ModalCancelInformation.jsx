@@ -13,9 +13,6 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
         getcontractData(contractId)
     }, [contractId])
 
-    if (contractError) {
-        return <div>Error loading data</div>;
-    }
 
     const getFileNameFromUrl = (url) => {
         const parts = url.split('/');

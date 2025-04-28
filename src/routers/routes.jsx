@@ -95,18 +95,18 @@ export const router = createBrowserRouter([
                         path: "partner/:id",
                         element: DetailPartner,
                     },
-                    {
-                        path: "createtemplate",
-                        element: CreateTemplate,
-                    },
+                    // {
+                    //     path: "createtemplate",
+                    //     element: CreateTemplate,
+                    // },
                     {
                         path: "managetemplate",
                         element: ManageTemplate,
                     },
-                    {
-                        path: "deletedtemplate",
-                        element: DeletedTemplate,
-                    },
+                    // {
+                    //     path: "deletedtemplate",
+                    //     element: DeletedTemplate,
+                    // },
                     {
                         path: "clause",
                         element: Clause,
@@ -123,10 +123,10 @@ export const router = createBrowserRouter([
                         path: "createContractPDF",
                         element: CreateContractPDF,
                     },
-                    {
-                        path: "process",
-                        element: Process,
-                    },
+                    // {
+                    //     path: "process",
+                    //     element: Process,
+                    // },
                     {
                         path: "approvalContract",
                         element: ManagerContractApproval,
@@ -230,13 +230,6 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         index: true,
-                        element: Dashboard,
-                    },
-                    {
-                        path: "dashboard",
-                        element: Dashboard,
-                    },
-                    {
                         path: "contract",
                         element: Contract,
                     },
@@ -244,30 +237,30 @@ export const router = createBrowserRouter([
                         path: "profile",
                         element: Profile,
                     },
-                    {
-                        path: "partner",
-                        element: Partner,
-                    },
-                    {
-                        path: "partyId/:id",
-                        element: DetailPartner,
-                    },
-                    {
-                        path: "createtemplate",
-                        element: CreateTemplate,
-                    },
-                    {
-                        path: "managetemplate",
-                        element: ManageTemplate,
-                    },
-                    {
-                        path: "deletedtemplate",
-                        element: DeletedTemplate,
-                    },
-                    {
-                        path: "contractpartner",
-                        element: ContractPartner,
-                    },
+                    // {
+                    //     path: "partner",
+                    //     element: Partner,
+                    // },
+                    // {
+                    //     path: "partyId/:id",
+                    //     element: DetailPartner,
+                    // },
+                    // {
+                    //     path: "createtemplate",
+                    //     element: CreateTemplate,
+                    // },
+                    // {
+                    //     path: "managetemplate",
+                    //     element: ManageTemplate,
+                    // },
+                    // {
+                    //     path: "deletedtemplate",
+                    //     element: DeletedTemplate,
+                    // },
+                    // {
+                    //     path: "contractpartner",
+                    //     element: ContractPartner,
+                    // },
                     {
                         path: "approvalContract",
                         element: ManagerContractApproval,
@@ -280,10 +273,10 @@ export const router = createBrowserRouter([
                         path: "approvalContract/reviewContract/:id/approve/:id",
                         element: ContractDetail,
                     },
-                    {
-                        path: "setting",
-                        element: Setting,
-                    },
+                    // {
+                    //     path: "setting",
+                    //     element: Setting,
+                    // },
                     {
                         path: "ContractDetail/:id",
                         element: ContractDetail,
@@ -357,7 +350,7 @@ export const router = createBrowserRouter([
                         element: ManageTemplate,
                     },
                     {
-                        path: "deletedtemplate",    
+                        path: "deletedtemplate",
                         element: DeletedTemplate,
                     },
                     {

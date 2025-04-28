@@ -140,10 +140,10 @@ const Process = ({ contractId, onProcessApplied, contractTypeId, appendix, appen
                 content: (
                     <Form.Item
                         name={`stage${i}`}
-                        label={`Chọn manager duyệt đợt ${i}`}
-                        rules={[{ required: true, message: "Vui lòng chọn manager!" }]}
+                        label={`Chọn người phê duyệt đợt ${i}`}
+                        rules={[{ required: true, message: "Vui lòng chọn người phê duyệt!" }]}
                     >
-                        <Select placeholder="Chọn manager" onPopupScroll={handlePopupScroll} >
+                        <Select placeholder="Chọn người phê duyệt" onPopupScroll={handlePopupScroll} >
                             {getAvailableUsers(`stage${i}`).map((manager) => (
                                 <Option key={manager.id} value={manager.id}>
                                     {manager.full_name}

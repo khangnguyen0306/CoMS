@@ -29,19 +29,16 @@ const ModalCancelContract = ({ visible, onCancel, contractId, refetch }) => {
                 formData,
             }).unwrap();
 
-
-            //////////////////////////////////////////////
             console.log(res);
             if (res.status == "OK") {
-                message.success("Huỷ hợp đồng thành công!");
+                message.success("Hợp đồng đã cập nhật sang hủy!");
                 onCancel()
                 refetch();
-            } else {
-                message.error(res.data.message)
             }
 
             // setIsUpdateStatusModalVisible(false);
         } catch (error) {
+            message.error(error.data.message)
             console.error("Lỗi khi tải lên file:", error);
             // message.error("Có lỗi xảy ra khi tải lên file!");
         }
