@@ -646,7 +646,7 @@ const ContractDetail = () => {
 
                                     <div className='flex flex-col gap-2 mt-5'>
                                         <Tag color='blue' className='w-fit'>{formatDateToStringDate(contractData?.data.notifyExpiryDate)}</Tag>
-                                        <p className='ml-1'><b>Nội dung: </b> Thông báo ngày hợp đồng bắt đầu có hiệu lực</p>
+                                        <p className='ml-1'><b>Nội dung: </b> Thông báo ngày hợp đồng hết hiệu lực</p>
                                     </div>
                                 </div>
                             </Card>
