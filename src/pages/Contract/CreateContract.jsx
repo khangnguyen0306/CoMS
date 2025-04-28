@@ -881,7 +881,18 @@ const CreateContractForm = () => {
                 loadTermDetail(termId);
             });
         }
-    }, [form.getFieldValue('legalBasisTerms'), changeCCPL]);
+    }, [form.getFieldValue('legalBasisTerms'), changeCCPL])
+
+
+
+    useEffect(() => {
+        const legalBasis = form.getFieldValue('generalTerms');
+        if (legalBasis && legalBasis.length > 0) {
+            legalBasis.forEach(termId => {
+                loadTermDetail(termId);
+            });
+        }
+    }, [form.getFieldValue('generalTerms'), changeCCPL]);
 
 
     const handleScroll = useCallback(
@@ -935,6 +946,28 @@ const CreateContractForm = () => {
             );
         });
     };
+    const renderGenaralTerms = () => {
+        if (!form.getFieldValue('generalTerms') || form.getFieldValue('generalTerms').length === 0) {
+            return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
+        }
+
+        return form.getFieldValue('generalTerms').map((termId, index) => {
+            const term = termsData[termId];
+            if (!term) {
+                return (
+                    <div key={termId} className="term-item p-1">
+                        <Spin size="small" />
+                    </div>
+                );
+            }
+
+            return (
+                <p key={index} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                    <p>- {term.value}</p>
+                </p>
+            );
+        });
+    };
 
     // Tải chi tiết điều khoản
     const loadTermDetail = async (termId) => {
@@ -958,6 +991,14 @@ const CreateContractForm = () => {
         setIsAddClauseModalOpen(true)
         setIsAddClauseId(clauseId)
     }
+
+    const contentPopover = (
+        <div>
+            <p>1. Phần thanh toán của hợp đồng và các nội dung khác có thể có hoặc không.</p>
+            <p>2. Thời gian có hiệu lực của hợp đồng sẽ bắt buộc sau ngày ký.</p>
+            <p>3. Thời gian thanh toán các khoản trong hợp đồng sẽ nằm trong khoảng thời gian hiệu lực hợp đồng.</p>
+        </div>
+    );
 
     // Định nghĩa các cột của bảng
 
@@ -1269,6 +1310,10 @@ const CreateContractForm = () => {
                         <Col xs={24} md={18}>
                             <div ref={generalInfoRef}>
                                 <div className="relative mt-[70px]">
+
+                                    <Popover placement="topLeft" content={contentPopover} className="absolute top-3" title="Lưu ý khi tạo hợp đồng" trigger="click">
+                                        <Button type="link" icon={<InfoCircleOutlined />}>Lưu ý</Button>
+                                    </Popover>
                                     <div className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'} p-4 py-10 rounded-md text-center mt-[-70px]`}>
                                         <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                         <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
@@ -1382,6 +1427,7 @@ const CreateContractForm = () => {
                                         options={legalData?.data?.content}
                                         loadDataCallback={loadLegalData}
                                         showSearch
+                                        autoClearSearchValue
                                         mode="multiple"
                                         placeholder="Chọn căn cứ pháp lý"
                                         dropdownRender={(menu) => (
@@ -1888,6 +1934,9 @@ const CreateContractForm = () => {
                                         )}
                                     />
                                 </Form.Item>
+                                <div className={`px-4 py-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                                    {renderGenaralTerms()}
+                                </div>
 
                                 <Form.Item
                                     label={

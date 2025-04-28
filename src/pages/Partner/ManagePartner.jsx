@@ -15,16 +15,21 @@ import {
     Row,
     Col,
     Tooltip,
-    Skeleton
+    Skeleton,
+    DatePicker
 } from "antd";
 import { PlusOutlined, EditFilled, DeleteFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation } from '../../services/PartnerAPI';
+import { useCreatePartnerMutation, useEditPartnerMutation, useGetPartnerListQuery, useDeletePartnerMutation, useLazyGenerateReportPartnerQuery } from '../../services/PartnerAPI';
 import { validationPatterns } from "../../utils/ultil";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../slices/authSlice";
+import { FaFileExport } from "react-icons/fa6";
 const { Link } = Typography;
 const { Search } = Input;
+
+
+
 
 const ManagePartner = () => {
     const navigate = useNavigate();
@@ -35,6 +40,9 @@ const ManagePartner = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [dateRange, setDateRange] = useState([null, null]);
+    const [loading, setLoading] = useState(false);
 
     const { data: partnerData, isLoading: isFetching, error: fetchError, refetch } = useGetPartnerListQuery({
         keyword: searchQuery,
@@ -43,8 +51,9 @@ const ManagePartner = () => {
     });
 
     const partnerDataReal = partnerData?.data?.content?.filter(partner => partner.partyId !== 1) || [];
-
+    const [genarateReport, { data: reportData, isLoading: loadingGenarate }] = useLazyGenerateReportPartnerQuery()
     const [CreatePartner, { isCreating }] = useCreatePartnerMutation();
+    // const { data: ReportData, isLoading: isFetching } = useGenarateReportPartnerQuery()
     const [EditPartner, { isLoading: isEditing }] = useEditPartnerMutation();
     const [DeletePartner, { isLoading: loadingDeleting }] = useDeletePartnerMutation();
     const [viewHistory, setViewHistory] = useState([]);
@@ -248,6 +257,41 @@ const ManagePartner = () => {
         }
     };
 
+    const handleGenerateReport = () => {
+        setDateRange([null, null]);
+        setModalVisible(true);
+    };
+
+    const handleReportModalOk = async () => {
+        const [start, end] = dateRange;
+        if (!start || !end) {
+            return message.warning('Vui lòng chọn ngày bắt đầu và kết thúc!');
+        }
+        try {
+            const arrayBuffer = await genarateReport({
+                from: start.format('YYYY-MM-DDTHH:mm:ss'),
+                to: end.format('YYYY-MM-DDTHH:mm:ss'),
+            }).unwrap();
+
+            const blob = new Blob([arrayBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `report_${start.format('YYYYMMDD')}_${end.format('YYYYMMDD')}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            setModalVisible(false);
+        } catch (e) {
+            console.log(e)
+            message.error('Xuất báo cáo thất bại, thử lại sau.');
+        }
+    };
+
+
     const columns = [
         {
             title: 'Mã Partner',
@@ -338,6 +382,7 @@ const ManagePartner = () => {
                         icon={<DeleteFilled />}
                         onClick={() => handleDelete(record.partyId)}
                     />
+
                 </Space>
             ),
         },
@@ -430,8 +475,25 @@ const ManagePartner = () => {
                     />
                 </Dropdown>
                 {!isCEO && (
-                    <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
-                        Tạo khách hàng mới
+                    <div className="flex gap-3">
+                        <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+                            Tạo khách hàng mới
+                        </Button>
+
+                    </div>
+                )}
+
+            </div>
+            <div className="justify-self-end mb-2">
+                {partnerData?.data.content && partnerData?.data.content.length > 0 && isCEO && (
+
+                    <Button
+                        type="primary"
+                        icon={<FaFileExport />}
+                        onClick={handleGenerateReport}
+                        style={{ marginBottom: 8 }}
+                    >
+                        Xuất báo cáo
                     </Button>
                 )}
             </div>
@@ -503,7 +565,7 @@ const ManagePartner = () => {
                                 label="Loại đối tác"
                                 rules={[{ required: true, message: "Vui lòng chọn loại đối tác" }]}
                             >
-                                <Select>
+                                <Select placeholder="chọn loại">
                                     <Select.Option value="PARTNER_A">Nhà cung cấp</Select.Option>
                                     <Select.Option value="PARTNER_B">Khách hàng</Select.Option>
                                 </Select>
@@ -528,7 +590,7 @@ const ManagePartner = () => {
                                     },
                                 ]}
                             >
-                                <Input onChange={handleNameChange} />
+                                <Input onChange={handleNameChange} placeholder="Nguyễn Văn A" />
                             </Form.Item>
                             <Form.Item
                                 name="spokesmanName"
@@ -550,14 +612,14 @@ const ManagePartner = () => {
                                     },
                                 ]}
                             >
-                                <Input />
+                                <Input placeholder=" VD: Nguyễn Văn A" />
                             </Form.Item>
                             <Form.Item
                                 name="address"
                                 label="Địa chỉ"
                                 rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ" }]}
                             >
-                                <Input />
+                                <Input placeholder="Nhập địa chỉ" />
                             </Form.Item>
                             <Form.Item
                                 name="email"
@@ -571,7 +633,7 @@ const ManagePartner = () => {
                                     },
                                 ]}
                             >
-                                <Input />
+                                <Input placeholder="Nhập email" />
                             </Form.Item>
                         </Col>
 
@@ -581,14 +643,14 @@ const ManagePartner = () => {
                                 label="Chức vụ người đại diện"
                                 rules={[{ required: true, whitespace: true, message: "Vui lòng nhập chức vụ" }]}
                             >
-                                <Input />
+                                <Input placeholder="VD: Giám đốc" />
                             </Form.Item>
                             <Form.Item
                                 name="abbreviation"
                                 label="Viết tắt của partner"
                                 rules={[{ required: true, whitespace: true, message: "Viết tắt không được để trống" }]}
                             >
-                                <Input />
+                                <Input placeholder="VD: FAS" />
                             </Form.Item>
                             <Form.Item
                                 name="taxCode"
@@ -605,7 +667,7 @@ const ManagePartner = () => {
                                     },
                                 ]}
                             >
-                                <Input />
+                                <Input placeholder="1234567xxx" />
                             </Form.Item>
 
                             <Form.Item
@@ -620,7 +682,7 @@ const ManagePartner = () => {
                                     },
                                 ]}
                             >
-                                <Input />
+                                <Input placeholder="Nhập số điện thoại" />
                             </Form.Item>
 
                         </Col>
@@ -691,6 +753,26 @@ const ManagePartner = () => {
                         </Button>
                     </div>
                 </Form>
+            </Modal>
+
+            <Modal
+                title="Chọn khoảng thời gian xuất báo cáo"
+                open={modalVisible}
+                onOk={handleReportModalOk}
+                confirmLoading={loading}
+                onCancel={() => setModalVisible(false)}
+                okText="Hoàn tất"
+                cancelText="Hủy"
+            >
+                <div className="mt-6 flex flex-col gap-3">
+                    <p>Chọn khoảng thời gian xuất báo cáo</p>
+                    <DatePicker.RangePicker
+                        className="w-full "
+                        value={dateRange}
+                        onChange={vals => setDateRange(vals)}
+                        format="DD-MM-YYYY"
+                    />
+                </div>
             </Modal>
         </div>
     );

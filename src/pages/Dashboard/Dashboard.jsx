@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Row, Col, Button, Input, Space, Spin, Skeleton } from "antd";
+import { Row, Col, Button, Input, Space, Spin, Skeleton, Modal, DatePicker, Select } from "antd";
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, PieChart, Pie, Tooltip, Cell } from "recharts";
@@ -8,6 +8,8 @@ import { useSelector } from "react-redux";
 import { useGetDashboardataQuery } from "../../services/BsAPI";
 import { useGetAllContractQuery } from "../../services/ContractAPI";
 import ContractList from "./ContractList";
+import { FaFileExport } from "react-icons/fa";
+import { useLazyGenerateReportDashboardQuery } from "../../services/PartnerAPI";
 
 const Home = () => {
     const [searchText, setSearchText] = useState('');
@@ -16,7 +18,6 @@ const Home = () => {
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
     const currentYear = new Date().getFullYear();
     const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
-
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
         page: 0,
         size: 10,
@@ -27,8 +28,12 @@ const Home = () => {
             refetchOnReconnect: true,
         }
     );
+    const [genarateReport, { isLoading: loadingGenarate }] = useLazyGenerateReportDashboardQuery()
 
-    console.log(contracts)
+    const [modalVisible, setModalVisible] = useState(false);
+    const [dateRange, setDateRange] = useState([null, null]);
+    const [periodType, setPeriodType] = useState('')
+    // console.log(contracts)
 
 
     const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -329,6 +334,43 @@ const Home = () => {
         name: statusTitles[item.name] || item.name // Chuyển đổi tên trạng thái
     }));
 
+
+
+    const handleGenerateReport = () => {
+        setDateRange([null, null]);
+        setModalVisible(true);
+    };
+
+    const handleReportModalOk = async () => {
+        const [start, end] = dateRange;
+        if (!start || !end) {
+            return message.warning('Vui lòng chọn ngày bắt đầu và kết thúc!');
+        }
+        try {
+            const arrayBuffer = await genarateReport({
+                from: start.format('YYYY-MM-DDTHH:mm:ss'),
+                to: end.format('YYYY-MM-DDTHH:mm:ss'),
+                groupBy: periodType
+            }).unwrap();
+
+            const blob = new Blob([arrayBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `report_${start.format('YYYYMMDD')}_${end.format('YYYYMMDD')}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            setModalVisible(false);
+        } catch (e) {
+            console.log(e)
+            message.error('Xuất báo cáo thất bại, thử lại sau.');
+        }
+    };
+
     if (loadingDashboard || isLoading) {
         return (
             <div className='flex justify-center items-center min-h-[100vh]'>
@@ -343,6 +385,16 @@ const Home = () => {
             <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
             >THỐNG KÊ
             </p>
+            <div className="justify-self-end mb-2">
+                <Button
+                    type="primary"
+                    icon={<FaFileExport />}
+                    onClick={handleGenerateReport}
+                    style={{ marginBottom: 8 }}
+                >
+                    Xuất báo cáo
+                </Button>
+            </div>
             <Row gutter={[16, 16]} className="mb-5">
                 {statusCountsArray?.map((stat, index) => (
                     <Col key={index} xs={24} sm={12} md={12} lg={6}>
@@ -494,7 +546,36 @@ const Home = () => {
                 <ContractList contracts={contracts?.data.content} />
             </div>
 
+            <Modal
+                title="Chọn khoảng thời gian xuất báo cáo"
+                open={modalVisible}
+                onOk={handleReportModalOk}
+                confirmLoading={loadingGenarate}
+                onCancel={() => setModalVisible(false)}
+                okText="Hoàn tất"
+                cancelText="Hủy"
+            >
+                <div className="mt-6 flex flex-col gap-3">
+                    <p>Chọn kiểu báo cáo</p>
+                    <Select
+                        value={periodType}
+                        onChange={(value) => setPeriodType(value)}
+                        className="w-full"
+                        style={{ marginBottom: 16 }}
+                    >
+                        <Option value="MONTH">Theo tháng</Option>
+                        <Option value="YEAR">Theo năm</Option>
+                    </Select>
+                    <p>Chọn khoảng thời gian xuất báo cáo</p>
+                    <DatePicker.RangePicker
+                        className="w-full "
+                        value={dateRange}
+                        onChange={vals => setDateRange(vals)}
+                        format="DD-MM-YYYY"
+                    />
+                </div>
 
+            </Modal>
             {/* Bảng dữ liệu */}
             {/* <Table
                 columns={columns}

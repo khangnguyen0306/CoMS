@@ -264,7 +264,7 @@ const AppendixManagementForAllStatus = () => {
     };
 
     const showModal = (record) => {
-        console.log(record)
+        // console.log(record)
         setSelectedRecord(record);
         setIsModalVisible(true);
     };

@@ -83,6 +83,11 @@ export const useLazyLoadSelect = (loadDataCallback, pageSize = 10) => {
                     setPage(0);
                     fetchData(0, "");
                 }
+                else {
+                    // When the dropdown is closed, reset the search keyword
+                    setKeyword(''); // Reset the search value
+                    setSearchData([]); // Optionally clear the search data as well
+                }
             }
         },
         [data.length, fetchData, keyword, searchData.length]

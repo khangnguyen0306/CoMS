@@ -31,7 +31,7 @@ export const ContractAPI = baseApi.injectEndpoints({
 
         getContractNearExpired: builder.query({
             query: (params) => ({
-                url: `contracts`,
+                url: `contracts/get-contracts-nearly-expired`,
                 params: {
                     page: params?.page || 0,
                     size: params?.size || 10,

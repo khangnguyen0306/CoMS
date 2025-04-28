@@ -16,9 +16,10 @@ const ContractNearlyExpired = () => {
         pageSize: 10,
         total: 0,
     });
+
     const { data: contracts, isLoading, isError, refetch } = useGetContractNearExpiredQuery({
-        page: setPagination.current - 1,
-        size: setPagination.pageSize,
+        page: pagination.current - 1,
+        size: pagination.pageSize,
         keyword: searchText,
         days: day
     }
@@ -46,7 +47,7 @@ const ContractNearlyExpired = () => {
 
         {
             title: "Ngày tạo",
-            dataIndex: "createdAt",
+            dataIndex: "expiryDate",
             key: "createdAt",
             sorter: (a, b) => {
                 const dateA = new Date(a.createdAt[0], a.createdAt[1] - 1, a.createdAt[2]);
@@ -58,6 +59,20 @@ const ContractNearlyExpired = () => {
                 return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
             },
             defaultSortOrder: 'ascend',
+        },
+        {
+            title: "Ngày hết hạn",
+            dataIndex: "expiryDate",
+            key: "expiryDate",
+            sorter: (a, b) => {
+                const dateA = new Date(a.expiryDate[0], a.expiryDate[1] - 1, a.expiryDate[2]);
+                const dateB = new Date(b.expiryDate[0], b.expiryDate[1] - 1, b.expiryDate[2]);
+                return dateB - dateA;
+            },
+            render: (dateArray) => {
+                const [year, month, day] = dateArray;
+                return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
+            },
         },
         {
             title: "Người tạo",

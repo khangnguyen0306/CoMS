@@ -21,6 +21,35 @@ export const partnerAPI = baseApi.injectEndpoints({
       providesTags: (result, error, arg) => [{ type: "Partner", id: arg.id }],
     }),
 
+    generateReportPartner: builder.query({
+      query: ({ from, to }) => ({
+        url: `dashboard/customer/export`,
+        method: 'GET',
+        params: { from, to },
+        responseHandler: (response) => response.arrayBuffer(),
+        // (tuỳ chọn) nếu muốn headers chấp nhận Excel
+        headers: {
+          Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        },
+      }),
+      // Lúc này response đã là ArrayBuffer, chỉ cần trả về thẳng
+      transformResponse: (response) => response,
+      providesTags: (result, error, arg) => [{ type: 'Partner', id: arg.from + arg.to }],
+    }),
+    generateReportDashboard: builder.query({
+      query: ({ from, to, groupBy }) => ({
+        url: `dashboard/time/export`,
+        method: 'GET',
+        params: { from, to, groupBy },
+        responseHandler: (response) => response.arrayBuffer(),
+        headers: {
+          Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        },
+      }),
+      transformResponse: (response) => response,
+      providesTags: (result, error, arg) => [{ type: 'Partner', id: arg.from + arg.to }],
+    }),
+
     getPartnerList: builder.query({
       query: ({ keyword, page, size }) => ({
         url: `parties/get-all`,
@@ -28,6 +57,7 @@ export const partnerAPI = baseApi.injectEndpoints({
           keyword: keyword,
           page: page,
           pageSize: size,
+          order: 'desc'
         },
         method: "GET",
       }),
@@ -68,7 +98,7 @@ export const partnerAPI = baseApi.injectEndpoints({
       query: ({ keyword, page, size }) => ({
         url: `parties/get-all`,
         params: {
-          keyword: keyword ,
+          keyword: keyword,
           page: page,
           pageSize: size,
           partnerType: "PARTNER_B",
@@ -118,4 +148,7 @@ export const {
   useLazyGetPartnerListByPartnerTypeQuery,
   useCheckExistPartnerAMutation,
   useCheckExistPartnerBMutation,
+  useGenerateReportPartnerQuery,
+  useLazyGenerateReportPartnerQuery,
+  useLazyGenerateReportDashboardQuery
 } = partnerAPI;

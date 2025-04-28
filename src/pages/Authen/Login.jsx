@@ -80,7 +80,7 @@ const Login = () => {
                 break;
             case "ROLE_MANAGER":
                 setTimeout(() => {
-                    navigate('/manager', { replace: true });
+                    navigate('/manager/contract', { replace: true });
                 }, 50);
                 break;
             case "ROLE_STAFF":

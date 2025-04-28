@@ -73,16 +73,20 @@ export const useLazyLoadLegal = (loadDataCallback, pageSize = 10) => {
         (open) => {
             setDropdownOpened(open);
             if (open) {
-                // Nếu đang tìm kiếm thì load trang đầu của searchData nếu chưa có
+                // If the dropdown is opened, load data based on the current keyword
                 if (keyword && searchData.length === 0) {
                     setPage(0);
                     fetchData(0, keyword);
                 }
-                // Nếu không tìm kiếm, load dữ liệu bình thường nếu chưa có
+                // If not searching, load normal data if not already loaded
                 if (!keyword && data.length === 0) {
                     setPage(0);
                     fetchData(0, "");
                 }
+            } else {
+                // When the dropdown is closed, reset the search keyword
+                setKeyword(''); // Reset the search value
+                setSearchData([]); // Optionally clear the search data as well
             }
         },
         [data.length, fetchData, keyword, searchData.length]

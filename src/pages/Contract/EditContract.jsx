@@ -774,6 +774,15 @@ const EditContract = () => {
         }
     }, [form.getFieldValue('legalBasisTerms'), changeCCPL]);
 
+    useEffect(() => {
+        const legalBasis = form.getFieldValue('generalTerms');
+        if (legalBasis && legalBasis.length > 0) {
+            legalBasis.forEach(termId => {
+                loadTermDetail(termId);
+            });
+        }
+    }, [form.getFieldValue('generalTerms')]);
+
     const handleScroll = () => {
         const scrollPosition = window.scrollY + 50;
 
@@ -833,6 +842,28 @@ const EditContract = () => {
         });
     };
 
+    const renderGenaralTerms = () => {
+        if (!form.getFieldValue('generalTerms') || form.getFieldValue('generalTerms').length === 0) {
+            return <p>Chưa có căn cứ pháp lý nào được chọn.</p>;
+        }
+
+        return form.getFieldValue('generalTerms').map((termId, index) => {
+            const term = termsData[termId];
+            if (!term) {
+                return (
+                    <div key={termId} className="term-item p-1">
+                        <Spin size="small" />
+                    </div>
+                );
+            }
+
+            return (
+                <p key={index} className={`${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                    <p>- {term.value}</p>
+                </p>
+            );
+        });
+    };
 
     useEffect(() => {
         if (containerRef.current) {
@@ -1719,10 +1750,13 @@ const EditContract = () => {
                                 <Form.Item label={
                                     <div className="flex justify-between items-center gap-4">
                                         <p>Điều khoản chung</p>
-                                        <Popover content={() => getTermsContent('generalTerms')}
+                                        {/* <Popover content={() => getTermsContent('generalTerms')}
                                             title="Danh sách Điều khoản chung đã chọn"
                                             trigger="hover" placement="right"><Button icon={<EyeFilled />} />
-                                        </Popover></div>} name="generalTerms"
+                                        </Popover> */}
+                                    </div>
+                                }
+                                    name="generalTerms"
                                     rules={[{ required: true, message: "Vui lòng chọn điều khoản chung!" }]}
                                     className="ml-2"
                                 >
@@ -1742,12 +1776,16 @@ const EditContract = () => {
                                             </>
                                         )} />
                                 </Form.Item>
+                                <div className={`px-4 py-6 flex pl-10 flex-col gap-2 mt-10 rounded-md ${isDarkMode ? 'bg-[#1f1f1f]' : 'bg-[#f5f5f5]'}`}>
+                                    {renderGenaralTerms()}
+                                </div>
+
                                 <Form.Item
 
                                     label={
                                         <div className="ml-2 my-3 font-bold text-[16px] flex justify-between items-center gap-5">
                                             <p>Các điều khoản khác</p>
-                                            {selectedOthersTerms.length > 0 &&
+                                            {/* {selectedOthersTerms.length > 0 &&
                                                 <Popover
                                                     content={getAllAdditionalTermsContent}
                                                     title="Xem trước tất cả điều khoản đã chọn"
@@ -1756,7 +1794,7 @@ const EditContract = () => {
                                                     overlayStyle={{ maxWidth: '70vw' }}>
                                                     <Button icon={<EyeFilled />}>Xem trước tất cả</Button>
                                                 </Popover>
-                                            }
+                                            } */}
                                         </div>} name="additionalTerms">
 
                                     <Checkbox.Group

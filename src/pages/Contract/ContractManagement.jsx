@@ -769,6 +769,18 @@ const ManageContracts = () => {
                                     ]
                                     : []),
 
+                                ...(["CANCELLED"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "cancelInfor",
+                                            icon: <IoInformationCircleOutline style={{ color: 'red' }} />,
+                                            label: "Thông tin hủy",
+                                            onClick: () => openInforCancelModal(record.id),
+                                        },
+
+                                    ]
+                                    : []),
+
 
                                 {
                                     key: "export",
