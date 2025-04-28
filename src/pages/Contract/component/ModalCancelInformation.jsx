@@ -8,7 +8,7 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
     const [getcontractData, { data: contractData, isLoading: loadingDataContract, isError: contractError }] = useLazyGetContractInforCancelQuery(contractId, {
         skip: !contractId,
     });
-
+   
     useEffect(() => {
         getcontractData(contractId)
     }, [contractId])
@@ -51,11 +51,11 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
             saveAs(url, fileName);
         });
     };
-
+    const groupedFiles = groupFilesByType(contractData?.data?.urls);
     const formatDate = (dateArray) => {
         // Check if the array has at least 6 elements
-        if (dateArray.length < 6) {
-            return <p>Ngày không hợp lệ</p>; // Return a default message if data is insufficient
+        if (dateArray?.length < 6) {
+            return null; // Return null if data is insufficient to avoid rendering an error
         }
 
         // Format the date if the array has enough elements
@@ -73,7 +73,7 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
             </div>
         )
     }
-    const groupedFiles = groupFilesByType(contractData?.data?.urls);
+
     return (
         <Modal
             title="Thông tin hủy hợp đồng"
@@ -91,51 +91,53 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
                     <Skeleton active />
                 </div>
             ) : (
-                <>
-                    <div className='flex flex-col gap-3'>
-                        <h3>Danh sách file đính kèm</h3>
-                        {
-                            Object.keys(groupedFiles).map((fileType) => (
-                                <div key={fileType} className='mb-5 gap-3 flex flex-col'>
-                                    <h4 >Loại file: <b>{` ${fileType.toUpperCase()}`}</b></h4>
-                                    <Row gutter={[16, 16]}>
-                                        {groupedFiles[fileType].map((url, index) => (
-                                            <Col span={6} key={index}>
-                                                <Card
-                                                    hoverable
-                                                    className='flex items-center justify-center'
-                                                // bodyStyle={{ padding: '10px' }}
-                                                >
-                                                    <div className='flex flex-col items-center gap-2'>
-                                                        <p>{getFileNameFromUrl(url)}</p>
-                                                        <p><FaFileAlt style={{ fontSize: 40 }} /></p>
-                                                        <Button
-                                                            type="primary"
-                                                            className='mt-3'
-                                                            onClick={() => handleDownload(url)}
-                                                        >
-                                                            Tải xuống
-                                                        </Button>
-                                                    </div>
-                                                </Card>
-                                            </Col>
-                                        ))}
-                                    </Row>
-                                </div>
-                            ))
-                        }
-                        <Button type="primary" onClick={handleDownloadAll} style={{ marginTop: '10px' }}>
-                            Tải xuống tất cả
-                        </Button>
-                    </div >
-                    <div style={{ marginTop: '20px' }}>
-                        <Card title="Lý do hủy hợp đồng">
-                            <p className='flex gap-2 mb-4'><b>Thời gian hủy:</b>{formatDate(contractData?.data?.cancelAt)}</p>
-                            <p>{contractData?.data?.cancelContent}</p>
-                            {/* <p>Thời gian hủy: {new Date(...contractData?.data?.cancelAt).toLocaleString()}</p> */}
-                        </Card>
-                    </div>
-                </>
+                contractData && contractData.data ? (
+                    <>
+                        <div className='flex flex-col gap-3'>
+                            <h3>Danh sách file đính kèm</h3>
+                            {
+                                Object.keys(groupedFiles).map((fileType) => (
+                                    <div key={fileType} className='mb-5 gap-3 flex flex-col'>
+                                        <h4 >Loại file: <b>{` ${fileType.toUpperCase()}`}</b></h4>
+                                        <Row gutter={[16, 16]}>
+                                            {groupedFiles[fileType].map((url, index) => (
+                                                <Col span={6} key={index}>
+                                                    <Card
+                                                        hoverable
+                                                        className='flex items-center justify-center'
+                                                    >
+                                                        <div className='flex flex-col items-center gap-2'>
+                                                            <p>{getFileNameFromUrl(url)}</p>
+                                                            <p><FaFileAlt style={{ fontSize: 40 }} /></p>
+                                                            <Button
+                                                                type="primary"
+                                                                className='mt-3'
+                                                                onClick={() => handleDownload(url)}
+                                                            >
+                                                                Tải xuống
+                                                            </Button>
+                                                        </div>
+                                                    </Card>
+                                                </Col>
+                                            ))}
+                                        </Row>
+                                    </div>
+                                ))
+                            }
+                            <Button type="primary" onClick={handleDownloadAll} style={{ marginTop: '10px' }}>
+                                Tải xuống tất cả
+                            </Button>
+                        </div >
+                        <div style={{ marginTop: '20px' }}>
+                            <Card title="Lý do hủy hợp đồng">
+                                <p className='flex gap-2 mb-4'><b>Thời gian hủy:</b> {contractData?.data.cancelAt[2] + "/" + contractData?.data.cancelAt[1] + "/" + contractData?.data.cancelAt[0] + "   lúc     " + contractData?.data.cancelAt[3] + ":" + contractData?.data.cancelAt[4] + ":" + contractData?.data.cancelAt[5]}</p>
+                                <p>{contractData?.data?.cancelContent}</p>
+                            </Card>
+                        </div>
+                    </>
+                ) : (
+                    <div>No contract data available.</div>
+                )
             )}
         </Modal >
     );
