@@ -1,5 +1,6 @@
 // appendixApi.js
 import { baseApi } from './BaseAPI';
+import { useGetImgBillQuery } from './ContractAPI';
 
 export const appendixApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -215,6 +216,14 @@ export const appendixApi = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, id) => [{ type: 'Appendix', id: id }],
     }),
+    getImgBillAppendix: builder.query({
+      query: ({ id }) => ({
+        url: `addendums/get-bill-urls/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, id) => [{ type: 'Appendix', id: id }],
+    }),
+
 
   }),
 });
@@ -242,4 +251,5 @@ export const {
   useUploadAppendixAlreadySignedMutation,
   useUploadAppendixOnlineSignedMutation,
   useGetImgSignAppendixQuery,
+  useGetImgBillAppendixQuery,
 } = appendixApi;

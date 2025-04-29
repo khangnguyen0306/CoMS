@@ -117,13 +117,23 @@ export const uploadAPI = createApi({
       },
       invalidatesTags: [{ type: "Appendix", id: "LIST" }],
     }),
+    uploadImgAppendix: builder.mutation({
+      query: ({ paymentScheduleId, formData }) => {
+        return {
+          url: `addendums/upload-bills/${paymentScheduleId}`,
+          method: "PUT",
+          body: formData,
+        };
+      },
+      invalidatesTags: [{ type: "Appendix", id: "LIST" }],
+    }),
     cancelContract: builder.mutation({
       query: ({ contractIdCancel, formData }) => {
         return {
           url: `/contracts/cancel-contract/${contractIdCancel}`,
           method: "PUT",
           body: formData,
-          formData: true, 
+          formData: true,
         };
       },
       invalidatesTags: [{ type: "Contract", id: "LIST" }],
@@ -141,5 +151,6 @@ export const {
   useUploadImgSignMutation,
   useUploadAppenixToSignMutation,
   useUploadSignFileMutation,
-  useCancelContractMutation
+  useCancelContractMutation,
+  useUploadImgAppendixMutation,
 } = uploadAPI;
