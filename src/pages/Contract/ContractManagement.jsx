@@ -954,13 +954,13 @@ const ManageContracts = () => {
                     {isStaff && (
                         <div>
 
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 icon={<UploadOutlined />}
                                 className="mr-3"
                             >
                                 <Link to={'/createContractPDF'}> Tải lên hợp đồng</Link>
-                            </Button>
+                            </Button> */}
 
                             <Button
                                 type="primary"

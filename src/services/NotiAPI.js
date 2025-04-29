@@ -1,21 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { selectTokens } from "../slices/authSlice";
 import { BE_API_LOCAL } from "../config/config";
+import { baseApi } from "./BaseAPI";
 
-export const notiAPI = createApi({
-  reducerPath: "notificationAPI",
-  tagTypes: ["Notification"],
-  baseQuery: fetchBaseQuery({
-    baseUrl: BE_API_LOCAL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = selectTokens(getState());
-      if (token) {
-        headers.append("Authorization", `Bearer ${token}`);
-      }
-      headers.append("Content-Type", "application/json");
-      return headers;
-    },
-  }),
+export const notiAPI = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Lấy danh sách thông báo
     getNotifications: builder.query({
