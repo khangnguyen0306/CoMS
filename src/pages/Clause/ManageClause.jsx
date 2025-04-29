@@ -805,15 +805,14 @@ const ManageClause = () => {
                         />
                     </div>
                 </TabPane>
-                <TabPane tab="Loại Hợp Đồng" key="3">
+                {/* <TabPane tab="Loại Hợp Đồng" key="3">
                     <div className="p-6 min-h-[100vh] ">
-                        {/* Tiêu đề */}
-                        <div className='font-bold mb-10 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
+                                          <div className='font-bold mb-10 text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                             <div className="flex items-center gap-4">
                                 QUẢN LÝ LOẠI HỢP ĐỒNG
                             </div>
                         </div>
-                        {/* Nút Thêm Loại Hợp Đồng */}
+               
                         <div className="mb-6 flex justify-end">
                             <Button loading={loadingCreateType} icon={<PlusCircleFilled />} type="primary" onClick={handleAddContractType}>
                                 Thêm Loại Hợp Đồng
@@ -843,7 +842,6 @@ const ManageClause = () => {
                             </Form>
                         </Modal>
 
-                        {/* Modal Sửa */}
                         <Modal
                             title="Chỉnh Sửa Loại Hợp Đồng"
                             open={isModalOpenContractType}
@@ -866,7 +864,7 @@ const ManageClause = () => {
                                 </Form.Item>
                             </Form>
                         </Modal>
-                        {/* Bọc List trong div có lề trái */}
+                
                         <div>
                             <List
                                 dataSource={typeContractData}
@@ -885,7 +883,7 @@ const ManageClause = () => {
                                             />
                                         </List.Item>
 
-                                        {/* Divider hiển thị sau mỗi item trừ item cuối cùng */}
+           
                                         {index !== typeContractData.length - 1 && <Divider style={{ margin: 0 }} />}
                                     </>
                                 )}
@@ -893,7 +891,7 @@ const ManageClause = () => {
                         </div>
 
                     </div>
-                </TabPane>
+                </TabPane> */}
 
 
                 <TabPane tab="Điều Khoản của tôi" key="4">

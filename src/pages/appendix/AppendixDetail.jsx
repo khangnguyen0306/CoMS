@@ -1418,7 +1418,7 @@ const AppendixDetail = () => {
                         </div>
 
                         {/* Collapse phê duyệt */}
-                        {!userApproval && (
+                        {!userApproval && appendixData?.data.status != "APPROVED" && (
                             !userCreate && (
                                 <Collapse>
                                     <Panel header="Phê duyệt" key="1">

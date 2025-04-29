@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
-import { Skeleton, Timeline, Tag, Empty, Upload, Button, Tooltip } from 'antd';
-import { CheckCircleFilled, CloseCircleOutlined, InfoCircleOutlined, LoadingOutlined, UploadOutlined } from '@ant-design/icons';
+import { Skeleton, Timeline, Tag, Empty, Button, Tooltip, message } from 'antd';
+import { CheckCircleFilled, CloseCircleOutlined, InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery, useSendReminderContractMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
-import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
+// import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../slices/authSlice';
 import { TbBellRingingFilled } from "react-icons/tb";
@@ -98,12 +98,12 @@ const ExpandRowContent = ({ id, appendixId }) => {
     const ReminderContract = async () => {
         try {
             const res = await Reminder(id).unwrap();
-            console.log(typeof res);
-            const parsedRes = JSON.parse(res);
-            message.success(parsedRes.message);
+            console.log(res);
+            // const parsedRes = JSON.parse(res);
+            message.success(res.message);
         } catch (error) {
-            console.error("Lỗi gửi nhắc nhở:", error);
-            message.error("Gửi nhắc nhở thất bại!");
+            // console.error("Lỗi gửi nhắc nhở:", error);
+            message.error(error.data.message);
         }
     };
 
