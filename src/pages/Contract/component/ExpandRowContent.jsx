@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useGetProcessByContractIdQuery } from '../../../services/ProcessAPI';
 import { Skeleton, Timeline, Tag, Empty, Button, Tooltip, message } from 'antd';
 import { CheckCircleFilled, CloseCircleOutlined, InfoCircleOutlined, LoadingOutlined } from '@ant-design/icons';
-import { useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
+import { useGetAppendixDetailQuery, useGetWorkFlowByAppendixIdQuery } from '../../../services/AppendixAPI';
 import { useGetContractDetailQuery, useSendReminderContractMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
 // import { useUploadBillingContractMutation } from '../../../services/uploadAPI';
@@ -23,15 +23,31 @@ const ExpandRowContent = ({ id, appendixId }) => {
     );
     const [Reminder] = useSendReminderContractMutation();
 
-    const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment } = useGetContractDetailQuery(id)
-    // console.log(dataPayment)
-    // Hiển thị thông báo lỗi nếu có lỗi xảy ra
+    const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment, refetch: refetchDetailContract } = useGetContractDetailQuery(id)
+    const { data: appendixData, isLoading: isLoadingDetailAppendix, isError: isErrorDetailAppendix, refetch: refetchDetailAppendix } = useGetAppendixDetailQuery(
+        { id: appendixId },
+        { skip: !appendixId },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    )
+    console.log("dataAppendix", appendixData)
+    console.log("dataPayment", dataPayment)
 
     useEffect(() => {
         if (id) {
             refetchContract()
         } else if (appendixId) {
             refetchAppendix()
+        }
+    }, [id, appendixId])
+
+    useEffect(() => {
+        if (id) {
+            refetchDetailContract()
+        } else if (appendixId) {
+            refetchDetailAppendix()
         }
     }, [id, appendixId])
 
@@ -50,6 +66,19 @@ const ExpandRowContent = ({ id, appendixId }) => {
         }
     }
     const stages = id ? data?.data?.stages : dataAppendix?.data?.stages;
+
+    // if (id) {
+    //     if (!dataPayment || !dataPayment?.data || dataPayment?.data) {
+    //         return <Empty description="Chưa có đợt thanh toán nào" />;
+    //     }
+    // } else {
+    //     if (!dataAppendix || !dataAppendix?.data.stages || dataAppendix?.data) {
+    //         return <Empty description="Chưa có đợt thanh toán nào" />;
+    //     }
+    // }
+
+    const dataPaymentDetail = id ? dataPayment?.data : appendixData?.data;
+    console.log("daya nè", dataPaymentDetail)
 
     if (!stages || stages.length === 0) {
         return <Empty description="Chưa có quy trình duyệt" />;
@@ -188,78 +217,75 @@ const ExpandRowContent = ({ id, appendixId }) => {
 
             {/* Cột bên phải: Các đợt thanh toán */}
 
-            {!appendixId && (
-                ["ACTIVE", "EXPIRED", "ENDED"].includes(dataPayment?.data?.status) ? (
-                    (dataPayment?.data?.paymentSchedules?.length || 0) === 0 ? (
-                        <div className="w-1/2 pr-10 relative">
-                            <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
-                                Các đợt thanh toán
-                            </h3>
-                            <div className="mt-10  ml-10">
-                                <Empty description="Không có đợt thanh toán nào cho hợp đồng này." />
-                            </div>
+            {["SIGNED"].includes(dataPaymentDetail?.status) ? (
+                (dataPaymentDetail?.paymentSchedules?.length || 0) === 0 ? (
+                    <div className="w-1/2 pr-10 relative">
+                        <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
+                            Các đợt thanh toán
+                        </h3>
+                        <div className="mt-10  ml-10">
+                            <Empty description="Không có đợt thanh toán nào cho hợp đồng này." />
                         </div>
-                    ) : (
-                        <div className="w-1/2 pr-10 relative">
-                            <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
-                                Các đợt thanh toán
-                            </h3>
-
-                            <Timeline className='mt-8 -ml-[20%]' mode="left">
-                                {dataPayment?.data?.paymentSchedules.map((schedule, index) => (
-                                    <Timeline.Item
-                                        key={schedule.id || index}
-                                        label={
-                                            schedule.paymentDate
-                                                ? dayjs(
-                                                    new Date(
-                                                        schedule.paymentDate[0],
-                                                        schedule.paymentDate[1] - 1,
-                                                        schedule.paymentDate[2]
-                                                    )
-                                                ).format("DD/MM/YYYY")
-                                                : "Không có dữ liệu"
-                                        }
-                                    >
-                                        <div style={{ display: "flex", alignItems: "center", gap: "8px", textAlign: "left" }}>
-                                            <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
-                                                <span
-                                                    className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
-                                                    style={{ maxWidth: "150px", display: "inline-block", whiteSpace: "nowrap", minWidth: "150px" }}
-                                                    title={`${schedule.amount.toLocaleString()} VND`}
-                                                >
-                                                    {schedule.amount.toLocaleString()} VND
-                                                </span>
-                                            </Tooltip>
-                                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                                {schedule.status === "UNPAID" ? (
-                                                    <Tag color="red">Chưa thanh toán</Tag>
-                                                ) : schedule.status === "PAID" ? (
-                                                    <Tag color="green">Đã thanh toán</Tag>
-                                                ) : schedule.status === "OVERDUE" ? (
-                                                    <Tag color="red">Quá hạn</Tag>
-                                                ) : (
-                                                    schedule.status
-                                                )}
-                                            </div>
-                                        </div>
-                                    </Timeline.Item>
-                                ))}
-                            </Timeline>
-                        </div>
-                    )
+                    </div>
                 ) : (
                     <div className="w-1/2 pr-10 relative">
                         <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
                             Các đợt thanh toán
                         </h3>
-                        <div className="mt-10">
-                            <Empty description="Chưa có đợt thanh toán" />
-                        </div>
+
+                        <Timeline className='mt-8 -ml-[20%]' mode="left">
+                            {dataPaymentDetail?.paymentSchedules.map((schedule, index) => (
+                                <Timeline.Item
+                                    key={schedule.id || index}
+                                    label={
+                                        schedule.paymentDate
+                                            ? dayjs(
+                                                new Date(
+                                                    schedule.paymentDate[0],
+                                                    schedule.paymentDate[1] - 1,
+                                                    schedule.paymentDate[2]
+                                                )
+                                            ).format("DD/MM/YYYY")
+                                            : "Không có dữ liệu"
+                                    }
+                                >
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px", textAlign: "left" }}>
+                                        <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                            <span
+                                                className="font-bold text-gray-800 text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                                                style={{ maxWidth: "150px", display: "inline-block", whiteSpace: "nowrap", minWidth: "150px" }}
+                                                title={`${schedule.amount.toLocaleString()} VND`}
+                                            >
+                                                {schedule.amount.toLocaleString()} VND
+                                            </span>
+                                        </Tooltip>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                            {schedule.status === "UNPAID" ? (
+                                                <Tag color="red">Chưa thanh toán</Tag>
+                                            ) : schedule.status === "PAID" ? (
+                                                <Tag color="green">Đã thanh toán</Tag>
+                                            ) : schedule.status === "OVERDUE" ? (
+                                                <Tag color="red">Quá hạn</Tag>
+                                            ) : (
+                                                schedule.status
+                                            )}
+                                        </div>
+                                    </div>
+                                </Timeline.Item>
+                            ))}
+                        </Timeline>
                     </div>
                 )
+            ) : (
+                <div className="w-1/2 pr-10 relative">
+                    <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
+                        Các đợt thanh toán
+                    </h3>
+                    <div className="mt-10">
+                        <Empty description="Chưa có đợt thanh toán111" />
+                    </div>
+                </div>
             )}
-
 
         </div>
 

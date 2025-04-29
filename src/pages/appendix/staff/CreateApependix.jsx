@@ -174,7 +174,7 @@ const ContractAppendixPage = () => {
             await form.validateFields();
 
             // Check if at least one appendix type is selected
-            if (selectedTypes.length === 0) {
+            if (selectedTypes?.length === 0) {
                 message.error('Vui lòng chọn ít nhất một loại phụ lục!');
                 return;
             }
@@ -199,11 +199,11 @@ const ContractAppendixPage = () => {
                 .filter(key => !isNaN(key))
                 .reduce((acc, key) => {
                     const { A, B, Common } = data[key];
-                    if (A.length > 0 || B.length > 0 || Common.length > 0) {
+                    if (A?.length > 0 || B?.length > 0 || Common?.length > 0) {
                         acc[key] = {
-                            ...(A.length > 0 && { A: A.map(id => ({ id })) }),
-                            ...(B.length > 0 && { B: B.map(id => ({ id })) }),
-                            ...(Common.length > 0 && { Common: Common.map(id => ({ id })) }),
+                            ...(A?.length > 0 && { A: A.map(id => ({ id })) }),
+                            ...(B?.length > 0 && { B: B.map(id => ({ id })) }),
+                            ...(Common?.length > 0 && { Common: Common.map(id => ({ id })) }),
                         };
                     }
                     return acc;
