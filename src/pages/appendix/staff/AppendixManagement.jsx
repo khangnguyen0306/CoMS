@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Image, Upload } from "antd";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Image, Upload, Collapse, Tooltip } from "antd";
 import { DeleteOutlined, SettingOutlined, EditFilled, CheckCircleFilled, UndoOutlined, DownloadOutlined, SignatureOutlined, InboxOutlined, UploadOutlined, LoadingOutlined, FilePdfOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -7,17 +7,22 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../slices/authSlice";
 import { useGetContractPorcessPendingQuery } from "../../../services/ProcessAPI";
 import ExpandRowContent from "../../Contract/component/ExpandRowContent";
-import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery, useGetImgSignAppendixQuery, useResubmitAppendixMutation } from "../../../services/AppendixAPI";
+import { useDeleteAppendixMutation, useGetAllAppendixBySelfQuery, useGetAppendixDetailQuery, useGetImgBillAppendixQuery, useGetImgSignAppendixQuery, useResubmitAppendixMutation } from "../../../services/AppendixAPI";
 import Process from "../../Process/Process";
 import { IoDuplicate } from "react-icons/io5";
 import DuplicateModal from "../component/DuplicateAppendix";
-import { useUploadSignFileMutation } from "../../../services/uploadAPI";
+import { useUploadImgAppendixMutation, useUploadSignFileMutation } from "../../../services/uploadAPI";
+import { BsClipboard2DataFill } from "react-icons/bs";
 const { Search } = Input;
+const { Panel } = Collapse;
 
 const AppendixManagement = () => {
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
 
     const navigate = useNavigate()
     const user = useSelector(selectCurrentUser)
+    const isCEO = user?.roles?.includes("ROLE_DIRECTOR");
+    const isManager = user?.roles?.includes("ROLE_MANAGER");
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
     const [searchParams] = useSearchParams();
@@ -35,6 +40,9 @@ const AppendixManagement = () => {
     const [selectedAppendixtId, setSelectedAppendixtId] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [hoveredIndex, setHoveredIndex] = useState(null);
+    const [isUpdateStatusModalVisible, setIsUpdateStatusModalVisible] = useState(false);
+    const [activePanel, setActivePanel] = useState([]);
+    const [paymentId, setPaymentId] = useState(null);
 
     const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixBySelfQuery({
         page: pagination.current - 1,
@@ -45,21 +53,45 @@ const AppendixManagement = () => {
 
     const [uploadSign, { isLoading: LoadingUploadSign }] = useUploadSignFileMutation();
 
+    const { data: dataBillAppendix, refetch: refetchBill } = useGetImgBillAppendixQuery({ id: paymentId }, {
+        skip: !paymentId,
+    });
+    console.log("he", paymentId)
 
     const { data: dataSign, isLoading: LoadingImage, isError: ErrorImage, refetch: refetchImg } = useGetImgSignAppendixQuery({ id: selectedAppendixtId }, {
         skip: !selectedAppendixtId,
     });
     // console.log("hi", dataSign)
-
+    const { data: appendixData, isLoading: isLoadingDetailAppendix, isError: isErrorDetailAppendix, refetch: refetchDetailAppendix } = useGetAppendixDetailQuery(
+        { id: selectedContractId },
+        { skip: !selectedContractId },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    )
 
     const [deleteappendix] = useDeleteAppendixMutation()
     const [resubmitAppendix] = useResubmitAppendixMutation()
+    const [uploadBill, { isLoading: LoadingBill }] = useUploadImgAppendixMutation();
 
 
     const tableData = appendixs?.data?.content;
 
     const handleDeleteImg = (index) => {
         setFileList((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const openUpdateStatusModal = (contractId) => {
+        setSelectedContractId(contractId);
+        setIsUpdateStatusModalVisible(true);
+        refetchDetailAppendix();
+    };
+
+    const handleCloseUpdateStatusModal = () => {
+        setIsUpdateStatusModalVisible(false);
+        setSelectedContractId(null);
+        setFileList([]);
     };
 
     const handleOpenSignModal = (addendumId) => {
@@ -116,6 +148,30 @@ const AppendixManagement = () => {
             cancelText: 'Hủy',
         });
 
+    };
+
+    const handleUploadAll = async (paymentScheduleId) => {
+        try {
+            // Tạo FormData và append tất cả file vào cùng một key (ví dụ: "files")
+            const formData = new FormData();
+            fileList.forEach((file) => {
+                formData.append("files", file);
+            });
+
+            // Gọi API upload file, truyền paymentScheduleId và formData
+            const res = await uploadBill({ paymentScheduleId, formData }).unwrap();
+            refetchDetailAppendix();
+            refetchBill();
+            refetch();
+            message.success(res.message);
+            setFileList([]);
+            // setActivePanel([]);
+            setIsUpdateStatusModalVisible(false);
+
+        } catch (error) {
+            console.error("Lỗi khi tải lên file:", error);
+            message.error("Có lỗi xảy ra khi tải lên file!");
+        }
     };
 
     const handleResubmit = async (record) => {
@@ -294,7 +350,17 @@ const AppendixManagement = () => {
                                                 onClick: () => navigate(`/EditAppendix/${record.contractId}/${record.addendumId}`),
                                             }]
                                             : []),
-                                        ...(record.status == "SIGNED" && user.roles[0] == "ROLE_STAFF"
+                                        ...(record.status == "SIGNED"
+                                            ? [
+                                                {
+                                                    key: "updateStatus",
+                                                    icon: <BsClipboard2DataFill />,
+                                                    label: "Cập nhật trạng thái thanh toán",
+                                                    onClick: () => openUpdateStatusModal(record.addendumId),
+                                                },
+                                            ]
+                                            : []),
+                                        ...(record.status == "SIGNED"
                                             ? [
                                                 {
                                                     key: "uploadImgSign",
@@ -327,6 +393,20 @@ const AppendixManagement = () => {
 
         }] : []),
     ];
+
+    const handleBeforeUpload = (file) => {
+        const isValidType =
+            file.type === "image/png" || file.type === "image/jpeg";
+        if (!isValidType) {
+            message.error("Bạn chỉ có thể tải file PNG hoặc JPEG!");
+            return Upload.LIST_IGNORE;
+        }
+
+        // Thêm file vào state
+        setFileList((prev) => [...prev, file]);
+
+        return false; // Ngăn không cho Upload.Dragger tự động tải lên
+    };
 
     const handleTableChange = (pagination, filters, sorter) => {
         setPagination(pagination);
@@ -447,7 +527,7 @@ const AppendixManagement = () => {
                     />
                 </Modal>
 
-                <Modal
+                {/* <Modal
                     title="Cập nhật trạng thái đã ký"
                     open={isOpenSignModal}
                     onCancel={handleCloseUpdateSignModal}
@@ -458,9 +538,285 @@ const AppendixManagement = () => {
                         <Spin />
                     ) : (
                         <div className="p-4">
-                            {/* Đã có hóa đơn */}
 
                             {dataSign?.data?.length > 0 ? (
+                                <>
+                                    <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
+                                    <div
+                                        className="image-preview"
+                                        style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+                                    >
+                                        {dataSign?.data?.map((fileUrl, idx) => {
+
+                                            const isPDF = fileUrl.includes("/raw");
+                                            const isImage = fileUrl.includes("/image");
+                                            return (
+                                                <div key={idx} style={{ position: "relative" }}>
+                                                    {isImage ? (
+                                                        <Image
+                                                            src={fileUrl}
+                                                            alt={`Uploaded ${idx}`}
+                                                            style={{
+                                                                width: "100px",
+                                                                height: "100px",
+                                                                objectFit: "cover",
+                                                                borderRadius: "8px"
+                                                            }}
+                                                        />
+                                                    ) : isPDF ? (
+                                                        <a
+                                                            href={fileUrl}
+
+                                                            rel="noopener noreferrer"
+                                                            download
+                                                            style={{
+                                                                display: "flex",
+                                                                justifyContent: "center",
+                                                                alignItems: "center",
+                                                                width: "100px",
+                                                                height: "100px",
+                                                                border: "1px solid #ccc",
+                                                                borderRadius: "8px",
+                                                                backgroundColor: "#f0f0f0",
+                                                                flexDirection: "column",
+                                                                color: "#e74c3c",
+                                                                textDecoration: "none"
+                                                            }}
+                                                        >
+                                                            <FilePdfOutlined style={{ fontSize: "30px" }} />
+                                                            <span style={{ fontSize: "12px", textAlign: "center" }}>PDF File</span>
+                                                        </a>
+                                                    ) : (
+                                                        <span>File không xác định</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Upload.Dragger
+                                        disabled={isManager || isCEO}
+                                        multiple
+                                        name="files"
+                                        accept="image/png,image/jpeg,application/pdf"
+                                        beforeUpload={(file) => {
+                                            const isImage = file.type === "image/png" || file.type === "image/jpeg";
+                                            const isPDF = file.type === "application/pdf";
+
+                                            if (!isImage && !isPDF) {
+                                                message.error(`${file.name} không phải là hình PNG/JPG hoặc file PDF!`);
+                                                return Upload.LIST_IGNORE;
+                                            }
+
+                                            setFileList((prev) => [...prev, file]);
+                                            return false;
+                                        }}
+                                        showUploadList={false}
+                                    >
+                                        <p className="ant-upload-drag-icon">
+                                            <InboxOutlined />
+                                        </p>
+                                        <div className="ant-upload-text">Click hoặc kéo file vào đây để tải lên</div>
+                                        <p className="ant-upload-hint">Hỗ trợ tải lên nhiều file hình hoặc PDF.</p>
+                                    </Upload.Dragger>
+
+                                    {fileList.length > 0 && (
+                                        <div className="file-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                            {fileList.map((file, index) => {
+                                                const isImage = file.type.startsWith("image/");
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        onMouseEnter={() => setHoveredIndex(index)}
+                                                        onMouseLeave={() => setHoveredIndex(null)}
+                                                        style={{ position: "relative" }}
+                                                    >
+                                                        {isImage ? (
+                                                            <Image
+                                                                src={URL.createObjectURL(file)}
+                                                                alt="Preview"
+                                                                style={{
+                                                                    width: "100px",
+                                                                    height: "100px",
+                                                                    objectFit: "cover",
+                                                                    borderRadius: "8px"
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                style={{
+                                                                    width: "100px",
+                                                                    height: "100px",
+                                                                    display: "flex",
+                                                                    justifyContent: "center",
+                                                                    alignItems: "center",
+                                                                    border: "1px solid #ddd",
+                                                                    borderRadius: "8px",
+                                                                    backgroundColor: "#f5f5f5"
+                                                                }}
+                                                            >
+                                                                <FilePdfOutlined style={{ fontSize: "30px", color: "#e74c3c" }} />
+                                                            </div>
+                                                        )}
+                                                        {hoveredIndex === index && (
+                                                            <Button
+                                                                icon={<DeleteOutlined />}
+                                                                onClick={() => handleDeleteImg(index)}
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: "5px",
+                                                                    right: "5px",
+                                                                    backgroundColor: "red",
+                                                                    color: "white",
+                                                                    borderRadius: "50%",
+                                                                    padding: "5px",
+                                                                    border: "none"
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        type="primary"
+                                        icon={LoadingUploadSign ? <LoadingOutlined /> : <UploadOutlined />}
+                                        onClick={() => handleUploadSign(selectedAppendixtId)}
+                                        disabled={fileList.length === 0 || LoadingUploadSign}
+                                        style={{ marginTop: "10px" }}
+                                    >
+                                        {LoadingUploadSign ? "Đang tải lên..." : "Tải lên"}
+                                    </Button>
+
+
+                                </>
+                            )}
+
+
+                        </div>
+                    )}
+
+                </Modal> */}
+
+                <Modal
+                    title="Cập nhật trạng thái đã ký"
+                    open={isOpenSignModal}
+                    onCancel={handleCloseUpdateSignModal}
+                    footer={null}
+                    width={700}
+                    destroyOnClose
+                >
+                    {LoadingImage ? (
+                        <Spin />
+                    ) : ErrorImage ? (
+
+                        <>
+                            <Upload.Dragger
+                                multiple
+                                disabled={isManager || isCEO}
+                                name="files"
+                                accept="image/png,image/jpeg,application/pdf"
+                                beforeUpload={(file) => {
+                                    const isImage = file.type === "image/png" || file.type === "image/jpeg";
+                                    const isPDF = file.type === "application/pdf";
+
+                                    if (!isImage && !isPDF) {
+                                        message.error(`${file.name} không phải là hình PNG/JPG hoặc file PDF!`);
+                                        return Upload.LIST_IGNORE;
+                                    }
+
+                                    setFileList((prev) => [...prev, file]);
+                                    return false;
+                                }}
+                                showUploadList={false}
+                            >
+                                <p className="ant-upload-drag-icon">
+                                    <InboxOutlined />
+                                </p>
+                                <div className="ant-upload-text">Click hoặc kéo file vào đây để tải lên</div>
+                                <p className="ant-upload-hint">Hỗ trợ tải lên nhiều file hình hoặc PDF.</p>
+                            </Upload.Dragger>
+
+                            {fileList.length > 0 && (
+                                <div className="file-preview mt-4" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                    {fileList.map((file, index) => {
+                                        const isImage = file.type.startsWith("image/");
+                                        return (
+                                            <div
+                                                key={index}
+                                                onMouseEnter={() => setHoveredIndex(index)}
+                                                onMouseLeave={() => setHoveredIndex(null)}
+                                                style={{ position: "relative" }}
+                                            >
+                                                {isImage ? (
+                                                    <Image
+                                                        src={URL.createObjectURL(file)}
+                                                        alt="Preview"
+                                                        style={{
+                                                            width: "100px",
+                                                            height: "100px",
+                                                            objectFit: "cover",
+                                                            borderRadius: "8px"
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        style={{
+                                                            width: "100px",
+                                                            height: "100px",
+                                                            display: "flex",
+                                                            justifyContent: "center",
+                                                            alignItems: "center",
+                                                            border: "1px solid #ddd",
+                                                            borderRadius: "8px",
+                                                            backgroundColor: "#f5f5f5"
+                                                        }}
+                                                    >
+                                                        <FilePdfOutlined style={{ fontSize: "30px", color: "#e74c3c" }} />
+                                                    </div>
+                                                )}
+                                                {hoveredIndex === index && (
+                                                    <Button
+                                                        icon={<DeleteOutlined />}
+                                                        onClick={() => handleDeleteImg(index)}
+                                                        style={{
+                                                            position: "absolute",
+                                                            top: "5px",
+                                                            right: "5px",
+                                                            backgroundColor: "red",
+                                                            color: "white",
+                                                            borderRadius: "50%",
+                                                            padding: "5px",
+                                                            border: "none"
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            <Button
+                                type="primary"
+                                icon={LoadingUploadSign ? <LoadingOutlined /> : <UploadOutlined />}
+                                onClick={() => handleUploadSign(selectedAppendixtId)}
+                                disabled={fileList.length === 0 || LoadingUploadSign}
+                                style={{ marginTop: "10px" }}
+                            >
+                                {LoadingUploadSign ? "Đang tải lên..." : "Tải lên"}
+                            </Button>
+
+
+                        </>
+                    ) : (
+                        <div className="p-4">
+
+                            {dataSign?.data?.length > 0 && dataSign?.data ? (
                                 <>
                                     <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
                                     <div
@@ -520,6 +876,7 @@ const AppendixManagement = () => {
                                 <>
                                     <Upload.Dragger
                                         multiple
+                                        disabled={isManager || isCEO}
                                         name="files"
                                         accept="image/png,image/jpeg,application/pdf"
                                         beforeUpload={(file) => {
@@ -612,8 +969,6 @@ const AppendixManagement = () => {
                                     >
                                         {LoadingUploadSign ? "Đang tải lên..." : "Tải lên"}
                                     </Button>
-
-
                                 </>
                             )}
 
@@ -621,6 +976,170 @@ const AppendixManagement = () => {
                         </div>
                     )}
 
+                </Modal>
+
+
+                <Modal
+                    title="Cập nhật trạng thái thanh toán"
+                    open={isUpdateStatusModalVisible}
+                    onCancel={handleCloseUpdateStatusModal}
+                    footer={null}
+                    width={700}
+                >
+                    {isLoadingDetailAppendix ? (
+                        <Spin />
+                    ) : isErrorDetailAppendix ? (
+                        <div className="text-center text-red-500">Có lỗi xảy ra khi tải dữ liệu</div>
+                    ) : (
+                        <div className="p-4">
+                            <h3 className="text-2xl font-semibold text-center mb-4">Các đợt thanh toán</h3>
+                            <Collapse
+                                bordered
+                                accordion
+                                activeKey={activePanel}
+                                onChange={(key) => {
+                                    setActivePanel(key);
+                                    setPaymentId(key);
+                                }}
+                                className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
+                            >
+                                {appendixData?.data?.paymentSchedules?.map((schedule, index) => (
+                                    <Panel
+                                        key={schedule.id || index}
+                                        header={
+                                            <div className={`${isDarkMode ? '' : '!text-black'} flex items-center justify-between w-full`}>
+                                                {/* Số tiền */}
+                                                <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                                    <span
+                                                        className={`font-bold   whitespace-nowrap overflow-hidden `}
+                                                        style={{ maxWidth: "250px" }}
+                                                    >
+                                                        {schedule.amount.toLocaleString()} VND
+                                                    </span>
+                                                </Tooltip>
+                                                {/* Ngày thanh toán */}
+                                                <span className=" ">
+                                                    {schedule.paymentDate
+                                                        ? dayjs(
+                                                            new Date(
+                                                                schedule.paymentDate[0],
+                                                                schedule.paymentDate[1] - 1,
+                                                                schedule.paymentDate[2]
+                                                            )
+                                                        ).format("DD/MM/YYYY")
+                                                        : "Không có dữ liệu"}
+                                                </span>
+                                                {/* Tag trạng thái */}
+                                                <div>
+                                                    {schedule.status === "UNPAID" ? (
+                                                        <Tag color="red">Chưa thanh toán</Tag>
+                                                    ) : schedule.status === "PAID" ? (
+                                                        <Tag color="green">Đã thanh toán</Tag>
+                                                    ) : schedule.status === "OVERDUE" ? (
+                                                        <Tag color="yellow">Quá hạn</Tag>
+                                                    ) : (
+                                                        schedule.status
+                                                    )}
+                                                </div>
+                                            </div>
+                                        }
+                                    >
+                                        {schedule.status === "PAID" ? (
+                                            // Nếu đã thanh toán, chỉ hiển thị danh sách ảnh từ API
+                                            <div>
+
+                                                <div className="text-gray-500 italic text-center mb-3">
+                                                    Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:
+                                                </div>
+                                                <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                                    {dataBillAppendix?.data && dataBillAppendix?.data?.length > 0 ? (
+                                                        dataBillAppendix?.data?.map((imgUrl, idx) => (
+                                                            <Image
+                                                                key={idx}
+                                                                src={imgUrl}
+                                                                alt={`Uploaded ${idx}`}
+                                                                style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }}
+                                                            />
+                                                        ))
+                                                    ) : (
+                                                        <div className="text-gray-500">Không có đợt thanh toán nào cho hợp đồng này.</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            // Nếu chưa thanh toán, hiển thị form tải lên
+
+                                            <>
+                                                <Upload.Dragger
+                                                    disabled={isManager || isCEO}
+                                                    name="invoice"
+                                                    accept="image/png, image/jpeg"
+                                                    beforeUpload={handleBeforeUpload}
+                                                    showUploadList={false} // Không để Ant Design quản lý danh sách file
+                                                >
+                                                    <p className="ant-upload-drag-icon">
+                                                        <InboxOutlined />
+                                                    </p>
+                                                    <div className="ant-upload-text">
+                                                        Click hoặc kéo file vào đây để tải lên
+                                                    </div>
+                                                    <p className="ant-upload-hint">Hỗ trợ tải lên một hoặc nhiều file.</p>
+                                                </Upload.Dragger>
+
+                                                {/* Hiển thị danh sách ảnh đã chọn */}
+                                                <div className="image-preview" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "15px" }}>
+                                                    {fileList.map((file, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="image-item"
+                                                            onMouseEnter={() => setHoveredIndex(index)}
+                                                            onMouseLeave={() => setHoveredIndex(null)}
+                                                            style={{ position: "relative", display: "inline-block" }}
+                                                        >
+                                                            <Image
+                                                                src={URL.createObjectURL(file)}
+                                                                alt="Uploaded"
+                                                                style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px" }}
+                                                            />
+                                                            {hoveredIndex === index && (
+                                                                <Button
+                                                                    icon={<DeleteOutlined />}
+                                                                    onClick={() => handleDeleteImg(index)}
+                                                                    style={{
+                                                                        position: "absolute",
+                                                                        top: "5px",
+                                                                        right: "5px",
+                                                                        backgroundColor: "red",
+                                                                        color: "white",
+                                                                        borderRadius: "50%",
+                                                                        padding: "5px",
+                                                                        border: "none",
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                {/* Nút tải lên */}
+                                                <Button
+                                                    type="primary"
+                                                    icon={LoadingBill ? <LoadingOutlined /> : <UploadOutlined />}
+                                                    onClick={() => handleUploadAll(schedule.id)}
+                                                    disabled={fileList.length === 0 || LoadingBill}
+                                                    style={{ marginTop: "10px" }}
+                                                >
+                                                    {LoadingBill ? "Đang tải lên..." : "Tải lên"}
+                                                </Button>
+                                            </>
+                                        )}
+                                    </Panel>
+                                ))}
+                            </Collapse>
+                            <div className="text-center mt-8">
+                                <Button onClick={handleCloseUpdateStatusModal}>Đóng</Button>
+                            </div>
+                        </div>
+                    )}
                 </Modal>
 
                 <DuplicateModal

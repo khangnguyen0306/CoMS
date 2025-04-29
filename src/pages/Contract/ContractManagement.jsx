@@ -69,6 +69,7 @@ const ManageContracts = () => {
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment, refetch: refetchPaymnet } = useGetContractDetailQuery(selectedContractId, {
         skip: !selectedContractId,
     });
+    console.log(paymentId)
     const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
         skip: !paymentId,
     });
@@ -478,7 +479,7 @@ const ManageContracts = () => {
                                     onClick: () => handleDuplicate(record.id),
                                 },
 
-                                ...(["SIGNED", "ACTIVE"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
@@ -758,7 +759,7 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-                                ...(["SIGNED", "ACTIVE"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
