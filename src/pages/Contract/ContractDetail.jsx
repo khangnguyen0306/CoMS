@@ -380,7 +380,8 @@ const ContractDetail = () => {
         }
     };
     const userApproval = processData?.data.stages.find(stage => stage.approver === user?.id && stage.status === "APPROVED");
-    const isApprover = processData?.data.stages?.some(stage => stage.approver === user?.id);
+    const isApprover = processData?.data.stages?.some(stage => stage.approver === user?.id && stage.status === "APPROVING");
+    // console.log(processData)
     const isCreator = contractData?.data.user.user_id == user.id
     const canEdit = contractData?.data.status == "CREATED" || contractData?.data.status == "UPDATED" || contractData?.data.status == "REJECTED"
     const paymentItemsColumns = [
