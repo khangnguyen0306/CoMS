@@ -326,9 +326,14 @@ const SignContract = () => {
         setVisible(true);
     };
 
-    const parsedContent = convert(contractData?.data.contractContent, {
-        wordwrap: 220,
+    // const parsedContent = convert(contractData?.data.contractContent, {
+    //     wordwrap: 220,
+    //     preserveNewlines: true, 
+    // });
+    const rawText = convert(contractData?.data.contractContent, {
+        wordwrap: false,
     });
+    const lines = rawText.split('\n');
 
     useEffect(() => {
         if (contractData?.data?.additionalConfig) {
@@ -511,10 +516,14 @@ const SignContract = () => {
 
 
                     {
-                        text: parsedContent,
+
+                        stack: lines.map(line => ({
+                            text: line,
+                            fontSize: 11,
+                            margin: [0, 2, 0, 2],
+                        })),
                         margin: [0, 7, 0, 0],
-                        lineHeight: 0.7,
-                        fontSize: 11
+                        lineHeight: 1.2,
                     },
 
                     // Thanh toán
