@@ -61,7 +61,7 @@ const Department = () => {
             form.resetFields();
             refetch();
         } catch (err) {
-            message.error('Đã xảy ra lỗi!');
+            message.error(err.data.message);
         }
     };
 

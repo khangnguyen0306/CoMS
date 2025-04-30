@@ -114,12 +114,9 @@ const Login = () => {
             description: (
                 <div className="flex items-center relative ml-[45px]">
                     <p className="font-bold ">Chào mừng {data.data.fullName} </p>
-                    {/* <Image className="ml-2 absolute bottom-[-10px]" width={35} src={null} /> */}
                 </div>
             ),
         });
-        //   handleCancel();
-
     };
 
     const handleLoginFailure = (error, email) => {
