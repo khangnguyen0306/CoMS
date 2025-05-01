@@ -322,6 +322,8 @@ const Compare = () => {
         },
     ];
 
+
+    const normalizeDescription = (desc) => desc.trim().toLowerCase();
     if (isLoadingBsData) {
         return (
             <div className='flex justify-center items-center'>
@@ -683,21 +685,21 @@ const Compare = () => {
                             1. Hạng mục thanh toán
                         </p>
                         <Table
-                            dataSource={[
-                                ...v2.contractItems.map(item => ({
-                                    ...item,
-                                    status: 'current'
-                                })),
-                                ...v1.contractItems
-                                    .filter(i1 => !v2.contractItems.some(i2 =>
-                                        i2.itemOrder === i1.itemOrder &&
-                                        i2.description === i1.description
-                                    ))
-                                    .map(item => ({
-                                        ...item,
-                                        status: 'deleted'
-                                    }))
-                            ]}
+                       dataSource={[
+                        ...v2.contractItems.map(item => ({
+                            ...item,
+                            status: 'current'
+                        })),
+                        ...v1.contractItems
+                            .filter(i1 => !v2.contractItems.some(i2 =>
+                                normalizeDescription(i2.description) === normalizeDescription(i1.description) &&
+                                Math.abs(i2.amount - i1.amount) < 1e-6
+                            ))
+                            .map(item => ({
+                                ...item,
+                                status: 'deleted'
+                            }))
+                    ]}
                             columns={paymentItemsColumns}
                             rowKey={(record) => `${record.itemOrder}-${record.description}`}
                             pagination={false}
@@ -708,8 +710,8 @@ const Compare = () => {
                                     return 'bg-red-300';
                                 }
                                 const v1Item = v1.contractItems?.find(item =>
-                                    item.itemOrder === record.itemOrder &&
-                                    item.description === record.description
+                                    normalizeDescription(item.description) === normalizeDescription(record.description) &&
+                                    Math.abs(item.amount - record.amount) < 1e-6
                                 );
                                 if (!v1Item) {
                                     return 'bg-green-300';
