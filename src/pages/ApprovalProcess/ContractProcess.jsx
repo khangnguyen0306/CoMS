@@ -18,7 +18,7 @@ const ContractProcess = () => {
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery();
 
     const [filters, setFilters] = useState({
-        statuses: ['CREATED', 'UPDATED', 'REJECTED', 'FIXED']
+        statuses: ['CREATED', 'UPDATED', 'REJECTED', 'FIXED', 'SIGN_OVERDUE']
     });
 
     const [pagination, setPagination] = useState({
@@ -26,7 +26,7 @@ const ContractProcess = () => {
         pageSize: 10,
     });
     const { data: contractsStatus, isLoading, isError, refetch } = useGetContractStatusQuery({
-        page: pagination.current - 1, 
+        page: pagination.current - 1,
         size: pagination.pageSize,
         statuses: filters.statuses,
         keyword: searchText
@@ -78,6 +78,14 @@ const ContractProcess = () => {
             statuses: filters.status
         });
     };
+
+    const displayColorStatus = {
+        "CREATED": { color: 'default', text: 'Đã tạo' },
+        "REJECTED": { color: 'red', text: 'Đã bị từ chối duyệt' },
+        "UPDATED": { color: 'blue', text: 'Đã cập nhật' },
+        "FIXED": { color: 'blue', text: 'Đã sửa đổi' },
+        "SIGN_OVERDUE": { color: 'orange', text: 'Đã quá hạn ký' }
+    }
 
     const columns = [
         {
@@ -177,24 +185,12 @@ const ContractProcess = () => {
                 { text: "Chưa được duyệt", value: "REJECTED" },
                 { text: "Đã cập nhật", value: "UPDATED" },
                 { text: "Đã sửa lỗi", value: "FIXED" },
+                { text: "Quá hạn", value: "SIGN_OVERDUE" },
             ],
             onFilter: (value, record) => record.status === value,
             render: (status) => {
-                let color = "green";
-                let text = "Đã tạo";
 
-                if (status === "REJECTED") {
-                    color = "red";
-                    text = "Đã bị từ chối";
-                } else if (status === "UPDATED") {
-                    color = "blue";
-                    text = "Đã cập nhật";
-                } else if (status === "FIXED") {
-                    color = "orange";
-                    text = "Đã sửa lỗi";
-                }
-
-                return <Tag color={color}>{text}</Tag>;
+                return <Tag color={displayColorStatus[status]?.color}>{displayColorStatus[status]?.text}</Tag>;
             },
         },
 

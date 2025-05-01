@@ -21,6 +21,7 @@ import { ImCancelCircle } from "react-icons/im";
 import ModalCancelContract from "./component/ModalCancelContract";
 import ModalCancelInformation from "./component/ModalCancelInformation";
 import { IoInformationCircleOutline } from "react-icons/io5";
+import { AiOutlineFileDone } from "react-icons/ai";
 const ManageContracts = () => {
     const navigate = useNavigate()
     const userL = useSelector(selectCurrentUser)
@@ -118,6 +119,8 @@ const ManageContracts = () => {
     const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
     const [isCancelInforOpen, setIsCancelInforOpen] = useState(false);
     const [contractIdInfo, setContracyIdInfo] = useState(0);
+    const [ModalType, setModalType] = useState('');
+    const [contractIdLiquidated, setContracyIdLiquidated] = useState(0);
     // Update status when searchParams change
     useEffect(() => {
         const newStatus = searchParams.get('paramstatus');
@@ -161,6 +164,18 @@ const ManageContracts = () => {
     const openInforCancelModal = (contractId) => {
         setContracyIdInfo(contractId);
         setIsCancelInforOpen(true);
+    };
+    const openInforLiquidatedModal = (contractId) => {
+        setContracyIdInfo(contractId);
+        setIsCancelInforOpen(true);
+        setModalType("liquidated");
+    };
+
+
+    const openLiquidated = (contractId) => {
+        setContracyIdCancel(contractId);
+        setIsCancelModalVisible(true);
+        setModalType("liquidated");
     };
 
 
@@ -223,6 +238,8 @@ const ManageContracts = () => {
         'CANCELLED': <Tag color="red-inverse">Đã hủy</Tag>,
         'ENDED': <Tag color="default">Đã kết thúc</Tag>,
         'DELETED': <Tag color="red">Đã xóa</Tag>,
+        'SIGN_OVERDUE': <Tag color="volcano-inverse">Quá hạn ký</Tag>,
+        'LIQUIDATED': <Tag color="magenta-inverse">Đã thanh lý</Tag>,
         'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning /><p>Sắp hết hạn</p></p></Tag>,
     }
 
@@ -242,6 +259,8 @@ const ManageContracts = () => {
         'ENDED': 'ĐÃ KẾT THÚC',
         'DELETED': 'ĐÃ XÓA',
         'EXPIRING': 'SẮP HẾT HẠN',
+        'SIGN_OVERDUE': 'QUÁ HẠN KÝ',
+        'LIQUIDATED': 'ĐÃ THANH LÝ',
     };
 
     const handleExport = (id) => {
@@ -396,7 +415,9 @@ const ManageContracts = () => {
                 { text: 'Hết hiệu lực', value: 'EXPIRED' },
                 { text: 'Đã hủy', value: 'CANCELLED' },
                 { text: 'Đã kết thúc', value: 'ENDED' },
-                { text: 'Sắp hết hạn', value: 'EXPIRING' }
+                { text: 'Sắp hết hạn', value: 'EXPIRING' },
+                { text: 'Quá hạn ký', value: 'SIGN_OVERDUE' },
+                { text: 'Đã thanh lý', value: 'LIQUIDATED' }
             ],
             filterMultiple: true,
             onFilter: (value, record) => {
@@ -524,6 +545,17 @@ const ManageContracts = () => {
 
                                     ]
                                     : []),
+                                ...(["LIQUIDATED"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "AiOutlineFileDone",
+                                            icon: <AiOutlineFileDone style={{ color: 'red' }} />,
+                                            label: "Thông tin thanh lý",
+                                            onClick: () => openInforLiquidatedModal(record.id),
+                                        },
+
+                                    ]
+                                    : []),
 
                                 ...(record.status !== "APPROVAL_PENDING" &&
                                     record.status !== "APPROVED" &&
@@ -543,6 +575,22 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
+                                ...(
+                                    record.status == "ACTIVE" ||
+                                        record.status == "COMPLETED" ||
+                                        record.status == "EXPIRED" ||
+                                        record.status == "ENDED" 
+                                        // record.status == "SIGNED"
+                                        ? [
+                                            {
+                                                key: "liquidated",
+                                                icon: <AiOutlineFileDone style={{ color: 'green' }} />,
+                                                label: "Đánh dấu đã thanh lý",
+                                                warning: true,
+                                                onClick: () => openLiquidated(record.id),
+                                            },
+                                        ]
+                                        : []),
                             ],
                         }}
 
@@ -776,6 +824,18 @@ const ManageContracts = () => {
                                             key: "cancelInfor",
                                             icon: <IoInformationCircleOutline style={{ color: 'red' }} />,
                                             label: "Thông tin hủy",
+                                            onClick: () => openInforCancelModal(record.id),
+                                        },
+
+                                    ]
+                                    : []),
+
+                                ...(["LIQUIDATED"].includes(record.status)
+                                    ? [
+                                        {
+                                            key: "AiOutlineFileDone",
+                                            icon: <AiOutlineFileDone style={{ color: 'red' }} />,
+                                            label: "Thông tin thanh lý",
                                             onClick: () => openInforCancelModal(record.id),
                                         },
 
@@ -1568,11 +1628,15 @@ const ManageContracts = () => {
                 onCancel={() => setIsCancelModalVisible(false)}
                 contractId={contractIdCancel}
                 refetch={refetch}
+                type={ModalType}
+                setType={() => setModalType()}
             />
             <ModalCancelInformation
                 visible={isCancelInforOpen}
                 onCancel={() => setIsCancelInforOpen(false)}
                 contractId={contractIdInfo}
+                type={ModalType}
+                setType={() => setModalType()}
             />
         </div>
     );

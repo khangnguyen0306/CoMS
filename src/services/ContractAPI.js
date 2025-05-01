@@ -72,6 +72,15 @@ export const ContractAPI = baseApi.injectEndpoints({
                 { type: "Contract", id: Contract },
             ],
         }),
+        getContractInforLiquidated: builder.query({
+            query: (contractId) => ({
+                url: `contracts/get-liquidate-reason/${contractId}`,
+                method: "GET",
+            }),
+            providesTags: (result, error, Contract) => [
+                { type: "Contract", id: Contract },
+            ],
+        }),
 
         getContractStatus: builder.query({
             query: ({ page, keyword, size, statuses, sortBy = 'id', order = 'desc' }) => {
@@ -356,5 +365,6 @@ export const {
     useGetContractNearExpiredQuery,
     useSetContractToPartnerMutation,
     useGetContractInforCancelQuery,
-    useLazyGetContractInforCancelQuery
+    useLazyGetContractInforCancelQuery,
+    useLazyGetContractInforLiquidatedQuery
 } = ContractAPI;
