@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag } from "antd";
-import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, DownloadOutlined } from "@ant-design/icons";
+import { Table, Input, Space, Button, Dropdown, message, Spin, Modal, Tag, Collapse, Tooltip, Empty, Image } from "antd";
+import { EditOutlined, DeleteOutlined, SettingOutlined, FullscreenOutlined, EditFilled, PlusOutlined, SendOutlined, CheckCircleFilled, DownloadOutlined, SignatureOutlined, FilePdfOutlined } from "@ant-design/icons";
 import { BsClipboard2DataFill } from "react-icons/bs"
 import { IoNotifications } from "react-icons/io5";
 import dayjs from "dayjs";
@@ -10,11 +10,14 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../slices/authSlice";
 import { useGetContractPorcessPendingQuery } from "../../../services/ProcessAPI";
 import ExpandRowContent from "../../Contract/component/ExpandRowContent";
-import { useDeleteAppendixMutation, useGetAllAppendixByApproverQuery, useGetAllAppendixByManagerQuery, useGetAllAppendixBySelfQuery } from "../../../services/AppendixAPI";
+import { useDeleteAppendixMutation, useGetAllAppendixByApproverQuery, useGetAllAppendixByManagerQuery, useGetAllAppendixBySelfQuery, useGetAppendixDetailQuery, useGetImgBillAppendixQuery, useGetImgSignAppendixQuery } from "../../../services/AppendixAPI";
 
 const { Search } = Input;
+const { Panel } = Collapse;
 
 const AppendixManagementForAllStatus = () => {
+    const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+
     const user = useSelector(selectCurrentUser)
     const [searchText, setSearchText] = useState("");
     const [selectedContract, setSelectedContract] = useState(null)
@@ -27,6 +30,13 @@ const AppendixManagementForAllStatus = () => {
     const [status, setStatus] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
+    const [isUpdateStatusModalVisible, setIsUpdateStatusModalVisible] = useState(false);
+    const [selectedContractId, setSelectedContractId] = useState(null);
+    const [fileList, setFileList] = useState([]);
+    const [activePanel, setActivePanel] = useState([]);
+    const [paymentId, setPaymentId] = useState(null);
+    const [isOpenSignModal, setIsOpenSignModal] = useState(false);
+    const [selectedAppendixtId, setSelectedAppendixtId] = useState(null);
 
     const { data: appendixs, isLoading, isError, refetch } = useGetAllAppendixByManagerQuery({
         managerId: user.id,
@@ -35,8 +45,29 @@ const AppendixManagementForAllStatus = () => {
             size: pagination.pageSize,
         }
     });
-    
-    // console.log(appendixs)
+
+    const { data: appendixData, isLoading: isLoadingDetailAppendix, isError: isErrorDetailAppendix, refetch: refetchDetailAppendix } = useGetAppendixDetailQuery(
+        { id: selectedContractId },
+        { skip: !selectedContractId },
+        {
+            refetchOnMountOrArgChange: true,
+            refetchOnReconnect: true,
+        }
+    )
+
+
+
+    const { data: dataBillAppendix, isLoading: isLoadingBillAppendix, error: errorBillAppendix, refetch: refetchBill } = useGetImgBillAppendixQuery({ id: paymentId }, {
+        skip: !paymentId,
+    });
+    console.log("paymentId", paymentId)
+
+    console.log("dataBillAppendix", dataBillAppendix)
+
+    const { data: dataSign, isLoading: LoadingImage, isError: ErrorImage, refetch: refetchImg } = useGetImgSignAppendixQuery({ id: selectedAppendixtId }, {
+        skip: !selectedAppendixtId,
+    });
+
 
 
     // const { data: contractManager } = useGetContractPorcessPendingQuery({ approverId: user.id });
@@ -52,7 +83,29 @@ const AppendixManagementForAllStatus = () => {
     }, [])
 
 
+    const openUpdateStatusModal = (contractId) => {
+        setSelectedContractId(contractId);
+        setIsUpdateStatusModalVisible(true);
+        refetchDetailAppendix();
+    };
 
+    const handleCloseUpdateStatusModal = () => {
+        setIsUpdateStatusModalVisible(false);
+        setSelectedContractId(null);
+        setFileList([]);
+    };
+
+    const handleOpenSignModal = (addendumId) => {
+        console.log("addendumId", addendumId)
+        setSelectedAppendixtId(addendumId);
+        setIsOpenSignModal(true);
+    }
+
+    const handleCloseUpdateSignModal = () => {
+        setIsOpenSignModal(false);
+        setSelectedAppendixtId(null);
+        // refetch()
+    }
 
     const handleDelete = (record) => {
         if (record?.status === "APPROVED" || record?.status === "APPROVAL_PENDING") {
@@ -117,8 +170,8 @@ const AppendixManagementForAllStatus = () => {
             sorter: (a, b) => a.title.localeCompare(b.title),
             render: (text, record) => (
                 <Link to={`${(user.roles[0] === "ROLE_STAFF") ? `/appendixDetail/${record.contractId}/${record.addendumId}` : (user.roles[0] === "ROLE_DIRECTOR" ? `/director/appendixDetail/${record.contractId}/${record.addendumId}` : `/manager/appendixDetail/${record.contractId}/${record.addendumId}`)}`} className="font-bold text-[#228eff] cursor-pointer">
-                <p> {text} </p>
-            </Link>
+                    <p> {text} </p>
+                </Link>
             ),
         },
         {
@@ -193,7 +246,7 @@ const AppendixManagementForAllStatus = () => {
             sorter: (a, b) => a.status.localeCompare(b.status),
         },
 
-        ...(user.roles[0] !== "ROLE_MANAGER" && user.roles[0] !== "ROLE_DIRECTOR" ? [{
+        ...(user.roles[0] !== "ROLE_ADMIN" ? [{
 
             title: "Hành động",
             key: "action",
@@ -207,40 +260,23 @@ const AppendixManagementForAllStatus = () => {
                         <Dropdown
                             menu={{
                                 items: [
-                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED"
-                                        ? [{
-                                            key: "edit",
-                                            icon: <EditFilled style={{ color: '#228eff' }} />,
-                                            label: "Sửa",
-                                            onClick: () => navigate(`/CreateAppendix/?appendixId=${record.addendumId}`),
-                                        }]
-                                        : []),
-                                    ...(record.status == "ACTIVE"
-                                        ? [{
-                                            key: "createAppendix",
-                                            icon: <PlusOutlined style={{ color: '#228eff' }} />,
-                                            label: "Tạo phụ lục",
-                                            onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
-                                        }]
-                                        : []),
-                                    ...(record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
-                                        {
-                                            key: "select-process",
-                                            icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
-                                            label: (
-                                                <span onClick={() => showModal(record)}>
 
-                                                    Yêu cầu phê duyệt
-                                                </span>
-                                            ),
-                                        }] : [],
-                                    {
-                                        key: "delete",
-                                        icon: <DeleteOutlined />,
-                                        label: "Xóa",
-                                        danger: true,
-                                        onClick: () => handleDelete(record),
-                                    },
+                                    ...(record.status == "SIGNED"
+                                        ? [{
+                                            key: "updateStatus",
+                                            icon: <BsClipboard2DataFill />,
+                                            label: "Cập nhật trạng thái thanh toán",
+                                            onClick: () => openUpdateStatusModal(record.addendumId),
+                                        },]
+                                        : []),
+                                    ...(record.status == "SIGNED"
+                                        ? [{
+                                            key: "uploadImgSign",
+                                            icon: <SignatureOutlined />,
+                                            label: record.status === "SIGNED" ? "Xác nhận đã ký" : "Xem phụ lục đã ký",
+                                            onClick: () => handleOpenSignModal(record.addendumId),
+                                        }]
+                                        : []),
 
                                 ],
                             }}
@@ -317,6 +353,182 @@ const AppendixManagementForAllStatus = () => {
                     }}
                     onRow={(record) => ({ onClick: () => setSelectedContract(record) })}
                 />
+
+                <Modal
+                    title="Cập nhật trạng thái đã ký"
+                    open={isOpenSignModal}
+                    onCancel={handleCloseUpdateSignModal}
+                    footer={null}
+                    width={700}
+                    destroyOnClose
+                >
+                    {LoadingImage ? (
+                        <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
+                    ) : ErrorImage || !(dataSign?.data) ? (
+                        <>
+                            <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
+                            <div className="flex justify-center items-center w-full">
+
+                                <Empty description="Chưa có file ký" />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <h3 className="text-xl font-semibold text-center mb-4">Danh sách file đã tải lên</h3>
+                            <div
+                                className="image-preview"
+                                style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}
+                            >
+
+                                {dataSign?.data?.map((url, idx) => {
+                                    const isImage = /\.(jpe?g|png|gif)$/i.test(url);
+                                    const isPDF = /\.pdf$/i.test(url);
+
+                                    if (isImage) {
+                                        return (
+                                            <Image
+                                                key={idx}
+                                                src={url}
+                                                alt={`Signed ${idx}`}
+                                                width={100}
+                                                height={100}
+                                                style={{ objectFit: 'cover', borderRadius: 8 }}
+                                            />
+                                        );
+                                    } else if (isPDF) {
+                                        return (
+                                            <a
+                                                key={idx}
+                                                href={url}
+                                                download
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    width: 100,
+                                                    height: 100,
+                                                    border: '1px solid #ccc',
+                                                    borderRadius: 8,
+                                                    textDecoration: 'none',
+                                                    color: '#e74c3c',
+                                                }}
+                                            >
+                                                <FilePdfOutlined style={{ fontSize: 30 }} />
+                                                <span style={{ fontSize: 12, textAlign: 'center' }}>PDF File</span>
+                                            </a>
+                                        );
+                                    } else {
+                                        return (
+                                            <div key={idx} style={{ width: 100, textAlign: 'center' }}>
+                                                <span>Không xác định</span>
+                                            </div>
+                                        );
+                                    }
+                                })}
+                            </div>
+                        </>
+                    )}
+                </Modal>
+
+                <Modal
+                    title="Cập nhật trạng thái thanh toán"
+                    open={isUpdateStatusModalVisible}
+                    onCancel={handleCloseUpdateStatusModal}
+                    footer={null}
+                    width={700}
+                >
+                    {isLoadingDetailAppendix ? (
+                        <Spin />
+                    ) : isErrorDetailAppendix ? (
+                        <div className="text-center text-red-500">Có lỗi xảy ra khi tải dữ liệu</div>
+                    ) : (
+                        <div className="p-4">
+                            <h3 className="text-2xl font-semibold text-center mb-4">Các đợt thanh toán</h3>
+                            <Collapse
+                                bordered
+                                accordion
+                                activeKey={activePanel}
+                                onChange={(key) => {
+                                    setActivePanel(key);
+                                    setPaymentId(key);
+                                }}
+                                className={` ${isDarkMode ? '' : 'bg-[#fafafa]'}  border border-gray-300 rounded-lg shadow-sm [&_.ant-collapse-arrow]:!text-[#1e1e1e]`}
+                            >
+                                {appendixData?.data?.paymentSchedules?.map((schedule, index) => (
+                                    <Panel
+                                        key={schedule.id || index}
+                                        header={
+                                            <div className={`${isDarkMode ? '' : '!text-black'} flex items-center justify-between w-full`}>
+                                                <Tooltip title={`${schedule.amount.toLocaleString()} VND`}>
+                                                    <span className="font-bold whitespace-nowrap overflow-hidden" style={{ maxWidth: 250 }}>
+                                                        {schedule.amount.toLocaleString()} VND
+                                                    </span>
+                                                </Tooltip>
+                                                <span>
+                                                    {schedule.paymentDate
+                                                        ? dayjs(
+                                                            new Date(
+                                                                schedule.paymentDate[0],
+                                                                schedule.paymentDate[1] - 1,
+                                                                schedule.paymentDate[2]
+                                                            )
+                                                        ).format("DD/MM/YYYY")
+                                                        : "Không có dữ liệu"}
+                                                </span>
+                                                <div>
+                                                    {schedule.status === "UNPAID" ? (
+                                                        <Tag color="red">Chưa thanh toán</Tag>
+                                                    ) : schedule.status === "PAID" ? (
+                                                        <Tag color="green">Đã thanh toán</Tag>
+                                                    ) : schedule.status === "OVERDUE" ? (
+                                                        <Tag color="yellow">Quá hạn</Tag>
+                                                    ) : (
+                                                        schedule.status
+                                                    )}
+                                                </div>
+                                            </div>
+                                        }
+                                    >
+                                        {/* Luôn hiển thị phần ảnh, không cho upload */}
+                                        <div className="text-gray-500 italic text-center mb-3">
+                                            {schedule.status === "PAID"
+                                                ? "Đợt thanh toán này đã hoàn thành, danh sách hóa đơn:"
+                                                : "Chưa có hình hóa đơn để hiển thị."}
+                                        </div>
+                                        <div className="image-preview" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+
+                                            {isLoadingBillAppendix ? (
+                                                <Spin />
+                                            ) : errorBillAppendix ? (
+                                                <div className="flex justify-center items-center w-full">
+                                                    <Empty description="Chưa có hình thanh toán phụ lục" />
+                                                </div>
+                                            ) : (dataBillAppendix?.data?.length ?? 0) > 0 ? (
+                                                dataBillAppendix.data.map((imgUrl, idx) => (
+                                                    <Image
+                                                        key={idx}
+                                                        src={imgUrl}
+                                                        alt={`Hóa đơn ${idx + 1}`}
+                                                        style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <div className="flex justify-center items-center w-full">
+                                                    <Empty description="Chưa có hình thanh toán phụ lục" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Panel>
+                                ))}
+                            </Collapse>
+                            <div className="text-center mt-8">
+                                <Button onClick={handleCloseUpdateStatusModal}>Đóng</Button>
+                            </div>
+                        </div>
+                    )}
+                </Modal>
+
 
             </div>
 

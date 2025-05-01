@@ -224,6 +224,7 @@ const ManageContracts = () => {
         'ENDED': <Tag color="default">Đã kết thúc</Tag>,
         'DELETED': <Tag color="red">Đã xóa</Tag>,
         'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning /><p>Sắp hết hạn</p></p></Tag>,
+        'SIGN_OVERDUE': <Tag color="red">Quá ngày ký</Tag>,
     }
 
     const displayStatus = {
@@ -242,6 +243,7 @@ const ManageContracts = () => {
         'ENDED': 'ĐÃ KẾT THÚC',
         'DELETED': 'ĐÃ XÓA',
         'EXPIRING': 'SẮP HẾT HẠN',
+        'SIGN_OVERDUE': 'QUÁ NGÀY KÝ',
     };
 
     const handleExport = (id) => {
@@ -396,7 +398,8 @@ const ManageContracts = () => {
                 { text: 'Hết hiệu lực', value: 'EXPIRED' },
                 { text: 'Đã hủy', value: 'CANCELLED' },
                 { text: 'Đã kết thúc', value: 'ENDED' },
-                { text: 'Sắp hết hạn', value: 'EXPIRING' }
+                { text: 'Sắp hết hạn', value: 'EXPIRING' },
+                { text: 'Quá ngày ký', value: 'SIGN_OVERDUE' }
             ],
             filterMultiple: true,
             onFilter: (value, record) => {
@@ -707,7 +710,8 @@ const ManageContracts = () => {
                 { text: 'Hết hiệu lực', value: 'EXPIRED' },
                 { text: 'Đã hủy', value: 'CANCELLED' },
                 { text: 'Đã kết thúc', value: 'ENDED' },
-                { text: 'Sắp hết hạn', value: 'EXPIRING' }
+                { text: 'Sắp hết hạn', value: 'EXPIRING' },
+                { text: 'Quá ngày ký', value: 'SIGN_OVERDUE' },
             ],
             onFilter: (value, record) => {
                 if (value === 'EXPIRING') {

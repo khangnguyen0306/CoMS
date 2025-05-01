@@ -212,39 +212,24 @@ const AppendixManagementManager = () => {
                         <Dropdown
                             menu={{
                                 items: [
-                                    ...(record.status !== "APPROVAL_PENDING" && record.status !== "APPROVED"
+
+                                    ...(record.status == "SIGNED"
                                         ? [{
-                                            key: "edit",
-                                            icon: <EditFilled style={{ color: '#228eff' }} />,
-                                            label: "Sửa",
-                                            onClick: () => navigate(`/CreateAppendix/?appendixId=${record.addendumId}`),
+                                            key: "updateStatus",
+                                            icon: <BsClipboard2DataFill />,
+                                            label: "Cập nhật trạng thái thanh toán",
+                                            onClick: () => openUpdateStatusModal(record.addendumId),
+                                        },]
+                                        : []),
+                                    ...(record.status == "SIGNED"
+                                        ? [{
+                                            key: "uploadImgSign",
+                                            icon: <SignatureOutlined />,
+                                            label: record.status === "SIGNED" ? "Xác nhận đã ký" : "Xem phụ lục đã ký",
+                                            onClick: () => handleOpenSignModal(record.addendumId),
                                         }]
                                         : []),
-                                    ...(record.status == "ACTIVE"
-                                        ? [{
-                                            key: "createAppendix",
-                                            icon: <PlusOutlined style={{ color: '#228eff' }} />,
-                                            label: "Tạo phụ lục",
-                                            onClick: () => navigate(`/CreateAppendix/?contractId=${record.contractId}`),
-                                        }]
-                                        : []),
-                                    ...(record.status != "APPROVAL_PENDING" && record.status != "APPROVED") ? [
-                                        {
-                                            key: "select-process",
-                                            icon: <CheckCircleFilled style={{ color: "#00FF33" }} />,
-                                            label: (
-                                                <span onClick={() => showModal(record)}>
-                                                    Yêu cầu phê duyệt
-                                                </span>
-                                            ),
-                                        }] : [],
-                                    {
-                                        key: "delete",
-                                        icon: <DeleteOutlined />,
-                                        label: "Xóa",
-                                        danger: true,
-                                        onClick: () => handleDelete(record),
-                                    },
+
                                 ],
                             }}
                         >
