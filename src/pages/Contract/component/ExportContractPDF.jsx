@@ -34,9 +34,11 @@ const ExportContractPDF = ({ contractId, onDone }) => {
   };
 
 
-  const parsedContent = convert(contract?.data.contractContent, {
-    wordwrap: 220,
+
+  const rawText = convert(contract?.data.contractContent, {
+    wordwrap: false,
   });
+  const lines = rawText.split('\n');
 
   useEffect(() => {
     if (contract?.data?.additionalConfig) {
@@ -308,10 +310,14 @@ const ExportContractPDF = ({ contractId, onDone }) => {
           },
           { text: "NỘI DUNG HỢP ĐỒNG", style: "titleDescription", decoration: 'underline' },
           {
-            text: parsedContent,
+            // thay vì text: parsedContent
+            stack: lines.map(line => ({
+              text: line,
+              fontSize: 11,
+              margin: [0, 2, 0, 2],   // tùy chỉnh khoảng cách dòng
+            })),
             margin: [0, 7, 0, 0],
-            lineHeight: 0.7,
-            fontSize: 11
+            lineHeight: 1.2,
           },
           ...paymentSection,
           {

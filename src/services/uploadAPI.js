@@ -138,6 +138,17 @@ export const uploadAPI = createApi({
       },
       invalidatesTags: [{ type: "Contract", id: "LIST" }],
     }),
+    liquidatedContract: builder.mutation({
+      query: ({ contractIdLiquidated, formData }) => {
+        return {
+          url: `/contracts/liquidate-contract/${contractIdLiquidated}`,
+          method: "PUT",
+          body: formData,
+          formData: true,
+        };
+      },
+      invalidatesTags: [{ type: "Contract", id: "LIST" }],
+    }),
 
   })
 })
@@ -153,4 +164,5 @@ export const {
   useUploadSignFileMutation,
   useCancelContractMutation,
   useUploadImgAppendixMutation,
+  useLiquidatedContractMutation
 } = uploadAPI;

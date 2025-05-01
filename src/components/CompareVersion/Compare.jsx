@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux'
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI'
 import { diffWords } from 'diff';
 import dayjs from 'dayjs';
+import { formatDateToStringDate } from '../../utils/ConvertTime'
 
 const Compare = () => {
     const { contractId } = useParams()
@@ -322,6 +323,8 @@ const Compare = () => {
         },
     ];
 
+
+    const normalizeDescription = (desc) => desc.trim().toLowerCase();
     if (isLoadingBsData) {
         return (
             <div className='flex justify-center items-center'>
@@ -355,6 +358,14 @@ const Compare = () => {
                             {v1.title?.toUpperCase()}
                         </p>
                         <p className={`mt-3 `}><b>Số:</b> {v1.contractNumber}</p>
+                    </div>
+                    <div className="mt-4">
+                        {/* <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3> */}
+                        {v1.legalBasisTerms.map((term, index) => (
+                            <div className='flex flex-col gap-1'>
+                                <p><i>- {term.value}</i></p>
+                            </div>
+                        ))}
                     </div>
                     <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
@@ -392,22 +403,25 @@ const Compare = () => {
                         </div>
                     </div>
                     {/* LegalBasisTerms */}
-                    <div className="mt-4">
-                        <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3>
-                        {v1.legalBasisTerms.map((term, index) => (
-                            <div className='flex flex-col gap-1'>
-                                <p><i>- {term.value}</i></p>
-                            </div>
-                        ))}
-                    </div>
+
                     <p className="font-semibold mt-4 mb-3"><u>2. NỘI DUNG HỢP ĐỒNG</u></p>
                     <div
                         className="ml-1"
                         dangerouslySetInnerHTML={{ __html: stripHtml(v1.contractContent) || "Chưa nhập" }}
                     />
+
+                    <div>
+                        <h3 className="font-semibold mt-4 mb-2"><u>3. THỜI GIAN HIỆU LỰC</u></h3>
+                        <p className={`py-1 flex gap-2`}>
+                            <b> Ngày bắt đầu có hiệu lực: </b> {formatDateToStringDate(v2?.effectiveDate)}
+                        </p>
+                        <p className={`py-1 flex gap-2`}>
+                            <b> Ngày bắt kết thúc hiệu lực: </b> {formatDateToStringDate(v2?.expiryDate)}
+                        </p>
+                    </div>
                     {/* PaymentSchedules */}
                     <div className="mt-4">
-                        <h3 className="font-semibold mt-4 mb-3"><u>3. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>4. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h3>
                         {v1.autoAddVAT && (
                             <p className='py-1'>
                                 <b>- Thêm phí VAT: </b> {v1?.vatPercentage} %
@@ -466,7 +480,7 @@ const Compare = () => {
                         />
                     </div>
                     <div className="mt-4 flex flex-col">
-                        <h3 className="font-semibold mt-4 mb-3"><u>4. ĐIỀU KHOẢN</u></h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>5. ĐIỀU KHOẢN</u></h3>
                         {Object.entries(v1.additionalConfig).map(([key, termData]) => {
                             const title = termTitles[key] || `Điều khoản ${key}`;
                             const commonTerms = termData.Common || [];
@@ -522,7 +536,7 @@ const Compare = () => {
                     </div>
                     {(v1.appendixEnabled === true || v1.violate === true || v1.transferEnabled === true || v1.suspend == true) && (
                         <div>
-                            <h1 className='font-semibold'>PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
+                            <h1 className='font-semibold'>6. PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
                             {v1.appendixEnabled && (
                                 <p className='py-1'>
                                     - Cho phép tạo phụ lục khi hợp đồng đang có hiệu lực pháp lý
@@ -581,6 +595,25 @@ const Compare = () => {
                         </p>
                         <p className={`mt-3 ${isDifferent(v1?.contractNumber, v2?.contractNumber) ? "bg-yellow-300 text-green-800" : ""} `}><b>Số:</b> {v2.contractNumber}</p>
                     </div>
+
+                    <div className="mt-4">
+                        {/* <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3> */}
+                        {differencesLegalBasic.unchanged.map((term, index) => (
+                            <div >
+                                <p>- <i>{term.value}</i></p>
+                            </div>
+                        ))}
+                        {differencesLegalBasic.added.map((term, index) => (
+                            <div className='bg-yellow-300 text-green-800 my-2'>
+                                <p>- <i>{term.value}</i></p>
+                            </div>
+                        ))}
+                        {differencesLegalBasic.removed.map((term, index) => (
+                            <div className='bg-red-400'>
+                                <p>- <i>{term.value}</i></p>
+                            </div>
+                        ))}
+                    </div>
                     <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
@@ -633,33 +666,26 @@ const Compare = () => {
 
                     </div>
                     {/* LegalBasisTerms */}
-                    <div className="mt-4">
-                        <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3>
-                        {differencesLegalBasic.unchanged.map((term, index) => (
-                            <div >
-                                <p>- <i>{term.value}</i></p>
-                            </div>
-                        ))}
-                        {differencesLegalBasic.added.map((term, index) => (
-                            <div className='bg-yellow-300 text-green-800 my-2'>
-                                <p>- <i>{term.value}</i></p>
-                            </div>
-                        ))}
-                        {differencesLegalBasic.removed.map((term, index) => (
-                            <div className='bg-red-400'>
-                                <p>- <i>{term.value}</i></p>
-                            </div>
-                        ))}
-                    </div>
+
 
                     <p className="font-semibold mt-4 mb-3"><u>2. NỘI DUNG HỢP ĐỒNG</u></p>
                     <div
                         className="ml-1"
                         dangerouslySetInnerHTML={{ __html: highlightDifferences(v1.contractContent, v2.contractContent) || "Chưa nhập" }}
                     />
+
+                    <div>
+                        <h3 className="font-semibold mt-4 mb-2"><u>3. THỜI GIAN HIỆU LỰC</u></h3>
+                        <p className={`py-1 flex gap-2${(isDifferent(v1.effectiveDate, v2.effectiveDate)) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
+                            <b> Ngày bắt đầu có hiệu lực: </b> {formatDateToStringDate(v2?.effectiveDate)}
+                        </p>
+                        <p className={`py-1 flex gap-2 ${(isDifferent(v1.expiryDate, v2.expiryDate)) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
+                            <b> Ngày bắt kết thúc hiệu lực: </b> {formatDateToStringDate(v2?.expiryDate)}
+                        </p>
+                    </div>
                     {/* PaymentSchedules */}
                     <div className="mt-4">
-                        <h3 className="font-semibold mt-4 mb-3"><u>3. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>4. GIÁ TRỊ HỢP ĐỒNG VÀ PHƯƠNG THỨC THANH TOÁN</u></h3>
                         {v2.autoAddVAT && (
                             <p className={`py-1 ${(isDifferent(v1.autoAddVAT, v2.autoAddVAT) || (isDifferent(v1.vatPercentage, v2.vatPercentage))) ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>
                                 <b>- Thêm phí VAT: </b> {v2?.vatPercentage} %
@@ -690,8 +716,8 @@ const Compare = () => {
                                 })),
                                 ...v1.contractItems
                                     .filter(i1 => !v2.contractItems.some(i2 =>
-                                        i2.itemOrder === i1.itemOrder &&
-                                        i2.description === i1.description
+                                        normalizeDescription(i2.description) === normalizeDescription(i1.description) &&
+                                        Math.abs(i2.amount - i1.amount) < 1e-6
                                     ))
                                     .map(item => ({
                                         ...item,
@@ -708,8 +734,8 @@ const Compare = () => {
                                     return 'bg-red-300';
                                 }
                                 const v1Item = v1.contractItems?.find(item =>
-                                    item.itemOrder === record.itemOrder &&
-                                    item.description === record.description
+                                    normalizeDescription(item.description) === normalizeDescription(record.description) &&
+                                    Math.abs(item.amount - record.amount) < 1e-6
                                 );
                                 if (!v1Item) {
                                     return 'bg-green-300';
@@ -757,7 +783,7 @@ const Compare = () => {
                     </div>
                     {/* AdditionalConfig */}
                     <div className="mt-4 flex flex-col">
-                        <h3 className="font-semibold mt-4 mb-3"><u>4. ĐIỀU KHOẢN</u></h3>
+                        <h3 className="font-semibold mt-4 mb-3"><u>5. ĐIỀU KHOẢN</u></h3>
                         {Object.keys(compareTerm).map((key) => {
                             const { Common, A, B } = compareTerm[key];
                             return (
@@ -816,7 +842,7 @@ const Compare = () => {
                     </div>
                     {(v2.appendixEnabled === true || v2.violate === true || v2.transferEnabled === true || v2.suspend == true) && (
                         <div>
-                            <h1 className='font-semibold'>5. PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
+                            <h1 className='font-semibold'>6. PHỤ LỤC VÀ CÁC NỘI DUNG KHÁC</h1>
                             {v2.appendixEnabled && (
                                 <p className={`py-1   ${(isDifferent(v1.appendixEnabled, v2.appendixEnabled))
                                     ? 'bg-yellow-300 text-green-800 px-1' : ''}`}>

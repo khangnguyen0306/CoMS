@@ -595,10 +595,13 @@ const AppendixDetail = () => {
         }
     }, [appendixData?.data]);
 
-    const parsedContent = convert(appendixData?.data.contractContent, {
-        wordwrap: 220,
+    // const parsedContent = convert(appendixData?.data.contractContent, {
+    //     wordwrap: 220,
+    // });
+    const rawText = convert(appendixData?.data.contractContent, {
+        wordwrap: false,
     });
-
+    const lines = rawText.split('\n');
     useEffect(() => {
         if (error && error !== 'The action was cancelled by the user') {
             setSignMethod('online');
@@ -766,14 +769,17 @@ const AppendixDetail = () => {
                     },
 
                     // Contract Content
-                    parsedContent && { text: "NỘI DUNG HỢP ĐỒNG", style: "titleDescription", decoration: 'underline' },
-                    parsedContent && {
-                        text: parsedContent,
-                        margin: [0, 7, 0, 0],
-                        lineHeight: 0.7,
-                        fontSize: 11
-                    },
+                    lines && { text: "NỘI DUNG HỢP ĐỒNG", style: "titleDescription", decoration: 'underline' },
+                    lines && {
 
+                        stack: lines.map(line => ({
+                            text: line,
+                            fontSize: 11,
+                            margin: [0, 2, 0, 2],
+                        })),
+                        margin: [0, 7, 0, 0],
+                        lineHeight: 1.2,
+                    },
                     // Payment Section
                     appendixData.data.amount && { text: "GIÁ TRỊ VÀ THANH TOÁN", style: "titleDescription", decoration: 'underline', margin: [0, 10, 0, 0] },
                     appendixData.data.amount && {

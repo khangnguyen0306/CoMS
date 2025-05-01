@@ -1611,9 +1611,9 @@ const EditContract = () => {
                                                         //     );
                                                         // }
 
-                                                        // if (!payments || payments.length < 1) {
-                                                        //     return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
-                                                        // }
+                                                        if (!payments || payments.length < 1) {
+                                                            return Promise.reject(new Error('Vui lòng thêm ít nhất một đợt thanh toán!'));
+                                                        }
 
                                                         const totalValue = form.getFieldValue('totalValue');
                                                         if (!totalValue) {
