@@ -319,6 +319,7 @@ const Home = () => {
         ACTIVE: 'ĐANG HOẠT ĐỘNG',
         SIGNED: 'ĐÃ KÝ',
         APPROVED: 'ĐÃ PHÊ DUYỆT',
+        LIQUIDATED:'ĐÃ THANH LÝ'
     };
 
     const hiddenStatuses = ['DELETED', 'PENDING', 'CREATED', 'FIXED', 'REJECTED', 'UPDATED'];

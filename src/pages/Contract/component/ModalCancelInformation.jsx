@@ -1,16 +1,30 @@
 import React, { useEffect } from 'react';
 import { Modal, Button, Card, Row, Col, Skeleton } from 'antd';
-import { useGetContractInforCancelQuery, useLazyGetContractInforCancelQuery } from '../../../services/ContractAPI';
+import { useGetContractInforCancelQuery, useLazyGetContractInforCancelQuery, useLazyGetContractInforLiquidatedQuery } from '../../../services/ContractAPI';
 import { saveAs } from 'file-saver';
 import { FaFileAlt } from "react-icons/fa";
-const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
+const ModalCancelInformation = ({ contractId, visible, onCancel, type, setType }) => {
 
     const [getcontractData, { data: contractData, isLoading: loadingDataContract, isError: contractError }] = useLazyGetContractInforCancelQuery(contractId, {
         skip: !contractId,
     });
-   
+    const [getcontractDataLiquidated, { data: contractLiquidated, isLoading: loadingLiquidatedContract, isError: contracLiquidatedtError }] = useLazyGetContractInforLiquidatedQuery(contractId, {
+        skip: !contractId,
+    });
+
+    const dataAll = type == "liquidated" ? contractLiquidated : contractData
+
+    const displayText = {
+        'liquidated': 'Thanh lý'
+    }
+
+
     useEffect(() => {
-        getcontractData(contractId)
+        if (type == "liquidated") {
+            getcontractDataLiquidated(contractId)
+        } else {
+            getcontractData(contractId)
+        }
     }, [contractId])
 
 
@@ -43,12 +57,12 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
     };
 
     const handleDownloadAll = () => {
-        contractData?.data?.urls.forEach((url) => {
+        dataAll?.data?.urls.forEach((url) => {
             const fileName = getFileNameFromUrl(url);
             saveAs(url, fileName);
         });
     };
-    const groupedFiles = groupFilesByType(contractData?.data?.urls);
+    const groupedFiles = groupFilesByType(dataAll?.data?.urls);
     const formatDate = (dateArray) => {
         // Check if the array has at least 6 elements
         if (dateArray?.length < 6) {
@@ -63,7 +77,7 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
         );
     };
 
-    if (loadingDataContract) {
+    if (loadingDataContract || loadingLiquidatedContract) {
         return (
             <div className='flex justify-center items-center min-h-[100vh]'>
                 <Skeleton active />
@@ -73,9 +87,9 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
 
     return (
         <Modal
-            title="Thông tin hủy hợp đồng"
+            title={`Thông tin ${displayText[type] || 'hủy'} hợp đồng`}
             open={visible}
-            onCancel={onCancel}
+            onCancel={() => { onCancel(); setType(); }}
             footer={[
                 <Button key="close" onClick={onCancel}>
                     Đóng
@@ -88,7 +102,7 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
                     <Skeleton active />
                 </div>
             ) : (
-                contractData && contractData.data ? (
+                dataAll && dataAll.data ? (
                     <>
                         <div className='flex flex-col gap-3'>
                             <h3>Danh sách file đính kèm</h3>
@@ -126,9 +140,9 @@ const ModalCancelInformation = ({ contractId, visible, onCancel }) => {
                             </Button>
                         </div >
                         <div style={{ marginTop: '20px' }}>
-                            <Card title="Lý do hủy hợp đồng">
-                                <p className='flex gap-2 mb-4'><b>Thời gian hủy:</b> {contractData?.data.cancelAt[2] + "/" + contractData?.data.cancelAt[1] + "/" + contractData?.data.cancelAt[0] + "   lúc     " + contractData?.data.cancelAt[3] + ":" + contractData?.data.cancelAt[4] + ":" + contractData?.data.cancelAt[5]}</p>
-                                <p>{contractData?.data?.cancelContent}</p>
+                            <Card title={`Lý do ${displayText[type] || 'hủy'} hợp đồng`}>
+                                {/* <p className='flex gap-2 mb-4'><b>Thời gian {displayText[type] || 'hủy'}:</b> {dataAll?.data.cancelAt[2] + "/" + dataAll?.data.cancelAt[1] + "/" + dataAll?.data.cancelAt[0] + "   lúc     " + dataAll?.data.cancelAt[3] + ":" + dataAll?.data.cancelAt[4] + ":" + dataAll?.data.cancelAt[5]}</p> */}
+                                <p>{type == "liquidated" ? dataAll?.data?.liquidateContent : dataAll?.data?.cancelContent}</p>
                             </Card>
                         </div>
                     </>
