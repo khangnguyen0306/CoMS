@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Button, Card, Row, Col, Skeleton } from 'antd';
+import { Modal, Button, Card, Row, Col, Skeleton, Tooltip } from 'antd';
 import { useGetContractInforCancelQuery, useLazyGetContractInforCancelQuery, useLazyGetContractInforLiquidatedQuery } from '../../../services/ContractAPI';
 import { saveAs } from 'file-saver';
 import { FaFileAlt } from "react-icons/fa";
@@ -29,9 +29,19 @@ const ModalCancelInformation = ({ contractId, visible, onCancel, type, setType }
 
 
     const getFileNameFromUrl = (url) => {
+        const match = url.match(/fl_attachment:([^/]+)/);
+        const attachmentKey = match ? match[1] : null;
+
+        const ext = url.split('.').pop();
+
+        if (attachmentKey) {
+            return `${attachmentKey}.${ext}`;
+        }
+
         const parts = url.split('/');
         return parts[parts.length - 1];
     };
+
 
     const getFileTypeFromUrl = (url) => {
         const fileName = getFileNameFromUrl(url);
@@ -117,17 +127,21 @@ const ModalCancelInformation = ({ contractId, visible, onCancel, type, setType }
                                                         hoverable
                                                         className='flex items-center justify-center'
                                                     >
-                                                        <div className='flex flex-col items-center gap-2'>
-                                                            <p>{getFileNameFromUrl(url)}</p>
-                                                            <p><FaFileAlt style={{ fontSize: 40 }} /></p>
-                                                            <Button
-                                                                type="primary"
-                                                                className='mt-3'
-                                                                onClick={() => handleDownload(url)}
-                                                            >
-                                                                Tải xuống
-                                                            </Button>
-                                                        </div>
+                                                        <Tooltip title={getFileNameFromUrl(url)} placement="top">
+                                                            <div className='flex flex-col items-center gap-2'>
+                                                                <p className="w-32 truncate text-center">
+                                                                    {getFileNameFromUrl(url)}
+                                                                </p>
+                                                                <p><FaFileAlt style={{ fontSize: 40 }} /></p>
+                                                                <Button
+                                                                    type="primary"
+                                                                    className='mt-3'
+                                                                    onClick={() => handleDownload(url)}
+                                                                >
+                                                                    Tải xuống
+                                                                </Button>
+                                                            </div>
+                                                        </Tooltip>
                                                     </Card>
                                                 </Col>
                                             ))}

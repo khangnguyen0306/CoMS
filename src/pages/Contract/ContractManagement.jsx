@@ -241,6 +241,7 @@ const ManageContracts = () => {
         'SIGN_OVERDUE': <Tag color="volcano-inverse">Quá hạn ký</Tag>,
         'LIQUIDATED': <Tag color="magenta-inverse">Đã thanh lý</Tag>,
         'EXPIRING': <Tag color="#EB7153"><p className="flex items-center gap-1"><IoIosWarning /><p>Sắp hết hạn</p></p></Tag>,
+        'SIGN_OVERDUE': <Tag color="red">Quá ngày ký</Tag>,
     }
 
     const displayStatus = {
@@ -579,7 +580,7 @@ const ManageContracts = () => {
                                     record.status == "ACTIVE" ||
                                         record.status == "COMPLETED" ||
                                         record.status == "EXPIRED" ||
-                                        record.status == "ENDED" 
+                                        record.status == "ENDED"
                                         // record.status == "SIGNED"
                                         ? [
                                             {
@@ -755,7 +756,8 @@ const ManageContracts = () => {
                 { text: 'Hết hiệu lực', value: 'EXPIRED' },
                 { text: 'Đã hủy', value: 'CANCELLED' },
                 { text: 'Đã kết thúc', value: 'ENDED' },
-                { text: 'Sắp hết hạn', value: 'EXPIRING' }
+                { text: 'Sắp hết hạn', value: 'EXPIRING' },
+                { text: 'Quá ngày ký', value: 'SIGN_OVERDUE' },
             ],
             onFilter: (value, record) => {
                 if (value === 'EXPIRING') {

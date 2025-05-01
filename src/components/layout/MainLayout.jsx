@@ -607,7 +607,7 @@ const MainLayout = () => {
                   <h3 className="text-md font-semibold text-blue-800 mb-2">Liên hệ</h3>
                   <p className="text-gray-600 text-sm flex items-start">
                     <FaMapPin size={16} className="mr-2 mt-1 flex-shrink-0" />
-                    <span>Lô E2a-7, Đường D1 Khu Công nghệ cao, P. Long Thạnh Mỹ, TP. Thủ Đức, TP. Hồ Chí Minh</span>
+                    <span>23/43/1/7 Nguyễn Hữu Tiến, Phường Tây Thạnh, Quận Tân Bình, Thành phố Hồ Chí Minh</span>
                   </p>
                   <p className="text-gray-600 text-sm flex items-center">
                     <PhoneFilled size={16} className="mr-2 flex-shrink-0" />

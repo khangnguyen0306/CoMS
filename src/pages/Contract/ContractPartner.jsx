@@ -840,7 +840,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
                     // Tạo file ZIP và save
                     const content = await zip.generateAsync({ type: "blob" });
-                    saveAs(content, "files.zip");
+                    saveAs(content, "Contract-partner-files.zip");
                 };
 
                 return (

@@ -217,7 +217,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
 
             {/* Cột bên phải: Các đợt thanh toán */}
 
-            {["SIGNED"].includes(dataPaymentDetail?.status) ? (
+            {["SIGNED", "ACTIVE", "EXPIRED", "ENDED"].includes(dataPaymentDetail?.status) ? (
                 (dataPaymentDetail?.paymentSchedules?.length || 0) === 0 ? (
                     <div className="w-1/2 pr-10 relative">
                         <h3 className="text-xl font-semibold text-center absolute top-[-40px] left-1/2 transform -translate-x-1/2">
@@ -282,7 +282,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
                         Các đợt thanh toán
                     </h3>
                     <div className="mt-10">
-                        <Empty description="Chưa có đợt thanh toán111" />
+                        <Empty description="Chưa có đợt thanh toán" />
                     </div>
                 </div>
             )}

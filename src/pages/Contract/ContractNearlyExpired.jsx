@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../slices/authSlice';
+import ExpandRowContent from './component/ExpandRowContent';
 
 const ContractNearlyExpired = () => {
     const userL = useSelector(selectCurrentUser)
