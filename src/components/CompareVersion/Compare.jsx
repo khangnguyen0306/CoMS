@@ -358,6 +358,14 @@ const Compare = () => {
                         </p>
                         <p className={`mt-3 `}><b>Số:</b> {v1.contractNumber}</p>
                     </div>
+                    <div className="mt-4">
+                        {/* <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3> */}
+                        {v1.legalBasisTerms.map((term, index) => (
+                            <div className='flex flex-col gap-1'>
+                                <p><i>- {term.value}</i></p>
+                            </div>
+                        ))}
+                    </div>
                     <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
@@ -394,14 +402,7 @@ const Compare = () => {
                         </div>
                     </div>
                     {/* LegalBasisTerms */}
-                    <div className="mt-4">
-                        <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3>
-                        {v1.legalBasisTerms.map((term, index) => (
-                            <div className='flex flex-col gap-1'>
-                                <p><i>- {term.value}</i></p>
-                            </div>
-                        ))}
-                    </div>
+
                     <p className="font-semibold mt-4 mb-3"><u>2. NỘI DUNG HỢP ĐỒNG</u></p>
                     <div
                         className="ml-1"
@@ -583,6 +584,25 @@ const Compare = () => {
                         </p>
                         <p className={`mt-3 ${isDifferent(v1?.contractNumber, v2?.contractNumber) ? "bg-yellow-300 text-green-800" : ""} `}><b>Số:</b> {v2.contractNumber}</p>
                     </div>
+
+                    <div className="mt-4">
+                        {/* <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3> */}
+                        {differencesLegalBasic.unchanged.map((term, index) => (
+                            <div >
+                                <p>- <i>{term.value}</i></p>
+                            </div>
+                        ))}
+                        {differencesLegalBasic.added.map((term, index) => (
+                            <div className='bg-yellow-300 text-green-800 my-2'>
+                                <p>- <i>{term.value}</i></p>
+                            </div>
+                        ))}
+                        {differencesLegalBasic.removed.map((term, index) => (
+                            <div className='bg-red-400'>
+                                <p>- <i>{term.value}</i></p>
+                            </div>
+                        ))}
+                    </div>
                     <div gutter={16} className="flex flex-col mt-5 pl-2 gap-5" justify="center">
                         <div className="flex flex-col gap-2" md={10} sm={24}>
                             <p className="font-bold text-lg"><u>BÊN CUNG CẤP (BÊN A)</u></p>
@@ -635,24 +655,7 @@ const Compare = () => {
 
                     </div>
                     {/* LegalBasisTerms */}
-                    <div className="mt-4">
-                        <h3 className="font-semibold mb-2"><u>1. CĂN CỨ PHÁP LÝ</u></h3>
-                        {differencesLegalBasic.unchanged.map((term, index) => (
-                            <div >
-                                <p>- <i>{term.value}</i></p>
-                            </div>
-                        ))}
-                        {differencesLegalBasic.added.map((term, index) => (
-                            <div className='bg-yellow-300 text-green-800 my-2'>
-                                <p>- <i>{term.value}</i></p>
-                            </div>
-                        ))}
-                        {differencesLegalBasic.removed.map((term, index) => (
-                            <div className='bg-red-400'>
-                                <p>- <i>{term.value}</i></p>
-                            </div>
-                        ))}
-                    </div>
+
 
                     <p className="font-semibold mt-4 mb-3"><u>2. NỘI DUNG HỢP ĐỒNG</u></p>
                     <div
@@ -685,21 +688,21 @@ const Compare = () => {
                             1. Hạng mục thanh toán
                         </p>
                         <Table
-                       dataSource={[
-                        ...v2.contractItems.map(item => ({
-                            ...item,
-                            status: 'current'
-                        })),
-                        ...v1.contractItems
-                            .filter(i1 => !v2.contractItems.some(i2 =>
-                                normalizeDescription(i2.description) === normalizeDescription(i1.description) &&
-                                Math.abs(i2.amount - i1.amount) < 1e-6
-                            ))
-                            .map(item => ({
-                                ...item,
-                                status: 'deleted'
-                            }))
-                    ]}
+                            dataSource={[
+                                ...v2.contractItems.map(item => ({
+                                    ...item,
+                                    status: 'current'
+                                })),
+                                ...v1.contractItems
+                                    .filter(i1 => !v2.contractItems.some(i2 =>
+                                        normalizeDescription(i2.description) === normalizeDescription(i1.description) &&
+                                        Math.abs(i2.amount - i1.amount) < 1e-6
+                                    ))
+                                    .map(item => ({
+                                        ...item,
+                                        status: 'deleted'
+                                    }))
+                            ]}
                             columns={paymentItemsColumns}
                             rowKey={(record) => `${record.itemOrder}-${record.description}`}
                             pagination={false}
