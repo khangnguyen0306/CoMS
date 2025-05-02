@@ -2216,8 +2216,8 @@ const CreateTemplate = () => {
 
             {/* đang hơi lag do sử dụng state */}
 
-            {/* <Modal
-                title="Thêm điều khoản chung"
+            <Modal
+                title="Thêm điều khoản"
                 open={isAddGeneralModalOpen}
                 onOk={handleAddOkGeneralTerm}
                 onCancel={handleAddGeneralCancel}
@@ -2247,7 +2247,7 @@ const CreateTemplate = () => {
                         />
                     </Form.Item>
                 </Form>
-            </Modal> */}
+            </Modal>
             <ModalAdd
                 clauseId={adddClauseId}
                 isModalAddOpen={isAddClasueModalOpen}

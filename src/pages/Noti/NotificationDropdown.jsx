@@ -7,21 +7,26 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectCurrentUser, selectNotiNumber, setNotiNumber } from "../../slices/authSlice";
 import { useNavigate } from "react-router-dom";
 import { MdMarkChatRead } from "react-icons/md";
+import { formatDateToStringDate, formatSigningDateWithTime } from "../../utils/ConvertTime";
 const NotificationDropdown = () => {
   const [page, setPage] = useState(0);
   const pageSize = 10;
   const [notifications, setNotifications] = useState([]);
-  const [fetchNotifications, { data: notiData, isFetching }] = useLazyGetNotificationsQuery();
-  const [updateNotification] = useUpdateReadStatusMutation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const [fetchNotifications, { data: notiData, isFetching }] = useLazyGetNotificationsQuery();
+  const [updateNotification] = useUpdateReadStatusMutation();
   const [readAllNotifications] = useUpdateReadStatusAllMutation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isDarkMode = useSelector((state) => state.theme.isDarkMode);
-  const notiNumber = useSelector(selectNotiNumber);
+  // const notiNumber = useSelector(selectNotiNumber);
   const user = useSelector(selectCurrentUser);
+
+
+  // console.log(notiData)
+
 
   // Load thông báo khi thay đổi page
   useEffect(() => {
@@ -156,7 +161,7 @@ const NotificationDropdown = () => {
             >
               <div className="mx-2 flex justify-between items-center w-full">
                 <div className="flex items-center">
-                  {getMessageIcon(item.message)}
+                  <p>{getMessageIcon(item.message)}</p>
                   <div className="ml-2 font-semibold">{item.title}</div>
                 </div>
                 <div
@@ -170,6 +175,7 @@ const NotificationDropdown = () => {
 
                   }}
                 >
+                  <p className="text-[12px] text-zinc-600 font-bold ml-1">{formatSigningDateWithTime(item?.createdAt)}</p>
                   {formatMessage(item.message)}
                 </div>
                 {!item.isRead && <div className="pl-2.5 w-2.5 h-2.5 bg-blue-500 rounded-full" />}

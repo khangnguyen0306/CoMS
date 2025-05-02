@@ -81,7 +81,8 @@ export const GridItemCustom = ({
   area,
   icon,
   title,
-  description
+  description,
+  ...props
 }) => {
   return (
     (<li className={`min-h-[10rem] list-none ${area}`}>
