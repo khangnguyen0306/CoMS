@@ -1,17 +1,19 @@
 import React from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useGetDataContractCompareVersionQuery } from '../../services/ContractAPI'
-import { Spin, Tag, Table } from 'antd'
+import { Spin, Tag, Table, Button } from 'antd'
 import { useSelector } from 'react-redux'
 import { useGetBussinessInformatinQuery } from '../../services/BsAPI'
 import { diffWords } from 'diff';
 import dayjs from 'dayjs';
 import { formatDateToStringDate } from '../../utils/ConvertTime'
+import { RightSquareOutlined } from '@ant-design/icons'
 
 const Compare = () => {
     const { contractId } = useParams()
     const { nowVersion } = useParams()
     const { preVersion } = useParams()
+    const navigate = useNavigate()
     const { data: process } = useGetDataContractCompareVersionQuery({ contractId, version1: nowVersion, version2: preVersion });
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
 
@@ -22,7 +24,7 @@ const Compare = () => {
         return <div>Loading or insufficient data...</div>;
     }
 
-    const [v1, v2] = [...process].sort((a, b) => a.id - b.id);
+    const [v1, v2] = [...process].sort((a, b) => a.id - b.izd);
 
 
     const stripHtml = (html) => html.replace(/<\/?[^>]+(>|$)/g, "");
@@ -338,7 +340,15 @@ const Compare = () => {
             <p className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent' style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}>
                 SO SÁNH 2 PHIÊN BẢN
             </p>
-
+            <Button
+                type='primary'
+                className='justify-self-end flex mb-4'
+                onClick={() => navigate(`/manager/approvalContract/reviewContract/${v1?.id}/approve/${v1?.id}`)}
+                icon={<RightSquareOutlined />}
+                iconPosition='end'
+            >
+                Chuyển đến trang phê duyệt
+            </Button>
             {/* Hiển thị dữ liệu của hai phiên bản */}
             <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 h-fit `}>
                 {/* Phiên bản 14 */}

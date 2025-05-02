@@ -11,7 +11,7 @@ import Cookies from "js-cookie";
 import { TypewriterEffectSmooth } from "../../components/ui/TypeWriter";
 import { FlipWords } from "../../components/ui/FlipWord";
 import { useLoginUserMutation } from '../../services/AuthAPI';
-import { selectCurrentToken, selectNotiNumber, setAvatar, setNotiNumber, setToken, setUser } from '../../slices/authSlice';
+import { selectCurrentToken, selectCurrentUser, selectNotiNumber, setAvatar, setNotiNumber, setToken, setUser } from '../../slices/authSlice';
 import ForgotPass from './ForgotPass';
 import helloIcon from "./../../assets/Image/hello.svg"
 import { useLazyGetNotificationsQuery } from '../../services/NotiAPI';
@@ -27,6 +27,7 @@ const Login = () => {
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
     const token = useSelector(selectCurrentToken)
+    const user = useSelector(selectCurrentUser)
     const notiNumber = useSelector(selectNotiNumber);
     const [isForgotPass, setIsForgoPass] = useState(false);
     const [fetchNotifications, { data }] = useLazyGetNotificationsQuery();
@@ -37,19 +38,26 @@ const Login = () => {
         // dispatch(setNotiNumber(number));
     };
 
+    const navigateByRole = {
+        'ROLE_STAFF': '/',
+        'ROLE_MANAGER': '/manager/contract',
+        'ROLE_DIRECTOR': '/',
+        'ROLE_ADMIN': '/admin/user'
+    }
+
     useEffect(() => {
-        if (token) {
+        if (user) {
             handleGetNotiNumber()
                 .then(result => {
                     dispatch(setNotiNumber(result.data.content.filter(notification => notification.isRead === false).length));
                     // console.log(result.data.content.filter(notification => notification.isRead === false).length);
-                    // navigate("/");
+                    navigate(navigateByRole[user?.roles[0]]);
                 })
                 .catch(error => {
                     // console.error(error);
                 });
         }
-    }, [token, navigate]);
+    }, [user, navigate]);
 
 
     const [loginUser, { isLoading }] = useLoginUserMutation();
@@ -94,7 +102,7 @@ const Login = () => {
                 }, 50);
                 break;
             default:
-                break; 
+                break;
         }
 
         //   const avatar = data.data.avatar; // check for change

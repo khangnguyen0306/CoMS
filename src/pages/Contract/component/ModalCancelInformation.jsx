@@ -161,7 +161,7 @@ const ModalCancelInformation = ({ contractId, visible, onCancel, type, setType }
                         </div>
                     </>
                 ) : (
-                    <div>No contract data available.</div>
+                    <div>  <Skeleton active /></div>
                 )
             )}
         </Modal >

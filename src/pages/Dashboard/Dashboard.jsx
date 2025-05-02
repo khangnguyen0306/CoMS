@@ -10,12 +10,14 @@ import { useGetAllContractQuery } from "../../services/ContractAPI";
 import ContractList from "./ContractList";
 import { FaFileExport } from "react-icons/fa";
 import { useLazyGenerateReportDashboardQuery } from "../../services/PartnerAPI";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
     const [searchText, setSearchText] = useState('');
     const [searchedColumn, setSearchedColumn] = useState('');
     const searchInput = useRef(null);
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
+    const navigate = useNavigate()
     const currentYear = new Date().getFullYear();
     const { data: dashboardData, isLoading: loadingDashboard } = useGetDashboardataQuery({ year: currentYear });
     const { data: contracts, isLoading, isError, refetch } = useGetAllContractQuery({
@@ -29,7 +31,6 @@ const Home = () => {
         }
     );
     const [genarateReport, { isLoading: loadingGenarate }] = useLazyGenerateReportDashboardQuery()
-
     const [modalVisible, setModalVisible] = useState(false);
     const [dateRange, setDateRange] = useState([null, null]);
     const [periodType, setPeriodType] = useState('')
@@ -319,7 +320,8 @@ const Home = () => {
         ACTIVE: 'ĐANG HOẠT ĐỘNG',
         SIGNED: 'ĐÃ KÝ',
         APPROVED: 'ĐÃ PHÊ DUYỆT',
-        LIQUIDATED:'ĐÃ THANH LÝ'
+        LIQUIDATED: 'ĐÃ THANH LÝ',
+        SIGN_OVERDUE: 'ĐÃ QUÁ HẠN'
     };
 
     const hiddenStatuses = ['DELETED', 'PENDING', 'CREATED', 'FIXED', 'REJECTED', 'UPDATED'];
@@ -400,12 +402,16 @@ const Home = () => {
                 {statusCountsArray?.map((stat, index) => (
                     <Col key={index} xs={24} sm={12} md={12} lg={6}>
                         <GridItemCustom
+
                             icon={null}
                             title={statusTitles[stat.status] || stat.status}
                             description={
-                                <div className={`${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                                <div
+                                    onClick={() => navigate(`/contract?paramstatus=${stat.status}`)}
+                                    className={`cursor-pointer ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
+                                >
                                     <p
-                                        href="/desired-link"
+
                                         className={`flex items-center justify-center text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-500'} hover:underline`}
                                     >
                                         {stat.count}

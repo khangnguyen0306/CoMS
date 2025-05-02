@@ -32,8 +32,8 @@ const ExpandRowContent = ({ id, appendixId }) => {
             refetchOnReconnect: true,
         }
     )
-    console.log("dataAppendix", appendixData)
-    console.log("dataPayment", dataPayment)
+    // console.log("dataAppendix", appendixData)
+    // console.log("dataPayment", dataPayment)
 
     useEffect(() => {
         if (id) {
@@ -78,7 +78,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
     // }
 
     const dataPaymentDetail = id ? dataPayment?.data : appendixData?.data;
-    console.log("daya nè", dataPaymentDetail)
+    // console.log("daya nè", dataPaymentDetail)
 
     if (!stages || stages.length === 0) {
         return <Empty description="Chưa có quy trình duyệt" />;
@@ -107,8 +107,8 @@ const ExpandRowContent = ({ id, appendixId }) => {
     };
 
     const uploadFile = async (file, paymentScheduleId) => {
-        console.log("File:", file);
-        console.log("Payment Schedule ID:", paymentScheduleId);
+        // console.log("File:", file);
+        // console.log("Payment Schedule ID:", paymentScheduleId);
         try {
             const formData = new FormData();
             formData.append("file", file);
@@ -127,7 +127,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
     const ReminderContract = async () => {
         try {
             const res = await Reminder(id).unwrap();
-            console.log(res);
+            // console.log(res);
             // const parsedRes = JSON.parse(res);
             message.success(res.message);
         } catch (error) {
@@ -169,7 +169,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
                     Quy trình phê duyệt
                 </h3>
                 <Timeline className='mt-8' mode="left">
-                    {stages.map((stage) => (
+                    {stages.map((stage, index) => (
                         <Timeline.Item
                             key={stage.stageId}
                             className="min-w-[500px]"
@@ -197,7 +197,7 @@ const ExpandRowContent = ({ id, appendixId }) => {
                                 </p>
 
                                 {/* Hiển thị nút khi là bước đang APPROVING */}
-                                {isCEO && stage.status === "APPROVING" && (
+                                {isCEO && stage.status === "APPROVING" && index + 1 !== stages.length && (
                                     <Button
                                         type="text"
                                         icon={<TbBellRingingFilled style={{ color: '#FAAD14' }} />}

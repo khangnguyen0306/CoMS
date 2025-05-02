@@ -1,4 +1,4 @@
-import { Space, Table, Tag, Tooltip, Select } from 'antd'
+import { Space, Table, Tag, Tooltip, Select, Skeleton } from 'antd'
 import Search from 'antd/es/transfer/search'
 import React, { useEffect, useState } from 'react'
 import { useGetAllContractQuery, useGetContractNearExpiredQuery } from '../../services/ContractAPI';
@@ -162,6 +162,14 @@ const ContractNearlyExpired = () => {
     useEffect(() => {
         refetch();
     }, [searchText, pagination])
+
+    if (isLoading) {
+        return (
+            <div className='min-h-[100vh] flex justify-center items-center'>
+                <Skeleton active />
+            </div>
+        )
+    }
 
     return (
         <div className='min-h-[100vh]'>

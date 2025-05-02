@@ -148,7 +148,7 @@ const ManageClause = () => {
                 order: sortOrderLegalUser
             });
         }
-    }, [activeTab, pageUserClause, pageSizeUserClause,pageSizeUserLegal,pageUserLegal, searchTermUserClause, searchTermUserLegal, userTypeFilter, sortOrderLegalUser, sortOrderClauseUser]);
+    }, [activeTab, pageUserClause, pageSizeUserClause, pageSizeUserLegal, pageUserLegal, searchTermUserClause, searchTermUserLegal, userTypeFilter, sortOrderLegalUser, sortOrderClauseUser]);
 
     const sortedClause = clauseData?.data?.content
         ?.slice()
@@ -268,7 +268,7 @@ const ManageClause = () => {
                 refetchClause();
                 refetchLegal();
                 getClauseByUserData({ page: 0, size: 10 })
-                getLegalByUserData({ page: 0, size: 10,typeTermIds: 8 })
+                getLegalByUserData({ page: 0, size: 10, typeTermIds: 8 })
                 setIsModalOpenAdd(false);
                 setIsModalOpenAddLegal(false);
                 formCreate.resetFields();
@@ -314,7 +314,7 @@ const ManageClause = () => {
                 setIdClauseToEdit('')
                 message.success("Cập nhật điều khoản thành công!");
                 getClauseByUserData({ page: 0, size: 10 })
-                getLegalByUserData({ page: 0, size: 10,typeTermIds: 8 })
+                getLegalByUserData({ page: 0, size: 10, typeTermIds: 8 })
                 refetchClause();
                 refetchLegal();
                 form.resetFields();
@@ -338,7 +338,7 @@ const ManageClause = () => {
                         // console.log(result);
                         refetchClause();
                         getClauseByUserData({ page: 0, size: 10 })
-                        getLegalByUserData({ page: 0, size: 10 , typeTermIds: 8})
+                        getLegalByUserData({ page: 0, size: 10, typeTermIds: 8 })
                         refetchLegal();
                         message.success(result.data.message || 'Xóa thành công');
                     } else if (result.error && result.error.status === 409) {
@@ -410,8 +410,8 @@ const ManageClause = () => {
             }).unwrap();
             message.success("Tải điều khoản từ file lên thành công !");
             refetchClause()
-            // getClauseByUserData({ page: 0, size: 10 })
-            // getLegalByUserData({ page: 0, size: 10,typeTermIds: 8 })
+            getClauseByUserData({ page: 0, size: 10 })
+            getLegalByUserData({ page: 0, size: 10, typeTermIds: 8 })
             formImport.resetFields()
         } catch (error) {
             console.error("Error importing file:", error);
@@ -1192,17 +1192,17 @@ const ManageClause = () => {
                                             actions={[
                                                 <div className="flex flex-col items-center gap-2 mr-3">
                                                     <div className="flex gap-3 mb-3">
-                                                    <Button
-                                                        type="primary"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleUpdateLegal(clause.clauseCode);
-                                                        }}
-                                                        className="flex items-center justify-center"
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleUpdateLegal(clause.clauseCode);
+                                                            }}
+                                                            className="flex items-center justify-center"
 
-                                                    >
-                                                        <EditFilled />
-                                                    </Button>
+                                                        >
+                                                            <EditFilled />
+                                                        </Button>
                                                         <Button
                                                             danger
                                                             type="primary"

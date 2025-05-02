@@ -1033,8 +1033,9 @@ const ManageContracts = () => {
                             <Button
                                 type="primary"
                                 icon={<PlusOutlined />}
+                                onClick={() => navigate('/createContract')}
                             >
-                                <Link to={'/createContract'}> Tạo hợp đồng</Link>
+                                <p> Tạo hợp đồng</p>
                             </Button>
 
 
