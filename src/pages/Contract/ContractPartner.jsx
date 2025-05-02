@@ -209,8 +209,6 @@ const ContractPartner = () => {
         size
     });
 
-    console.log("partner", partnerID)
-
     const user = useSelector(selectCurrentUser);
 
     const isStaff = user?.roles?.includes("ROLE_STAFF");
@@ -1030,6 +1028,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     }}
                     expandable={{
                         expandedRowRender: (record) => {
+                            console.log("record when expanding row", record);
                             if (!record?.paymentSchedules || record.paymentSchedules.length === 0) {
                                 return <Empty description="Không có lịch thanh toán" />;
                             }
@@ -1039,6 +1038,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     <h3 className="text-xl font-semibold text-center mb-4">
                                         Các đợt thanh toán
                                     </h3>
+
                                     <Collapse
                                         bordered
                                         accordion
@@ -1185,7 +1185,9 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                 </div>
 
                             );
-                        }
+                        },
+
+
                     }}
                     onChange={handleTableChange}
                     rowKey={(record) => record.partnerContractId}

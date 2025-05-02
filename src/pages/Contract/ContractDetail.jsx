@@ -772,7 +772,7 @@ const ContractDetail = () => {
                             </div>
                         </Tabs.TabPane>
                     )}
-                    {["ACTIVE", "EXPIRED", "ENDED"].includes(contractData?.data?.status) && (
+                    {["ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED", "SIGN_OVERDUE"].includes(contractData?.data?.status) && (
                         <Tabs.TabPane icon={<DollarOutlined />} tab="Các đợt thanh toán" key="4">
                             <Collapse
                                 bordered
