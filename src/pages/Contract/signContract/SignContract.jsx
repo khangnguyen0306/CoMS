@@ -66,9 +66,7 @@ const SignContract = () => {
     const [uploadOnlineSigned] = useUploadContractOnlineSignedMutation();
     const [uploadFileSignedAlready] = useUploadContractAlreadySignedMutation();
     const { refetch: refetchNoti } = useGetNumberNotiForAllQuery()
-
     const stages = processData?.data?.stages || [];
-
     const [connection, setConnection] = useState(null);
     const [hubProxy, setHubProxy] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -967,7 +965,7 @@ const SignContract = () => {
                 writeToLog('Không thể tải /signalr/hubs');
             });
         // Empty dependency array means this runs only once at mount
-    }, []);
+    }, [contractId]);
 
     const handleSign = async () => {
         if (!selectedFile) {
@@ -985,7 +983,7 @@ const SignContract = () => {
 
         try {
             const data = await uploadFileToSign({ file: selectedFile }).unwrap();
-            console.log(data)
+            // console.log(data)
 
             const signInfo = {
                 llx: dataToSign.llx,

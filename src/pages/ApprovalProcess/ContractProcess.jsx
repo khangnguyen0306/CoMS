@@ -144,7 +144,8 @@ const ContractProcess = () => {
                             {text}
                         </Link>
                     );
-                } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
+                } else  {
+                // } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
                     return (
                         <Link
                             className="font-bold text-[#228eff] block truncate max-w-[200px]"

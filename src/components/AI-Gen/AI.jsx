@@ -1,5 +1,5 @@
 import { DeleteFilled } from "@ant-design/icons";
-import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Button, Input } from "antd";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from 'react-markdown';

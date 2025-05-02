@@ -19,7 +19,7 @@ export const ContractAPI = baseApi.injectEndpoints({
                     page: params?.page || 0,
                     size: params?.size || 10,
                     keyword: params?.keyword || "",
-                    statuses: params?.status ? params.status : params?.isCEO == true ? ["REJECTED", "APPROVAL_PENDING", "APPROVED", "SIGNED", "ACTIVE", "COMPLETED", "EXPIRED", "CANCELLED", "ENDED"] : "",
+                    statuses: params?.status ? params.status : params?.isCEO == true ? ["REJECTED", "APPROVAL_PENDING", "APPROVED", "SIGNED", "ACTIVE", "COMPLETED", "EXPIRED", "CANCELLED", "ENDED", "SIGN_OVERDUE", "LIQUIDATED"] : "",
                     order: "desc"
                 },
             }),
