@@ -156,7 +156,7 @@ const ReviewContract = () => {
                                         icon={<FileSearchOutlined />}
                                         className="rounded-lg shadow-md"
                                     >
-                                        Xem Chi Tiết Hợp Đồng
+                                        Xem và phê duyệt
                                     </Button>
                                     {contract?.version != 1 && (
                                         <Button icon={<ClockCircleOutlined />} onClick={() => navigate(`/compare/${contracts?.data.originalContractId}/${contracts?.data?.version}/${contracts?.data?.version - 1}`)} type="default" className="rounded-lg">
