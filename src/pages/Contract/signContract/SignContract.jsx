@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
-import { replace, useNavigate, useParams } from 'react-router-dom';
-import { useGetContractDetailQuery, useLazyGetContractDetailQuery, useUploadContractAlreadySignedMutation, useUploadContractOnlineSignedMutation } from '../../../services/ContractAPI';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useLazyGetContractDetailQuery, useUploadContractAlreadySignedMutation, useUploadContractOnlineSignedMutation } from '../../../services/ContractAPI';
 import dayjs from 'dayjs';
 import { Button, Col, Divider, Drawer, message, Row, Spin, Table, Tabs, Tag, Timeline, Checkbox, Radio, Card } from 'antd';
 import { numberToVietnamese } from '../../../utils/ConvertMoney';
@@ -124,7 +124,7 @@ const SignContract = () => {
                     [termId]: response?.data
                 }));
             } catch (error) {
-                console.error(`Error loading term ${termId}:`, error);
+                // console.error(`Error loading term ${termId}:`, error);
             } finally {
                 setLoadingTerms((prev) => ({ ...prev, [termId]: false }));
             }
@@ -258,7 +258,7 @@ const SignContract = () => {
     const loadAuditTrailPage = async (page) => {
         try {
             const response = await fetchDdateAudittrail({ id: contractData.data?.originalContractId, params: { page, size: pageSize } }).unwrap();
-            console.log("Audit trail page", response.data);
+            // console.log("Audit trail page", response.data);
             if (page === 0) {
                 setAuditTrails(response?.data?.content);
             } else {
@@ -860,7 +860,7 @@ const SignContract = () => {
             pdfDocGenerator.getBlob((blob) => {
                 // console.log(blob)
                 const file = new File([blob], `${contractData.data.title}-${contractData.data.partnerB.partnerName}.pdf`, { type: "application/pdf" });
-                console.log(file)
+                // console.log(file)
                 setSelectedFile(file);
 
                 uploadFilePDF({ file })
@@ -932,11 +932,17 @@ const SignContract = () => {
                 proxy.on('ShowError', (err) => {
                     if (err.includes("The process cannot access the file")) {
                         setError("File ký vừa được hủy bởi người ký, vui lòng đợi trong vài phút và reload lại trang.");
+                        message.error("File ký vừa được hủy bởi người ký, vui lòng đợi trong vài phút và reload lại trang.");
                     } else {
                         setError(err);
+                        // console.log(err)
+                        if (err && err.includes('Lỗi khi ký tài liệu: Hủy nhập PIN.')) {
+                            message.error('Người dùng đã hủy hành động ký vui lòng reload trang và ký lại')
+                        }
                     }
                     setIsUploading(false);
                     writeToLog(`Lỗi: ${err}`);
+                    // message.error(err);
                 });
 
                 // Start the connection.
@@ -963,6 +969,7 @@ const SignContract = () => {
             .fail(() => {
                 setError('Không thể tải /signalr/hubs');
                 writeToLog('Không thể tải /signalr/hubs');
+                message.error('Khôn thể ký hãy kiểm tra lại USB hoặc đường truyền');
             });
         // Empty dependency array means this runs only once at mount
     }, [contractId]);
@@ -1005,6 +1012,7 @@ const SignContract = () => {
             setError(err.message);
             writeToLog(err.message);
             setIsUploading(false);
+            message.error(err);
         }
     };
 
@@ -1103,7 +1111,7 @@ const SignContract = () => {
             message.success("Ký hợp đồng thành công !")
             navite('/director/contractReadyToSign', { replace: true })
         } catch (err) {
-            console.error('Error uploading file:', err);
+            // console.error('Error uploading file:', err);
             setError('Lỗi khi upload file đã ký');
             writeToLog('Lỗi khi upload file đã ký: ' + (err.response?.data || err.message));
         } finally {
@@ -1114,6 +1122,7 @@ const SignContract = () => {
     useEffect(() => {
         if (error && error !== 'The action was cancelled by the user') {
             setSignMethod('online');
+            // message.error('có lỗi xảy ra')
         }
     }, [error])
 
@@ -1144,7 +1153,7 @@ const SignContract = () => {
             }
 
             const data = await response.json();
-            console.log(data);
+            // console.log(data);
 
             if (data.result.status === "Success") {
                 message.success('Xác thực thành công người ký!')
