@@ -425,52 +425,52 @@ const ContractAppendixPage = () => {
             }
 
             // Chỉnh sửa chi phí thanh toán
-            if (selectedTypes.includes('edit') && editOptions.cost) {
-                const [year, month, day, hour, minute] = contractDetailData.data.expiryDate;
-                const [yearE, monthE, dayE, hourE, minuteE] = contractDetailData.data.effectiveDate;
-                const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
-                const dateStringE = `${yearE}-${monthE.toString().padStart(2, '0')}-${dayE.toString().padStart(2, '0')}T${hourE.toString().padStart(2, '0')}:${minuteE.toString().padStart(2, '0')}:00`;
-                const expiryDate = dayjs(dateString);
-                const effectiveDate = dayjs(dateStringE);
-                const totalValue = contractDetailData?.data.amount || contractDetailData?.data.contractItems.reduce((sum, item) => sum + item.amount, 0);
-                const payments = contractDetailData?.data.paymentSchedules.map(schedule => {
-                    const [year, month, day, hour, minute] = schedule.paymentDate;
-                    const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
-                    return {
-                        amount: schedule.amount,
-                        paymentDate: dayjs(dateString),
-                        paymentMethod: schedule.paymentMethod,
-                        notifyPaymentDate: schedule.notifyPaymentDate ? dayjs(new Date(
-                            schedule.notifyPaymentDate[0],
-                            schedule.notifyPaymentDate[1] - 1,
-                            schedule.notifyPaymentDate[2],
-                            schedule.notifyPaymentDate[3],
-                            schedule.notifyPaymentDate[4]
-                        ))
-                            : null,
-                    };
-                });
-                form.setFieldsValue({
-                    contractItems: contractDetailData?.data.contractItems?.map((item, index) => ({
-                        id: item.id,
-                        amount: item.amount,
-                        description: item.description,
-                        itemOrder: item.itemOrder,
+            // if (selectedTypes.includes('edit') && editOptions.cost) {
+            //     const [year, month, day, hour, minute] = contractDetailData.data.expiryDate;
+            //     const [yearE, monthE, dayE, hourE, minuteE] = contractDetailData.data.effectiveDate;
+            //     const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+            //     const dateStringE = `${yearE}-${monthE.toString().padStart(2, '0')}-${dayE.toString().padStart(2, '0')}T${hourE.toString().padStart(2, '0')}:${minuteE.toString().padStart(2, '0')}:00`;
+            //     const expiryDate = dayjs(dateString);
+            //     const effectiveDate = dayjs(dateStringE);
+            //     const totalValue = contractDetailData?.data.amount || contractDetailData?.data.contractItems.reduce((sum, item) => sum + item.amount, 0);
+            //     const payments = contractDetailData?.data.paymentSchedules.map(schedule => {
+            //         const [year, month, day, hour, minute] = schedule.paymentDate;
+            //         const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+            //         return {
+            //             amount: schedule.amount,
+            //             paymentDate: dayjs(dateString),
+            //             paymentMethod: schedule.paymentMethod,
+            //             notifyPaymentDate: schedule.notifyPaymentDate ? dayjs(new Date(
+            //                 schedule.notifyPaymentDate[0],
+            //                 schedule.notifyPaymentDate[1] - 1,
+            //                 schedule.notifyPaymentDate[2],
+            //                 schedule.notifyPaymentDate[3],
+            //                 schedule.notifyPaymentDate[4]
+            //             ))
+            //                 : null,
+            //         };
+            //     });
+            //     form.setFieldsValue({
+            //         contractItems: contractDetailData?.data.contractItems?.map((item, index) => ({
+            //             id: item.id,
+            //             amount: item.amount,
+            //             description: item.description,
+            //             itemOrder: item.itemOrder,
 
-                    })) || [],
-                    totalValue,
-                    payments,
-                    extendDateRange: [
-                        effectiveDate,
-                        expiryDate,
-                    ],
-                    extendContractDate: effectiveDate,
-                    contractExpirationDate: expiryDate,
-                });
-            }
+            //         })) || [],
+            //         totalValue,
+            //         payments,
+            //         extendDateRange: [
+            //             effectiveDate,
+            //             expiryDate,
+            //         ],
+            //         extendContractDate: effectiveDate,
+            //         contractExpirationDate: expiryDate,
+            //     });
+            // }
 
             // Chỉnh sửa nội dung điều khoản
-            if (selectedTypes.includes('edit') && editOptions.terms) {
+            if (selectedTypes.includes('edit') ) {
                 const generalTerms = contractDetailData?.data.generalTerms.map(term => term.original_term_id);
 
 
@@ -671,14 +671,14 @@ const ContractAppendixPage = () => {
                                     Gia hạn hợp đồng
                                 </span>
                             </Checkbox>
-                            <Checkbox
+                            {/* <Checkbox
                                 value="liquidate"
                                 disabled={selectedTypes.length > 0 && !selectedTypes.includes('liquidate')}
                             >
                                 <span className={selectedTypes.length > 0 && !selectedTypes.includes('liquidate') ? 'text-gray-400' : ''}>
                                     Thanh lý hợp đồng
                                 </span>
-                            </Checkbox>
+                            </Checkbox> */}
                             <Checkbox
                                 value="edit"
                                 disabled={selectedTypes.length > 0 && !selectedTypes.includes('edit')}

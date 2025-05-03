@@ -24,7 +24,7 @@ const Compare = () => {
         return <div>Loading or insufficient data...</div>;
     }
 
-    const [v1, v2] = [...process].sort((a, b) => a.id - b.izd);
+    const [v1, v2] = [...process].sort((a, b) => a.id - b.id);
 
 
     const stripHtml = (html) => html.replace(/<\/?[^>]+(>|$)/g, "");
@@ -343,7 +343,7 @@ const Compare = () => {
             <Button
                 type='primary'
                 className='justify-self-end flex mb-4'
-                onClick={() => navigate(`/manager/approvalContract/reviewContract/${v1?.id}/approve/${v1?.id}`)}
+                onClick={() => navigate(`/manager/approvalContract/reviewContract/${v2?.id}/approve/${v2?.id}`)}
                 icon={<RightSquareOutlined />}
                 iconPosition='end'
             >
@@ -762,8 +762,8 @@ const Compare = () => {
                                 })),
                                 ...v1.paymentSchedules
                                     .filter(s1 => !v2.paymentSchedules.some(s2 =>
-                                        s2.paymentOrder === s1.paymentOrder &&
-                                        s2.amount == s1.amount &&
+                                        // s2.paymentOrder === s1.paymentOrder &&
+                                        Math.abs(s2.amount - s1.amount) < 1e-6 &&
                                         s2.paymentMethod == s1.paymentMethod
                                     ))
                                     .map(schedule => ({
@@ -781,7 +781,7 @@ const Compare = () => {
                                     return 'bg-red-300';
                                 }
                                 const v1Schedule = v1.paymentSchedules.find(s =>
-                                    s.paymentOrder === record.paymentOrder &&
+                                    // s.paymentOrder === record.paymentOrder &&
                                     s.amount == record.amount &&
                                     s.paymentMethod == record.paymentMethod);
                                 if (!v1Schedule) {
