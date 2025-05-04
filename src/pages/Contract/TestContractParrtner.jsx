@@ -49,6 +49,7 @@ import { selectCurrentUser } from "../../slices/authSlice";
 import { ConsoleLogger } from "@microsoft/signalr/dist/esm/Utils";
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import axios from "axios";
 // Lấy API key từ biến môi trường
 const apiKey = import.meta.env.VITE_AI_KEY_UPLOAD;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -62,6 +63,43 @@ const model = genAI.getGenerativeModel({
 
 
 // Cấu hình generationConfig theo schema mới
+
+async function uploadToGemini(file) {
+    const fileBuffer = await file.arrayBuffer();
+    const mimeType = file.type || 'application/pdf';
+    const numBytes = fileBuffer.byteLength;
+
+    const url = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`;
+    const headers = {
+        'X-Goog-Upload-Command': 'start, upload, finalize',
+        'X-Goog-Upload-Header-Content-Length': numBytes,
+        'X-Goog-Upload-Header-Content-Type': mimeType,
+        'Content-Type': mimeType,
+    };
+
+    try {
+        const response = await axios.post(url, fileBuffer, { headers });
+        let geminiFile = response.data.file;
+
+        // Đợi file được xử lý
+        while (geminiFile.state === 'PROCESSING') {
+            await new Promise(resolve => setTimeout(resolve, 10000)); // Chờ 10 giây
+            const statusResponse = await axios.get(`${geminiFile.uri}?key=${apiKey}`);
+            geminiFile = statusResponse.data;
+        }
+
+        if (geminiFile.state !== 'ACTIVE') {
+            throw new Error(`File failed to process: ${geminiFile.state}`);
+        }
+
+        return geminiFile;
+    } catch (error) {
+        console.error('Lỗi upload file lên Gemini:', error);
+        throw error;
+    }
+}
+
+
 const generationConfig = {
     // temperature: 1,
     // topP: 0.95,
@@ -172,7 +210,7 @@ const statusContract = {
     "Hết hiệu lực": <Tag color="red">Hết hiệu lực</Tag>
 };
 
-const ContractPartner = () => {
+const TestContractParrtner = () => {
     const { Panel } = Collapse;
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
 
@@ -251,30 +289,30 @@ const ContractPartner = () => {
         setFileList([]);
     };
 
-    const text = `Vui lòng đọc file PDF hợp đồng mà tôi vừa upload và trích xuất các thông tin chính sau đây. Đối với mỗi trường, nếu không tìm thấy giá trị trong tài liệu, hãy trả về giá trị null đối với các trường kiểu chuỗi hoặc số. Tuy nhiên, với các trường ngày (các trường ...Date), nếu không có giá trị, hãy trả về mảng [0, 0, 0, 0, 0, 0] thay vì mảng mặc định hoặc null.
+    const prompt = `Vui lòng đọc file PDF hợp đồng mà tôi vừa upload và trích xuất các thông tin chính sau đây. Đối với mỗi trường, nếu không tìm thấy giá trị trong tài liệu, hãy trả về giá trị null đối với các trường kiểu chuỗi hoặc số. Tuy nhiên, với các trường ngày (các trường ...Date), nếu không có giá trị, hãy trả về mảng [0, 0, 0, 0, 0, 0] thay vì mảng mặc định hoặc null.
 
 Trích xuất các trường sau:
 
 title: tiêu đề hợp đồng 
-partner: đối tượng chứa thông tin bên A, gồm:
+partner: đối tượng chứa thông tin bên B, gồm:
 
-    -partnerName: tên đối tác bên A 
+    -partnerName: tên đối tác bên B 
 
-    -spokesmanName: tên người đại diện bên A 
+    -spokesmanName: tên người đại diện bên B 
 
-    -address: địa chỉ bên A 
+    -address: địa chỉ bên B 
 
-    -email: email bên A
+    -email: email bên B
 
-    -position: vị trí của người đại diện trong công ty bên A
+    -position: vị trí của người đại diện trong công ty bên B
 
-    -taxCode: mã số thuế bên A
+    -taxCode: mã số thuế bên B
 
-    -phone: số điện thoại bên A
+    -phone: số điện thoại bên B
 
-    -bank: một mảng các tài khoản ngân hàng bên A :
-        - bankName: tên ngân hàng bên A
-        - backAccountNumber: số tài khoản ngân hàng bên A
+    -bank: một mảng các tài khoản ngân hàng bên B :
+        - bankName: tên ngân hàng bên B
+        - backAccountNumber: số tài khoản ngân hàng bên B
 contractNumber: mã số của hợp đồng 
 totalValue:tổng giá trị hợp đồng 
 effectiveDate: mảng biểu diễn ngày có hiệu lực của hợp đồng theo định dạng [năm, tháng, ngày, giờ, phút, giây]. Nếu không có giá trị của giờ, phút hoặc giây, trả về [0, 0, 0, 0, 0, 0].
@@ -296,33 +334,44 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
 
     // Hàm gọi AI để trích xuất thông tin từ file PDF
     const callAIForExtraction = async (file) => {
-
         try {
+            const geminiFile = await uploadToGemini(file);
+            console.log("Gemini file:", geminiFile);
             const fileUri = URL.createObjectURL(file);
             const data = {
                 generationConfig,
                 contents: [{
                     role: 'user',
                     parts: [
-                        { fileData: { fileUri: fileUri, mimeType: geminiFile.mimeType } },
-                        { text: prompt }
+                        {
+                            fileData: {
+                                fileUri: geminiFile.uri,
+                                mimeType: geminiFile.mimeType
+                            }
+                        },
+                        {
+                            text: prompt
+                        }
                     ]
                 }]
             };
-            const chatSession = model.startChat({
-                generationConfig,
-                history: []
-            });
 
-            const response = await chatSession.sendMessageStream(text, { file: fileUri });
-            const aiResponseText =
 
-                response.response.candidates[0]?.content?.parts[0]?.text || "";
-            const aiResponse =
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-                typeof aiResponseText === "string"
-                    ? JSON.parse(aiResponseText)
-                    : aiResponseText;
+            const response = await axios.post(url, data);
+
+            const aiResponseText = response.data
+                .candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+            let aiResponse;
+            try {
+                aiResponse = JSON.parse(aiResponseText);
+            } catch (err) {
+                console.error("Không parse được JSON từ AI:", aiResponseText, err);
+                throw err;
+            }
+
             return aiResponse;
         } catch (error) {
             console.error("Lỗi gọi AI:", error);
@@ -333,16 +382,24 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     // Hàm submit tạo hợp đồng
     const handleSubmit = async () => {
         setIsLoadingCreate(true);
-        const formData = new FormData();
-        fileList.forEach((file) => {
-            formData.append("file", file);
-        });
-
-        const url = await uploadFilePDF({ formData }).unwrap();
-        console.log("url nè", url.data)
         try {
+            // 1. Validate formUpload (fileList)
+            await formUpload.validateFields();
+
+            // 2. Validate form chính (cac field khác)
+            await form.validateFields();
+
+            // 3. Bắt đầu build FormData và upload file
+            const formData = new FormData();
+            fileList.forEach((file) => {
+                formData.append("file", file);
+            });
+
+            const url = await uploadFilePDF({ formData }).unwrap();
+            console.log("url nè", url.data);
+
+            // 4. Lấy values, chuyển đổi ngày tháng
             let values = form.getFieldsValue();
-            console.log(values.effectiveDate)
             values.fileUrl = url.data;
             values.partnerName = partnerName;
             values.effectiveDate = values.effectiveDate
@@ -350,9 +407,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     values.effectiveDate.year(),
                     values.effectiveDate.month() + 1,
                     values.effectiveDate.date(),
-                    0,
-                    0,
-                    0
+                    0, 0, 0
                 ]
                 : [0, 0, 0, 0, 0, 0];
             values.expiryDate = values.expiryDate
@@ -360,9 +415,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     values.expiryDate.year(),
                     values.expiryDate.month() + 1,
                     values.expiryDate.date(),
-                    0,
-                    0,
-                    0
+                    0, 0, 0
                 ]
                 : [0, 0, 0, 0, 0, 0];
             values.signingDate = values.signingDate
@@ -370,16 +423,13 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     values.signingDate.year(),
                     values.signingDate.month() + 1,
                     values.signingDate.date(),
-                    0,
-                    0,
-                    0
+                    0, 0, 0
                 ]
                 : [0, 0, 0, 0, 0, 0];
 
-            // Lưu ý: Đảm bảo rằng tên trường của tổng giá trị hợp đồng là "totalValue"
-            const total = Number(values.totalValue) || 0;
-            if (values.paymentSchedules && Array.isArray(values.paymentSchedules)) {
-                values.paymentSchedules = values.paymentSchedules.map((schedule) => ({
+            // 5. Xử lý paymentSchedules nếu có
+            values.paymentSchedules = Array.isArray(values.paymentSchedules)
+                ? values.paymentSchedules.map((schedule) => ({
                     ...schedule,
                     amountItem: schedule.amount,
                     paymentDate: schedule.paymentDate
@@ -387,34 +437,39 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             schedule.paymentDate.year(),
                             schedule.paymentDate.month() + 1,
                             schedule.paymentDate.date(),
-                            0,
-                            0,
-                            0
+                            0, 0, 0
                         ]
                         : [0, 0, 0, 0, 0, 0]
-                }));
-            }
+                }))
+                : [];
+
             console.log("Transformed form values:", values);
 
-
+            // 6. Gọi API tạo hợp đồng
             const res = await createContractPartner(values).unwrap();
-            console.log("Create contract response:", res);
             setContractID(res.data.partnerContractId);
             message.success("Hợp đồng đã được tạo thành công!");
-
-
-        } catch (error) {
-            console.error(error);
-            message.error("Lỗi khi xử lý file hoặc tạo hợp đồng.");
-        } finally {
-            setIsLoadingCreate(false);
             refetch();
             setIsModalVisible(false);
             form.resetFields();
             setFileList([]);
             checkPartner(taxCode);
+
+        } catch (error) {
+            // Nếu validation hoặc bất kỳ bước nào lỗi sẽ vào đây
+            console.error(error);
+            if (error.errorFields) {
+                // Đây là lỗi validateFields từ AntD
+                message.error("Vui lòng kiểm tra lại thông tin trước khi gửi!");
+            } else {
+                // Lỗi API hoặc khác
+                message.error(error?.data?.message || "Có lỗi xảy ra, thử lại sau.");
+            }
+        } finally {
+            setIsLoadingCreate(false);
         }
     };
+
 
     useEffect(() => {
         if (isModalPartner) {
@@ -689,11 +744,10 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     } else {
                         message.error("Gán hợp đồng thất bại!");
                     }
+                    refetch();
                 } catch (assignError) {
                     console.error("Lỗi khi gán hợp đồng:", assignError);
                     message.error("Không thể gán hợp đồng. Vui lòng thử lại!");
-                } finally {
-                    refetch();
                 }
             } else {
                 console.warn("Thiếu contractID hoặc partnerID, bỏ qua gán hợp đồng.");
@@ -786,37 +840,46 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                         .filter(u => u);
                 }
 
+                // Hàm tải về từng file
+                const downloadSingle = async (url) => {
+                    const res = await fetch(url);
+                    const blob = await res.blob();
 
+                    const match = url.match(/fl_attachment:([^/]+)/);
+                    const attachmentKey = match ? match[1] : null;
+
+                    const ext = url.split('.').pop();
+
+                    const filename = attachmentKey
+                        ? `${attachmentKey}.${ext}`
+                        : url.split('/').pop() || `file.${ext}`;
+                    saveAs(blob, filename + ext);
+                };
+
+                // Hàm tải zip khi có nhiều file
                 const downloadAllAsZip = async () => {
                     const zip = new JSZip();
-                    // Fetch tất cả file về dưới dạng Blob và thêm vào ZIP
                     await Promise.all(
-                        urls.map(async (url) => {
+                        urls.map(async url => {
                             const res = await fetch(url);
                             const blob = await res.blob();
-
                             const match = url.match(/fl_attachment:([^/]+)/);
                             const attachmentKey = match ? match[1] : null;
-
                             const ext = url.split('.').pop();
 
                             const filename = attachmentKey
                                 ? `${attachmentKey}.${ext}`
-                                : url.split('/').pop();
-
+                                : url.split('/').pop() || `file.${ext}`;
                             zip.file(filename, blob);
                         })
                     );
-
-                    // Tạo file ZIP và save
                     const content = await zip.generateAsync({ type: "blob" });
                     saveAs(content, "Contract-partner-files.zip");
                 };
 
                 return (
                     <div className="flex flex-col items-center gap-2">
-                        {/* Nút tải tất cả */}
-                        {urls.length > 1 && (
+                        {urls.length > 1 ? (
                             <Button
                                 type="dashed"
                                 icon={<DownloadOutlined />}
@@ -824,13 +887,20 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                             >
                                 Tải tất cả ({urls.length})
                             </Button>
+                        ) : (
+                            <Button
+                                type="primary"
+                                icon={<DownloadOutlined />}
+                                onClick={() => downloadSingle(urls[0])}
+                            >
+                                Tải file
+                            </Button>
                         )}
-
-
                     </div>
                 );
             }
         },
+
 
         {
             title: "Tên hợp đồng",
@@ -1175,7 +1245,15 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     width="90%"
                 >
                     <Form form={formUpload} layout="vertical">
-                        <Form.Item>
+                        <Form.Item
+                            rules={[
+                                {
+                                    validator: () =>
+                                        fileList.length > 0
+                                            ? Promise.resolve()
+                                            : Promise.reject(new Error('Vui lòng tải lên ít nhất một file!')),
+                                },
+                            ]}>
                             <Upload.Dragger
                                 multiple
                                 disabled={isManager || isCEO}
@@ -1290,40 +1368,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                                     {Loading ? "AI đang xử lý..." : "Dùng AI đọc thông tin"}
                                 </Button>
                             </Upload>
-                            {/* <Upload
-                                beforeUpload={async (file) => {
-                                    setLoading(true);
-                                    try {
-                                        const extractedData = await callAIForExtraction(file);
-                                        console.log("Extracted data:", extractedData);
-                                        setExtractedData(extractedData);
-                                        setPartnerName(extractedData?.partner.partnerName);
-                                        setTaxCode(extractedData?.partner?.taxCode || "");
-                                        setNewCustomerData(extractedData?.partner || {});
-                                        fillFormWithExtractedData(extractedData);
-                                        const formData = new FormData();
-                                        formData.append("file", file);
-                                        const url = await uploadFilePDF({ formData }).unwrap();
-                                        setUrl(url);
 
-                                        console.log("Uploaded file URL:", url);
-                                    } catch (error) {
-                                        console.error("Lỗi khi xử lý file:", error);
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                    return false;
-                                }}
-                                onChange={onChange}
-                                fileList={fileList}
-                                accept="application/pdf"
-                                listType="text"
-                                maxCount={1}
-                            >
-                                <Button icon={Loading ? <LoadingOutlined /> : <UploadOutlined />}>
-                                    {Loading ? "AI đang xử lý..." : "Chọn file PDF"}
-                                </Button>
-                            </Upload> */}
                         </Form.Item>
                     </Form>
 
@@ -2013,4 +2058,4 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
     );
 };
 
-export default ContractPartner;
+export default TestContractParrtner;
