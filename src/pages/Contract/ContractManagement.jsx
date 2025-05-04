@@ -501,7 +501,7 @@ const ManageContracts = () => {
                                     onClick: () => handleDuplicate(record.id),
                                 },
 
-                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED", "SIGN_OVERDUE"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
@@ -511,7 +511,7 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-                                ...(["ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED", "SIGN_OVERDUE"].includes(record.status)
+                                ...(["ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "updateStatus",
@@ -522,8 +522,9 @@ const ManageContracts = () => {
 
                                     ]
                                     : []),
-                                ...(["ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
+                                ...(["ACTIVE", "EXPIRED"].includes(record.status)
                                     ? [
+
                                         {
                                             key: "cancelContract",
                                             icon: <ImCancelCircle style={{ color: 'red' }} />,
@@ -763,7 +764,6 @@ const ManageContracts = () => {
                 { text: 'Đã kết thúc', value: 'ENDED' },
                 { text: 'Sắp hết hạn', value: 'EXPIRING' },
                 { text: 'Quá ngày ký', value: 'SIGN_OVERDUE' },
-                { text: 'Đã thanh lý', value: 'LIQUIDATED' }
             ],
             onFilter: (value, record) => {
                 if (value === 'EXPIRING') {
@@ -805,7 +805,7 @@ const ManageContracts = () => {
 
                             items: [
                                 // sau active mới hiên
-                                ...(["ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED", "SIGN_OVERDUE"].includes(record.status)
+                                ...(["ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "updateStatus",
@@ -815,7 +815,7 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED", "LIQUIDATED", "CANCELLED", "SIGN_OVERDUE"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
