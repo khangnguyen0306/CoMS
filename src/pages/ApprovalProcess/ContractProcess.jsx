@@ -35,7 +35,8 @@ const ContractProcess = () => {
 
     useEffect(() => {
         refetch();
-    }, [contractsStatus]);
+    }, [contractsStatus, pagination]);
+
     const contracts = contractsStatus?.data?.content
 
     const navigate = useNavigate();
@@ -144,8 +145,8 @@ const ContractProcess = () => {
                             {text}
                         </Link>
                     );
-                } else  {
-                // } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
+                } else {
+                    // } else if (record.status === "CREATED" || record.status === "UPDATED" || record.status === "FIXED") {
                     return (
                         <Link
                             className="font-bold text-[#228eff] block truncate max-w-[200px]"

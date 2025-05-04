@@ -485,16 +485,24 @@ const MainLayout = () => {
           <div className="flex justify-center items-center mr-36">
             {/* <p className={`${isDarkMode ? "text-white" : "text-black"} mr-4`}>{user?.fullName}</p> */}
             {(user?.roles.includes("ROLE_STAFF") || user?.roles.includes("ROLE_MANAGER") || user?.roles.includes("ROLE_DIRECTOR")) && <NotificationDropdown />}
-
-            <Avatar
-              size="large"
-              src={avatar}
-              // icon={!user.avatar && <UserOutlined />} 
-              className="bg-slate-500 cursor-pointer ml-4 hover:border-2"
+            <div
+              className="flex items-center cursor-pointer"
               onClick={() => navigate('/profile', {
                 state: { id: user.id }
               })}
-            />
+            >
+              <div className="mx-1 ml-6">
+                <span className="font-bold text-blue-500">{user?.fullName}</span>
+                {/* <span className="">{user?.email}</span> */}
+              </div>
+              <Avatar
+                size="large"
+                src={avatar}
+                icon={!user.avatar && <UserOutlined />}
+                className="bg-slate-500 cursor-pointer ml-4 hover:border-2"
+
+              />
+            </div>
             <label className="switch ml-6" >
               <input
                 checked={!isDarkMode}
