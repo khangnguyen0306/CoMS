@@ -501,7 +501,7 @@ const ManageContracts = () => {
                                     onClick: () => handleDuplicate(record.id),
                                 },
 
-                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",
@@ -511,7 +511,7 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-                                ...(["ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
+                                ...(["ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "updateStatus",
@@ -519,6 +519,12 @@ const ManageContracts = () => {
                                             label: "Cập nhật trạng thái thanh toán",
                                             onClick: () => openUpdateStatusModal(record.id),
                                         },
+
+                                    ]
+                                    : []),
+                                ...(["ACTIVE", "EXPIRED"].includes(record.status)
+                                    ? [
+
                                         {
                                             key: "cancelContract",
                                             icon: <ImCancelCircle style={{ color: 'red' }} />,
@@ -799,7 +805,7 @@ const ManageContracts = () => {
 
                             items: [
                                 // sau active mới hiên
-                                ...(["ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
+                                ...(["ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "updateStatus",
@@ -809,7 +815,7 @@ const ManageContracts = () => {
                                         },
                                     ]
                                     : []),
-                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED"].includes(record.status)
+                                ...(["SIGNED", "ACTIVE", "EXPIRED", "ENDED", "CANCELLED", "LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "uploadImagSign",

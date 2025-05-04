@@ -13,7 +13,7 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash-thinking-exp-01-21",
+  model: "gemini-2.0-flash",
 });
 
 const generationConfig = {
@@ -23,10 +23,10 @@ const generationConfig = {
   maxOutputTokens: 8192,
 };
 
-function ChatWithAI({ initialPrompt, handleGenerateAIPrompt,...othersProps }) {
+function ChatWithAI({ initialPrompt, handleGenerateAIPrompt, ...othersProps }) {
 
 
-  const darkMode =  useSelector(isDarkMode);
+  const darkMode = useSelector(isDarkMode);
 
   const [messages, setMessages] = useState([
     { sender: "ai", text: "Chào bạn COMS có thể giúp gì cho bạn ?" }
@@ -134,22 +134,22 @@ function ChatWithAI({ initialPrompt, handleGenerateAIPrompt,...othersProps }) {
         <div className="flex items-center ml-6">
           <Button onClick={handleGenerateAIPrompt}>
             Phân tích hợp đồng
-            <button onClick={toggleSuggestion} className="ml-2 text-red-500"><DeleteFilled/></button>
+            <button onClick={toggleSuggestion} className="ml-2 text-red-500"><DeleteFilled /></button>
           </Button>
         </div>
       )}
       {showSuggestion && isSuggestionVisible && (
         <div className="flex items-center ml-6 mb-4 gap-2">
-         {suggestions.map((suggestion, index) => (
-          <Button key={index} onClick={() => handleSuggestionClick(suggestion.prompt)}>
-            {suggestion.label}
-          </Button>
-          
-        ))}
+          {suggestions.map((suggestion, index) => (
+            <Button key={index} onClick={() => handleSuggestionClick(suggestion.prompt)}>
+              {suggestion.label}
+            </Button>
+
+          ))}
 
         </div>
       )}
-      <form onSubmit={handleSendMessage} className={`p-4 ${darkMode? "bg-white" :"#222222"} rounded-md flex justify-center items-center gap-2`}>
+      <form onSubmit={handleSendMessage} className={`p-4 ${darkMode ? "bg-white" : "#222222"} rounded-md flex justify-center items-center gap-2`}>
         <Input.TextArea
           className="w-full"
           type="text"

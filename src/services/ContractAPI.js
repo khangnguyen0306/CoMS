@@ -229,6 +229,20 @@ export const ContractAPI = baseApi.injectEndpoints({
             }),
             providesTags: (result, error, partnerId) => [{ type: "PartnerContract", id: partnerId }],
         }),
+        getContractPartnerByPartnerId: builder.query({
+            query: (params) => ({
+                url: `contracts/partner/${params.partnerId}`,
+                params: {
+                    page: params?.page,
+                    size: params?.size,
+                    keyword: params?.keyword,
+                    order: "desc"
+                },
+                method: "GET",
+            }),
+            providesTags: (result, error, partnerId) => [{ type: "PartnerContract", id: partnerId }],
+        }),
+
         createContractPartner: builder.mutation({
             query: (contractData) => ({
                 url: `/partner-contracts/create`,
