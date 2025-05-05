@@ -44,6 +44,8 @@ const ModalCancelContract = ({ visible, onCancel, contractId, refetch, type, set
                     onCancel()
                     refetch();
                     setType('')
+                    setFileList([])
+                    setReason('')
                 }
 
 
@@ -61,6 +63,8 @@ const ModalCancelContract = ({ visible, onCancel, contractId, refetch, type, set
                     message.success(`Hợp đồng đã cập nhật sang ${displayText[type] || "Hủy"}!`);
                     onCancel()
                     refetch();
+                    setFileList([])
+                    setReason('')
                 }
 
             }
