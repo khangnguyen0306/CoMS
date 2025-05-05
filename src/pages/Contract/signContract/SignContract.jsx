@@ -1513,12 +1513,12 @@ const SignContract = () => {
             <div className="flex justify-center mt-10 items-center pb-24">
                 <div className="flex flex-col gap-2 px-[10%] text-center">
                     <p className="text-lg"><b>ĐẠI DIỆN BÊN A</b></p>
-                    <p><b>{contractData?.data?.partnerA.partnerName?.toUpperCase()}</b></p>
+                    <p><b>{contractData?.data?.partnerA.spokesmanName?.toUpperCase()}</b></p>
                     <i className="text-zinc-600">Ký và ghi rõ họ tên</i>
                 </div>
                 <div className="flex flex-col gap-2 px-[10%] text-center">
                     <p className="text-lg"><b>ĐẠI DIỆN BÊN B</b></p>
-                    <p><b>{contractData?.data?.partnerB.partnerName?.toUpperCase()}</b></p>
+                    <p><b>{contractData?.data?.partnerB.spokesmanName?.toUpperCase()}</b></p>
                     <i className="text-zinc-600">Ký và ghi rõ họ tên</ i >
                 </div>
             </div>

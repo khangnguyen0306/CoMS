@@ -26,7 +26,7 @@ const PreviewContract = ({ form, partnerId, data }) => {
     const [fetchTerms] = useLazyGetTermDetailQuery();
     const formValues = data || (form ? form.getFieldsValue(true) : {});
 
-
+    console.log(form.getFieldsValue(true))
     // console.log(bsInfor)
 
     // Load term details for legal basis

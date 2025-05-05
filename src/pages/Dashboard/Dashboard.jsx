@@ -321,7 +321,7 @@ const Home = () => {
         SIGNED: 'ĐÃ KÝ',
         APPROVED: 'ĐÃ PHÊ DUYỆT',
         LIQUIDATED: 'ĐÃ THANH LÝ',
-        SIGN_OVERDUE: 'ĐÃ QUÁ HẠN'
+        SIGN_OVERDUE: 'ĐÃ QUÁ HẠN KÝ'
     };
 
     const hiddenStatuses = ['DELETED', 'PENDING', 'CREATED', 'FIXED', 'REJECTED', 'UPDATED'];
