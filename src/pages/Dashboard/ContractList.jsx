@@ -86,11 +86,11 @@ const ContractList = ({ contracts }) => {
             <Card.Meta
               avatar={<IoIosBookmarks style={{ fontSize: 40, color: isDarkMode ? undefined : '#4d8cf4' }} />}
               title={
-                <div className="flex justify-between">
+                <div className="flex flex-col">
                   <Title level={4} className="text-blue-600">
                     {contract.title.toUpperCase()}
                   </Title>
-                  <Tag className='h-fit' color={getStatusColor(contract.status)}>
+                  <Tag className='h-fit w-fit' color={getStatusColor(contract.status)}>
                     {displayStatus[contract.status] || contract.status}
                   </Tag>
                 </div>

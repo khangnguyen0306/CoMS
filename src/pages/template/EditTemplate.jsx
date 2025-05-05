@@ -412,9 +412,9 @@ const EditTemplate = () => {
                     {hasCommonTerms && (
                         <div className="mb-4">
                             <div className="font-semibold border-b pb-1 mb-2">Điều khoản chung</div>
-                            {commonTerms.map((term, index) => (
-                                <div key={`common-${index}`} className="mb-2 pl-3">
-                                    {term?.label && <div className="text-gray-600">{index + 1}. {term.label}</div>}
+                            {commonTerms.map((term) => (
+                                <div key={term.original_term_id} className="mb-2 pl-3">
+                                    {term?.label && <div className="text-gray-600">{term.label}</div>}
                                 </div>
                             ))}
                         </div>
@@ -1068,7 +1068,6 @@ const EditTemplate = () => {
                                     loadDataCallback={loadGenaralData}
                                     options={generalData?.data.content}
                                     showSearch
-                                    labelInValue
                                     mode="multiple"
                                     placeholder="Chọn điều khoản chung"
                                     onChange={handleSelectChange}

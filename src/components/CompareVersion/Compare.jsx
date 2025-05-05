@@ -14,7 +14,7 @@ const Compare = () => {
     const { nowVersion } = useParams()
     const { preVersion } = useParams()
     const navigate = useNavigate()
-    const { data: process } = useGetDataContractCompareVersionQuery({ contractId, version1: nowVersion, version2: preVersion });
+    const { data: process } = useGetDataContractCompareVersionQuery({ contractId, version1: nowVersion, version2: preVersion == 0 ? 1 : preVersion });
     const isDarkMode = useSelector((state) => state.theme.isDarkMode);
 
 
@@ -92,8 +92,19 @@ const Compare = () => {
             added: v2.legalBasisTerms.filter(item => !ids1.includes(item.original_term_id))     // Được thêm vào
         };
     };
+    const findDifferencesGenarealTerms = () => {
+        const ids1 = v1.generalTerms.map(item => item.original_term_id);
+        const ids2 = v2.generalTerms.map(item => item.original_term_id);
+
+        return {
+            unchanged: v1.generalTerms.filter(item => ids2.includes(item.original_term_id)), // Không thay đổi
+            removed: v1.generalTerms.filter(item => !ids2.includes(item.original_term_id)),  // Bị xóa đi
+            added: v2.generalTerms.filter(item => !ids1.includes(item.original_term_id))     // Được thêm vào
+        };
+    };
 
     const differencesLegalBasic = findDifferences();
+    const differencesGenarealTerms = findDifferencesGenarealTerms()
 
     const compareVersionsTerms = () => {
         let result = {};
@@ -491,6 +502,16 @@ const Compare = () => {
                     </div>
                     <div className="mt-4 flex flex-col">
                         <h3 className="font-semibold mt-4 mb-3"><u>5. ĐIỀU KHOẢN</u></h3>
+
+                        <div className="mt-4">
+                            <p className="font-medium mt-3 text-blue-600">ĐIỀU KHOẢN CHUNG 2 BÊN</p>
+                            {v1.generalTerms.map((term, index) => (
+                                <div className='flex flex-col gap-1'>
+                                    <p>- {term.value}</p>
+                                </div>
+                            ))}
+                        </div>
+
                         {Object.entries(v1.additionalConfig).map(([key, termData]) => {
                             const title = termTitles[key] || `Điều khoản ${key}`;
                             const commonTerms = termData.Common || [];
@@ -794,6 +815,26 @@ const Compare = () => {
                     {/* AdditionalConfig */}
                     <div className="mt-4 flex flex-col">
                         <h3 className="font-semibold mt-4 mb-3"><u>5. ĐIỀU KHOẢN</u></h3>
+
+
+                        <div className="mt-4 mx-2">
+                            <p className="font-medium mt-3 text-blue-600">ĐIỀU KHOẢN CHUNG 2 BÊN</p>
+                            {differencesGenarealTerms.unchanged.map((term, index) => (
+                                <div >
+                                    <p>- {term.value}</p>
+                                </div>
+                            ))}
+                            {differencesGenarealTerms.added.map((term, index) => (
+                                <div className='bg-yellow-300 text-green-800 my-2'>
+                                    <p>- {term.value}</p>
+                                </div>
+                            ))}
+                            {differencesGenarealTerms.removed.map((term, index) => (
+                                <div className='bg-red-400'>
+                                    <p>- {term.value}</p>
+                                </div>
+                            ))}
+                        </div>
                         {Object.keys(compareTerm).map((key) => {
                             const { Common, A, B } = compareTerm[key];
                             return (
@@ -882,13 +923,13 @@ const Compare = () => {
                     <div className='w-full flex justify-center mt-10 items-center pb-24' >
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
                             <p className='text-lg'><b>ĐẠI DIỆN BÊN A</b></p>
-                            <p className={`${isDifferent(v1?.partnerA.partnerName, v2?.partnerA.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}>
-                                <b> {v2.partnerA.partnerName.toUpperCase()}</b></p>
+                            <p className={`${isDifferent(v1?.partnerA.spokesmanName, v2?.partnerA.spokesmanName) ? "bg-yellow-300 text-green-800" : ""}`}>
+                                <b> {v2.partnerA.spokesmanName.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                         <div className='flex flex-col gap-2 px-[9%] text-center'>
-                            <p className={`${isDifferent(v1?.partnerB.partnerName, v2?.partnerB.partnerName) ? "bg-yellow-300 text-green-800" : ""}`}><b>ĐẠI DIỆN BÊN B</b></p>
-                            <p><b>{v2.partnerB.partnerName.toUpperCase()}</b></p>
+                            <p className={`${isDifferent(v1?.partnerB.spokesmanName, v2?.partnerB.spokesmanName) ? "bg-yellow-300 text-green-800" : ""}`}><b>ĐẠI DIỆN BÊN B</b></p>
+                            <p><b>{v2.partnerB.spokesmanName.toUpperCase()}</b></p>
                             <i className='text-zinc-600'>Ký và ghi rõ họ tên</i>
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Layout, Card, Typography, Button, Space, Tag, Row, Col, Skeleton, Descriptions, Input, Divider, Timeline, ConfigProvider, Breadcrumb } from "antd";
 import { FileSearchOutlined, CheckCircleOutlined, ClockCircleOutlined, LoadingOutlined, CheckOutlined, CloseOutlined, ForwardOutlined, SmallDashOutlined } from "@ant-design/icons";
 import { useGetContractDetailQuery } from "../../services/ContractAPI";
@@ -15,14 +15,20 @@ const ReviewContract = () => {
     const navigate = useNavigate();
     const user = useSelector(selectCurrentUser)
     const currentUser = useSelector(selectCurrentUser);
-    const { data: contracts, isLoading, isError } = useGetContractDetailQuery(id);
-    const { data: process, isLoading: LoadingProcess } = useGetProcessByContractIdQuery({ contractId: id });
+    const { data: contracts, isLoading, isError, refetch: refectchContract } = useGetContractDetailQuery(id);
+    const { data: process, isLoading: LoadingProcess, refetch: refetchProcess } = useGetProcessByContractIdQuery({ contractId: id });
 
 
     // Lấy mảng stages
+
+    useEffect(() => {
+        refectchContract()
+        refetchProcess()
+    }, [id])
+
     const stages = process?.data?.stages;
 
-    console.log(contracts);
+    // console.log(contracts);
 
     const matchingStage = stages?.find(stage => stage.approver === currentUser?.id);
     const StageIdMatching = matchingStage?.stageId;
@@ -158,10 +164,14 @@ const ReviewContract = () => {
                                     >
                                         Xem và phê duyệt
                                     </Button>
-                                    {contract?.version != 1 && (
-                                        <Button icon={<ClockCircleOutlined />} onClick={() => navigate(`/compare/${contracts?.data.originalContractId}/${contracts?.data?.version}/${contracts?.data?.version - 1}`)} type="default" className="rounded-lg">
-                                            So Sánh với phiên bản trước
-                                        </Button>
+                                    {(process?.data.reSubmitVersion == contract?.version && process?.data.reSubmitVersion != 1 && contract?.version != 1) ? (
+                                        <p className="mt-2 font-bold text-gray-400">Không có sự thay đổi so với phiên bản trước đó</p>
+                                    ) : (
+                                        contract?.version != 1 && (process?.data.reSubmitVersion != 0) && (
+                                            <Button icon={<ClockCircleOutlined />} onClick={() => navigate(`/compare/${contracts?.data.originalContractId}/${contracts?.data?.version}/${process?.data?.reSubmitVersion}`)} type="default" className="rounded-lg">
+                                                So Sánh với phiên bản trước
+                                            </Button>
+                                        )
                                     )}
                                 </div>
                             </div>
