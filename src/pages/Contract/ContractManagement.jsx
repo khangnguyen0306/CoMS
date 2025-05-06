@@ -839,13 +839,13 @@ const ManageContracts = () => {
                                     ]
                                     : []),
 
-                                ...(["LIQUIDATED"].includes(record.status)
+                                    ...(["LIQUIDATED"].includes(record.status)
                                     ? [
                                         {
                                             key: "AiOutlineFileDone",
                                             icon: <AiOutlineFileDone style={{ color: 'red' }} />,
                                             label: "Thông tin thanh lý",
-                                            onClick: () => openInforCancelModal(record.id),
+                                            onClick: () => openInforLiquidatedModal(record.id),
                                         },
 
                                     ]
