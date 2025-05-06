@@ -764,6 +764,7 @@ const ManageContracts = () => {
                 { text: 'Đã kết thúc', value: 'ENDED' },
                 { text: 'Sắp hết hạn', value: 'EXPIRING' },
                 { text: 'Quá ngày ký', value: 'SIGN_OVERDUE' },
+                { text: 'Đã thanh lý', value: 'LIQUIDATED' }
             ],
             onFilter: (value, record) => {
                 if (value === 'EXPIRING') {
