@@ -635,7 +635,7 @@ const Compare = () => {
                             </div>
                         ))}
                         {differencesLegalBasic.added.map((term, index) => (
-                            <div className='bg-yellow-300 text-green-800 my-2'>
+                            <div className='bg-green-300 my-2'>
                                 <p>- <i>{term.value}</i></p>
                             </div>
                         ))}
@@ -825,7 +825,7 @@ const Compare = () => {
                                 </div>
                             ))}
                             {differencesGenarealTerms.added.map((term, index) => (
-                                <div className='bg-yellow-300 text-green-800 my-2'>
+                                <div className='bg-green-300 my-2'>
                                     <p>- {term.value}</p>
                                 </div>
                             ))}
@@ -864,7 +864,7 @@ const Compare = () => {
                                                 <p className='p-1 mb-1'> {A.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {A.added.length > 0 && (
-                                                <p className='bg-yellow-300 text-green-800 p-1 mb-1'> {A.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-green-300 p-1 mb-1'> {A.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {A.removed.length > 0 && (
                                                 <p className='bg-red-400 p-1 mb-1'> {A.removed.map((item) => <p>- {item.value}</p>)}</p>
@@ -880,7 +880,7 @@ const Compare = () => {
                                                 <p className='p-1 mb-1'> {B.unchanged.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {B.added.length > 0 && (
-                                                <p className='bg-yellow-300 text-green-800 p-1 mb-1'> {B.added.map((item) => <p>- {item.value}</p>)}</p>
+                                                <p className='bg-green-300 p-1 mb-1'> {B.added.map((item) => <p>- {item.value}</p>)}</p>
                                             )}
                                             {B.removed.length > 0 && (
                                                 <p className='bg-red-400 p-1 mb-1'> {B.removed.map((item) => <p>- {item.value}</p>)}</p>
