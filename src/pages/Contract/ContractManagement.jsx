@@ -571,7 +571,8 @@ const ManageContracts = () => {
                                     record.status !== "COMPLETED" &&
                                     record.status !== "EXPIRED" &&
                                     record.status !== "CANCELLED" &&
-                                    record.status !== "ENDED"
+                                    record.status !== "ENDED" &&
+                                    record.status !== "SIGN_OVERDUE" 
                                     ? [
                                         {
                                             key: "delete",
