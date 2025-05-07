@@ -954,7 +954,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
         //     render: (value) => value?.toLocaleString("vi-VN") + " VND",
         //     sorter: (a, b) => a.totalValue - b.totalValue
         // },
-        {
+        ...(isCEO ? [] : [{
             title: "Hành động",
             key: "action",
             render: (_, record) => (
@@ -973,7 +973,7 @@ Hãy đảm bảo rằng nếu bất kỳ trường nào không có giá trị t
                     </Tooltip>
                 </Space>
             )
-        }
+        }])
     ];
 
 

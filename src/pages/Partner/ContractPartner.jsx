@@ -4,7 +4,6 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useGetContractByPartnerIdQuery } from '../../services/ContractAPI';
 import { Link } from 'react-router-dom';
 import { debounce } from 'lodash';
-import dayjs from 'dayjs';
 
 const ContractPartner = ({ partnerId }) => {
     // Quản lý state
