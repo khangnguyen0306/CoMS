@@ -70,7 +70,7 @@ const ManageContracts = () => {
     const { data: dataPayment, isLoading: isLoadingPayment, isError: isErrorPayment, refetch: refetchPaymnet } = useGetContractDetailQuery(selectedContractId, {
         skip: !selectedContractId,
     });
-    console.log(paymentId)
+    // console.log(paymentId)
     const { data: dataBill, refetch: refetchBill } = useGetImgBillQuery(paymentId, {
         skip: !paymentId,
     });
@@ -301,7 +301,7 @@ const ManageContracts = () => {
                 const [year, month, day] = dateArray;
                 return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
             },
-            defaultSortOrder: 'ascend',
+            // defaultSortOrder: 'ascend',
         },
         {
             title: "Người tạo",
@@ -650,7 +650,7 @@ const ManageContracts = () => {
                 const [year, month, day] = dateArray;
                 return dayjs(`${year}-${month}-${day}`).format('DD/MM/YYYY');
             },
-            defaultSortOrder: 'ascend',
+            // defaultSortOrder: 'ascend',
         },
         {
             title: "Người tạo",

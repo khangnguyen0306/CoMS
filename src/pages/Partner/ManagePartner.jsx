@@ -365,8 +365,7 @@ const ManagePartner = () => {
                 </Tooltip>
             ),
         },
-
-        {
+        ...(isCEO ? [] : [{
             title: 'Thao tác',
             width: '100px',
             render: (_, record) => (
@@ -382,10 +381,9 @@ const ManagePartner = () => {
                         icon={<DeleteFilled />}
                         onClick={() => handleDelete(record.partyId)}
                     />
-
                 </Space>
             ),
-        },
+        }]),
     ];
 
     const handleNameChange = (e) => {
