@@ -116,7 +116,7 @@ const ManageTemplate = () => {
             key: "contractTitle",
             render: (text, record) => (
                 <Button type="link" className="font-bold" onClick={() => setSelectedTemplateId(record.id)}>
-                    {text}
+                  {text.charAt(0).toUpperCase() + text.slice(1)}
                 </Button>
             ),
         },

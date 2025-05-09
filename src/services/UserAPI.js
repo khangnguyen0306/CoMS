@@ -1,5 +1,4 @@
 // userApi.js
-import Paragraph from "antd/es/skeleton/Paragraph";
 import { baseApi } from "./BaseAPI";
 
 export const userAPI = baseApi.injectEndpoints({
@@ -128,4 +127,5 @@ export const {
     useChangePassWordMutation,
     useUpdateAvatarMutation,
     useGetUserManagerQuery,
+    useLazyGetDetailUserByIdQuery
 } = userAPI;

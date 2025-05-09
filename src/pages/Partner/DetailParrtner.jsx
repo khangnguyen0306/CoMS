@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
-import { Card, Descriptions, Tag, Typography, Breadcrumb, Tabs, Empty, ConfigProvider, Skeleton, Row, Col, message, Form, Button, Input } from 'antd';
-import { PhoneOutlined, MailOutlined, EditFilled, SaveFilled } from '@ant-design/icons';
+import { Link, useParams } from 'react-router-dom';
+import { Card, Descriptions, Tag, Typography, Breadcrumb, Tabs, Empty, ConfigProvider, Skeleton, Row, Col, message, Form, Input } from 'antd';
+import { PhoneOutlined, MailOutlined } from '@ant-design/icons';
 import { FaUserTie } from "react-icons/fa6";
 import { useGetPartnerInfoDetailQuery } from '../../services/PartnerAPI';
 import ContractPartner from './ContractPartner';
@@ -48,7 +48,7 @@ const PartnerDetail = () => {
         switch (type) {
             case 'Nhà cung cấp':
                 return 'blue';
-            case 'Khách hàng':
+            case 'Đối tác':
                 return 'green';
             default:
                 return 'default';
@@ -104,7 +104,7 @@ const PartnerDetail = () => {
                         title: <Link to={"/"} >Trang chủ</Link>,
                     },
                     {
-                        title: <Link to={"/partner"} >Khách hàng</Link>,
+                        title: <Link to={"/partner"} >Quản lý đối tác</Link>,
                     },
                     {
                         title: <p className='font-bold'>{partnerData?.data.partnerName}</p>,
@@ -183,7 +183,7 @@ const PartnerDetail = () => {
                                             form={form}
                                             layout="vertical"
                                         >
-                                            <Form.Item label="Tên Partner" name="partnerName" rules={[{ required: true, message: 'Vui lòng nhập tên đối tác!' }]}>
+                                            <Form.Item label="Tên đối tác" name="partnerName" rules={[{ required: true, message: 'Vui lòng nhập tên đối tác!' }]}>
                                                 <Input />
                                             </Form.Item>
                                             {/* <Form.Item label="Mã Partner" name="partnerCode">
@@ -222,7 +222,7 @@ const PartnerDetail = () => {
                                         >
 
                                             <Descriptions.Item
-                                                label="Tên Partner"
+                                                label="Tên đối tác"
                                                 style={{
                                                     border: '1px solid #89c4d9',
                                                 }}
@@ -237,7 +237,7 @@ const PartnerDetail = () => {
                                                 {partnerData?.data.partnerName}
                                             </Descriptions.Item>
                                             <Descriptions.Item
-                                                label="Mã Partner"
+                                                label="Mã đối tác"
                                                 style={{
                                                     border: '1px solid #89c4d9',
                                                 }}
@@ -349,7 +349,7 @@ const PartnerDetail = () => {
                                                 ))}
                                             </Descriptions.Item>
                                             <Descriptions.Item
-                                                label="Loại Partner"
+                                                label="Loại đối tác"
                                                 style={{
                                                     border: '1px solid #89c4d9',
                                                 }}
@@ -363,7 +363,7 @@ const PartnerDetail = () => {
                                             >
                                                 <Tag color={getPartnerTypeColor(partnerData?.data.partnerType)}>
                                                     {partnerData?.data.partnerType === "PARTNER_B"
-                                                        ? "Khách hàng"
+                                                        ? "Đối tác"
                                                         : partnerData?.data.partnerType === "PARTNER_A"
                                                             ? "Nhà cung cấp"
                                                             : "Không xác định"}

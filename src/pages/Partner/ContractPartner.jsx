@@ -88,7 +88,7 @@ const ContractPartner = ({ partnerId }) => {
             key: 'title',
             render: (text, record) => (
                 <Link className='text-cyan-600 font-semibold' to={`/contractDetail/${record.id}`}>
-                    {text}
+                    {text.charAt(0).toUpperCase() + text.slice(1)}
                 </Link>
             ),
         },
