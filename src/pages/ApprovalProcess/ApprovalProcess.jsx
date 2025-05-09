@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button, Form, Select, Steps, message, Skeleton } from "antd";
 import { EditFilled, MinusCircleFilled, PlusOutlined, SaveFilled } from "@ant-design/icons";
-import { useGetUserManagerQuery } from "../../services/UserAPI";
+import { useGetUserManagerQuery, useLazyGetDetailUserByIdQuery } from "../../services/UserAPI";
 import { useGetProcessTemplatesQuery, useUpdateProcessMutation } from "../../services/ProcessAPI";
 
 const { Step } = Steps;
@@ -19,6 +19,7 @@ const ApprovalProcess = () => {
             refetchOnReconnect: true,
         }
     );
+    const [getUserDetail, { isLoading: isLoadingUserDetail }] = useLazyGetDetailUserByIdQuery();
 
     useEffect(() => {
         refetchUser()
@@ -31,13 +32,15 @@ const ApprovalProcess = () => {
     const [approvalStages, setApprovalStages] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [numberStage, setNumberStage] = useState(0)
+    const [userDetails, setUserDetails] = useState({});
+    const director = processData?.data?.stages[processData?.data.stages.length - 1]
+    console.log(director)
 
     useEffect(() => {
         if (processData && processData.data) {
             const process = processData.data;
             setNumberStage(process.stages.length);
             setApprovalStages(process.stages);
-            // Remove the last stage if it exists
             if (process.stages.length > 0) {
                 const updatedStages = process.stages
                 setApprovalStages(updatedStages);
@@ -58,15 +61,59 @@ const ApprovalProcess = () => {
         }
     }, [processData, userData, form]);
 
+
+    useEffect(() => {
+        approvalStages.forEach((stage) => {
+            if (stage.approver && !userDetails[stage.approver]) {
+                getUserDetail({ id: stage.approver }).then((result) => {
+                    if (result?.data?.full_name) {
+                        setUserDetails((prev) => ({
+                            ...prev,
+                            [stage.approver]: result.data.full_name,
+                        }));
+                    }
+                });
+            }
+        });
+    }, [approvalStages, getUserDetail, userDetails]);
+    
     // Hàm thêm đợt phê duyệt mới
+
     const handleAddStage = () => {
-        const newStageOrder =
-            approvalStages.length > 0
-                ? approvalStages[approvalStages.length - 1].stageOrder + 1
-                : 1;
-        const newStage = { stageOrder: newStageOrder, approver: null };
-        setNumberStage(newStageOrder.length)
-        setApprovalStages([...approvalStages, newStage]);
+        if (approvalStages.length === 0) {
+            // Nếu không có stage nào, thêm stage đầu tiên
+            const newStage = { stageOrder: 1, approver: null };
+            setApprovalStages([newStage]);
+            setNumberStage(1);
+        } else if (approvalStages.length === 1) {
+            const newStage = { stageOrder: 1, approver: null };
+            const updatedStages = [
+                newStage,
+                { ...approvalStages[0], stageOrder: 2 },
+            ];
+            setApprovalStages(updatedStages);
+            setNumberStage(2);
+        } else {
+            // Nếu có từ 2 stage trở lên, chèn stage mới vào vị trí kế cuối
+            const newStageOrder = approvalStages[approvalStages.length - 2].stageOrder + 1;
+            const newStage = { stageOrder: newStageOrder, approver: null };
+    
+            // Chèn stage mới vào vị trí kế cuối
+            const updatedStages = [
+                ...approvalStages.slice(0, -1), 
+                newStage,
+                { ...approvalStages[approvalStages.length - 1], stageOrder: newStageOrder + 1 }, 
+            ];
+    
+            // Đánh lại stageOrder cho tất cả stages
+            const finalStages = updatedStages.map((stage, index) => ({
+                ...stage,
+                stageOrder: index + 1,
+            }));
+    
+            setApprovalStages(finalStages);
+            setNumberStage(finalStages.length);
+        }
     };
 
 
@@ -112,22 +159,23 @@ const ApprovalProcess = () => {
     // Hàm render Steps dựa trên danh sách approvalStages
     const generateSteps = () => {
         return approvalStages.map((stage) => {
-            // Xem bước cuối là bước có stageOrder lớn nhất
             const isFinal = stage.stageOrder === approvalStages[approvalStages.length - 1].stageOrder;
-            const key = isFinal ? "stageFinal" : `stage${stage.stageOrder}`;
-            // Lấy thông tin user từ form (nếu đã cập nhật) hoặc từ dữ liệu ban đầu của quy trình
+            const key = isFinal ? 'stageFinal' : `stage${stage.stageOrder}`;
             const formValue = form.getFieldValue(key);
+
+            // Lấy thông tin người duyệt
             const foundUser =
                 formValue?.label ||
                 (stage.approver
-                    ? userData?.data?.content?.find((user) => user.id === stage.approver)?.full_name
-                    : "");
+                    ? userDetails[stage.approver] || (isLoadingUserDetail ? 'Đang tải...' : 'Chưa có')
+                    : 'Chưa có');
+
             return {
                 key,
                 title: (
                     <div className="flex justify-between items-center">
-                        <span>{isFinal ? "Đợt cuối" : `Ký duyệt đợt ${stage.stageOrder}`}</span>
-                        {(approvalStages.length > 1 && isEditing == true) && (
+                        <span>{isFinal ? 'Đợt cuối' : `Ký duyệt đợt ${stage.stageOrder}`}</span>
+                        {approvalStages.length > 1 && isEditing && !isFinal && (
                             <MinusCircleFilled
                                 className="ml-4 text-red-500 cursor-pointer"
                                 onClick={(e) => {
@@ -138,28 +186,32 @@ const ApprovalProcess = () => {
                         )}
                     </div>
                 ),
-                description: `Người duyệt: ${foundUser || "Chưa có"}`,
+                description: `Người duyệt: ${foundUser}`,
                 content: (
                     <Form.Item
                         name={key}
-                        label={`Chọn người duyệt ${isFinal ? "đợt cuối" : `đợt ${stage.stageOrder}`}`}
-                        rules={[{ required: true, message: "Vui lòng chọn người duyệt!" }]}
+                        label={`Chọn người duyệt ${isFinal ? 'Đợt cuối' : `Đợt ${stage.stageOrder}`}`}
+                        rules={[{ required: true, message: 'Vui lòng chọn người duyệt!' }]}
                     >
-                        <Select labelInValue placeholder="Chọn người duyệt">
-                            {getAvailableUsers(key).map((user) => (
-                                <Option key={user.id} value={user.id}>
-                                    {user.full_name}
-                                </Option>
-                            ))}
-                        </Select>
+                        {isFinal ? (
+                            <Select disabled defaultValue={{ value: director?.approver, label: 'Giám đốc' }}>
+                                <Option value={director?.approver}>Giám đốc</Option>
+                            </Select>
+                        ) : (
+                            <Select labelInValue placeholder="Chọn người duyệt">
+                                {getAvailableUsers(key).map((user) => (
+                                    <Option key={user.id} value={user.id}>
+                                        {user.full_name.charAt(0).toUpperCase() + user.full_name.slice(1)}
+                                    </Option>
+                                ))}
+                            </Select>
+                        )}
                     </Form.Item>
                 ),
             };
         });
     };
-
-
-    const stepsData = generateSteps();
+    const stepsData = useMemo(() => generateSteps(), [approvalStages, userDetails, form, isEditing]);
 
     // Hàm cập nhật quy trình lên BE, kết hợp dữ liệu từ form và approvalStages
     const handleUpdateProcess = async () => {
@@ -181,16 +233,11 @@ const ApprovalProcess = () => {
                 name: process.name,
                 stages: updatedStages,
             };
-            // console.log("Payload:", payload);
             const result = await updateProcess({ payload, id: process.id }).unwrap();
-            console.log(result)
+            // console.log(result)
             setIsEditing(false)
             message.success("Cập nhật quy trình thành công!");
             refetch();
-
-
-
-
         } catch (error) {
             console.log(error)
             message.error(error.data.message.includes("Trùng ID người duyệt") ? "Người duyệt trùng nhau trong 2 đợt" : error.data.message);

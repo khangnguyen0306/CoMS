@@ -294,13 +294,13 @@ const ManagePartner = () => {
 
     const columns = [
         {
-            title: 'Mã Partner',
+            title: 'Mã đối tác',
             dataIndex: 'partnerCode',
             sorter: (a, b) => a.partnerCode.localeCompare(b.partnerCode),
             width: '120px',
         },
         {
-            title: 'Tên Partner',
+            title: 'Tên đối tác',
             dataIndex: 'partnerName',
             sorter: (a, b) => a.partnerName.localeCompare(b.partnerName),
             render: (text, record) => (
@@ -317,17 +317,17 @@ const ManagePartner = () => {
             width: '200px',
         },
         {
-            title: 'Loại Partner',
+            title: 'Loại đối tác',
             dataIndex: 'partnerType',
             width: '150px',
             filters: [
                 { text: 'Nhà cung cấp', value: 'PARTNER_A' },
-                { text: 'Khách hàng', value: 'PARTNER_B' },
+                { text: 'đối tác', value: 'PARTNER_B' },
             ],
             onFilter: (value, record) => record.partnerType === value,
             render: (type) => (
                 <Tag color={type === 'PARTNER_B' ? 'blue' : 'green'}>
-                    {type === "PARTNER_A" ? "Nhà cung cấp" : "Khách hàng  "}
+                    {type === "PARTNER_A" ? "Nhà cung cấp" : "đối tác  "}
                 </Tag>
             ),
         },
@@ -412,7 +412,7 @@ const ManagePartner = () => {
                 className='font-bold text-[34px] justify-self-center pb-7 bg-custom-gradient bg-clip-text text-transparent'
                 style={{ textShadow: '8px 8px 8px rgba(0, 0, 0, 0.2)' }}
             >
-                QUẢN LÝ THÔNG TIN KHÁCH HÀNG
+                QUẢN LÝ THÔNG TIN ĐỐI TÁC
             </p>
 
             <div className="mb-4 flex justify-between items-center gap-2">
@@ -475,7 +475,7 @@ const ManagePartner = () => {
                 {!isCEO && (
                     <div className="flex gap-3">
                         <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
-                            Tạo khách hàng mới
+                            Tạo đối tác mới
                         </Button>
 
                     </div>
@@ -543,9 +543,9 @@ const ManagePartner = () => {
             />
             <Modal
                 className="w-full min-w-[800px]"
-                title={editingPartner ? "Chỉnh sửa khách hàng" : "Tạo khách hàng Mới"}
+                title={editingPartner ? "Chỉnh sửa đối tác" : "Tạo đối tác mới"}
                 open={isModalVisible}
-                okText={editingPartner ? "Chỉnh sửa khách hàng" : "Tạo khách hàng Mới"}
+                okText={editingPartner ? "Chỉnh sửa đối tác" : "Tạo đối tác mới"}
                 onOk={editingPartner ? handleEditOk : handleOk}
                 onCancel={handleCancel}
                 cancelText={"Hủy"}
@@ -565,7 +565,7 @@ const ManagePartner = () => {
                             >
                                 <Select placeholder="chọn loại">
                                     <Select.Option value="PARTNER_A">Nhà cung cấp</Select.Option>
-                                    <Select.Option value="PARTNER_B">Khách hàng</Select.Option>
+                                    <Select.Option value="PARTNER_B">Đối tác</Select.Option>
                                 </Select>
                             </Form.Item>
                             <Form.Item

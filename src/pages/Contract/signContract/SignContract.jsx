@@ -979,7 +979,7 @@ const SignContract = () => {
             setError('File chưa được tạo vui lòng thử lại!');
             return;
         }
-
+                                                                                                                                                                                                                                                                                                                                
         if (!connection || !hubProxy) {
             setError('Chưa kết nối tới SignalR');
             return;
@@ -990,7 +990,7 @@ const SignContract = () => {
 
         try {
             const data = await uploadFileToSign({ file: selectedFile }).unwrap();
-            // console.log(data)
+            console.log(data.FileId)
 
             const signInfo = {
                 llx: dataToSign.llx,

@@ -240,7 +240,10 @@ const CreateTemplate = () => {
 
     // Update the templateName state when the input changes
     const handleTemplateNameChange = (e) => {
-        setTemplateName(e.target.value);
+        const value = e.target.value;
+        const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+        setTemplateName(capitalizedValue);
+        form.setFieldsValue({ templateName: capitalizedValue });
     };
     const handleTypeChange = (e) => {
         setEditValue({
@@ -252,7 +255,8 @@ const CreateTemplate = () => {
     // Hàm xử lý thay đổi tiêu đề hợp đồng và cập nhật số hợp đồng
     const handleContractTitleChange = (e) => {
         const newTitle = e.target.value;
-        form.setFieldsValue({ contractTitle: newTitle });
+        const capitalizedValue = newTitle.charAt(0).toUpperCase() + newTitle.slice(1);
+        form.setFieldsValue({ contractTitle: capitalizedValue });
         setTemplateName(e.target.value)
     };
 
@@ -752,7 +756,7 @@ const CreateTemplate = () => {
                                 </>
                             )}
                             options={contractType?.map((type) => ({
-                                label: type.name,
+                                label: type.name.charAt(0).toUpperCase() + type.name.slice(1),
                                 value: type.id,
                                 key: type.id,
                                 disabled: isLoadingCreateType,
@@ -962,8 +966,8 @@ const CreateTemplate = () => {
                                         <p className="font-bold text-lg">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
                                         <p className="font-bold"> Độc lập - Tự do - Hạnh phúc</p>
                                         <p>-------------------</p>
-                                        <p className="text-right mr-[10%]">Ngày .... Tháng .... Năm .......</p>
-                                        <p className="text-2xl font-bold mt-3">{templateName.toUpperCase()}</p>
+                                        <p className="text-right mr-[10%]">Ngày ............ Tháng ............ Năm ...................</p>
+                                        <p className="text-2xl font-bold mt-3 break-words whitespace-normal">{templateName.toUpperCase()}</p>
                                         <p className="mt-3"><b>Số:</b> Tên HD viết tắt / ngày tháng năm</p>
                                     </div>
 
@@ -990,13 +994,13 @@ const CreateTemplate = () => {
                                             <p className="text-sm"><b>Email:</b> {bsInfor?.data.email}</p>
                                         </div>
                                         <div className="flex flex-col gap-2" md={10} sm={24}>
-                                            <p className="font-bold text-lg "><u>Bên thuê (Bên B)</u></p>
-                                            <p className="text-sm "><b>Tên công ty: </b>.............................................</p>
-                                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> .............................................</p>
-                                            <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> .............................................</p></p>
-                                            <p className="text-sm"><b>Chức vụ:</b> .............................................</p>
-                                            <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> .............................................</p></p>
-                                            <p className="text-sm"><b>Email:</b> .............................................</p>
+                                            <p className="font-bold text-lg "><u>BÊN SỬ DỤNG (BÊN B)</u></p>
+                                            <p className="text-sm "><b>Tên công ty: </b>..........................................................................................</p>
+                                            <p className="text-sm"><b>Địa chỉ trụ sở chính:</b> .............................................................................</p>
+                                            <p className="flex  text-sm justify-between"><p><b>Người đại diện:</b> .....................................................................................</p></p>
+                                            <p className="text-sm"><b>Chức vụ:</b> ................................................................................................</p>
+                                            <p className='flex text-sm justify-between'><p><b>Mã số thuế:</b> ............................................................................................</p></p>
+                                            <p className="text-sm"><b>Email:</b> .....................................................................................................</p>
                                         </div>
                                     </div>
 

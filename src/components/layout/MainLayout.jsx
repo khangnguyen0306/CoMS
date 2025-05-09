@@ -220,7 +220,7 @@ const MainLayout = () => {
 
 
   const navStaff = [
-    { icon: FaUserTie, label: 'Khách hàng', key: "client" },
+    { icon: FaUserTie, label: 'Đối tác', key: "client" },
     { icon: GoLaw, label: 'Quản lý điều khoản', key: "clause" },
     { icon: MdOutlineClass, label: 'Quản lý mẫu hợp đồng', key: "viewTemplate" },
     {
@@ -305,7 +305,7 @@ const MainLayout = () => {
 
   const navDiarector = [
     { icon: MdDashboard, label: 'Dashboard', key: "directorDashboard", default: true },
-    { icon: FaUserTie, label: 'Khách hàng', key: "client" },
+    { icon: FaUserTie, label: 'Đối tác', key: "client" },
     {
       icon: FaFileContract,
       label: 'Hợp đồng',
